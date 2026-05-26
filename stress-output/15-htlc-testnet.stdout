@@ -1,0 +1,30 @@
+======================================================================
+OmniBus HTLC / Swap Stress Test
+======================================================================
+RPC:    https://omnibusblockchain.cc:8443/api-testnet
+Chain:  testnet
+Mode:   READ-ONLY (dry-run)
+Pairs:  OMNI-ETH, OMNI-BTC, OMNI-LCX
+Flows:  3 per pair (settle, refund, timeout)
+
+Chain tip: 24661
+
+  bridge_listChains: SKIP
+  swap_listAssets: SKIP
+  htlc_list: SKIP
+  getbridges: SKIP
+
+pair OMNI-ETH flow 0 … open=y lockM=n lockT=n settle=n refund=n fail=3 skip=0
+pair OMNI-ETH flow 1 … open=y lockM=n lockT=n settle=n refund=n fail=2 skip=0
+pair OMNI-ETH flow 2 … open=y lockM=n lockT=n settle=n refund=n fail=1 skip=0
+pair OMNI-BTC flow 0 … open=y lockM=n lockT=n settle=n refund=n fail=3 skip=0
+pair OMNI-BTC flow 1 … open=y lockM=n lockT=n settle=n refund=n fail=2 skip=0
+pair OMNI-BTC flow 2 … open=y lockM=n lockT=n settle=n refund=n fail=1 skip=0
+pair OMNI-LCX flow 0 … open=y lockM=n lockT=n settle=n refund=n fail=3 skip=0
+pair OMNI-LCX flow 1 … open=y lockM=n lockT=n settle=n refund=n fail=2 skip=0
+pair OMNI-LCX flow 2 … open=y lockM=n lockT=n settle=n refund=n fail=1 skip=0
+
+======================================================================
+Totals: open=9 lockM=0 lockT=0 settle=0 refund=0 fail=18 skip=0
+======================================================================
+Report: htlc-stress-report.md

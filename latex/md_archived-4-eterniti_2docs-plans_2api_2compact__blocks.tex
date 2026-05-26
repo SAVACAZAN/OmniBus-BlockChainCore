@@ -1,0 +1,250 @@
+\chapter{Module:\+ {\ttfamily compact\+\_\+blocks} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks}{}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks}\index{Module: $<$tt$>$compact\_blocks$<$/tt$>$@{Module: $<$tt$>$compact\_blocks$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1286}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1286}%
+
+
+\begin{quote}
+Compact block relay — send only TX short IDs, \texorpdfstring{$\sim$}{\string~}90\% bandwidth reduction, reconstruct blocks from mempool. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+compact\+\_\+blocks.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 287 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 9
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1288}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1288}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1289}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1289}
+
+\begin{DoxyItemize}
+\item \`{}\+Prefilled\+Tx\`{}{\ttfamily Prefilled\+Tx}
+\end{DoxyItemize}— Prefilled transaction (TX that receiver likely doesn\textquotesingle{}t have)
+\begin{DoxyItemize}
+\item \`{}\+Compact\+Block\`{}{\ttfamily Compact\+Block}
+\end{DoxyItemize}— Compact Block message Sent instead of full block — \texorpdfstring{$\sim$}{\string~}90\% bandwidth reduction
+\begin{DoxyItemize}
+\item \`{}\+Reconstruct\+Result\`{}{\ttfamily Reconstruct\+Result}
+\end{DoxyItemize}— Result of compact block reconstruction
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Get\+Block\+Txn\`{}{\ttfamily Msg\+Get\+Block\+Txn}
+\end{DoxyItemize}— Get\+Block\+Txn message — request missing TX by index\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1290}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1290}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1291}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1291}
+
+\begin{DoxyItemize}
+\item \`{}compute\+Short\+Tx\+Id()\`{}{\ttfamily compute\+Short\+Tx\+Id()}
+\end{DoxyItemize}— Compute short TX ID from full TX hash Uses block header hash as Sip\+Has...
+\begin{DoxyItemize}
+\item \`{}compact\+Size()\`{}{\ttfamily compact\+Size()}
+\end{DoxyItemize}— Total compact block size in bytes (header + short IDs + prefilled)
+\begin{DoxyItemize}
+\item \`{}estimated\+Full\+Size()\`{}{\ttfamily estimated\+Full\+Size()}
+\end{DoxyItemize}— Estimated full block size
+\begin{DoxyItemize}
+\item \`{}savings\+Percent()\`{}{\ttfamily savings\+Percent()}
+\end{DoxyItemize}— Bandwidth savings percentage
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1293}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1293}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1294}{}\doxysubsection{\texorpdfstring{{\ttfamily Prefilled\+Tx}}{{\ttfamily Prefilled\+Tx}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1294}
+Prefilled transaction (TX that receiver likely doesn\textquotesingle{}t have)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily index}  &{\ttfamily u16}  &Index  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily tx\+\_\+size}  &{\ttfamily u32}  &Tx\+\_\+size  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 48}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1296}{}\doxysubsection{\texorpdfstring{{\ttfamily Compact\+Block}}{{\ttfamily Compact\+Block}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1296}
+Compact Block message Sent instead of full block — \texorpdfstring{$\sim$}{\string~}90\% bandwidth reduction
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily header\+\_\+height}  &{\ttfamily u64}  &Header\+\_\+height  \\
+{\ttfamily header\+\_\+timestamp}  &{\ttfamily i64}  &Header\+\_\+timestamp  \\
+{\ttfamily header\+\_\+prev\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Header\+\_\+prev\+\_\+hash  \\
+{\ttfamily header\+\_\+merkle\+\_\+root}  &{\ttfamily \+[32]\+u8}  &Header\+\_\+merkle\+\_\+root  \\
+{\ttfamily header\+\_\+nonce}  &{\ttfamily u64}  &Header\+\_\+nonce  \\
+{\ttfamily short\+\_\+id\+\_\+nonce}  &{\ttfamily u64}  &Short\+\_\+id\+\_\+nonce  \\
+{\ttfamily short\+\_\+ids}  &{\ttfamily \+[MAX\+\_\+\+COMPACT\+\_\+\+TX]\+Short\+Tx\+Id}  &Short\+\_\+ids  \\
+{\ttfamily short\+\_\+id\+\_\+count}  &{\ttfamily u16}  &Short\+\_\+id\+\_\+count  \\
+{\ttfamily prefilled}  &{\ttfamily \+[MAX\+\_\+\+PREFILLED]\+Prefilled\+Tx}  &Prefilled  \\
+{\ttfamily prefilled\+\_\+count}  &{\ttfamily u8}  &Prefilled\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 59}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1298}{}\doxysubsection{\texorpdfstring{{\ttfamily Reconstruct\+Result}}{{\ttfamily Reconstruct\+Result}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1298}
+Result of compact block reconstruction
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily success}  &{\ttfamily bool}  &Success  \\
+{\ttfamily found\+\_\+in\+\_\+mempool}  &{\ttfamily u16}  &Found\+\_\+in\+\_\+mempool  \\
+{\ttfamily missing\+\_\+count}  &{\ttfamily u16}  &Missing\+\_\+count  \\
+{\ttfamily missing\+\_\+indices}  &{\ttfamily \+[MAX\+\_\+\+COMPACT\+\_\+\+TX]\+u16}  &Missing\+\_\+indices  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 100}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1300}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Get\+Block\+Txn}}{{\ttfamily Msg\+Get\+Block\+Txn}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1300}
+Get\+Block\+Txn message — request missing TX by index
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily indices}  &{\ttfamily \+[MAX\+\_\+\+COMPACT\+\_\+\+TX]\+u16}  &Indices  \\
+{\ttfamily count}  &{\ttfamily u16}  &Count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 160}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1302}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1302}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily SHORT\+\_\+\+TXID\+\_\+\+SIZE}  &{\ttfamily usize = 6}  &S h o r t\+\_\+ t x i d\+\_\+ s i z e  \\
+{\ttfamily MAX\+\_\+\+COMPACT\+\_\+\+TX}  &{\ttfamily usize = 10\+\_\+000}  &M a x\+\_\+ c o m p a c t\+\_\+ t x  \\
+{\ttfamily MAX\+\_\+\+PREFILLED}  &{\ttfamily usize = 100}  &M a x\+\_\+ p r e f i l l e d  \\
+{\ttfamily SIPHASH\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 16}  &S i p h a s h\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily Short\+Tx\+Id}  &{\ttfamily \+[SHORT\+\_\+\+TXID\+\_\+\+SIZE]\+u8}  &Short tx id  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1304}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1304}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1305}{}\doxysubsection{\texorpdfstring{{\ttfamily compute\+Short\+Tx\+Id()}}{{\ttfamily compute\+Short\+Tx\+Id()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1305}
+Compute short TX ID from full TX hash Uses block header hash as Sip\+Hash key for domain separation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ computeShortTxId(tx\_hash:\ [32]u8,\ block\_nonce:\ u64)\ ShortTxId\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily block\+\_\+nonce}  &{\ttfamily u64}  &Block\+\_\+nonce  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Short\+Tx\+Id}
+
+{\itshape Defined at line 33}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1307}{}\doxysubsection{\texorpdfstring{{\ttfamily compact\+Size()}}{{\ttfamily compact\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1307}
+Total compact block size in bytes (header + short IDs + prefilled)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ compactSize(self:\ *const\ CompactBlock)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Compact\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 76}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1309}{}\doxysubsection{\texorpdfstring{{\ttfamily estimated\+Full\+Size()}}{{\ttfamily estimated\+Full\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1309}
+Estimated full block size
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimatedFullSize(self:\ *const\ CompactBlock)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Compact\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 85}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1311}{}\doxysubsection{\texorpdfstring{{\ttfamily savings\+Percent()}}{{\ttfamily savings\+Percent()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1311}
+Bandwidth savings percentage
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ savingsPercent(self:\ *const\ CompactBlock)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Compact\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 91}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1313}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__blocks_autotoc_md1313}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ *const\ MsgGetBlockTxn)\ [32\ +\ 2\ +\ MAX\_COMPACT\_TX\ *\ 2]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Msg\+Get\+Block\+Txn}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32 + 2 + MAX\+\_\+\+COMPACT\+\_\+\+TX \texorpdfstring{$\ast$}{*} 2]\+u8}
+
+{\itshape Defined at line 165}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

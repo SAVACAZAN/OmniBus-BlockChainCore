@@ -1,0 +1,440 @@
+\chapter{Module:\+ {\ttfamily pq\+\_\+crypto} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto}{}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto}\index{Module: $<$tt$>$pq\_crypto$<$/tt$>$@{Module: $<$tt$>$pq\_crypto$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2689}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2689}%
+
+
+\begin{quote}
+Post-\/\+Quantum cryptography via liboqs C bindings — ML-\/\+DSA-\/87 (Dilithium-\/5), Falcon-\/512, SLH-\/\+DSA-\/256s (SPHINCS+), ML-\/\+KEM-\/768 (Kyber) key generation, signing, verification. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+pq\+\_\+crypto.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 669 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 13 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 13
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2691}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2691}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2692}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2692}
+
+\begin{DoxyItemize}
+\item \`{}\+Ml\+Dsa87\`{}{\ttfamily Ml\+Dsa87}
+\end{DoxyItemize}— Data structure for ml dsa87. Fields include:\+ secret\+\_\+key.
+\begin{DoxyItemize}
+\item \`{}\+Falcon512\`{}{\ttfamily Falcon512}
+\end{DoxyItemize}— Data structure for falcon512. Fields include:\+ secret\+\_\+key.
+\begin{DoxyItemize}
+\item \`{}\+Slh\+Dsa256s\`{}{\ttfamily Slh\+Dsa256s}
+\end{DoxyItemize}— Data structure for slh dsa256s. Fields include:\+ secret\+\_\+key.
+\begin{DoxyItemize}
+\item \`{}\+Ml\+Kem768\`{}{\ttfamily Ml\+Kem768}
+\end{DoxyItemize}— Data structure for ml kem768. Fields include:\+ secret\+\_\+key.
+\begin{DoxyItemize}
+\item \`{}\+PQCrypto\`{}{\ttfamily PQCrypto}
+\end{DoxyItemize}— Data structure representing a p q crypto in the pq\+\_\+crypto module.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2693}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2693}
+
+\begin{DoxyItemize}
+\item 17 constants defined17 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2694}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2694}
+
+\begin{DoxyItemize}
+\item \`{}generate\+Key\+Pair()\`{}{\ttfamily generate\+Key\+Pair()}
+\end{DoxyItemize}— Performs the generate key pair operation on the pq\+\_\+crypto module.
+\begin{DoxyItemize}
+\item \`{}sign()\`{}{\ttfamily sign()}
+\end{DoxyItemize}— Cryptographically signs the data using the private key.
+\begin{DoxyItemize}
+\item \`{}verify()\`{}{\ttfamily verify()}
+\end{DoxyItemize}— Validates the pq\+\_\+crypto. Returns true if valid, false otherwise.
+\begin{DoxyItemize}
+\item \`{}generate\+Key\+Pair()\`{}{\ttfamily generate\+Key\+Pair()}
+\end{DoxyItemize}— Performs the generate key pair operation on the pq\+\_\+crypto module.
+\begin{DoxyItemize}
+\item \`{}sign()\`{}{\ttfamily sign()}
+\end{DoxyItemize}— Cryptographically signs the data using the private key.
+\begin{DoxyItemize}
+\item \`{}verify()\`{}{\ttfamily verify()}
+\end{DoxyItemize}— Validates the pq\+\_\+crypto. Returns true if valid, false otherwise.
+\begin{DoxyItemize}
+\item \`{}generate\+Key\+Pair()\`{}{\ttfamily generate\+Key\+Pair()}
+\end{DoxyItemize}— Performs the generate key pair operation on the pq\+\_\+crypto module.
+\begin{DoxyItemize}
+\item \`{}sign()\`{}{\ttfamily sign()}
+\end{DoxyItemize}— Cryptographically signs the data using the private key.
+\begin{DoxyItemize}
+\item \`{}verify()\`{}{\ttfamily verify()}
+\end{DoxyItemize}— Validates the pq\+\_\+crypto. Returns true if valid, false otherwise.
+\begin{DoxyItemize}
+\item \`{}generate\+Key\+Pair()\`{}{\ttfamily generate\+Key\+Pair()}
+\end{DoxyItemize}— Performs the generate key pair operation on the pq\+\_\+crypto module.
+\begin{DoxyItemize}
+\item \`{}encapsulate()\`{}{\ttfamily encapsulate()}
+\end{DoxyItemize}— Performs the encapsulate operation on the pq\+\_\+crypto module.
+\begin{DoxyItemize}
+\item \`{}decapsulate()\`{}{\ttfamily decapsulate()}
+\end{DoxyItemize}— Performs the decapsulate operation on the pq\+\_\+crypto module.
+\begin{DoxyItemize}
+\item \`{}algorithm\+For\+Coin\+Type()\`{}{\ttfamily algorithm\+For\+Coin\+Type()}
+\end{DoxyItemize}— Performs the algorithm for coin type operation on the pq\+\_\+crypto module...
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2696}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2696}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2697}{}\doxysubsection{\texorpdfstring{{\ttfamily Ml\+Dsa87}}{{\ttfamily Ml\+Dsa87}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2697}
+Data structure for ml dsa87. Fields include:\+ secret\+\_\+key.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily secret\+\_\+key}  &{\ttfamily \+[SECRET\+\_\+\+KEY\+\_\+\+SIZE]\+u8}  &Secret\+\_\+key  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2699}{}\doxysubsection{\texorpdfstring{{\ttfamily Falcon512}}{{\ttfamily Falcon512}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2699}
+Data structure for falcon512. Fields include:\+ secret\+\_\+key.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily secret\+\_\+key}  &{\ttfamily \+[SECRET\+\_\+\+KEY\+\_\+\+SIZE]\+u8}  &Secret\+\_\+key  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 152}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2701}{}\doxysubsection{\texorpdfstring{{\ttfamily Slh\+Dsa256s}}{{\ttfamily Slh\+Dsa256s}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2701}
+Data structure for slh dsa256s. Fields include:\+ secret\+\_\+key.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily secret\+\_\+key}  &{\ttfamily \+[SECRET\+\_\+\+KEY\+\_\+\+SIZE]\+u8}  &Secret\+\_\+key  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 234}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2703}{}\doxysubsection{\texorpdfstring{{\ttfamily Ml\+Kem768}}{{\ttfamily Ml\+Kem768}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2703}
+Data structure for ml kem768. Fields include:\+ secret\+\_\+key.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily secret\+\_\+key}  &{\ttfamily \+[SECRET\+\_\+\+KEY\+\_\+\+SIZE]\+u8}  &Secret\+\_\+key  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 325}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2705}{}\doxysubsection{\texorpdfstring{{\ttfamily PQCrypto}}{{\ttfamily PQCrypto}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2705}
+Data structure representing a p q crypto in the pq\+\_\+crypto module.
+
+{\itshape Defined at line 529}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2707}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2707}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily PUBLIC\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 2592}  &P u b l i c\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 4896}  &S e c r e t\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily SIGNATURE\+\_\+\+MAX}  &{\ttfamily usize = 4627}  &S i g n a t u r e\+\_\+ m a x  \\
+{\ttfamily PUBLIC\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 897}  &P u b l i c\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 1281}  &S e c r e t\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily SIGNATURE\+\_\+\+MAX}  &{\ttfamily usize = 752}  &S i g n a t u r e\+\_\+ m a x  \\
+{\ttfamily PUBLIC\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 64}  &P u b l i c\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 128}  &S e c r e t\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily SIGNATURE\+\_\+\+MAX}  &{\ttfamily usize = 29792}  &S i g n a t u r e\+\_\+ m a x  \\
+{\ttfamily PUBLIC\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 1184}  &P u b l i c\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 2400}  &S e c r e t\+\_\+ k e y\+\_\+ s i z e  \\
+{\ttfamily CIPHERTEXT\+\_\+\+SIZE}  &{\ttfamily usize = 1088}  &C i p h e r t e x t\+\_\+ s i z e  \\
+{\ttfamily SHARED\+\_\+\+SECRET\+\_\+\+SIZE}  &{\ttfamily usize = 32}  &S h a r e d\+\_\+ s e c r e t\+\_\+ s i z e  \\
+{\ttfamily Dilithium5}  &{\ttfamily Ml\+Dsa87}  &Dilithium5  \\
+{\ttfamily SPHINCSPlus}  &{\ttfamily Slh\+Dsa256s}  &S p h i n c s plus  \\
+{\ttfamily Kyber768}  &{\ttfamily Ml\+Kem768}  &Kyber768  \\
+{\ttfamily Domain\+Algorithm}  &{\ttfamily enum \{ Ml\+Dsa87, Falcon512, Slh\+Dsa256s \}}  &Domain algorithm  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2709}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2709}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2710}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Key\+Pair()}}{{\ttfamily generate\+Key\+Pair()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2710}
+Performs the generate key pair operation on the pq\+\_\+crypto module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateKeyPair()\ !MlDsa87\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Ml\+Dsa87}
+
+{\itshape Defined at line 86}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2712}{}\doxysubsection{\texorpdfstring{{\ttfamily sign()}}{{\ttfamily sign()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2712}
+Cryptographically signs the data using the private key.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sign(self:\ *const\ MlDsa87,\ message:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Ml\+Dsa87}  &The instance  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 106}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2714}{}\doxysubsection{\texorpdfstring{{\ttfamily verify()}}{{\ttfamily verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2714}
+Validates the pq\+\_\+crypto. Returns true if valid, false otherwise.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verify(self:\ *const\ MlDsa87,\ message:\ []const\ u8,\ signature:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Ml\+Dsa87}  &The instance  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily signature}  &{\ttfamily \+[]\+const u8}  &Signature  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 130}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2716}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Key\+Pair()}}{{\ttfamily generate\+Key\+Pair()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2716}
+Performs the generate key pair operation on the pq\+\_\+crypto module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateKeyPair()\ !Falcon512\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Falcon512}
+
+{\itshape Defined at line 160}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2718}{}\doxysubsection{\texorpdfstring{{\ttfamily sign()}}{{\ttfamily sign()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2718}
+Cryptographically signs the data using the private key.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sign(self:\ *const\ Falcon512,\ message:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Falcon512}  &The instance  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 177}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2720}{}\doxysubsection{\texorpdfstring{{\ttfamily verify()}}{{\ttfamily verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2720}
+Validates the pq\+\_\+crypto. Returns true if valid, false otherwise.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verify(self:\ *const\ Falcon512,\ message:\ []const\ u8,\ signature:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Falcon512}  &The instance  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily signature}  &{\ttfamily \+[]\+const u8}  &Signature  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 207}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2722}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Key\+Pair()}}{{\ttfamily generate\+Key\+Pair()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2722}
+Performs the generate key pair operation on the pq\+\_\+crypto module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateKeyPair()\ !SlhDsa256s\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Slh\+Dsa256s}
+
+{\itshape Defined at line 242}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2724}{}\doxysubsection{\texorpdfstring{{\ttfamily sign()}}{{\ttfamily sign()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2724}
+Cryptographically signs the data using the private key.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sign(self:\ *const\ SlhDsa256s,\ message:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slh\+Dsa256s}  &The instance  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 267}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2726}{}\doxysubsection{\texorpdfstring{{\ttfamily verify()}}{{\ttfamily verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2726}
+Validates the pq\+\_\+crypto. Returns true if valid, false otherwise.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verify(self:\ *const\ SlhDsa256s,\ message:\ []const\ u8,\ signature:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slh\+Dsa256s}  &The instance  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily signature}  &{\ttfamily \+[]\+const u8}  &Signature  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 293}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2728}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Key\+Pair()}}{{\ttfamily generate\+Key\+Pair()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2728}
+Performs the generate key pair operation on the pq\+\_\+crypto module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateKeyPair()\ !MlKem768\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Ml\+Kem768}
+
+{\itshape Defined at line 334}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2730}{}\doxysubsection{\texorpdfstring{{\ttfamily encapsulate()}}{{\ttfamily encapsulate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2730}
+Performs the encapsulate operation on the pq\+\_\+crypto module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encapsulate(self:\ *const\ MlKem768,\ allocator:\ std.mem.Allocator)\ !struct\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Ml\+Kem768}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !struct}
+
+{\itshape Defined at line 379}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2732}{}\doxysubsection{\texorpdfstring{{\ttfamily decapsulate()}}{{\ttfamily decapsulate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2732}
+Performs the decapsulate operation on the pq\+\_\+crypto module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decapsulate(self:\ *const\ MlKem768,\ ciphertext:\ []const\ u8)\ ![SHARED\_SECRET\_SIZE]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Ml\+Kem768}  &The instance  \\
+{\ttfamily ciphertext}  &{\ttfamily \+[]\+const u8}  &Ciphertext  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[SHARED\+\_\+\+SECRET\+\_\+\+SIZE]\+u8}
+
+{\itshape Defined at line 440}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2734}{}\doxysubsection{\texorpdfstring{{\ttfamily algorithm\+For\+Coin\+Type()}}{{\ttfamily algorithm\+For\+Coin\+Type()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2pq__crypto_autotoc_md2734}
+Performs the algorithm for coin type operation on the pq\+\_\+crypto module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ algorithmForCoinType(coin\_type:\ u32)\ ?DomainAlgorithm\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily coin\+\_\+type}  &{\ttfamily u32}  &Coin\+\_\+type  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Domain\+Algorithm}
+
+{\itshape Defined at line 537}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

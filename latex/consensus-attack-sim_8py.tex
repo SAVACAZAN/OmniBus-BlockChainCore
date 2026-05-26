@@ -1,0 +1,57 @@
+\doxysection{tools/\+\+EXPLOITS/\+consensus-\/attack-\/sim.py File Reference}
+\hypertarget{consensus-attack-sim_8py}{}\label{consensus-attack-sim_8py}\index{tools/EXPLOITS/consensus-\/attack-\/sim.py@{tools/EXPLOITS/consensus-\/attack-\/sim.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceconsensus-attack-sim}{consensus-\/attack-\/sim}}
+\item 
+namespace \doxymbox{\hyperlink{namespaceconsensus}{consensus}}
+\begin{DoxyCompactList}\small\item\em -\/attack-\/sim \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{consensus-\/attack-\/sim.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{consensus-\/attack-\/sim.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_abf994b8269849d29e07697ea8a840f74}{consensus-\/attack-\/sim.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_adf0e2aa4d06b5ca38e44721821eca783}{consensus-\/attack-\/sim.\+log\+\_\+warn}} (str msg)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a361c5f0bd145fe720a509d70f35b6843}{consensus-\/attack-\/sim.\+simulate\+\_\+51\+\_\+attack}} (float network\+\_\+ghps, float attacker\+\_\+fraction, float duration\+\_\+hours)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ac3fbd109327474770036b21820e83367}{consensus-\/attack-\/sim.\+simulate\+\_\+selfish\+\_\+mining}} (float network\+\_\+ghps, float attacker\+\_\+fraction, int rounds=1000)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae7e6f74fc99ab26bbf8de7de3250a715}{consensus-\/attack-\/sim.\+simulate\+\_\+eclipse\+\_\+attack}} (int num\+\_\+peers=8, int malicious\+\_\+peers=8)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a209dc44027a98c0ee9c77f93325b7b12}{consensus-\/attack-\/sim.\+simulate\+\_\+long\+\_\+range\+\_\+attack}} (float stake\+\_\+fraction, int history\+\_\+days)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_aee6430161293cdddff3c68a7a5a0a3d3}{consensus-\/attack-\/sim.\+simulate\+\_\+nothing\+\_\+at\+\_\+stake}} (int validators, int attacker\+\_\+validators, int forks=10)
+\item 
+int \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a7431cb90017e54fe695b23d4190db046}{consensus-\/attack-\/sim.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a14f30d3b65d103465398defdd35d794d}{consensus-\/attack-\/sim.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_acf6670f0d20c6f202469e7b5a4263e07}{consensus-\/attack-\/sim.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_acbfabc1526ce0f38fe356936162302db}{consensus-\/attack-\/sim.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_aabbdbef89ba9f113b9a9c79c9d4c5df1}{consensus-\/attack-\/sim.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a2aa1b510c9f6b1007f2f11485e4df32c}{consensus-\/attack-\/sim.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ad5dd5f6952bdd8cbb8cf4095b383f2e5}{consensus-\/attack-\/sim.\+BLOCK\+\_\+\+TIME\+\_\+\+SEC}} = 10.\+0
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a08329e879cdf0667c29574733945e318}{consensus-\/attack-\/sim.\+BLOCK\+\_\+\+REWARD}} = 50.\+0
+\item 
+int \doxymbox{\hyperlink{namespaceconsensus-attack-sim_aa20f97b4370626f407f80e18cc19a171}{consensus-\/attack-\/sim.\+HASHRATE\+\_\+\+NETWORK\+\_\+\+GHPS}} = 1\+\_\+000\+\_\+000
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae01eaf17374b7240dcbca3b40c334d71}{consensus-\/attack-\/sim.\+COST\+\_\+\+PER\+\_\+\+GHPS\+\_\+\+HOUR}} = 0.\+05
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a1c56f113cc1cd6bf67e4ba552a71fb14}{consensus-\/attack-\/sim.\+COST\+\_\+\+ECLIPSE\+\_\+\+NODE\+\_\+\+RENT}} = 500.\+0
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a020e12a1b20671ed04e016e7236ae7fb}{consensus-\/attack-\/sim.\+COST\+\_\+\+STAKE\+\_\+\+PER\+\_\+\+OMNI}} = 1.\+0
+\end{DoxyCompactItemize}

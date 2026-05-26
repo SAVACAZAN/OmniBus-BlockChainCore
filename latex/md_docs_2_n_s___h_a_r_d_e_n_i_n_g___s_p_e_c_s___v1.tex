@@ -1,0 +1,311 @@
+\chapter{Omni\+Bus NS Hardening — v1 Specs }
+\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1}{}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1}\index{OmniBus NS Hardening — v1 Specs@{OmniBus NS Hardening — v1 Specs}}
+\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4211}%
+\Hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4211}%
+
+
+Authored 2026-\/04-\/29. Source of truth for the NS rewrite. Implementer (Kimi or Claude) {\bfseries{must not deviate}} without amending this doc first.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4212}{}\doxysection{\texorpdfstring{Goals}{Goals}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4212}
+Add to the existing {\ttfamily dns\+\_\+registry.\+zig} the same security patterns the exchange already enjoys (signed canonical messages + HMAC REST bypass + on-\/disk audit log), so an institutional KYC-\/only chain can:\+
+
+
+\begin{DoxyEnumerate}
+\item Prove that every NS state change was authorized by the holder of the private key matching the on-\/chain owner address — {\bfseries{no impostor registration, transfer, or update}}.
+\item Enforce realistic name lifecycle:\+ registrations expire, owners renew, premium names cost more, reserved names cannot be squatted.
+\item Hand a regulator a tamper-\/evident append-\/only audit trail of every NS operation.
+\end{DoxyEnumerate}\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4213}{}\doxysection{\texorpdfstring{Non-\/goals (Phase 1)}{Non-\/goals (Phase 1)}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4213}
+
+\begin{DoxyItemize}
+\item Multisig owners (Phase 3)
+\item Freezable names (Phase 3)
+\item ZK-\/attested KYC tied to NS (Phase 4)
+\item Auctions /\+ commit-\/reveal /\+ front-\/running protection (post-\/\+Phase 1)
+\end{DoxyItemize}\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4214}{}\doxysection{\texorpdfstring{Source of truth — files to read first}{Source of truth — files to read first}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4214}
+
+\begin{DoxyItemize}
+\item {\ttfamily core/\+dns\+\_\+registry.\+zig} — current registry storage + {\ttfamily register\+With\+Tld\+And\+Fee} + {\ttfamily consumed\+\_\+txids}
+\item {\ttfamily core/\+rpc\+\_\+server.\+zig:\+1358-\/1361} — current 4 NS RPCs
+\item {\ttfamily core/\+rpc\+\_\+server.\+zig:\+6269-\/6296} — {\ttfamily build\+Order\+Sign\+Message} /\+ {\ttfamily build\+Cancel\+Sign\+Message} — canonical message format pattern (mimic exactly)
+\item {\ttfamily core/\+rpc\+\_\+server.\+zig:\+6300-\/6321} — pubkey → ob1q address derivation + {\ttfamily verify\+Payload\+Signature}
+\item {\ttfamily core/\+rpc\+\_\+server.\+zig:\+7124-\/7203} — {\ttfamily handle\+Exchange\+Get\+Auth\+Nonce} /\+ {\ttfamily handle\+Exchange\+Login} /\+ {\ttfamily handle\+Exchange\+Create\+Api\+Key} — REST HMAC pattern with {\ttfamily REST\+\_\+\+HMAC\+\_\+\+BYPASS} sentinel for the {\ttfamily signature} field
+\item {\ttfamily core/\+secp256k1.\+zig} — Secp256k1\+Crypto.\+verify
+\item {\ttfamily core/\+registrar\+\_\+addresses.\+zig} — reserved names tied to registrar slots (genesis-\/protected)
+\end{DoxyItemize}\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4215}{}\doxysection{\texorpdfstring{Canonical messages}{Canonical messages}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4215}
+All four payloads use the same SHA256d + secp256k1 ECDSA + low-\/S + 33-\/byte compressed pubkey contract as the exchange. Lines are joined with {\ttfamily \textbackslash{}n}. {\bfseries{No trailing newline.}} UTF-\/8 bytes only.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4216}{}\doxysubsection{\texorpdfstring{DNS\+\_\+\+REGISTER\+\_\+\+V1}{DNS\+\_\+\+REGISTER\+\_\+\+V1}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4216}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{DNS\_REGISTER\_V1}
+\DoxyCodeLine{<name>}
+\DoxyCodeLine{<tld>}
+\DoxyCodeLine{<address>}
+\DoxyCodeLine{<owner>}
+\DoxyCodeLine{<nonce>}
+
+\end{DoxyCode}
+
+
+Fields:\+
+\begin{DoxyItemize}
+\item {\ttfamily name} — lowercase a-\/z 0-\/9 \+\_\+, 3..25 chars, must start with a-\/z
+\item {\ttfamily tld} — {\ttfamily \doxylink{namespaceomnibus}{omnibus}} or {\ttfamily arbitraje}
+\item {\ttfamily \doxylink{namespaceaddress}{address}} — bech32 ob1q… (the resolve target, may equal owner)
+\item {\ttfamily owner} — bech32 ob1q… (signer, becomes registry owner)
+\item {\ttfamily nonce} — u64, monotonically increasing per-\/owner (server tracks last-\/seen)
+\end{DoxyItemize}
+
+The signer must be the holder of {\ttfamily owner}. Server verifies {\ttfamily pubkey → hash160 → bech32("{}ob"{}, 0, h160) == owner}. Mismatch ⇒ -\/32602 {\ttfamily signing pubkey does not match owner \doxylink{namespaceaddress}{address}}.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4217}{}\doxysubsection{\texorpdfstring{DNS\+\_\+\+TRANSFER\+\_\+\+V1}{DNS\+\_\+\+TRANSFER\+\_\+\+V1}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4217}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{DNS\_TRANSFER\_V1}
+\DoxyCodeLine{<name>}
+\DoxyCodeLine{<tld>}
+\DoxyCodeLine{<new\_owner>}
+\DoxyCodeLine{<nonce>}
+
+\end{DoxyCode}
+
+
+Signer must be the {\bfseries{current owner}} at time of transfer. The new owner does not need to sign (one-\/sided transfer, identical to ENS).\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4218}{}\doxysubsection{\texorpdfstring{DNS\+\_\+\+UPDATE\+\_\+\+V1}{DNS\+\_\+\+UPDATE\+\_\+\+V1}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4218}
+Updates the resolve target ({\ttfamily \doxylink{namespaceaddress}{address}} field) without changing ownership.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{DNS\_UPDATE\_V1}
+\DoxyCodeLine{<name>}
+\DoxyCodeLine{<tld>}
+\DoxyCodeLine{<new\_address>}
+\DoxyCodeLine{<nonce>}
+
+\end{DoxyCode}
+
+
+Signer must be the current owner.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4219}{}\doxysubsection{\texorpdfstring{DNS\+\_\+\+RENEW\+\_\+\+V1}{DNS\+\_\+\+RENEW\+\_\+\+V1}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4219}
+Extends {\ttfamily expires\+\_\+block} by {\ttfamily RENEWAL\+\_\+\+PERIOD\+\_\+\+BLOCKS} (\texorpdfstring{$\sim$}{\string~}1 year). Owner must sign and either pay the per-\/\+TLD fee on mainnet (same {\ttfamily fee\+\_\+txid} flow as register) or pay nothing on testnet.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{DNS\_RENEW\_V1}
+\DoxyCodeLine{<name>}
+\DoxyCodeLine{<tld>}
+\DoxyCodeLine{<nonce>}
+
+\end{DoxyCode}
+
+
+Signer must be the current owner. After grace period (30 days = 2\+\_\+592\+\_\+000 blocks at 1s/\+block), name is auctionable; renewal during grace is allowed but doesn\textquotesingle{}t reset the start of the grace window.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4220}{}\doxysection{\texorpdfstring{Dns\+Entry — v2 fields (additive only — preserves Phase 1 binary compat for existing entries)}{Dns\+Entry — v2 fields (additive only — preserves Phase 1 binary compat for existing entries)}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4220}
+Add to {\ttfamily Dns\+Entry}:\+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+{\ttfamily last\+\_\+nonce}  &u64  &Last accepted nonce for this owner+name pair. Reject {\ttfamily nonce \texorpdfstring{$<$}{<}= last\+\_\+nonce}. Init to 0 on register.  \\
+{\ttfamily last\+\_\+action\+\_\+block}  &u64  &Block height of last register/\+transfer/\+update/\+renew.  \\
+{\ttfamily grace\+\_\+until\+\_\+block}  &u64  &{\ttfamily expires\+\_\+block + 2\+\_\+592\+\_\+000}. Zero = no grace (unset for legacy v1 entries).  \\
+\end{DoxyTable}
+
+
+Existing {\ttfamily expires\+\_\+block} already exists. New entries set {\ttfamily expires\+\_\+block = registered\+\_\+block + RENEWAL\+\_\+\+PERIOD\+\_\+\+BLOCKS}. Legacy entries (loaded from old {\ttfamily dns\+\_\+registry.\+bin}) keep their pre-\/v2 values; the registry treats them as renewable but does not enforce signed-\/only register on them retroactively.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4221}{}\doxysection{\texorpdfstring{Reserved names}{Reserved names}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4221}
+Hardcoded list; extensible by editing the array. {\bfseries{Reservation = name is reserved across ALL TLDs.}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ dns\_registry.zig}
+\DoxyCodeLine{pub\ const\ RESERVED\_NAMES\ =\ [\_][]const\ u8\{}
+\DoxyCodeLine{\ \ \ \ //\ OmniBus\ /\ ecosystem\ self-\/references}
+\DoxyCodeLine{\ \ \ \ "{}omnibus"{},\ "{}omni"{},\ "{}blockchain"{},\ "{}satoshi"{},\ "{}nakamoto"{},}
+\DoxyCodeLine{\ \ \ \ "{}exchange"{},\ "{}wallet"{},\ "{}node"{},\ "{}miner"{},\ "{}validator"{},\ "{}treasury"{},}
+\DoxyCodeLine{\ \ \ \ "{}admin"{},\ "{}root"{},\ "{}system"{},\ "{}api"{},\ "{}support"{},}
+\DoxyCodeLine{\ \ \ \ //\ Top\ global\ brands\ (start\ small\ —\ easy\ to\ extend\ without\ forking)}
+\DoxyCodeLine{\ \ \ \ "{}google"{},\ "{}apple"{},\ "{}microsoft"{},\ "{}amazon"{},\ "{}meta"{},\ "{}facebook"{},}
+\DoxyCodeLine{\ \ \ \ "{}tesla"{},\ "{}spacex"{},\ "{}twitter"{},\ "{}x"{},\ "{}openai"{},\ "{}anthropic"{},}
+\DoxyCodeLine{\ \ \ \ "{}binance"{},\ "{}coinbase"{},\ "{}kraken"{},\ "{}uniswap"{},\ "{}metamask"{},\ "{}ledger"{},}
+\DoxyCodeLine{\ \ \ \ "{}ethereum"{},\ "{}bitcoin"{},\ "{}solana"{},\ "{}polygon"{},\ "{}arbitrum"{},\ "{}base"{},}
+\DoxyCodeLine{\ \ \ \ "{}lcx"{},\ "{}liberty"{},}
+\DoxyCodeLine{\ \ \ \ //\ Stablecoins\ /\ financial}
+\DoxyCodeLine{\ \ \ \ "{}usdc"{},\ "{}usdt"{},\ "{}dai"{},\ "{}tether"{},\ "{}circle"{},}
+\DoxyCodeLine{\ \ \ \ "{}visa"{},\ "{}mastercard"{},\ "{}paypal"{},\ "{}stripe"{},}
+\DoxyCodeLine{\ \ \ \ //\ Add\ more\ as\ needed.}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+Plus the {\ttfamily registrar\+\_\+addresses.\+zig} reservations are still authoritative (slot-\/tied). {\ttfamily is\+Reserved\+Name(name)} returns true if EITHER list contains {\ttfamily name}.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4222}{}\doxysection{\texorpdfstring{Premium pricing — anti-\/squatting}{Premium pricing — anti-\/squatting}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4222}
+Replace the flat {\ttfamily fee\+For\+Tld(tld)} with a 2D function {\ttfamily fee\+For\+Name(name, tld)}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ feeForName(name:\ []const\ u8,\ tld:\ []const\ u8)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ const\ base\ =\ feeForTld(tld);\ //\ 5\_000\_000\_000\ omnibus,\ 10\_000\_000\_000\ arbitraje}
+\DoxyCodeLine{\ \ \ \ return\ switch\ (name.len)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 1\ =>\ base\ *\ 200,\ \ \ \ //\ 1\ char\ =\ 1000\ OMNI\ on\ .omnibus}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 2\ =>\ base\ *\ 100,\ \ \ \ //\ 2\ chars\ =\ 500\ OMNI}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 3\ =>\ base\ *\ 20,\ \ \ \ \ //\ 3\ chars\ =\ 100\ OMNI}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 4\ =>\ base\ *\ 4,\ \ \ \ \ \ //\ 4\ chars\ =\ 20\ OMNI}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ else\ =>\ base,\ \ \ \ \ \ \ //\ 5+\ chars\ =\ base\ fee\ (5\ OMNI)}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+But:\+ current {\ttfamily MIN\+\_\+\+NAME\+\_\+\+LEN = 3}. So 1-\/ and 2-\/char branches are dormant unless we lower the floor. Keep them — future-\/proof if we open shorter names as auctions.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4223}{}\doxysection{\texorpdfstring{Per-\/owner cap — anti-\/hoarding}{Per-\/owner cap — anti-\/hoarding}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4223}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ MAX\_NAMES\_PER\_OWNER:\ usize\ =\ 10;}
+
+\end{DoxyCode}
+
+
+Walk {\ttfamily entries\+[]\+}, count active non-\/expired with matching owner. If {\ttfamily \texorpdfstring{$>$}{>}= MAX}, reject register /\+ transfer-\/in.
+
+Exempt:\+ registrar slot owners (savacazan, faucet, etc.) — they need many names by design.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4224}{}\doxysection{\texorpdfstring{Audit log}{Audit log}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4224}
+Append-\/only line-\/delimited JSON file at {\ttfamily data/\+\texorpdfstring{$<$}{<}\doxylink{namespacechain}{chain}\texorpdfstring{$>$}{>}/\+dns\+\_\+audit.\doxylink{namespacelog}{log}}. Every successful state change writes one line; failed verifies are NOT logged here (they\textquotesingle{}re already in stderr).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{"{}ts"{}:1714400000,"{}block"{}:64132,"{}op"{}:"{}register"{},"{}name"{}:"{}alice"{},"{}tld"{}:"{}omnibus"{},"{}address"{}:"{}ob1q…"{},"{}owner"{}:"{}ob1q…"{},"{}nonce"{}:1,"{}signer\_pubkey"{}:"{}02a1…"{},"{}signature"{}:"{}abcd…"{},"{}fee\_paid\_sat"{}:5000000000,"{}fee\_txid"{}:"{}…64hex…"{}\}}
+\DoxyCodeLine{\{"{}ts"{}:1714400060,"{}block"{}:64133,"{}op"{}:"{}transfer"{},"{}name"{}:"{}alice"{},"{}tld"{}:"{}omnibus"{},"{}old\_owner"{}:"{}ob1q…"{},"{}new\_owner"{}:"{}ob1q…"{},"{}nonce"{}:2,"{}signer\_pubkey"{}:"{}02a1…"{},"{}signature"{}:"{}abcd…"{}\}}
+\DoxyCodeLine{\{"{}ts"{}:1714400120,"{}block"{}:64134,"{}op"{}:"{}update"{},"{}name"{}:"{}alice"{},"{}tld"{}:"{}omnibus"{},"{}old\_address"{}:"{}ob1q…A"{},"{}new\_address"{}:"{}ob1q…B"{},"{}nonce"{}:3,"{}signer\_pubkey"{}:"{}02a1…"{},"{}signature"{}:"{}abcd…"{}\}}
+\DoxyCodeLine{\{"{}ts"{}:1714400180,"{}block"{}:64135,"{}op"{}:"{}renew"{},"{}name"{}:"{}alice"{},"{}tld"{}:"{}omnibus"{},"{}new\_expires\_block"{}:95689760,"{}nonce"{}:4,"{}signer\_pubkey"{}:"{}02a1…"{},"{}signature"{}:"{}abcd…"{},"{}fee\_paid\_sat"{}:5000000000,"{}fee\_txid"{}:"{}…64hex…"{}\}}
+
+\end{DoxyCode}
+
+
+Writer:\+ open in append mode + line buffer + flush per write. {\bfseries{Never truncate.}} Rotation is operator\textquotesingle{}s job (logrotate config).\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4225}{}\doxysection{\texorpdfstring{RPC surface — JSON-\/\+RPC}{RPC surface — JSON-\/\+RPC}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4225}
+Existing 4 stay. Add 3 new methods:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{transfername(name,\ tld,\ new\_owner,\ nonce,\ signature,\ publicKey)}
+\DoxyCodeLine{\ \ →\ \{\ name,\ tld,\ old\_owner,\ new\_owner,\ transferredAtBlock\ \}}
+\DoxyCodeLine{\ \ Errors:}
+\DoxyCodeLine{\ \ \ \ -\/32602\ Missing\ param\ X}
+\DoxyCodeLine{\ \ \ \ -\/32400\ Name\ not\ found}
+\DoxyCodeLine{\ \ \ \ -\/32401\ Signing\ pubkey\ does\ not\ match\ current\ owner}
+\DoxyCodeLine{\ \ \ \ -\/32402\ Nonce\ too\ low\ (replay)}
+\DoxyCodeLine{\ \ \ \ -\/32403\ Per-\/owner\ cap\ exceeded\ for\ new\_owner}
+\DoxyCodeLine{}
+\DoxyCodeLine{updatename(name,\ tld,\ new\_address,\ nonce,\ signature,\ publicKey)}
+\DoxyCodeLine{\ \ →\ \{\ name,\ tld,\ old\_address,\ new\_address,\ updatedAtBlock\ \}}
+\DoxyCodeLine{\ \ Same\ -\/3240x\ errors.}
+\DoxyCodeLine{}
+\DoxyCodeLine{renewname(name,\ tld,\ nonce,\ signature,\ publicKey,\ fee\_txid?)}
+\DoxyCodeLine{\ \ →\ \{\ name,\ tld,\ old\_expires\_block,\ new\_expires\_block,\ fee\_paid\_sat\ \}}
+\DoxyCodeLine{\ \ -\/32602\ /\ -\/32401\ /\ -\/32402,\ plus\ -\/32031\ fee\ TX\ invalid\ (mainnet\ only).}
+
+\end{DoxyCode}
+
+
+{\ttfamily registername} keeps current 5 positional params for backward compat BUT new params 5-\/7 added:\+ {\ttfamily nonce}, {\ttfamily signature}, {\ttfamily public\+Key}. When {\ttfamily signature == "{}"{}} (or absent) AND {\ttfamily fee\+\_\+enforcement == false}, registry runs in legacy permissionless mode (testnet bootstrap). Once {\ttfamily fee\+\_\+enforcement} flips on, signature becomes mandatory. {\ttfamily REST\+\_\+\+HMAC\+\_\+\+BYPASS} sentinel works the same as in Place\+Order for REST clients with valid HMAC.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4226}{}\doxysection{\texorpdfstring{REST surface — Kraken-\/style}{REST surface — Kraken-\/style}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4226}
+After the existing {\ttfamily /\+exchange/\+0/\+...} and {\ttfamily /\+paper/\+0/\+...}, add {\ttfamily /\+dns/\+0/\+...}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{GET\ \ /dns/0/public/Resolve?name=alice\&tld=omnibus}
+\DoxyCodeLine{GET\ \ /dns/0/public/ReverseLookup?address=ob1q…}
+\DoxyCodeLine{GET\ \ /dns/0/public/List?offset=0\&limit=50}
+\DoxyCodeLine{POST\ /dns/0/private/Register\ \ \ \ \ \ \{\ name,\ tld,\ address,\ owner,\ nonce,\ signature,\ publicKey,\ fee\_txid?\ \}}
+\DoxyCodeLine{POST\ /dns/0/private/Transfer\ \ \ \ \ \ \{\ name,\ tld,\ new\_owner,\ nonce,\ signature,\ publicKey\ \}}
+\DoxyCodeLine{POST\ /dns/0/private/Update\ \ \ \ \ \ \ \ \{\ name,\ tld,\ new\_address,\ nonce,\ signature,\ publicKey\ \}}
+\DoxyCodeLine{POST\ /dns/0/private/Renew\ \ \ \ \ \ \ \ \ \{\ name,\ tld,\ nonce,\ signature,\ publicKey,\ fee\_txid?\ \}}
+
+\end{DoxyCode}
+
+
+Private methods accept {\ttfamily signature:\+ "{}REST\+\_\+\+HMAC\+\_\+\+BYPASS"{}} plus a valid HMAC-\/\+SHA512 header per the existing exchange flow. Open\+API spec must be auto-\/extended at {\ttfamily /\+openapi.json} and {\ttfamily /\+swagger-\/ui} reflects automatically.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4227}{}\doxysection{\texorpdfstring{Test plan — pattern}{Test plan — pattern}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4227}
+Place new tests in {\ttfamily core/\+dns\+\_\+registry\+\_\+test.\+zig} (new file) AND extend {\ttfamily tests/\+rpc/\+dns\+\_\+test.\+zig} (or create if missing). One canonical test:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ core/dns\_registry\_test.zig\ —\ Phase\ 1\ acceptance\ test\ (Claude-\/authored,\ Kimi\ extends)}
+\DoxyCodeLine{const\ std\ =\ @import("{}std"{});}
+\DoxyCodeLine{const\ dns\ =\ @import("{}dns\_registry.zig"{});}
+\DoxyCodeLine{const\ sig\_mod\ =\ @import("{}secp256k1.zig"{});}
+\DoxyCodeLine{const\ rpc\ =\ @import("{}rpc\_server.zig"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{test\ "{}DNS\_REGISTER\_V1\ —\ happy\ path:\ matching\ pubkey,\ monotonic\ nonce,\ audit\ line\ written"{}\ \{}
+\DoxyCodeLine{\ \ \ \ var\ reg\ =\ dns.DnsRegistry.init();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ const\ priv\ =\ [\_]u8\{0x42\}\ **\ 32;}
+\DoxyCodeLine{\ \ \ \ const\ pub\_compressed\ =\ try\ sig\_mod.Secp256k1Crypto.privateKeyToPublicKey(priv);}
+\DoxyCodeLine{\ \ \ \ //\ Address\ =\ bech32(hash160(pub\_compressed))}
+\DoxyCodeLine{\ \ \ \ var\ addr\_buf:\ [64]u8\ =\ undefined;}
+\DoxyCodeLine{\ \ \ \ const\ owner\_addr\ =\ try\ rpc.deriveOBAddressFromPubkey(pub\_compressed,\ std.testing.allocator);}
+\DoxyCodeLine{\ \ \ \ defer\ std.testing.allocator.free(owner\_addr);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ var\ msg\_buf:\ [256]u8\ =\ undefined;}
+\DoxyCodeLine{\ \ \ \ const\ msg\ =\ try\ std.fmt.bufPrint(\&msg\_buf,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}DNS\_REGISTER\_V1\(\backslash\)nalice\(\backslash\)nomnibus\(\backslash\)n\{s\}\(\backslash\)n\{s\}\(\backslash\)n1"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .\{\ owner\_addr,\ owner\_addr\ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ const\ sig\ =\ try\ sig\_mod.Secp256k1Crypto.sign(priv,\ msg);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Server-\/side\ verify\ path}
+\DoxyCodeLine{\ \ \ \ const\ valid\ =\ sig\_mod.Secp256k1Crypto.verify(pub\_compressed,\ msg,\ sig);}
+\DoxyCodeLine{\ \ \ \ try\ std.testing.expect(valid);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Apply\ to\ registry}
+\DoxyCodeLine{\ \ \ \ try\ reg.registerWithTld("{}alice"{},\ "{}omnibus"{},\ owner\_addr,\ owner\_addr,\ 100);}
+\DoxyCodeLine{\ \ \ \ const\ resolved\ =\ reg.resolveWithTld("{}alice"{},\ "{}omnibus"{},\ 100);}
+\DoxyCodeLine{\ \ \ \ try\ std.testing.expect(resolved\ !=\ null);}
+\DoxyCodeLine{\ \ \ \ try\ std.testing.expectEqualStrings(owner\_addr,\ resolved.?.getAddress());}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Kimi extends with:\+ tampered signature rejected, pubkey-\/vs-\/owner mismatch rejected, replay (nonce reuse) rejected, transfer requires current owner, update requires current owner, renew extends expiry, renewing during grace works, renewing after grace+expiry works, reserved name rejected, premium fee scaling, per-\/owner cap, audit line format check, REST HMAC path, etc. \texorpdfstring{$\sim$}{\string~}16-\/20 tests total.\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4228}{}\doxysection{\texorpdfstring{Migration}{Migration}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4228}
+Phase 1 deploy:\+
+\begin{DoxyEnumerate}
+\item {\ttfamily dns\+\_\+registry.\+bin} v2 layout adds 3 trailing fields per entry (24 extra bytes). Loader detects file version (current = no version byte, treat as v1, fill new fields with defaults:\+ {\ttfamily last\+\_\+nonce=0}, {\ttfamily last\+\_\+action\+\_\+block=registered\+\_\+block}, {\ttfamily grace\+\_\+until\+\_\+block=expires\+\_\+block+grace}).
+\item Save in v2 format always.
+\item Audit log bootstraps empty.
+\item Testnet wipe acceptable per user direction (zero real users).
+\end{DoxyEnumerate}
+
+Mainnet:\+
+\begin{DoxyItemize}
+\item Set {\ttfamily dns.\+fee\+\_\+enforcement = true} AND {\ttfamily dns.\+signed\+\_\+required = true} simultaneously at activation block. Pre-\/activation entries grandfathered (signature optional for read-\/only resolves; signed required for any state change going forward).
+\end{DoxyItemize}\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4229}{}\doxysection{\texorpdfstring{Out of scope this phase}{Out of scope this phase}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4229}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Phase  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Why deferred  \\
+Multisig owners (M-\/of-\/N)  &3  &Wire format change; needs Mu\+Sig2  \\
+Frozen names (regulator)  &3  &Politically sensitive — needs governance design  \\
+Time-\/locked recovery  &3  &Needs robust on-\/chain clock + cancel logic  \\
+ZK-\/\+KYC attestation  &4  &Library not present (need arkworks/\+halo2); months of work  \\
+Vickrey auction for premium  &post-\/\+Ph1  &UX heavy, low priority pre-\/launch  \\
+Commit-\/reveal anti-\/front-\/run  &post-\/\+Ph1  &Low ROI under KYC threat model  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4230}{}\doxysection{\texorpdfstring{Acceptance criteria}{Acceptance criteria}}\label{md_docs_2_n_s___h_a_r_d_e_n_i_n_g___s_p_e_c_s___v1_autotoc_md4230}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] All canonical messages defined match this doc exactly (code + tests + docs)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily transfername} /\+ {\ttfamily updatename} /\+ {\ttfamily renewname} JSON-\/\+RPC + REST handlers compile and pass tests
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily registername} accepts both legacy (no sig) AND signed paths during testnet, mandates sig when {\ttfamily signed\+\_\+required}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Reserved names list rejected with {\ttfamily -\/32601 Reserved name}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Premium pricing applied per {\ttfamily fee\+For\+Name(name, tld)}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Per-\/owner cap of 10 enforced (registrar slots exempt)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily dns\+\_\+audit.\+log} written line-\/per-\/op, format matches spec
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Open\+API spec auto-\/includes new methods
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test count ≥ 16, all pass, zero leaks
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Build clean, {\ttfamily \doxylink{namespacezig}{zig} \doxylink{namespacebuild}{build} \doxylink{namespacetest}{test}} exits 0 
+\end{DoxyItemize}

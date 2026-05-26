@@ -1,0 +1,55 @@
+\chapter{Time Zones }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2time_zones}{}\label{md_frontend_2node__modules_2date-fns_2docs_2time_zones}\index{Time Zones@{Time Zones}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6365}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6365}%
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6366}{}\doxysection{\texorpdfstring{Table of Contents}{Table of Contents}}\label{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6366}
+
+\begin{DoxyItemize}
+\item OverviewOverview
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item \`{}date-\/fns-\/tz\`{}{\ttfamily date-\/fns-\/tz}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6367}{}\doxysection{\texorpdfstring{Overview}{Overview}}\label{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6367}
+Working with UTC or ISO date strings is easy, and so is working with JS dates when all times are displayed in a user\textquotesingle{}s local time in the browser. The difficulty comes when working with another time zone\textquotesingle{}s local time, other than the current system\textquotesingle{}s, like showing the local time of an event in LA at 8pm PST on a Node server in Europe or a user\textquotesingle{}s machine set to EST.
+
+In this case there are two relevant pieces of information:\+
+
+
+\begin{DoxyItemize}
+\item a fixed moment in time in the form of a timestamp, UTC or ISO date string, and
+\item the time zone descriptor, usually an offset or IANA time zone name (e.\+g. {\ttfamily America/\+\+Los\+\_\+\+Angeles}).
+\end{DoxyItemize}
+
+Libraries like Moment and Luxon, which provide their own date time classes, manage these timestamp and time zone values internally. Since {\ttfamily date-\/fns} always returns a plain JS Date, which implicitly has the current system\textquotesingle{}s time zone, helper functions are needed for handling common time zone related use cases.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6368}{}\doxysection{\texorpdfstring{\href{https://www.npmjs.com/package/date-fns-tz}{\texttt{{\ttfamily date-\/fns-\/tz}}}}{\href{https://www.npmjs.com/package/date-fns-tz}{\texttt{{\ttfamily date-\/fns-\/tz}}}}}\label{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6368}
+Dependency free IANA time zone support is implemented via the \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl}{\texttt{Intl API}} to keep actual time zone data out of code bundles. Modern browsers all support the \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat\#Browser_compatibility}{\texttt{necessary features}}, and for those that don\textquotesingle{}t a \href{https://github.com/yahoo/date-time-format-timezone}{\texttt{polyfill}} can be used.
+
+Functions are provided for converting to and from a Date instance which will have the internal UTC time adjusted so it prints to the correct time value in the associated time zone, regardless of the current system time zone. The {\ttfamily date-\/fns} {\ttfamily format} function is extended with support for the {\ttfamily z...zzzz} tokens to format long and short time zone names.
+
+Compatible with {\ttfamily date-\/fns} version 2
+
+License:\+ MIT\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6369}{}\doxysubsection{\texorpdfstring{Synopsis}{Synopsis}}\label{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6369}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ \{\ zonedTimeToUtc,\ utcToZonedTime,\ format\ \}\ =\ require('date-\/fns-\/tz')}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Set\ the\ date\ to\ "{}2018-\/09-\/01T16:01:36.386Z"{}}
+\DoxyCodeLine{const\ utcDate\ =\ zonedTimeToUtc('2018-\/09-\/01\ 18:01:36.386',\ 'Europe/Berlin')}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Obtain\ a\ Date\ instance\ that\ will\ render\ the\ equivalent\ Berlin\ time\ for\ the\ UTC\ date}
+\DoxyCodeLine{const\ date\ =\ new\ Date('2018-\/09-\/01T16:01:36.386Z')}
+\DoxyCodeLine{const\ timeZone\ =\ 'Europe/Berlin'}
+\DoxyCodeLine{const\ zonedDate\ =\ utcToZonedTime(date,\ timeZone)}
+\DoxyCodeLine{//\ zonedDate\ could\ be\ used\ to\ initialize\ a\ date\ picker\ or\ display\ the\ formatted\ local\ date/time}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Set\ the\ output\ to\ "{}1.9.2018\ 18:01:36.386\ GMT+02:00\ (CEST)"{}}
+\DoxyCodeLine{const\ pattern\ =\ 'd.M.yyyy\ HH:mm:ss.SSS\ \(\backslash\)'GMT\(\backslash\)'\ XXX\ (z)'}
+\DoxyCodeLine{const\ output\ =\ format(zonedDate,\ pattern,\ \{\ timeZone:\ 'Europe/Berlin'\ \})}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6370}{}\doxysubsection{\texorpdfstring{Links}{Links}}\label{md_frontend_2node__modules_2date-fns_2docs_2time_zones_autotoc_md6370}
+
+\begin{DoxyItemize}
+\item \href{https://github.com/marnusw/date-fns-tz\#time-zone-helpers}{\texttt{API /\+ Usage Scenarios}} 
+\end{DoxyItemize}

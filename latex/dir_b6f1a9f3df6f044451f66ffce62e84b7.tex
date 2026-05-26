@@ -1,0 +1,352 @@
+\doxysection{frontend/\+node\+\_\+modules/\+d3-\/ease Directory Reference}
+\hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7}{}\label{dir_b6f1a9f3df6f044451f66ffce62e84b7}\index{frontend/node\_modules/d3-\/ease Directory Reference@{frontend/node\_modules/d3-\/ease Directory Reference}}
+Directory dependency graph for d3-\/ease:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_autotoc_md5962}{}\doxysubsection{\texorpdfstring{d3-\/ease}{d3-\/ease}}\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_autotoc_md5962}
+{\itshape Easing} is a method of distorting time to control apparent motion in animation. It is most commonly used for \href{https://en.wikipedia.org/wiki/12_basic_principles_of_animation\#Slow_In_and_Slow_Out}{\texttt{slow-\/in, slow-\/out}}. By easing time, \href{https://github.com/d3/d3-transition}{\texttt{animated transitions}} are smoother and exhibit more plausible motion.
+
+The easing types in this module implement the ease methodease method, which takes a normalized time {\itshape t} and returns the corresponding “eased” time {\itshape tʹ}. Both the normalized time and the eased time are typically in the range \+[0,1]\+, where 0 represents the start of the animation and 1 represents the end; some easing types, such as \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElastic}{elastic}elastic, may return eased times slightly outside this range. A good easing type should return 0 if {\itshape t} = 0 and 1 if {\itshape t} = 1. See the \href{https://observablehq.com/@d3/easing}{\texttt{easing explorer}} for a visual demonstration.
+
+These easing types are largely based on work by \href{http://robertpenner.com/easing/}{\texttt{Robert Penner}}.\hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_autotoc_md5963}{}\doxysubsection{\texorpdfstring{Installing}{Installing}}\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_autotoc_md5963}
+If you use npm, {\ttfamily npm install d3-\/ease}. You can also download the \href{https://github.com/d3/d3-ease/releases/latest}{\texttt{latest release on Git\+Hub}}. For vanilla HTML in modern browsers, import d3-\/ease from Skypack:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ type="{}module"{}>}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{easeCubic\}\ from\ "{}https://cdn.skypack.dev/d3-\/ease@3"{};}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ e\ =\ easeCubic(0.25);}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+
+
+For legacy environments, you can load d3-\/ease’s UMD bundle from an npm-\/based CDN such as js\+Delivr; a {\ttfamily d3} global is exported:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ src="{}https://cdn.jsdelivr.net/npm/d3-\/ease@3"{}></script>}
+\DoxyCodeLine{<script>}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ e\ =\ d3.easeCubic(0.25);}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+
+
+\href{https://observablehq.com/@d3/easing-animations}{\texttt{Try d3-\/ease in your browser.}}\hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_autotoc_md5964}{}\doxysubsection{\texorpdfstring{API Reference}{API Reference}}\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_autotoc_md5964}
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7__ease}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7__ease}%
+\# {\itshape ease}({\itshape t})
+
+Given the specified normalized time {\itshape t}, typically in the range \+[0,1]\+, returns the “eased” time {\itshape tʹ}, also typically in \+[0,1]\+. 0 represents the start of the animation and 1 represents the end. A good implementation returns 0 if {\itshape t} = 0 and 1 if {\itshape t} = 1. See the \href{https://observablehq.com/@d3/easing}{\texttt{easing explorer}} for a visual demonstration. For example, to apply \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubic}{cubic}cubic easing:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ te\ =\ d3.easeCubic(t);}
+
+\end{DoxyCode}
+
+
+Similarly, to apply custom \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElastic}{elastic}elastic easing:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Before\ the\ animation\ starts,\ create\ your\ easing\ function.}
+\DoxyCodeLine{const\ customElastic\ =\ d3.easeElastic.period(0.4);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ During\ the\ animation,\ apply\ the\ easing\ function.}
+\DoxyCodeLine{const\ te\ =\ customElastic(t);}
+
+\end{DoxyCode}
+
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeLinear}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeLinear}%
+\# d3.{\bfseries{ease\+Linear}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/linear.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Linear easing; the identity function; {\itshape linear}({\itshape t}) returns {\itshape t}.
+
+\href{https://observablehq.com/@d3/easing\#linear}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyIn}%
+\# d3.{\bfseries{ease\+Poly\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/poly.js\#L3}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Polynomial easing; raises {\itshape t} to the specified \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent. If the exponent is not specified, it defaults to 3, equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicIn}{cubic\+In}cubic\+In.
+
+\href{https://observablehq.com/@d3/easing\#polyIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyOut}%
+\# d3.{\bfseries{ease\+Poly\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/poly.js\#L15}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse polynomial easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyIn}{poly\+In}poly\+In(1 -\/ {\itshape t}). If the \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent is not specified, it defaults to 3, equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicOut}{cubic\+Out}cubic\+Out.
+
+\href{https://observablehq.com/@d3/easing\#polyOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePoly}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePoly}%
+\# d3.{\bfseries{ease\+Poly}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/poly.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyInOut}%
+\# d3.{\bfseries{ease\+Poly\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/poly.js\#L27}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric polynomial easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyIn}{poly\+In}poly\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyOut}{poly\+Out}poly\+Out for {\itshape t} in \+[0.\+5, 1]\+. If the \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent is not specified, it defaults to 3, equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubic}{cubic}cubic.
+
+\href{https://observablehq.com/@d3/easing\#polyInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}%
+\# {\itshape poly}.{\bfseries{exponent}}({\itshape e}) \href{https://github.com/d3/d3-ease/blob/master/src/poly.js\#L1}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Returns a new polynomial easing with the specified exponent {\itshape e}. For example, to create equivalents of \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeLinear}{linear}linear, \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuad}{quad}quad, and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubic}{cubic}cubic:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ linear\ =\ d3.easePoly.exponent(1);}
+\DoxyCodeLine{const\ quad\ =\ d3.easePoly.exponent(2);}
+\DoxyCodeLine{const\ cubic\ =\ d3.easePoly.exponent(3);}
+
+\end{DoxyCode}
+
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadIn}%
+\# d3.{\bfseries{ease\+Quad\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/quad.js\#L1}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Quadratic easing; equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyIn}{poly\+In}poly\+In.\doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent(2).
+
+\href{https://observablehq.com/@d3/easing\#quadIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadOut}%
+\# d3.{\bfseries{ease\+Quad\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/quad.js\#L5}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse quadratic easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadIn}{quad\+In}quad\+In(1 -\/ {\itshape t}). Also equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyOut}{poly\+Out}poly\+Out.\doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent(2).
+
+\href{https://observablehq.com/@d3/easing\#quadOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuad}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuad}%
+\# d3.{\bfseries{ease\+Quad}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/quad.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadInOut}%
+\# d3.{\bfseries{ease\+Quad\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/quad.js\#L9}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric quadratic easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadIn}{quad\+In}quad\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeQuadOut}{quad\+Out}quad\+Out for {\itshape t} in \+[0.\+5, 1]\+. Also equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePoly}{poly}poly.\doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent(2).
+
+\href{https://observablehq.com/@d3/easing\#quadInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicIn}%
+\# d3.{\bfseries{ease\+Cubic\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/cubic.js\#L1}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Cubic easing; equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyIn}{poly\+In}poly\+In.\doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent(3).
+
+\href{https://observablehq.com/@d3/easing\#cubicIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicOut}%
+\# d3.{\bfseries{ease\+Cubic\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/cubic.js\#L5}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse cubic easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicIn}{cubic\+In}cubic\+In(1 -\/ {\itshape t}). Also equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePolyOut}{poly\+Out}poly\+Out.\doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent(3).
+
+\href{https://observablehq.com/@d3/easing\#cubicOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubic}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubic}%
+\# d3.{\bfseries{ease\+Cubic}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/cubic.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicInOut}%
+\# d3.{\bfseries{ease\+Cubic\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/cubic.js\#L9}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric cubic easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicIn}{cubic\+In}cubic\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCubicOut}{cubic\+Out}cubic\+Out for {\itshape t} in \+[0.\+5, 1]\+. Also equivalent to \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easePoly}{poly}poly.\doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_poly_exponent}{exponent}exponent(3).
+
+\href{https://observablehq.com/@d3/easing\#cubicInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinIn}%
+\# d3.{\bfseries{ease\+Sin\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/sin.js\#L4}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Sinusoidal easing; returns sin({\itshape t}).
+
+\href{https://observablehq.com/@d3/easing\#sinIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinOut}%
+\# d3.{\bfseries{ease\+Sin\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/sin.js\#L8}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse sinusoidal easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinIn}{sin\+In}sin\+In(1 -\/ {\itshape t}).
+
+\href{https://observablehq.com/@d3/easing\#sinOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSin}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSin}%
+\# d3.{\bfseries{ease\+Sin}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/sin.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinInOut}%
+\# d3.{\bfseries{ease\+Sin\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/sin.js\#L12}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric sinusoidal easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinIn}{sin\+In}sin\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeSinOut}{sin\+Out}sin\+Out for {\itshape t} in \+[0.\+5, 1]\+.
+
+\href{https://observablehq.com/@d3/easing\#sinInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpIn}%
+\# d3.{\bfseries{ease\+Exp\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/exp.js\#L1}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Exponential easing; raises 2 to the exponent 10 \texorpdfstring{$\ast$}{*} ({\itshape t} -\/ 1).
+
+\href{https://observablehq.com/@d3/easing\#expIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpOut}%
+\# d3.{\bfseries{ease\+Exp\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/exp.js\#L5}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse exponential easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpIn}{exp\+In}exp\+In(1 -\/ {\itshape t}).
+
+\href{https://observablehq.com/@d3/easing\#expOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExp}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExp}%
+\# d3.{\bfseries{ease\+Exp}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/exp.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpInOut}%
+\# d3.{\bfseries{ease\+Exp\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/exp.js\#L9}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric exponential easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpIn}{exp\+In}exp\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeExpOut}{exp\+Out}exp\+Out for {\itshape t} in \+[0.\+5, 1]\+.
+
+\href{https://observablehq.com/@d3/easing\#expInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleIn}%
+\# d3.{\bfseries{ease\+Circle\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/circle.js\#L1}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Circular easing.
+
+\href{https://observablehq.com/@d3/easing\#circleIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleOut}%
+\# d3.{\bfseries{ease\+Circle\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/circle.js\#L5}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse circular easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleIn}{circle\+In}circle\+In(1 -\/ {\itshape t}).
+
+\href{https://observablehq.com/@d3/easing\#circleOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircle}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircle}%
+\# d3.{\bfseries{ease\+Circle}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/circle.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleInOut}%
+\# d3.{\bfseries{ease\+Circle\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/circle.js\#L9}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric circular easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleIn}{circle\+In}circle\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeCircleOut}{circle\+Out}circle\+Out for {\itshape t} in \+[0.\+5, 1]\+.
+
+\href{https://observablehq.com/@d3/easing\#circleInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticIn}%
+\# d3.{\bfseries{ease\+Elastic\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/elastic.js\#L5}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Elastic easing, like a rubber band. The \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_elastic_amplitude}{amplitude}amplitude and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_elastic_period}{period}period of the oscillation are configurable; if not specified, they default to 1 and 0.\+3, respectively.
+
+\href{https://observablehq.com/@d3/easing\#elasticIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElastic}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElastic}%
+\# d3.{\bfseries{ease\+Elastic}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/elastic.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticOut}%
+\# d3.{\bfseries{ease\+Elastic\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/elastic.js\#L18}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse elastic easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticIn}{elastic\+In}elastic\+In(1 -\/ {\itshape t}).
+
+\href{https://observablehq.com/@d3/easing\#elasticOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticInOut}%
+\# d3.{\bfseries{ease\+Elastic\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/elastic.js\#L31}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric elastic easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticIn}{elastic\+In}elastic\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeElasticOut}{elastic\+Out}elastic\+Out for {\itshape t} in \+[0.\+5, 1]\+.
+
+\href{https://observablehq.com/@d3/easing\#elasticInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_elastic_amplitude}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_elastic_amplitude}%
+\# {\itshape elastic}.{\bfseries{amplitude}}({\itshape a}) \href{https://github.com/d3/d3-ease/blob/master/src/elastic.js\#L40}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Returns a new elastic easing with the specified amplitude {\itshape a}.
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_elastic_period}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_elastic_period}%
+\# {\itshape elastic}.{\bfseries{period}}({\itshape p}) \href{https://github.com/d3/d3-ease/blob/master/src/elastic.js\#L41}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Returns a new elastic easing with the specified period {\itshape p}.
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackIn}%
+\# d3.{\bfseries{ease\+Back\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/back.js\#L3}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+\href{https://en.wikipedia.org/wiki/12_basic_principles_of_animation\#Anticipation}{\texttt{Anticipatory}} easing, like a dancer bending his knees before jumping off the floor. The degree of \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_back_overshoot}{overshoot}overshoot is configurable; if not specified, it defaults to 1.\+70158.
+
+\href{https://observablehq.com/@d3/easing\#backIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackOut}%
+\# d3.{\bfseries{ease\+Back\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/back.js\#L15}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse anticipatory easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackIn}{back\+In}back\+In(1 -\/ {\itshape t}).
+
+\href{https://observablehq.com/@d3/easing\#backOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBack}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBack}%
+\# d3.{\bfseries{ease\+Back}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/back.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackInOut}%
+\# d3.{\bfseries{ease\+Back\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/back.js\#L27}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric anticipatory easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackIn}{back\+In}back\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBackOut}{back\+Out}back\+Out for {\itshape t} in \+[0.\+5, 1]\+.
+
+\href{https://observablehq.com/@d3/easing\#backInOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_back_overshoot}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_back_overshoot}%
+\# {\itshape back}.{\bfseries{overshoot}}({\itshape s}) \href{https://github.com/d3/d3-ease/blob/master/src/back.js\#L1}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Returns a new back easing with the specified overshoot {\itshape s}.
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceIn}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceIn}%
+\# d3.{\bfseries{ease\+Bounce\+In}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/bounce.js\#L12}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Bounce easing, like a rubber ball.
+
+\href{https://observablehq.com/@d3/easing\#bounceIn}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounce}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounce}%
+\# d3.{\bfseries{ease\+Bounce}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/bounce.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}} ~\newline
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceOut}%
+\# d3.{\bfseries{ease\+Bounce\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/bounce.js\#L16}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Reverse bounce easing; equivalent to 1 -\/ \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceIn}{bounce\+In}bounce\+In(1 -\/ {\itshape t}).
+
+\href{https://observablehq.com/@d3/easing\#bounceOut}{\texttt{}}
+
+\label{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceInOut}%
+\Hypertarget{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceInOut}%
+\# d3.{\bfseries{ease\+Bounce\+In\+Out}}({\itshape t}) \href{https://github.com/d3/d3-ease/blob/master/src/bounce.js\#L20}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Symmetric bounce easing; scales \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceIn}{bounce\+In}bounce\+In for {\itshape t} in \+[0, 0.\+5]\+ and \doxylink{dir_b6f1a9f3df6f044451f66ffce62e84b7_easeBounceOut}{bounce\+Out}bounce\+Out for {\itshape t} in \+[0.\+5, 1]\+.
+
+\href{https://observablehq.com/@d3/easing\#bounceInOut}{\texttt{}} 

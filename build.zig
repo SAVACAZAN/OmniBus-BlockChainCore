@@ -391,6 +391,29 @@ pub fn build(b: *std.Build) void {
     const test_pq_step = b.step("test-pq", "Test PQ crypto cu liboqs (real FIPS 203/204/205/206)");
     test_pq_step.dependOn(&b.addRunArtifact(test_pq_crypto).step);
 
+    // FAZA 6 — PQ migration consensus module + standalone tests
+    const test_pq_migrate = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/pq_migrate_consensus.zig"),
+            .target = target, .optimize = optimize,
+        }),
+    });
+    test_pq_migrate.root_module.addOptions("build_options", build_options);
+    addOqs(test_pq_migrate, use_oqs);
+    test_pq_migrate.root_module.link_libc = true;
+    test_pq_step.dependOn(&b.addRunArtifact(test_pq_migrate).step);
+
+    const test_pq_migrate_ext = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/pq_migrate_test.zig"),
+            .target = target, .optimize = optimize,
+        }),
+    });
+    test_pq_migrate_ext.root_module.addOptions("build_options", build_options);
+    addOqs(test_pq_migrate_ext, use_oqs);
+    test_pq_migrate_ext.root_module.link_libc = true;
+    test_pq_step.dependOn(&b.addRunArtifact(test_pq_migrate_ext).step);
+
     // ── Tests: wallet (necesita liboqs) ──────────────────────────────────────
     const test_pq_wallet = b.addTest(.{
         .root_module = b.createModule(.{
@@ -402,6 +425,18 @@ pub fn build(b: *std.Build) void {
     addOqs(test_pq_wallet, use_oqs);
     const test_wallet_step = b.step("test-wallet", "Test wallet (necesita liboqs)");
     test_wallet_step.dependOn(&b.addRunArtifact(test_pq_wallet).step);
+
+    // FAZA 6 — deterministic PQ signing tests
+    const test_sign_det = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/sign_all_pq_domains_deterministic_test.zig"),
+            .target = target, .optimize = optimize,
+        }),
+    });
+    test_sign_det.root_module.addOptions("build_options", build_options);
+    addOqs(test_sign_det, use_oqs);
+    test_sign_det.root_module.link_libc = true;
+    test_wallet_step.dependOn(&b.addRunArtifact(test_sign_det).step);
 
     // ── test (toate fara PQ) ──────────────────────────────────────────────────
     const test_all_step = b.step("test", "Run all tests (fara liboqs)");

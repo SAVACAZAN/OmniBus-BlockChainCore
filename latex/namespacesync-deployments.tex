@@ -1,0 +1,192 @@
+\doxysection{sync-\/deployments Namespace Reference}
+\hypertarget{namespacesync-deployments}{}\label{namespacesync-deployments}\index{sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacesync-deployments_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacesync-deployments_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacesync-deployments_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacesync-deployments_a288e2a00f611039501be52f84bbf2313}{find\+\_\+json\+\_\+artifacts}} (str root, list\+[str]\+ filename\+\_\+patterns)
+\item 
+dict\+[str, str]\+ \doxymbox{\hyperlink{namespacesync-deployments_a393045fb77a65a88327a4b3ae0589bec}{extract\+\_\+addresses\+\_\+from\+\_\+artifact}} (str path)
+\item 
+dict\+[str, str]\+ \doxymbox{\hyperlink{namespacesync-deployments_ae0361e3f04e1e944e8377b86e618e964}{extract\+\_\+zig\+\_\+addresses}} (str repo)
+\item 
+int \doxymbox{\hyperlink{namespacesync-deployments_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacesync-deployments_aa9df7d5e4098f7fc45eb08d0b7144f89}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesync-deployments_a41de526b6e9fd8f18cdeb319992d5739}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesync-deployments_a0577c0174ede29e8047895e7e26f9180}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesync-deployments_a100eb127387dbc34d381167589b2d259}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesync-deployments_a43cfc9960d7b60fcd4342ce225240350}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacesync-deployments_doc-func-members}
+\Hypertarget{namespacesync-deployments_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacesync-deployments_a393045fb77a65a88327a4b3ae0589bec}\index{sync-\/deployments@{sync-\/deployments}!extract\_addresses\_from\_artifact@{extract\_addresses\_from\_artifact}}
+\index{extract\_addresses\_from\_artifact@{extract\_addresses\_from\_artifact}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{extract\_addresses\_from\_artifact()}{extract\_addresses\_from\_artifact()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a393045fb77a65a88327a4b3ae0589bec} 
+ dict\+[str, str]\+ extract\+\_\+addresses\+\_\+from\+\_\+artifact (\begin{DoxyParamCaption}\item[{str}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Try to read Hardhat / Foundry / custom artifact JSON for address.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacesync-deployments_ae0361e3f04e1e944e8377b86e618e964}\index{sync-\/deployments@{sync-\/deployments}!extract\_zig\_addresses@{extract\_zig\_addresses}}
+\index{extract\_zig\_addresses@{extract\_zig\_addresses}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{extract\_zig\_addresses()}{extract\_zig\_addresses()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_ae0361e3f04e1e944e8377b86e618e964} 
+ dict\+[str, str]\+ extract\+\_\+zig\+\_\+addresses (\begin{DoxyParamCaption}\item[{str}]{repo}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Look for contract address constants in Zig source or config files.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacesync-deployments_a288e2a00f611039501be52f84bbf2313}\index{sync-\/deployments@{sync-\/deployments}!find\_json\_artifacts@{find\_json\_artifacts}}
+\index{find\_json\_artifacts@{find\_json\_artifacts}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{find\_json\_artifacts()}{find\_json\_artifacts()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a288e2a00f611039501be52f84bbf2313} 
+ list\+[str]\+ find\+\_\+json\+\_\+artifacts (\begin{DoxyParamCaption}\item[{str}]{root}{, }\item[{list\+[str]\+}]{filename\+\_\+patterns}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacesync-deployments_abf994b8269849d29e07697ea8a840f74}\index{sync-\/deployments@{sync-\/deployments}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+\Hypertarget{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{sync-\/deployments@{sync-\/deployments}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacesync-deployments_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{sync-\/deployments@{sync-\/deployments}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacesync-deployments_adf0e2aa4d06b5ca38e44721821eca783}\index{sync-\/deployments@{sync-\/deployments}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacesync-deployments_a7431cb90017e54fe695b23d4190db046}\index{sync-\/deployments@{sync-\/deployments}!main@{main}}
+\index{main@{main}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00104}{104}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+
+
+\label{namespacesync-deployments_doc-var-members}
+\Hypertarget{namespacesync-deployments_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacesync-deployments_a100eb127387dbc34d381167589b2d259}\index{sync-\/deployments@{sync-\/deployments}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a100eb127387dbc34d381167589b2d259} 
+str \doxymbox{\hyperlink{namespacesync}{sync}}-\/deployments.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+\Hypertarget{namespacesync-deployments_aa9df7d5e4098f7fc45eb08d0b7144f89}\index{sync-\/deployments@{sync-\/deployments}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_aa9df7d5e4098f7fc45eb08d0b7144f89} 
+str \doxymbox{\hyperlink{namespacesync}{sync}}-\/deployments.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00021}{21}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+\Hypertarget{namespacesync-deployments_a41de526b6e9fd8f18cdeb319992d5739}\index{sync-\/deployments@{sync-\/deployments}!RED@{RED}}
+\index{RED@{RED}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a41de526b6e9fd8f18cdeb319992d5739} 
+str \doxymbox{\hyperlink{namespacesync}{sync}}-\/deployments.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+\Hypertarget{namespacesync-deployments_a43cfc9960d7b60fcd4342ce225240350}\index{sync-\/deployments@{sync-\/deployments}!RESET@{RESET}}
+\index{RESET@{RESET}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a43cfc9960d7b60fcd4342ce225240350} 
+str \doxymbox{\hyperlink{namespacesync}{sync}}-\/deployments.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+
+\Hypertarget{namespacesync-deployments_a0577c0174ede29e8047895e7e26f9180}\index{sync-\/deployments@{sync-\/deployments}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!sync-\/deployments@{sync-\/deployments}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacesync-deployments_a0577c0174ede29e8047895e7e26f9180} 
+str \doxymbox{\hyperlink{namespacesync}{sync}}-\/deployments.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{sync-deployments_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{sync-deployments_8py_source}{sync-\/deployments.\+py}}.
+

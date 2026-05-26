@@ -1,0 +1,220 @@
+\doxysection{consensus-\/evolution-\/analyzer.py}
+\hypertarget{consensus-evolution-analyzer_8py_source}{}\label{consensus-evolution-analyzer_8py_source}\index{tools/LEARNING/consensus-\/evolution-\/analyzer.py@{tools/LEARNING/consensus-\/evolution-\/analyzer.py}}
+\doxymbox{\hyperlink{consensus-evolution-analyzer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00001}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00003}00003\ \textcolor{stringliteral}{consensus-\/evolution-\/analyzer.py}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00005}00005\ \textcolor{stringliteral}{Analyze\ how\ the\ consensus\ layer\ changed\ over\ time\ using\ on-\/chain\ data}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00006}00006\ \textcolor{stringliteral}{\ queried\ via\ RPC\ or\ simulation:}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Real\ block\ times\ vs\ target\ (10\ s)}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Difficulty\ adjustment\ correctness\ /\ oscillation}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Fork\ frequency}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00011}00011\ \textcolor{stringliteral}{Outputs:\ consensus-\/health-\/over-\/time.json}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00012}00012\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00014}00014\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00015}00015\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00016}00016\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00017}00017\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00018}00018\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00020}00020\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00021}00021\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00023}00023\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00025}00025\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00027}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a8daac7a8dfdca180242042470cb131b8}{00027}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00028}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a2f602c33ab036855f258dea1f01bf5ea}{00028}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00029}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a4374f2f9b2627e4d4f36389cda5c5293}{00029}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00030}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a940acb4a3e2805561b76c32154226fb7}{00030}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00031}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a543896260bcd95e1b364c35d84d4df0f}{00031}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00034}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00034}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00035}00035\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00038}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00038}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00039}00039\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00042}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_abf994b8269849d29e07697ea8a840f74}{00042}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00043}00043\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00046}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_adf0e2aa4d06b5ca38e44721821eca783}{00046}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00047}00047\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00050}00050\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00051}00051\ \textcolor{comment}{\#\ RPC\ helpers}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00052}00052\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00053}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a3c4881ef4f7938735ee4a74e57da9d7e}{00053}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc}{rpc}}(url:\ str,\ method:\ str,\ params:\ Any\ =\ \textcolor{keywordtype}{None},\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},\ timeout:\ float\ =\ 10.0)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00054}00054\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{if}\ params\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}params"{}}]\ =\ params}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ auth=auth,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ data\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}\_error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00065}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_aff8966eacdb56b267e6ab77f7cc0f757}{00065}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_aff8966eacdb56b267e6ab77f7cc0f757}{fetch\_block\_headers}}(url:\ str,\ count:\ int,\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ list[dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00066}00066\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Fetch\ the\ last\ *count*\ block\ headers\ via\ RPC."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00067}00067\ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(url,\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(info,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ info:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ []}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00070}00070\ \ \ \ \ height\ =\ info.get(\textcolor{stringliteral}{"{}blocks"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00071}00071\ \ \ \ \ headers:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ range(max(0,\ height\ -\/\ count\ +\ 1),\ height\ +\ 1):}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ hash\_val\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(url,\ \textcolor{stringliteral}{"{}getblockhash"{}},\ [h],\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(hash\_val,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ hash\_val:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ block\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(url,\ \textcolor{stringliteral}{"{}getblock"{}},\ [hash\_val],\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(block,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ block:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ headers.append(}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ block.get(\textcolor{stringliteral}{"{}height"{}}),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ block.get(\textcolor{stringliteral}{"{}hash"{}}),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}time"{}}:\ block.get(\textcolor{stringliteral}{"{}time"{}}),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bits"{}}:\ block.get(\textcolor{stringliteral}{"{}bits"{}}),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty"{}}:\ block.get(\textcolor{stringliteral}{"{}difficulty"{}}),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}previousblockhash"{}}:\ block.get(\textcolor{stringliteral}{"{}previousblockhash"{}}),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{return}\ headers}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00092}00092\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00093}00093\ \textcolor{comment}{\#\ Analysis}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00094}00094\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00095}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a4ce5992f988e8549b85cb5ac2b33b67f}{00095}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a4ce5992f988e8549b85cb5ac2b33b67f}{analyze\_headers}}(headers:\ list[dict[str,\ Any]],\ target\_interval:\ float\ =\ 10.0)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00096}00096\ \ \ \ \ \textcolor{keywordflow}{if}\ len(headers)\ <\ 2:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \textcolor{stringliteral}{"{}Not\ enough\ blocks"{}}\}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00099}00099\ \ \ \ \ \textcolor{comment}{\#\ Sort\ by\ height}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00100}00100\ \ \ \ \ headers.sort(key=\textcolor{keyword}{lambda}\ x:\ x.get(\textcolor{stringliteral}{"{}height"{}},\ 0))}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00102}00102\ \ \ \ \ block\_times:\ list[float]\ =\ []}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00103}00103\ \ \ \ \ difficulties:\ list[float]\ =\ []}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ len(headers)):}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ dt\ =\ headers[i][\textcolor{stringliteral}{"{}time"{}}]\ -\/\ headers[i\ -\/\ 1][\textcolor{stringliteral}{"{}time"{}}]}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ block\_times.append(dt)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ difficulties.append(headers[i].get(\textcolor{stringliteral}{"{}difficulty"{}},\ 0.0))}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00109}00109\ \ \ \ \ avg\_block\_time\ =\ sum(block\_times)\ /\ len(block\_times)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00110}00110\ \ \ \ \ min\_bt\ =\ min(block\_times)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00111}00111\ \ \ \ \ max\_bt\ =\ max(block\_times)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00112}00112\ \ \ \ \ std\_bt\ =\ math.sqrt(sum((t\ -\/\ avg\_block\_time)\ **\ 2\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ block\_times)\ /\ len(block\_times))}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00114}00114\ \ \ \ \ \textcolor{comment}{\#\ Difficulty\ oscillation:\ variance\ of\ difficulty\ changes}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00115}00115\ \ \ \ \ diff\_changes\ =\ [difficulties[i]\ -\/\ difficulties[i\ -\/\ 1]\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ len(difficulties))]}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00116}00116\ \ \ \ \ avg\_diff\_change\ =\ sum(diff\_changes)\ /\ len(diff\_changes)\ \textcolor{keywordflow}{if}\ diff\_changes\ \textcolor{keywordflow}{else}\ 0.0}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00117}00117\ \ \ \ \ diff\_oscillation\ =\ math.sqrt(sum((d\ -\/\ avg\_diff\_change)\ **\ 2\ \textcolor{keywordflow}{for}\ d\ \textcolor{keywordflow}{in}\ diff\_changes)\ /\ len(diff\_changes))\ \textcolor{keywordflow}{if}\ diff\_changes\ \textcolor{keywordflow}{else}\ 0.0}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00119}00119\ \ \ \ \ \textcolor{comment}{\#\ Fork\ detection\ (same\ height,\ different\ hash)\ -\/\ not\ available\ from\ single\ node}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00120}00120\ \ \ \ \ \textcolor{comment}{\#\ We\ simulate\ a\ metric\ based\ on\ orphan\ probability}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00121}00121\ \ \ \ \ fork\_guess\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ block\_times\ \textcolor{keywordflow}{if}\ t\ <\ target\_interval\ /\ 2)\ /\ len(block\_times)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00123}00123\ \ \ \ \ per\_block\ =\ [}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ headers[i][\textcolor{stringliteral}{"{}height"{}}],}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block\_time\_sec"{}}:\ round(block\_times[i\ -\/\ 1],\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty"{}}:\ difficulties[i\ -\/\ 1],}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ len(headers))}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00130}00130\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00132}00132\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blocks\_analyzed"{}}:\ len(headers),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target\_interval\_sec"{}}:\ target\_interval,}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}average\_block\_time\_sec"{}}:\ round(avg\_block\_time,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}min\_block\_time\_sec"{}}:\ round(min\_bt,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}max\_block\_time\_sec"{}}:\ round(max\_bt,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stddev\_block\_time"{}}:\ round(std\_bt,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty\_oscillation"{}}:\ round(diff\_oscillation,\ 4),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fork\_probability\_guess"{}}:\ round(fork\_guess,\ 4),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}per\_block"{}}:\ per\_block,}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00142}00142\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00145}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a634951625874b1614accc8a13e866153}{00145}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a634951625874b1614accc8a13e866153}{simulate\_chain}}(num\_blocks:\ int\ =\ 200,\ target\_interval:\ float\ =\ 10.0)\ -\/>\ list[dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00146}00146\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ a\ synthetic\ chain\ for\ offline\ analysis."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00147}00147\ \ \ \ \ headers:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00148}00148\ \ \ \ \ t\ =\ int(time.time())\ -\/\ num\_blocks\ *\ target\_interval}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00149}00149\ \ \ \ \ diff\ =\ 1.0}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ range(num\_blocks):}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Variable\ block\ time\ with\ noise}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ noise\ =\ random.gauss(0,\ target\_interval\ *\ 0.3)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ bt\ =\ max(1.0,\ target\_interval\ +\ noise)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ t\ +=\ int(bt)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ diff\ *=\ target\_interval\ /\ bt\ \ \textcolor{comment}{\#\ naive\ difficulty\ adjustment}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ diff\ =\ max(0.1,\ diff)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ headers.append(}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ h,}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ f\textcolor{stringliteral}{"{}simhash\{h:06x\}"{}},}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}time"{}}:\ t,}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bits"{}}:\ int(diff\ *\ 65535),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty"{}}:\ round(diff,\ 4),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}previousblockhash"{}}:\ f\textcolor{stringliteral}{"{}simhash\{h\ -\/\ 1:06x\}"{}}\ \textcolor{keywordflow}{if}\ h\ >\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}0"{}}\ *\ 64,}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00167}00167\ \ \ \ \ \textcolor{keywordflow}{return}\ headers}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00170}00170\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00171}00171\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00172}00172\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00173}\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a7431cb90017e54fe695b23d4190db046}{00173}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00174}00174\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Analyze\ consensus\ health\ over\ time."{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00175}00175\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/url"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ help=\textcolor{stringliteral}{"{}Node\ RPC\ URL"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00176}00176\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00177}00177\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00178}00178\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/blocks"{}},\ type=int,\ default=200,\ help=\textcolor{stringliteral}{"{}Blocks\ to\ analyze"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00179}00179\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/simulate"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Run\ in\ simulation\ mode"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00180}00180\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}tools/LEARNING/consensus-\/health-\/over-\/time.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00181}00181\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00183}00183\ \ \ \ \ \textcolor{keywordflow}{if}\ args.simulate:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Running\ in\ simulation\ mode\ …"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ headers\ =\ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a634951625874b1614accc8a13e866153}{simulate\_chain}}(args.blocks)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00186}00186\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ auth\ =\ (args.user,\ args.password)\ \textcolor{keywordflow}{if}\ args.user\ \textcolor{keywordflow}{or}\ args.password\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Fetching\ up\ to\ \{args.blocks\}\ block\ headers\ from\ \{args.rpc\_url\}\ …"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ headers\ =\ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_aff8966eacdb56b267e6ab77f7cc0f757}{fetch\_block\_headers}}(args.rpc\_url,\ args.blocks,\ auth)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ headers:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}No\ blocks\ fetched;\ falling\ back\ to\ simulation"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ headers\ =\ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a634951625874b1614accc8a13e866153}{simulate\_chain}}(args.blocks)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00194}00194\ \ \ \ \ analysis\ =\ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a4ce5992f988e8549b85cb5ac2b33b67f}{analyze\_headers}}(headers)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00196}00196\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mode"{}}:\ \textcolor{stringliteral}{"{}simulation"{}}\ \textcolor{keywordflow}{if}\ args.simulate\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}rpc"{}},}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}analysis"{}}:\ analysis,}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00200}00200\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00202}00202\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00203}00203\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00204}00204\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00206}00206\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00207}00207\ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Consensus\ health\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00208}00208\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}average\_block\_time\_sec"{}}\ \textcolor{keywordflow}{in}\ analysis:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Average\ block\ time:\ \{analysis['average\_block\_time\_sec']\}\ s\ (target\ \{analysis['target\_interval\_sec']\}\ s)"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00210}00210\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00211}00211\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00213}00213\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{consensus-evolution-analyzer_8py_source_l00214}00214\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespaceconsensus-evolution-analyzer_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

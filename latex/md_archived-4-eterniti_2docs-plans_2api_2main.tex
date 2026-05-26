@@ -1,0 +1,82 @@
+\chapter{Module:\+ {\ttfamily main} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main}{}\label{md_archived-4-eterniti_2docs-plans_2api_2main}\index{Module: $<$tt$>$main$<$/tt$>$@{Module: $<$tt$>$main$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1932}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1932}%
+
+
+\begin{quote}
+Module for main functionality. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+main.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 793 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 0
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1934}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1934}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1935}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1935}
+
+\begin{DoxyItemize}
+\item \`{}\+RPCThread\+Args\`{}{\ttfamily RPCThread\+Args}
+\end{DoxyItemize}— Data structure for r p c thread args. Fields include:\+ bc, wallet, alloc, mempool...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1936}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1936}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1937}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1937}
+
+\begin{DoxyItemize}
+\item \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_23_831_80_2_compiler_id_c_x_x_2_c_make_c_x_x_compiler_id_8cpp_a0ddf1224851353fc92bfbff6f499fa97}{\`{}main()\`{}}{\ttfamily \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_2_show_includes_2main_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{main()}}
+\end{DoxyItemize}— Performs the main operation on the main module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1939}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1939}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1940}{}\doxysubsection{\texorpdfstring{{\ttfamily RPCThread\+Args}}{{\ttfamily RPCThread\+Args}}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1940}
+Data structure for r p c thread args. Fields include:\+ bc, wallet, alloc, mempool, \doxylink{namespacep2p}{p2p}.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &Bc  \\
+{\ttfamily \doxylink{namespacewallet}{wallet}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &Wallet  \\
+{\ttfamily alloc}  &{\ttfamily std.\+mem.\+Allocator}  &Alloc  \\
+{\ttfamily mempool}  &{\ttfamily \texorpdfstring{$\ast$}{*}mempool\+\_\+mod.Mempool}  &Mempool  \\
+{\ttfamily \doxylink{namespacep2p}{p2p}}  &{\ttfamily \texorpdfstring{$\ast$}{*}p2p\+\_\+mod.P2\+PNode}  &P2p  \\
+{\ttfamily sync\+\_\+mgr}  &{\ttfamily \texorpdfstring{$\ast$}{*}sync\+\_\+mod.Sync\+Manager}  &Sync\+\_\+mgr  \\
+{\ttfamily metrics}  &{\ttfamily \texorpdfstring{$\ast$}{*}benchmark\+\_\+mod.Metrics}  &Metrics  \\
+{\ttfamily channel\+\_\+mgr}  &{\ttfamily \texorpdfstring{$\ast$}{*}payment\+\_\+mod.Channel\+Manager}  &Channel\+\_\+mgr  \\
+{\ttfamily staking}  &{\ttfamily \texorpdfstring{$\ast$}{*}staking\+\_\+mod.Staking\+Engine}  &Staking  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 175}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1942}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1942}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Miner\+Wallet\+Pool}  &{\ttfamily miner\+\_\+wallet\+\_\+mod.\+Miner\+Wallet\+Pool}  &Miner wallet pool  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1944}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1944}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1945}{}\doxysubsection{\texorpdfstring{{\ttfamily main()}}{{\ttfamily main()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2main_autotoc_md1945}
+Performs the main operation on the main module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ main()\ !void\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 232}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

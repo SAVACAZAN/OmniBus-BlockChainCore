@@ -1,0 +1,369 @@
+\doxysection{fips-\/140-\/compliance Namespace Reference}
+\hypertarget{namespacefips-140-compliance}{}\label{namespacefips-140-compliance}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+list \doxymbox{\hyperlink{namespacefips-140-compliance_a12cf1788daca2bf2ca6c3c947c0f6154}{bytes\+\_\+to\+\_\+bits}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacefips-140-compliance_a27919bd34b84f1655e831866a22e18e0}{get\+\_\+random\+\_\+from\+\_\+node}} (str host, int port, int num\+\_\+bytes)
+\item 
+bytes \doxymbox{\hyperlink{namespacefips-140-compliance_a42a6b45e8d763440b36f1bf2267e497e}{get\+\_\+random\+\_\+from\+\_\+urandom}} (int num\+\_\+bytes)
+\item 
+dict \doxymbox{\hyperlink{namespacefips-140-compliance_adbccf886a125d7ce46955add9c6f9841}{monobit\+\_\+test}} (list bits)
+\item 
+dict \doxymbox{\hyperlink{namespacefips-140-compliance_a54eb01629bc9fd5446ec6c0a28962d08}{poker\+\_\+test}} (list bits)
+\item 
+dict \doxymbox{\hyperlink{namespacefips-140-compliance_af81aeebc7b029492ee89c9abbd0c1021}{runs\+\_\+test}} (list bits)
+\item 
+dict \doxymbox{\hyperlink{namespacefips-140-compliance_a0b05067a87ab09dd4a9cb9474e436903}{long\+\_\+runs\+\_\+test}} (list bits)
+\item 
+dict \doxymbox{\hyperlink{namespacefips-140-compliance_abc0502c26838979d61617ad26d7e955e}{autocorrelation\+\_\+test}} (list bits, int shift=1)
+\item 
+\doxymbox{\hyperlink{namespacefips-140-compliance_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacefips-140-compliance_a8573776644b75f1750664fe9026e72f4}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacefips-140-compliance_a1d404777da430077352cd415eaefeb6f}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacefips-140-compliance_a8bff24aa78c60ab41656952ea92ca245}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacefips-140-compliance_af665526f0a143479b66791e70c214fb2}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacefips-140-compliance_aaf910c4d9f81410cc94eb8f8468d2334}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacefips-140-compliance_a9fe2c62320af79cf844c1f0d5f89f0f0}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_a49e17827ef5d8474f1fe65d402ac12cd}{RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_ade95b6cafcc8e39458783185eb222d7f}{P2\+P\+\_\+\+PORT}} = 9000
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_ad887c8b32d30858395790126123af77c}{SHARDS}} = 4
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_a33daef1e1f4d931e778e30e63526273f}{SUB\+\_\+\+BLOCKS}} = 10
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_acb489c154b289c7c5aa8406fe91bf0ba}{MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespacefips-140-compliance_a17645d4f8fc82e091f8bbec00ca063c6}{SAT}} = int(1e9)
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_a9f780af9e0940435a5dd4d2d34f5a51f}{BLOCK\+\_\+\+REWARD}} = 50
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_a48fc5ad6c2b3b1e485540831f7bb1e2a}{HALVING\+\_\+\+INTERVAL}} = 210\+\_\+000
+\item 
+str \doxymbox{\hyperlink{namespacefips-140-compliance_a29af76437b68b37055f2a8c6c2276af1}{CHAIN\+\_\+\+DATA}} = "{}omnibus-\/chain.\+dat"{}
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_a2f0c174ce4417801cef77ea7908d1abf}{BITS\+\_\+\+REQUIRED}} = 20000
+\item 
+int \doxymbox{\hyperlink{namespacefips-140-compliance_afaea938b75d724d48408458acb6e478c}{BYTES\+\_\+\+REQUIRED}} = \doxymbox{\hyperlink{namespacefips-140-compliance_a2f0c174ce4417801cef77ea7908d1abf}{BITS\+\_\+\+REQUIRED}} /\+/\+ 8
+\end{DoxyCompactItemize}
+
+
+\label{namespacefips-140-compliance_doc-func-members}
+\Hypertarget{namespacefips-140-compliance_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacefips-140-compliance_abc0502c26838979d61617ad26d7e955e}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!autocorrelation\_test@{autocorrelation\_test}}
+\index{autocorrelation\_test@{autocorrelation\_test}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{autocorrelation\_test()}{autocorrelation\_test()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_abc0502c26838979d61617ad26d7e955e} 
+ dict autocorrelation\+\_\+test (\begin{DoxyParamCaption}\item[{list}]{bits}{, }\item[{int }]{shift}{ = {\ttfamily 1}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Additional: autocorrelation test (not FIPS required but useful).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00219}{219}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacefips-140-compliance_a12cf1788daca2bf2ca6c3c947c0f6154}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!bytes\_to\_bits@{bytes\_to\_bits}}
+\index{bytes\_to\_bits@{bytes\_to\_bits}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{bytes\_to\_bits()}{bytes\_to\_bits()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a12cf1788daca2bf2ca6c3c947c0f6154} 
+ list bytes\+\_\+to\+\_\+bits (\begin{DoxyParamCaption}\item[{bytes}]{data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Convert bytes to list of bits.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacefips-140-compliance_a27919bd34b84f1655e831866a22e18e0}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!get\_random\_from\_node@{get\_random\_from\_node}}
+\index{get\_random\_from\_node@{get\_random\_from\_node}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{get\_random\_from\_node()}{get\_random\_from\_node()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a27919bd34b84f1655e831866a22e18e0} 
+ bytes get\+\_\+random\+\_\+from\+\_\+node (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int}]{num\+\_\+bytes}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Try to get random bytes from node RPC.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacefips-140-compliance_a42a6b45e8d763440b36f1bf2267e497e}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!get\_random\_from\_urandom@{get\_random\_from\_urandom}}
+\index{get\_random\_from\_urandom@{get\_random\_from\_urandom}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{get\_random\_from\_urandom()}{get\_random\_from\_urandom()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a42a6b45e8d763440b36f1bf2267e497e} 
+ bytes get\+\_\+random\+\_\+from\+\_\+urandom (\begin{DoxyParamCaption}\item[{int}]{num\+\_\+bytes}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get random bytes from OS CSPRNG.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00075}{75}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacefips-140-compliance_a0b05067a87ab09dd4a9cb9474e436903}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!long\_runs\_test@{long\_runs\_test}}
+\index{long\_runs\_test@{long\_runs\_test}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{long\_runs\_test()}{long\_runs\_test()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a0b05067a87ab09dd4a9cb9474e436903} 
+ dict long\+\_\+runs\+\_\+test (\begin{DoxyParamCaption}\item[{list}]{bits}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}FIPS 140-2 Long Runs Test.
+No run of 26 or more consecutive identical bits.
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00195}{195}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacefips-140-compliance_a51af30a60f9f02777c6396b8247e356f}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!main@{main}}
+\index{main@{main}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00237}{237}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacefips-140-compliance_adbccf886a125d7ce46955add9c6f9841}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!monobit\_test@{monobit\_test}}
+\index{monobit\_test@{monobit\_test}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{monobit\_test()}{monobit\_test()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_adbccf886a125d7ce46955add9c6f9841} 
+ dict monobit\+\_\+test (\begin{DoxyParamCaption}\item[{list}]{bits}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}FIPS 140-2 Monobit Test.
+Count of 1-bits in 20000 bits should be 9725..10275.
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00083}{83}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacefips-140-compliance_a54eb01629bc9fd5446ec6c0a28962d08}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!poker\_test@{poker\_test}}
+\index{poker\_test@{poker\_test}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{poker\_test()}{poker\_test()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a54eb01629bc9fd5446ec6c0a28962d08} 
+ dict poker\+\_\+test (\begin{DoxyParamCaption}\item[{list}]{bits}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}FIPS 140-2 Poker Test.
+Divide 20000 bits into 5000 4-bit groups.
+Compute chi-squared: X = (16/5000) * sum(f_i^2) - 5000
+Must be 2.16 < X < 46.17
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00098}{98}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacefips-140-compliance_af81aeebc7b029492ee89c9abbd0c1021}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!runs\_test@{runs\_test}}
+\index{runs\_test@{runs\_test}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{runs\_test()}{runs\_test()}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_af81aeebc7b029492ee89c9abbd0c1021} 
+ dict runs\+\_\+test (\begin{DoxyParamCaption}\item[{list}]{bits}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}FIPS 140-2 Runs Test.
+Count runs (sequences of same bit) of length 1-6+.
+Each length must fall within specified range.
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00128}{128}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+\label{namespacefips-140-compliance_doc-var-members}
+\Hypertarget{namespacefips-140-compliance_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacefips-140-compliance_a2f0c174ce4417801cef77ea7908d1abf}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!BITS\_REQUIRED@{BITS\_REQUIRED}}
+\index{BITS\_REQUIRED@{BITS\_REQUIRED}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{BITS\_REQUIRED}{BITS\_REQUIRED}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a2f0c174ce4417801cef77ea7908d1abf} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+BITS\+\_\+\+REQUIRED = 20000}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a9f780af9e0940435a5dd4d2d34f5a51f}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!BLOCK\_REWARD@{BLOCK\_REWARD}}
+\index{BLOCK\_REWARD@{BLOCK\_REWARD}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{BLOCK\_REWARD}{BLOCK\_REWARD}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a9f780af9e0940435a5dd4d2d34f5a51f} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+BLOCK\+\_\+\+REWARD = 50}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_aaf910c4d9f81410cc94eb8f8468d2334}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_aaf910c4d9f81410cc94eb8f8468d2334} 
+str \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_afaea938b75d724d48408458acb6e478c}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!BYTES\_REQUIRED@{BYTES\_REQUIRED}}
+\index{BYTES\_REQUIRED@{BYTES\_REQUIRED}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{BYTES\_REQUIRED}{BYTES\_REQUIRED}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_afaea938b75d724d48408458acb6e478c} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+BYTES\+\_\+\+REQUIRED = \doxymbox{\hyperlink{namespacefips-140-compliance_a2f0c174ce4417801cef77ea7908d1abf}{BITS\+\_\+\+REQUIRED}} /\+/\+ 8}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a29af76437b68b37055f2a8c6c2276af1}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!CHAIN\_DATA@{CHAIN\_DATA}}
+\index{CHAIN\_DATA@{CHAIN\_DATA}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{CHAIN\_DATA}{CHAIN\_DATA}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a29af76437b68b37055f2a8c6c2276af1} 
+str \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+CHAIN\+\_\+\+DATA = "{}omnibus-\/chain.\+dat"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_af665526f0a143479b66791e70c214fb2}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_af665526f0a143479b66791e70c214fb2} 
+str \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a1d404777da430077352cd415eaefeb6f}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a1d404777da430077352cd415eaefeb6f} 
+str \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a48fc5ad6c2b3b1e485540831f7bb1e2a}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!HALVING\_INTERVAL@{HALVING\_INTERVAL}}
+\index{HALVING\_INTERVAL@{HALVING\_INTERVAL}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{HALVING\_INTERVAL}{HALVING\_INTERVAL}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a48fc5ad6c2b3b1e485540831f7bb1e2a} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+HALVING\+\_\+\+INTERVAL = 210\+\_\+000}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_acb489c154b289c7c5aa8406fe91bf0ba}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!MAX\_SUPPLY@{MAX\_SUPPLY}}
+\index{MAX\_SUPPLY@{MAX\_SUPPLY}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{MAX\_SUPPLY}{MAX\_SUPPLY}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_acb489c154b289c7c5aa8406fe91bf0ba} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+MAX\+\_\+\+SUPPLY = 21\+\_\+000\+\_\+000}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_ade95b6cafcc8e39458783185eb222d7f}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!P2P\_PORT@{P2P\_PORT}}
+\index{P2P\_PORT@{P2P\_PORT}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{P2P\_PORT}{P2P\_PORT}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_ade95b6cafcc8e39458783185eb222d7f} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+P2\+P\+\_\+\+PORT = 9000}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a8573776644b75f1750664fe9026e72f4}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!RED@{RED}}
+\index{RED@{RED}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a8573776644b75f1750664fe9026e72f4} 
+str \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a9fe2c62320af79cf844c1f0d5f89f0f0}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!RESET@{RESET}}
+\index{RESET@{RESET}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a9fe2c62320af79cf844c1f0d5f89f0f0} 
+str \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a49e17827ef5d8474f1fe65d402ac12cd}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!RPC\_PORT@{RPC\_PORT}}
+\index{RPC\_PORT@{RPC\_PORT}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{RPC\_PORT}{RPC\_PORT}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a49e17827ef5d8474f1fe65d402ac12cd} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+RPC\+\_\+\+PORT = 8332}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a17645d4f8fc82e091f8bbec00ca063c6}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!SAT@{SAT}}
+\index{SAT@{SAT}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{SAT}{SAT}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a17645d4f8fc82e091f8bbec00ca063c6} 
+\doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+SAT = int(1e9)}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_ad887c8b32d30858395790126123af77c}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!SHARDS@{SHARDS}}
+\index{SHARDS@{SHARDS}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{SHARDS}{SHARDS}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_ad887c8b32d30858395790126123af77c} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+SHARDS = 4}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a33daef1e1f4d931e778e30e63526273f}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!SUB\_BLOCKS@{SUB\_BLOCKS}}
+\index{SUB\_BLOCKS@{SUB\_BLOCKS}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{SUB\_BLOCKS}{SUB\_BLOCKS}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a33daef1e1f4d931e778e30e63526273f} 
+int \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+SUB\+\_\+\+BLOCKS = 10}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+
+\Hypertarget{namespacefips-140-compliance_a8bff24aa78c60ab41656952ea92ca245}\index{fips-\/140-\/compliance@{fips-\/140-\/compliance}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!fips-\/140-\/compliance@{fips-\/140-\/compliance}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacefips-140-compliance_a8bff24aa78c60ab41656952ea92ca245} 
+str \doxymbox{\hyperlink{namespacefips}{fips}}-\/140-\/compliance.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{fips-140-compliance_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{fips-140-compliance_8py_source}{fips-\/140-\/compliance.\+py}}.
+

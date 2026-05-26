@@ -1,0 +1,301 @@
+\doxysection{wiki\+\_\+sync Namespace Reference}
+\hypertarget{namespacewiki__sync}{}\label{namespacewiki__sync}\index{wiki\_sync@{wiki\_sync}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+dict\+[str, Path]\+ \doxymbox{\hyperlink{namespacewiki__sync_a0dca18e8e53e22ea77ab45c34f164486}{get\+\_\+zig\+\_\+modules}} ()
+\item 
+dict\+[str, Path]\+ \doxymbox{\hyperlink{namespacewiki__sync_a1c2deb59537779ea41465e3afc5a4a0f}{get\+\_\+doc\+\_\+files}} ()
+\item 
+set\+[str]\+ \doxymbox{\hyperlink{namespacewiki__sync_a2b887327c6e491405d9e4b022f19fab9}{get\+\_\+wiki\+\_\+index\+\_\+modules}} ()
+\item 
+set\+[str]\+ \doxymbox{\hyperlink{namespacewiki__sync_ad8ac79833e4adef1e0133c5ae3119d34}{get\+\_\+build\+\_\+test\+\_\+modules}} ()
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacewiki__sync_a5e12d49cc67214cd816f132dffd41496}{extract\+\_\+pub\+\_\+functions}} (Path zig\+\_\+path)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacewiki__sync_aa0f541016fab4d0e6d7f492979544955}{extract\+\_\+doc\+\_\+functions}} (Path md\+\_\+path)
+\item 
+dict\+[str, str]\+ \doxymbox{\hyperlink{namespacewiki__sync_a7c872e39cc545db0c32c320cbdf0d4e0}{extract\+\_\+constants\+\_\+from\+\_\+zig}} (Path zig\+\_\+path)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacewiki__sync_a77e588a376a0f3f64c933d121ce38993}{extract\+\_\+rpc\+\_\+methods}} (Path rpc\+\_\+path)
+\item 
+str \doxymbox{\hyperlink{namespacewiki__sync_af6209583228cdcf01d55e47db25967ca}{file\+\_\+hash}} (Path path)
+\item 
+dict \doxymbox{\hyperlink{namespacewiki__sync_a0170ca024939d319607c3929f977e65b}{analyze}} ()
+\item 
+\doxymbox{\hyperlink{namespacewiki__sync_a21d276fe2dfbcc0f35bd53ee0cffafa1}{print\+\_\+report}} (dict report)
+\item 
+\doxymbox{\hyperlink{namespacewiki__sync_a7edbbaa9b8b6bf6f10a843fcc7d2acc4}{save\+\_\+status\+\_\+file}} (dict report)
+\item 
+\doxymbox{\hyperlink{namespacewiki__sync_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespacewiki__sync_a3aa98d0c93497685aab80127c4b25a12}{CORE\+\_\+\+DIR}} = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespacewiki__sync_af1caa6aff4a2454cd48458ba1baa7a51}{DOCS\+\_\+\+DIR}} = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}docs"{} /\+ "{}api"{}
+\item 
+str \doxymbox{\hyperlink{namespacewiki__sync_adb449f9d5bd7500fb779281fed2a103b}{WIKI\+\_\+\+DIR}} = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}wiki-\/omnibus"{}
+\item 
+str \doxymbox{\hyperlink{namespacewiki__sync_a11265e7aad7782e1eb0c0cd0d84bd56a}{INDEX\+\_\+\+MD}} = \doxymbox{\hyperlink{namespacewiki__sync_adb449f9d5bd7500fb779281fed2a103b}{WIKI\+\_\+\+DIR}} /\+ "{}INDEX.\+md"{}
+\item 
+str \doxymbox{\hyperlink{namespacewiki__sync_ada65975db7f455b4a904bba9ae06c7eb}{BUILD\+\_\+\+ZIG}} = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}build.\+zig"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}wiki_sync.py — OmniBus BlockChainCore Wiki/Docs Synchronization Tool
+
+Detects discrepancies between actual code (core/*.zig) and documentation
+(wiki-omnibus/, docs/api/). Reports what's out of sync and optionally
+generates a sync status report.
+
+Usage:
+    python tools/SYNC/wiki_sync.py                  # Full report
+    python tools/SYNC/wiki_sync.py --check           # Exit 1 if out of sync (CI mode)
+    python tools/SYNC/wiki_sync.py --json            # JSON output
+    python tools/SYNC/wiki_sync.py --fix-index       # Auto-update wiki INDEX module table
+\end{DoxyVerb}
+ 
+
+\label{namespacewiki__sync_doc-func-members}
+\Hypertarget{namespacewiki__sync_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacewiki__sync_a0170ca024939d319607c3929f977e65b}\index{wiki\_sync@{wiki\_sync}!analyze@{analyze}}
+\index{analyze@{analyze}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{analyze()}{analyze()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a0170ca024939d319607c3929f977e65b} 
+ dict analyze (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run full sync analysis, return structured report.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00135}{135}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacewiki__sync_a7c872e39cc545db0c32c320cbdf0d4e0}\index{wiki\_sync@{wiki\_sync}!extract\_constants\_from\_zig@{extract\_constants\_from\_zig}}
+\index{extract\_constants\_from\_zig@{extract\_constants\_from\_zig}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{extract\_constants\_from\_zig()}{extract\_constants\_from\_zig()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a7c872e39cc545db0c32c320cbdf0d4e0} 
+ dict\+[str, str]\+ extract\+\_\+constants\+\_\+from\+\_\+zig (\begin{DoxyParamCaption}\item[{Path}]{zig\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract pub const NAME = VALUE from .zig file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00101}{101}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+\Hypertarget{namespacewiki__sync_aa0f541016fab4d0e6d7f492979544955}\index{wiki\_sync@{wiki\_sync}!extract\_doc\_functions@{extract\_doc\_functions}}
+\index{extract\_doc\_functions@{extract\_doc\_functions}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{extract\_doc\_functions()}{extract\_doc\_functions()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_aa0f541016fab4d0e6d7f492979544955} 
+ list\+[str]\+ extract\+\_\+doc\+\_\+functions (\begin{DoxyParamCaption}\item[{Path}]{md\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract function names documented in a .md API doc.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00089}{89}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacewiki__sync_a5e12d49cc67214cd816f132dffd41496}\index{wiki\_sync@{wiki\_sync}!extract\_pub\_functions@{extract\_pub\_functions}}
+\index{extract\_pub\_functions@{extract\_pub\_functions}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{extract\_pub\_functions()}{extract\_pub\_functions()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a5e12d49cc67214cd816f132dffd41496} 
+ list\+[str]\+ extract\+\_\+pub\+\_\+functions (\begin{DoxyParamCaption}\item[{Path}]{zig\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract public function names from a .zig file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00077}{77}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacewiki__sync_a77e588a376a0f3f64c933d121ce38993}\index{wiki\_sync@{wiki\_sync}!extract\_rpc\_methods@{extract\_rpc\_methods}}
+\index{extract\_rpc\_methods@{extract\_rpc\_methods}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{extract\_rpc\_methods()}{extract\_rpc\_methods()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a77e588a376a0f3f64c933d121ce38993} 
+ list\+[str]\+ extract\+\_\+rpc\+\_\+methods (\begin{DoxyParamCaption}\item[{Path}]{rpc\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract RPC method names from rpc_server.zig dispatch function.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00113}{113}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacewiki__sync_af6209583228cdcf01d55e47db25967ca}\index{wiki\_sync@{wiki\_sync}!file\_hash@{file\_hash}}
+\index{file\_hash@{file\_hash}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{file\_hash()}{file\_hash()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_af6209583228cdcf01d55e47db25967ca} 
+ str file\+\_\+hash (\begin{DoxyParamCaption}\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}SHA256 hash of file contents for change detection.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00125}{125}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacewiki__sync_ad8ac79833e4adef1e0133c5ae3119d34}\index{wiki\_sync@{wiki\_sync}!get\_build\_test\_modules@{get\_build\_test\_modules}}
+\index{get\_build\_test\_modules@{get\_build\_test\_modules}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{get\_build\_test\_modules()}{get\_build\_test\_modules()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_ad8ac79833e4adef1e0133c5ae3119d34} 
+ set\+[str]\+ get\+\_\+build\+\_\+test\+\_\+modules (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse build.zig and extract module names registered in test steps.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00066}{66}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacewiki__sync_a1c2deb59537779ea41465e3afc5a4a0f}\index{wiki\_sync@{wiki\_sync}!get\_doc\_files@{get\_doc\_files}}
+\index{get\_doc\_files@{get\_doc\_files}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{get\_doc\_files()}{get\_doc\_files()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a1c2deb59537779ea41465e3afc5a4a0f} 
+ dict\+[str, Path]\+ get\+\_\+doc\+\_\+files (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return dict of module_name -> path for all docs/api/*.md files.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacewiki__sync_a2b887327c6e491405d9e4b022f19fab9}\index{wiki\_sync@{wiki\_sync}!get\_wiki\_index\_modules@{get\_wiki\_index\_modules}}
+\index{get\_wiki\_index\_modules@{get\_wiki\_index\_modules}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{get\_wiki\_index\_modules()}{get\_wiki\_index\_modules()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a2b887327c6e491405d9e4b022f19fab9} 
+ set\+[str]\+ get\+\_\+wiki\+\_\+index\+\_\+modules (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse INDEX.md and extract module names from the 'Module core' table.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacewiki__sync_a0dca18e8e53e22ea77ab45c34f164486}\index{wiki\_sync@{wiki\_sync}!get\_zig\_modules@{get\_zig\_modules}}
+\index{get\_zig\_modules@{get\_zig\_modules}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{get\_zig\_modules()}{get\_zig\_modules()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a0dca18e8e53e22ea77ab45c34f164486} 
+ dict\+[str, Path]\+ get\+\_\+zig\+\_\+modules (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return dict of module_name -> path for all core/*.zig files.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacewiki__sync_a51af30a60f9f02777c6396b8247e356f}\index{wiki\_sync@{wiki\_sync}!main@{main}}
+\index{main@{main}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00340}{340}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacewiki__sync_a21d276fe2dfbcc0f35bd53ee0cffafa1}\index{wiki\_sync@{wiki\_sync}!print\_report@{print\_report}}
+\index{print\_report@{print\_report}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{print\_report()}{print\_report()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a21d276fe2dfbcc0f35bd53ee0cffafa1} 
+print\+\_\+report (\begin{DoxyParamCaption}\item[{dict}]{report}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print human-readable sync report.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00259}{259}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacewiki__sync_a7edbbaa9b8b6bf6f10a843fcc7d2acc4}\index{wiki\_sync@{wiki\_sync}!save\_status\_file@{save\_status\_file}}
+\index{save\_status\_file@{save\_status\_file}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{save\_status\_file()}{save\_status\_file()}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a7edbbaa9b8b6bf6f10a843fcc7d2acc4} 
+save\+\_\+status\+\_\+file (\begin{DoxyParamCaption}\item[{dict}]{report}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Save sync status to data/wiki_sync_status.json for tracking over time.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00307}{307}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 13
+
+
+\label{namespacewiki__sync_doc-var-members}
+\Hypertarget{namespacewiki__sync_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacewiki__sync_ada65975db7f455b4a904bba9ae06c7eb}\index{wiki\_sync@{wiki\_sync}!BUILD\_ZIG@{BUILD\_ZIG}}
+\index{BUILD\_ZIG@{BUILD\_ZIG}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{BUILD\_ZIG}{BUILD\_ZIG}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_ada65975db7f455b4a904bba9ae06c7eb} 
+str wiki\+\_\+sync.\+BUILD\+\_\+\+ZIG = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}build.\+zig"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+\Hypertarget{namespacewiki__sync_a3aa98d0c93497685aab80127c4b25a12}\index{wiki\_sync@{wiki\_sync}!CORE\_DIR@{CORE\_DIR}}
+\index{CORE\_DIR@{CORE\_DIR}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{CORE\_DIR}{CORE\_DIR}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a3aa98d0c93497685aab80127c4b25a12} 
+str wiki\+\_\+sync.\+CORE\+\_\+\+DIR = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+\Hypertarget{namespacewiki__sync_af1caa6aff4a2454cd48458ba1baa7a51}\index{wiki\_sync@{wiki\_sync}!DOCS\_DIR@{DOCS\_DIR}}
+\index{DOCS\_DIR@{DOCS\_DIR}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{DOCS\_DIR}{DOCS\_DIR}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_af1caa6aff4a2454cd48458ba1baa7a51} 
+str wiki\+\_\+sync.\+DOCS\+\_\+\+DIR = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}docs"{} /\+ "{}api"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+\Hypertarget{namespacewiki__sync_a11265e7aad7782e1eb0c0cd0d84bd56a}\index{wiki\_sync@{wiki\_sync}!INDEX\_MD@{INDEX\_MD}}
+\index{INDEX\_MD@{INDEX\_MD}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{INDEX\_MD}{INDEX\_MD}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a11265e7aad7782e1eb0c0cd0d84bd56a} 
+str wiki\+\_\+sync.\+INDEX\+\_\+\+MD = \doxymbox{\hyperlink{namespacewiki__sync_adb449f9d5bd7500fb779281fed2a103b}{WIKI\+\_\+\+DIR}} /\+ "{}INDEX.\+md"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+\Hypertarget{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}\index{wiki\_sync@{wiki\_sync}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb} 
+wiki\+\_\+sync.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+
+\Hypertarget{namespacewiki__sync_adb449f9d5bd7500fb779281fed2a103b}\index{wiki\_sync@{wiki\_sync}!WIKI\_DIR@{WIKI\_DIR}}
+\index{WIKI\_DIR@{WIKI\_DIR}!wiki\_sync@{wiki\_sync}}
+\doxysubsubsection{\texorpdfstring{WIKI\_DIR}{WIKI\_DIR}}
+{\footnotesize\ttfamily \label{namespacewiki__sync_adb449f9d5bd7500fb779281fed2a103b} 
+str wiki\+\_\+sync.\+WIKI\+\_\+\+DIR = \doxymbox{\hyperlink{namespacewiki__sync_a3ef4816b8d4eb789c750fed40f0dbfcb}{ROOT}} /\+ "{}wiki-\/omnibus"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{wiki__sync_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{wiki__sync_8py_source}{wiki\+\_\+sync.\+py}}.
+

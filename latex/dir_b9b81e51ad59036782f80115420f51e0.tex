@@ -1,0 +1,38 @@
+\doxysection{frontend/\+node\+\_\+modules/\+dunder-\/proto Directory Reference}
+\hypertarget{dir_b9b81e51ad59036782f80115420f51e0}{}\label{dir_b9b81e51ad59036782f80115420f51e0}\index{frontend/node\_modules/dunder-\/proto Directory Reference@{frontend/node\_modules/dunder-\/proto Directory Reference}}
+Directory dependency graph for dunder-\/proto:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6476}{}\doxysubsection{\texorpdfstring{dunder-\/proto \textsuperscript{\+[!\+[Version Badge]\+\+[npm-\/version-\/svg]\+]\+\+[package-\/url]\+}}{dunder-\/proto \textsuperscript{\+[!\+[Version Badge]\+\+[npm-\/version-\/svg]\+]\+\+[package-\/url]\+}}}\label{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6476}
+\href{https://github.com/es-shims/dunder-proto/actions}{\texttt{}} \href{https://app.codecov.io/gh/es-shims/dunder-proto/}{\texttt{}} \+[]\+\+[license-\/url]\+ \href{https://npm-stat.com/charts.html?package=dunder-proto}{\texttt{}}
+
+\href{https://npmjs.org/package/dunder-proto}{\texttt{}}
+
+If available, the {\ttfamily Object.\+prototype.\+\_\+\+\_\+proto\+\_\+\+\_\+} accessor and mutator, call-\/bound.\hypertarget{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6477}{}\doxysubsection{\texorpdfstring{Getting started}{Getting started}}\label{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6477}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ -\/-\/save\ dunder-\/proto}
+
+\end{DoxyCode}
+\hypertarget{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6478}{}\doxysubsection{\texorpdfstring{Usage/\+\+Examples}{Usage/\+\+Examples}}\label{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6478}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ assert\ =\ require('assert');}
+\DoxyCodeLine{const\ getDunder\ =\ require('dunder-\/proto/get');}
+\DoxyCodeLine{const\ setDunder\ =\ require('dunder-\/proto/set');}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ obj\ =\ \{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{assert.equal('toString'\ in\ obj,\ true);}
+\DoxyCodeLine{assert.equal(getDunder(obj),\ Object.prototype);}
+\DoxyCodeLine{}
+\DoxyCodeLine{setDunder(obj,\ null);}
+\DoxyCodeLine{}
+\DoxyCodeLine{assert.equal('toString'\ in\ obj,\ false);}
+\DoxyCodeLine{assert.equal(getDunder(obj),\ null);}
+
+\end{DoxyCode}
+\hypertarget{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6479}{}\doxysubsection{\texorpdfstring{Tests}{Tests}}\label{dir_b9b81e51ad59036782f80115420f51e0_autotoc_md6479}
+Clone the repo, {\ttfamily npm install}, and run {\ttfamily npm \doxylink{namespacetest}{test}} 

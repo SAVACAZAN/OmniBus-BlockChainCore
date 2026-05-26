@@ -1,0 +1,168 @@
+\chapter{Sources — Blockchain Comparison Table }
+\hypertarget{md_test__results_2comparison_201__spec__table_2sources}{}\label{md_test__results_2comparison_201__spec__table_2sources}\index{Sources — Blockchain Comparison Table@{Sources — Blockchain Comparison Table}}
+\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9796}%
+\Hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9796}%
+
+
+All URLs verified accessible at time of writing. For metrics flagged as "{}controversial"{} (TPS, finality, TVL), the primary source is cited; secondary cross-\/checks where used are also listed.
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9798}{}\doxysection{\texorpdfstring{Omni\+Bus}{Omni\+Bus}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9798}
+
+\begin{DoxyItemize}
+\item {\bfseries{Local:\+}} {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+chain\+\_\+config.\+zig} — block\+\_\+time\+\_\+ms (1000), max\+\_\+supply (21M OMNI in SAT), \doxylink{namespacep2p}{p2p} (8333), rpc (8332), ws (8334), sub\+\_\+blocks\+\_\+per\+\_\+block (10), halving\+\_\+interval (126,144,000)
+\item {\bfseries{Local:\+}} {\ttfamily \doxylink{_c_l_a_u_d_e_8md}{CLAUDE.\+md}} — Block\+Chain\+Core section:\+ liboqs PQ schemes (ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768), secp256k1 ECDSA, JSON-\/\+RPC port 8332, mining pool Node.\+js
+\item {\bfseries{Local:\+}} {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+\+ARCHITECTURE\+\_\+\+DUAL\+\_\+\+OS.\+md} (referenced from \doxylink{_c_l_a_u_d_e_8md}{CLAUDE.\+md})
+\item {\bfseries{Note:\+}} TPS /\+ TVL /\+ DAU all {\ttfamily null}/\+0 — no mainnet exists. Sub-\/block design (10×100ms) and 4-\/shard plan from \doxylink{_c_l_a_u_d_e_8md}{CLAUDE.\+md} highlights.
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9799}{}\doxysection{\texorpdfstring{Bitcoin}{Bitcoin}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9799}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://bitcoin.org/bitcoin.pdf}{\texttt{https:\+/\+/\+bitcoin.\+org/\+bitcoin.\+pdf}}
+\item Source:\+ \href{https://github.com/bitcoin/bitcoin}{\texttt{https:\+/\+/\+github.\+com/\+bitcoin/\+bitcoin}}
+\item TPS realistic:\+ \href{https://www.blockchain.com/explorer/charts/n-transactions-per-second}{\texttt{https:\+/\+/\+www.\+blockchain.\+com/\+explorer/\+charts/\+n-\/transactions-\/per-\/second}}
+\item BIP-\/340 Schnorr:\+ \href{https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki}{\texttt{https:\+/\+/\+github.\+com/\+bitcoin/\+bips/\+blob/\+master/\+bip-\/0340.\+mediawiki}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9800}{}\doxysection{\texorpdfstring{Ethereum}{Ethereum}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9800}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://ethereum.org/en/whitepaper/}{\texttt{https:\+/\+/\+ethereum.\+org/\+en/\+whitepaper/\+}}
+\item Consensus specs:\+ \href{https://github.com/ethereum/consensus-specs}{\texttt{https:\+/\+/\+github.\+com/\+ethereum/\+consensus-\/specs}}
+\item TPS observed:\+ \href{https://etherscan.io}{\texttt{https:\+/\+/\+etherscan.\+io}}
+\item EIP-\/1559:\+ \href{https://eips.ethereum.org/EIPS/eip-1559}{\texttt{https:\+/\+/\+eips.\+ethereum.\+org/\+\+EIPS/\+eip-\/1559}}
+\item EIP-\/4844 blobs:\+ \href{https://eips.ethereum.org/EIPS/eip-4844}{\texttt{https:\+/\+/\+eips.\+ethereum.\+org/\+\+EIPS/\+eip-\/4844}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9801}{}\doxysection{\texorpdfstring{MultiversX (EGLD)}{MultiversX (EGLD)}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9801}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://multiversx.com/assets/files/multiversx-whitepaper.pdf}{\texttt{https:\+/\+/\+multiversx.\+com/\+assets/\+files/\+multiversx-\/whitepaper.\+pdf}}
+\item Docs:\+ \href{https://docs.multiversx.com/}{\texttt{https:\+/\+/\+docs.\+multiversx.\+com/\+}}
+\item Explorer:\+ \href{https://explorer.multiversx.com/}{\texttt{https:\+/\+/\+explorer.\+multiversx.\+com/\+}}
+\item 263k TPS:\+ \href{https://multiversx.com/blog/elrond-mainnet-stress-test}{\texttt{https:\+/\+/\+multiversx.\+com/\+blog/\+elrond-\/mainnet-\/stress-\/test}} (stress-\/test peak, not sustained)
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9802}{}\doxysection{\texorpdfstring{Solana}{Solana}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9802}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://solana.com/solana-whitepaper.pdf}{\texttt{https:\+/\+/\+solana.\+com/\+solana-\/whitepaper.\+pdf}}
+\item TPS dashboard:\+ \href{https://solanacompass.com/statistics/tps}{\texttt{https:\+/\+/\+solanacompass.\+com/\+statistics/\+tps}}
+\item Source:\+ \href{https://github.com/anza-xyz/agave}{\texttt{https:\+/\+/\+github.\+com/\+anza-\/xyz/\+agave}}
+\item Firedancer:\+ \href{https://jumpcrypto.com/firedancer/}{\texttt{https:\+/\+/\+jumpcrypto.\+com/\+firedancer/\+}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9803}{}\doxysection{\texorpdfstring{Sui}{Sui}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9803}
+
+\begin{DoxyItemize}
+\item Architecture:\+ \href{https://docs.sui.io/concepts/sui-architecture}{\texttt{https:\+/\+/\+docs.\+sui.\+io/\+concepts/\+sui-\/architecture}}
+\item Source:\+ \href{https://github.com/MystenLabs/sui}{\texttt{https:\+/\+/\+github.\+com/\+\+Mysten\+Labs/\+sui}}
+\item Mysticeti paper /\+ blog:\+ \href{https://blog.sui.io/mysticeti-consensus/}{\texttt{https:\+/\+/\+blog.\+sui.\+io/\+mysticeti-\/consensus/\+}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9804}{}\doxysection{\texorpdfstring{Optimism}{Optimism}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9804}
+
+\begin{DoxyItemize}
+\item Docs:\+ \href{https://docs.optimism.io/}{\texttt{https:\+/\+/\+docs.\+optimism.\+io/\+}}
+\item Source:\+ \href{https://github.com/ethereum-optimism/optimism}{\texttt{https:\+/\+/\+github.\+com/\+ethereum-\/optimism/\+optimism}}
+\item L2\+Beat (TVL, fees):\+ \href{https://l2beat.com/scaling/projects/optimism}{\texttt{https:\+/\+/\+l2beat.\+com/\+scaling/\+projects/\+optimism}}
+\item OP Stack:\+ \href{https://stack.optimism.io/}{\texttt{https:\+/\+/\+stack.\+optimism.\+io/\+}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9805}{}\doxysection{\texorpdfstring{Cardano}{Cardano}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9805}
+
+\begin{DoxyItemize}
+\item Docs:\+ \href{https://docs.cardano.org/}{\texttt{https:\+/\+/\+docs.\+cardano.\+org/\+}}
+\item Ouroboros Praos paper:\+ \href{https://iohk.io/en/research/library/papers/ouroboros-praos/}{\texttt{https:\+/\+/\+iohk.\+io/\+en/\+research/\+library/\+papers/\+ouroboros-\/praos/\+}}
+\item Explorer:\+ \href{https://cardanoscan.io/}{\texttt{https:\+/\+/\+cardanoscan.\+io/\+}}
+\item Plutus:\+ \href{https://plutus.readthedocs.io/}{\texttt{https:\+/\+/\+plutus.\+readthedocs.\+io/\+}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9806}{}\doxysection{\texorpdfstring{Polygon PoS}{Polygon PoS}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9806}
+
+\begin{DoxyItemize}
+\item Site:\+ \href{https://polygon.technology/}{\texttt{https:\+/\+/\+polygon.\+technology/\+}}
+\item PoS docs:\+ \href{https://docs.polygon.technology/pos/}{\texttt{https:\+/\+/\+docs.\+polygon.\+technology/\+pos/\+}}
+\item Explorer:\+ \href{https://polygonscan.com/}{\texttt{https:\+/\+/\+polygonscan.\+com/\+}}
+\item POL upgrade:\+ \href{https://polygon.technology/blog/polygon-2-0-tokenomics}{\texttt{https:\+/\+/\+polygon.\+technology/\+blog/\+polygon-\/2-\/0-\/tokenomics}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9807}{}\doxysection{\texorpdfstring{Avalanche (C-\/\+Chain)}{Avalanche (C-\/\+Chain)}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9807}
+
+\begin{DoxyItemize}
+\item Docs:\+ \href{https://docs.avax.network/}{\texttt{https:\+/\+/\+docs.\+avax.\+network/\+}}
+\item Source:\+ \href{https://github.com/ava-labs/avalanchego}{\texttt{https:\+/\+/\+github.\+com/\+ava-\/labs/\+avalanchego}}
+\item Explorer:\+ \href{https://snowtrace.io/}{\texttt{https:\+/\+/\+snowtrace.\+io/\+}}
+\item Snowman/\+\+Avalanche papers:\+ \href{https://www.avalabs.org/whitepapers}{\texttt{https:\+/\+/\+www.\+avalabs.\+org/\+whitepapers}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9808}{}\doxysection{\texorpdfstring{Aptos}{Aptos}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9808}
+
+\begin{DoxyItemize}
+\item Docs:\+ \href{https://aptos.dev/}{\texttt{https:\+/\+/\+aptos.\+dev/\+}}
+\item Whitepaper:\+ \href{https://aptosfoundation.org/whitepaper}{\texttt{https:\+/\+/\+aptosfoundation.\+org/\+whitepaper}}
+\item Source:\+ \href{https://github.com/aptos-labs/aptos-core}{\texttt{https:\+/\+/\+github.\+com/\+aptos-\/labs/\+aptos-\/core}}
+\item Block-\/\+STM paper:\+ \href{https://arxiv.org/abs/2203.06871}{\texttt{https:\+/\+/\+arxiv.\+org/\+abs/\+2203.\+06871}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9809}{}\doxysection{\texorpdfstring{NEAR}{NEAR}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9809}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://near.org/papers/the-official-near-white-paper}{\texttt{https:\+/\+/\+near.\+org/\+papers/\+the-\/official-\/near-\/white-\/paper}}
+\item Docs:\+ \href{https://docs.near.org/}{\texttt{https:\+/\+/\+docs.\+near.\+org/\+}}
+\item Explorer:\+ \href{https://nearblocks.io/}{\texttt{https:\+/\+/\+nearblocks.\+io/\+}}
+\item Nightshade:\+ \href{https://near.org/papers/nightshade}{\texttt{https:\+/\+/\+near.\+org/\+papers/\+nightshade}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9810}{}\doxysection{\texorpdfstring{Cosmos Hub}{Cosmos Hub}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9810}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://cosmos.network/cosmos-whitepaper.pdf}{\texttt{https:\+/\+/\+cosmos.\+network/\+cosmos-\/whitepaper.\+pdf}}
+\item SDK docs:\+ \href{https://docs.cosmos.network/}{\texttt{https:\+/\+/\+docs.\+cosmos.\+network/\+}}
+\item Explorer:\+ \href{https://www.mintscan.io/cosmos}{\texttt{https:\+/\+/\+www.\+mintscan.\+io/\+cosmos}}
+\item Comet\+BFT:\+ \href{https://docs.cometbft.com/}{\texttt{https:\+/\+/\+docs.\+cometbft.\+com/\+}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9811}{}\doxysection{\texorpdfstring{Polkadot}{Polkadot}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9811}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://polkadot.com/papers/Polkadot-whitepaper.pdf}{\texttt{https:\+/\+/\+polkadot.\+com/\+papers/\+\+Polkadot-\/whitepaper.\+pdf}}
+\item Wiki:\+ \href{https://wiki.polkadot.network/}{\texttt{https:\+/\+/\+wiki.\+polkadot.\+network/\+}}
+\item Source:\+ \href{https://github.com/paritytech/polkadot-sdk}{\texttt{https:\+/\+/\+github.\+com/\+paritytech/\+polkadot-\/sdk}}
+\item GRANDPA paper:\+ \href{https://github.com/w3f/consensus}{\texttt{https:\+/\+/\+github.\+com/\+w3f/\+consensus}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9812}{}\doxysection{\texorpdfstring{QRL (Quantum Resistant Ledger)}{QRL (Quantum Resistant Ledger)}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9812}
+
+\begin{DoxyItemize}
+\item Whitepaper:\+ \href{https://www.theqrl.org/whitepaper/QRL_whitepaper.pdf}{\texttt{https:\+/\+/\+www.\+theqrl.\+org/\+whitepaper/\+\+QRL\+\_\+whitepaper.\+pdf}}
+\item Docs:\+ \href{https://docs.theqrl.org/}{\texttt{https:\+/\+/\+docs.\+theqrl.\+org/\+}}
+\item XMSS RFC 8391:\+ \href{https://datatracker.ietf.org/doc/html/rfc8391}{\texttt{https:\+/\+/\+datatracker.\+ietf.\+org/\+doc/\+html/\+rfc8391}}
+\item NIST SP 800-\/208 (XMSS, LMS):\+ \href{https://csrc.nist.gov/publications/detail/sp/800-208/final}{\texttt{https:\+/\+/\+csrc.\+nist.\+gov/\+publications/\+detail/\+sp/\+800-\/208/\+final}}
+\item Zond upgrade:\+ \href{https://www.theqrl.org/blog/qrl-zond/}{\texttt{https:\+/\+/\+www.\+theqrl.\+org/\+blog/\+qrl-\/zond/\+}}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9813}{}\doxysection{\texorpdfstring{QANplatform}{QANplatform}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9813}
+
+\begin{DoxyItemize}
+\item PQ page:\+ \href{https://www.qanplatform.com/en/post-quantum-security}{\texttt{https:\+/\+/\+www.\+qanplatform.\+com/\+en/\+post-\/quantum-\/security}}
+\item Docs:\+ \href{https://docs.qanplatform.com/}{\texttt{https:\+/\+/\+docs.\+qanplatform.\+com/\+}}
+\item NIST FIPS 204 (ML-\/\+DSA /\+ Dilithium):\+ \href{https://csrc.nist.gov/pubs/fips/204/final}{\texttt{https:\+/\+/\+csrc.\+nist.\+gov/\+pubs/\+fips/\+204/\+final}}
+\item Note:\+ QANX is currently an ERC-\/20 placeholder on Ethereum. Mainnet not live as of 2025-\/Q1.
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9814}{}\doxysection{\texorpdfstring{IOTA (Stardust /\+ Rebased)}{IOTA (Stardust /\+ Rebased)}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9814}
+
+\begin{DoxyItemize}
+\item Research:\+ \href{https://www.iota.org/foundation/research-papers}{\texttt{https:\+/\+/\+www.\+iota.\+org/\+foundation/\+research-\/papers}}
+\item Wiki:\+ \href{https://wiki.iota.org/}{\texttt{https:\+/\+/\+wiki.\+iota.\+org/\+}}
+\item Rebased upgrade:\+ \href{https://blog.iota.org/iota-rebased-upgrade/}{\texttt{https:\+/\+/\+blog.\+iota.\+org/\+iota-\/rebased-\/upgrade/\+}}
+\item Coordicide:\+ \href{https://files.iota.org/papers/Coordicide_WP.pdf}{\texttt{https:\+/\+/\+files.\+iota.\+org/\+papers/\+\+Coordicide\+\_\+\+WP.\+pdf}}
+\item {\bfseries{Important correction:\+}} IOTA\textquotesingle{}s original Winternitz one-\/time hash-\/based signatures (PQ) were {\bfseries{abandoned with the Chrysalis upgrade (April 2021)}}. Current chain (Stardust + Rebased 2025) uses Ed25519 (NOT PQ-\/resistant). PQ is on roadmap, not implemented.
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9816}{}\doxysection{\texorpdfstring{Methodology notes}{Methodology notes}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9816}
+
+\begin{DoxyItemize}
+\item {\bfseries{TPS realistic}} uses sustained on-\/chain non-\/vote/\+non-\/internal throughput where measurable. For Solana this means True\+TPS /\+ non-\/vote tx per second.
+\item {\bfseries{Finality}} is reported as the practical wait time before a transaction is irreversibly confirmed by major exchanges/\+applications, not just probabilistic.
+\item {\bfseries{TVL}} values from Defi\+Llama-\/style aggregators where De\+Fi exists; "{}0"{} for chains without smart-\/contract De\+Fi.
+\item {\bfseries{Mainnet date}} is the date of public mainnet token genesis, not testnet/\+devnet.
+\item {\bfseries{Where ambiguous}}, the lower bound is reported, with notes flagging stress-\/test peaks vs. sustained values.
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9818}{}\doxysection{\texorpdfstring{Update 2026-\/04-\/25 — Added 2 chains}{Update 2026-\/04-\/25 — Added 2 chains}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9818}
+\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9819}{}\doxysubsection{\texorpdfstring{LCX Liberty Chain}{LCX Liberty Chain}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9819}
+
+\begin{DoxyItemize}
+\item \href{https://www.lcx.com/liberty/}{\texttt{https:\+/\+/\+www.\+lcx.\+com/\+liberty/\+}}
+\item \href{https://docs.lcx.com/liberty/}{\texttt{https:\+/\+/\+docs.\+lcx.\+com/\+liberty/\+}}
+\item \href{https://testnet-rpc.lcx.com}{\texttt{https:\+/\+/\+testnet-\/rpc.\+lcx.\+com}} (chain ID 76847801)
+\item Local refs:\+
+\begin{DoxyItemize}
+\item {\ttfamily 3\+\_\+\+DESKTOP\+\_\+\+APPS/\+aweb3/\+hardhat.\+config.\+js} (networks.\+liberty\+\_\+testnet)
+\item {\ttfamily 3\+\_\+\+DESKTOP\+\_\+\+APPS/\+aweb3/\+deployments-\/bridge-\/sepolia.\+json}
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9820}{}\doxysubsection{\texorpdfstring{Base (Coinbase L2)}{Base (Coinbase L2)}}\label{md_test__results_2comparison_201__spec__table_2sources_autotoc_md9820}
+
+\begin{DoxyItemize}
+\item \href{https://docs.base.org/}{\texttt{https:\+/\+/\+docs.\+base.\+org/\+}}
+\item \href{https://github.com/base-org/node}{\texttt{https:\+/\+/\+github.\+com/\+base-\/org/\+node}}
+\item \href{https://l2beat.com/scaling/projects/base}{\texttt{https:\+/\+/\+l2beat.\+com/\+scaling/\+projects/\+base}}
+\item Local refs:\+
+\begin{DoxyItemize}
+\item {\ttfamily 3\+\_\+\+DESKTOP\+\_\+\+APPS/\+aweb3/\+hardhat.\+config.\+js} (networks.\+base\+\_\+sepolia, chain\+Id 84532)
+\item {\ttfamily 3\+\_\+\+DESKTOP\+\_\+\+APPS/\+aweb3/\+deployments-\/bridge-\/sepolia.\+json} 
+\end{DoxyItemize}
+\end{DoxyItemize}

@@ -1,0 +1,144 @@
+\doxysection{metrics\+\_\+exporter Namespace Reference}
+\hypertarget{namespacemetrics__exporter}{}\label{namespacemetrics__exporter}\index{metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{Blockchain\+Metrics}}
+\item 
+class \doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler}{Metrics\+Handler}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Optional\+[dict]\+ \doxymbox{\hyperlink{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}{rpc\+\_\+call}} (str method, list params=None)
+\item 
+\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{Blockchain\+Metrics}} \doxymbox{\hyperlink{namespacemetrics__exporter_a73d6c6c4d055f286ea97667571bee65d}{collect\+\_\+metrics}} ()
+\item 
+str \doxymbox{\hyperlink{namespacemetrics__exporter_a5f048f1bf6736e95ef1b3dcdfbd9bc01}{format\+\_\+prometheus}} (\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{Blockchain\+Metrics}} metrics)
+\item 
+\doxymbox{\hyperlink{namespacemetrics__exporter_a4882732273e8139fb27f04f521c18d23}{start\+\_\+server}} (int port)
+\item 
+\doxymbox{\hyperlink{namespacemetrics__exporter_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacemetrics__exporter_a1a3cf56b30f67096506257240ab93a29}{RPC\+\_\+\+HOST}} = "{}127.\+0.\+0.\+1"{}
+\item 
+int \doxymbox{\hyperlink{namespacemetrics__exporter_ad2826f479fc5ac2cb06f3d3e6fe42605}{RPC\+\_\+\+PORT}} = 8332
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}metrics_exporter.py - Prometheus Metrics Exporter v1.0
+
+Exportă metrici blockchain pentru Prometheus/Grafana:
+  - Block height, timestamp, difficulty
+  - Mempool size, transaction count
+  - Peer connections
+  - Mining statistics
+  - Memory and CPU usage
+
+Usage:
+  python tools/MONITORING/metrics_exporter.py           # Print metrics
+  python tools/MONITORING/metrics_exporter.py --http    # Start HTTP server
+  python tools/MONITORING/metrics_exporter.py --port 9090
+\end{DoxyVerb}
+ 
+
+\label{namespacemetrics__exporter_doc-func-members}
+\Hypertarget{namespacemetrics__exporter_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacemetrics__exporter_a73d6c6c4d055f286ea97667571bee65d}\index{metrics\_exporter@{metrics\_exporter}!collect\_metrics@{collect\_metrics}}
+\index{collect\_metrics@{collect\_metrics}!metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection{\texorpdfstring{collect\_metrics()}{collect\_metrics()}}
+{\footnotesize\ttfamily \label{namespacemetrics__exporter_a73d6c6c4d055f286ea97667571bee65d} 
+ \doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{Blockchain\+Metrics}} collect\+\_\+metrics (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Collect metrics from blockchain node.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{metrics__exporter_8py_source_l00063}{63}} of file \doxymbox{\hyperlink{metrics__exporter_8py_source}{metrics\+\_\+exporter.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacemetrics__exporter_a5f048f1bf6736e95ef1b3dcdfbd9bc01}\index{metrics\_exporter@{metrics\_exporter}!format\_prometheus@{format\_prometheus}}
+\index{format\_prometheus@{format\_prometheus}!metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection{\texorpdfstring{format\_prometheus()}{format\_prometheus()}}
+{\footnotesize\ttfamily \label{namespacemetrics__exporter_a5f048f1bf6736e95ef1b3dcdfbd9bc01} 
+ str format\+\_\+prometheus (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{Blockchain\+Metrics}}}]{metrics}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Format metrics in Prometheus exposition format.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{metrics__exporter_8py_source_l00092}{92}} of file \doxymbox{\hyperlink{metrics__exporter_8py_source}{metrics\+\_\+exporter.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacemetrics__exporter_a51af30a60f9f02777c6396b8247e356f}\index{metrics\_exporter@{metrics\_exporter}!main@{main}}
+\index{main@{main}!metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacemetrics__exporter_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{metrics__exporter_8py_source_l00151}{151}} of file \doxymbox{\hyperlink{metrics__exporter_8py_source}{metrics\+\_\+exporter.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}\index{metrics\_exporter@{metrics\_exporter}!rpc\_call@{rpc\_call}}
+\index{rpc\_call@{rpc\_call}!metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection{\texorpdfstring{rpc\_call()}{rpc\_call()}}
+{\footnotesize\ttfamily \label{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308} 
+ Optional\+[dict]\+ rpc\+\_\+call (\begin{DoxyParamCaption}\item[{str}]{method}{, }\item[{list }]{params}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Make RPC call to blockchain node.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{metrics__exporter_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{metrics__exporter_8py_source}{metrics\+\_\+exporter.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacemetrics__exporter_a4882732273e8139fb27f04f521c18d23}\index{metrics\_exporter@{metrics\_exporter}!start\_server@{start\_server}}
+\index{start\_server@{start\_server}!metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection{\texorpdfstring{start\_server()}{start\_server()}}
+{\footnotesize\ttfamily \label{namespacemetrics__exporter_a4882732273e8139fb27f04f521c18d23} 
+start\+\_\+server (\begin{DoxyParamCaption}\item[{int}]{port}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Start HTTP server for metrics.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{metrics__exporter_8py_source_l00141}{141}} of file \doxymbox{\hyperlink{metrics__exporter_8py_source}{metrics\+\_\+exporter.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+
+
+\label{namespacemetrics__exporter_doc-var-members}
+\Hypertarget{namespacemetrics__exporter_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacemetrics__exporter_a1a3cf56b30f67096506257240ab93a29}\index{metrics\_exporter@{metrics\_exporter}!RPC\_HOST@{RPC\_HOST}}
+\index{RPC\_HOST@{RPC\_HOST}!metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection{\texorpdfstring{RPC\_HOST}{RPC\_HOST}}
+{\footnotesize\ttfamily \label{namespacemetrics__exporter_a1a3cf56b30f67096506257240ab93a29} 
+str metrics\+\_\+exporter.\+RPC\+\_\+\+HOST = "{}127.\+0.\+0.\+1"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{metrics__exporter_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{metrics__exporter_8py_source}{metrics\+\_\+exporter.\+py}}.
+
+\Hypertarget{namespacemetrics__exporter_ad2826f479fc5ac2cb06f3d3e6fe42605}\index{metrics\_exporter@{metrics\_exporter}!RPC\_PORT@{RPC\_PORT}}
+\index{RPC\_PORT@{RPC\_PORT}!metrics\_exporter@{metrics\_exporter}}
+\doxysubsubsection{\texorpdfstring{RPC\_PORT}{RPC\_PORT}}
+{\footnotesize\ttfamily \label{namespacemetrics__exporter_ad2826f479fc5ac2cb06f3d3e6fe42605} 
+int metrics\+\_\+exporter.\+RPC\+\_\+\+PORT = 8332}
+
+
+
+Definition at line \doxymbox{\hyperlink{metrics__exporter_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{metrics__exporter_8py_source}{metrics\+\_\+exporter.\+py}}.
+

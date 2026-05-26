@@ -1,0 +1,688 @@
+\doxysection{blockchain\+\_\+analyzer.\+py}
+\hypertarget{blockchain__analyzer_8py_source}{}\label{blockchain__analyzer_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_analyzer.py@{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_analyzer.py}}
+\doxymbox{\hyperlink{blockchain__analyzer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00001}\doxymbox{\hyperlink{namespaceblockchain__analyzer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00003}00003\ \textcolor{stringliteral}{blockchain\_analyzer.py\ -\/\ OmniBus\ Blockchain\ Core\ Analyzer\ v2.0}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00005}00005\ \textcolor{stringliteral}{Analizeaza\ structura\ si\ calitatea\ codului\ blockchain:}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Verifica\ toate\ cele\ 52\ module\ Zig\ din\ core/}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Detecteaza\ probleme\ de\ sintaxa\ Zig\ (zig\ ast-\/check)}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Clasificare\ inteligenta:\ REAL\ /\ PARTIAL\ /\ STUB\ /\ EMPTY}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Pattern-\/uri\ specifice\ blockchain\ (crypto,\ consensus,\ P2P,\ wallet)}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Securitate:\ private\ key\ leaks,\ allocator\ misuse,\ panic\ paths}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ Scor\ calitate\ 0-\/100\ per\ modul}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ -\/\ Export\ JSON\ /\ HTML}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00014}00014\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_analyzer.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Full\ scan}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_analyzer.py\ -\/-\/module\ wallet\ \ \ \ \#\ Single\ module}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00017}00017\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_analyzer.py\ -\/-\/json\ report.json\ \#\ Export\ JSON}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_analyzer.py\ -\/-\/html\ report.html\ \#\ Export\ HTML}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_analyzer.py\ -\/-\/verbose\ \ \ \ \ \ \ \ \ \ \#\ Show\ all\ findings}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00020}00020\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00022}00022\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00023}00023\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00024}00024\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00025}00025\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00026}00026\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00027}00027\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00028}00028\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00029}00029\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ field}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00030}00030\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ List,\ Dict,\ Tuple,\ Optional,\ Set}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00031}00031\ \textcolor{keyword}{from}\ enum\ \textcolor{keyword}{import}\ Enum}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00032}00032\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00034}00034\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00035}00035\ \textcolor{comment}{\#\ CONFIGURATION}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00036}00036\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00038}\doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{00038}}\ ROOT\ =\ Path(\_\_file\_\_).parent.parent.parent}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00039}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a8d2fd456c43ed1aa77532c6142499e42}{00039}}\ CORE\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00040}\doxymbox{\hyperlink{namespaceblockchain__analyzer_ace387e2495cb08d804ae9fc0c79c3ab2}{00040}}\ TEST\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}test"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00041}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a48c1aff6fbe3966cada2ca6063b68604}{00041}}\ AGENT\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}agent"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00043}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status}{00043}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status}{ModuleStatus}}(Enum):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00044}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status_af525dea0f81a980aada27d834ea6aacf}{00044}}\ \ \ \ \ REAL\ =\ \textcolor{stringliteral}{"{}REAL"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00045}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status_acca96cf13916ca1fcd8dc23551785ec0}{00045}}\ \ \ \ \ PARTIAL\ =\ \textcolor{stringliteral}{"{}PARTIAL"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00046}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status_a812df0bd7dcdf5f6175a809b60ee9df9}{00046}}\ \ \ \ \ STUB\ =\ \textcolor{stringliteral}{"{}STUB"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00047}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status_a7a6629f6b691cae040d5d3838377cc4e}{00047}}\ \ \ \ \ EMPTY\ =\ \textcolor{stringliteral}{"{}EMPTY"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00048}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status_a5869a5d15cf91e2157d083fdf0a5f112}{00048}}\ \ \ \ \ ERROR\ =\ \textcolor{stringliteral}{"{}ERROR"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00050}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity}{00050}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity}{Severity}}(Enum):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00051}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity_a84daac119c70935544165f3eea5bf4f9}{00051}}\ \ \ \ \ PASS\ =\ \textcolor{stringliteral}{"{}PASS"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00052}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity_a814de81e388f80b80a2337c1b836b7b2}{00052}}\ \ \ \ \ WARN\ =\ \textcolor{stringliteral}{"{}WARN"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00053}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity_acde671d602a1b2c7b8e77df2f549200f}{00053}}\ \ \ \ \ FAIL\ =\ \textcolor{stringliteral}{"{}FAIL"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00054}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity_aabf751165dce3124f288c616eb892ee8}{00054}}\ \ \ \ \ INFO\ =\ \textcolor{stringliteral}{"{}INFO"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00056}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category}{00056}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category}{ModuleCategory}}(Enum):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00057}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_a453d2e31ff42c243bf37cabe9bb83823}{00057}}\ \ \ \ \ CRYPTO\ =\ \textcolor{stringliteral}{"{}CRYPTO"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00058}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_a5983706bc74f9b2e90e4d4779e3c1106}{00058}}\ \ \ \ \ CHAIN\ =\ \textcolor{stringliteral}{"{}CHAIN"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00059}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_ab9ed264556acc706e74022ca0946a00d}{00059}}\ \ \ \ \ NETWORK\ =\ \textcolor{stringliteral}{"{}NETWORK"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00060}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_aa1aeb7c2a837f00ac00c9c599a718649}{00060}}\ \ \ \ \ STORAGE\ =\ \textcolor{stringliteral}{"{}STORAGE"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00061}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_a4f820b69496808a11f55eb06813070a5}{00061}}\ \ \ \ \ WALLET\ =\ \textcolor{stringliteral}{"{}WALLET"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00062}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_abf642053d749237a36fb609073c2f249}{00062}}\ \ \ \ \ CONSENSUS\ =\ \textcolor{stringliteral}{"{}CONSENSUS"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00063}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_a4fa4447497cdee58c829a3cf3fbb0e6a}{00063}}\ \ \ \ \ MINING\ =\ \textcolor{stringliteral}{"{}MINING"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00064}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_a1324cb273f3b8c22075f5b97d2a71d58}{00064}}\ \ \ \ \ SHARD\ =\ \textcolor{stringliteral}{"{}SHARD"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00065}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_a8d9e7479d25a093d50989de112e06a0b}{00065}}\ \ \ \ \ ECONOMIC\ =\ \textcolor{stringliteral}{"{}ECONOMIC"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00066}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category_a52d2ccb6ed2d6138356fa7a34b0de238}{00066}}\ \ \ \ \ UTIL\ =\ \textcolor{stringliteral}{"{}UTIL"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00068}00068\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00069}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{00069}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00070}00070\ \ \ \ \ rule\_id:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00071}00071\ \ \ \ \ severity:\ Severity}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00072}00072\ \ \ \ \ module:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00073}00073\ \ \ \ \ line:\ int}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00074}00074\ \ \ \ \ message:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00075}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding_ab7390f4d54aa1bba899967e2be61d4a8}{00075}}\ \ \ \ \ evidence:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00077}00077\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00078}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{00078}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{ModuleResult}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00079}00079\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00080}00080\ \ \ \ \ path:\ Path}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00081}00081\ \ \ \ \ status:\ ModuleStatus}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00082}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_ab06568db445d7fb2b53cf77c5f0f57ff}{00082}}\ \ \ \ \ category:\ ModuleCategory\ =\ ModuleCategory.UTIL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00083}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a6993cc39d14fd5adce2726be1c816bf1}{00083}}\ \ \ \ \ lines:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00084}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a0980b342b2dd87583dd9516caf7daef2}{00084}}\ \ \ \ \ non\_empty\_lines:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00085}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_acbe4c96661fb5e7a4473a7b925ae9276}{00085}}\ \ \ \ \ functions:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00086}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a4cc80d7791c82a07caf73bfafad2ce76}{00086}}\ \ \ \ \ pub\_functions:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00087}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a4f902a1f30f34da8b5de7ff4eb889c84}{00087}}\ \ \ \ \ exports:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00088}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a83bf0ca42e20ae366dac778f3ce94fe7}{00088}}\ \ \ \ \ tests:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00089}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a59423af8f512fe20b0b7617b8fc00e8d}{00089}}\ \ \ \ \ imports:\ List[str]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00090}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a656e1a463b27939bec922ac6d9a75dbe}{00090}}\ \ \ \ \ findings:\ List[Finding]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00091}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_ad9a6a0a0168cdef71d210284545593e9}{00091}}\ \ \ \ \ has\_init:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00092}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_aceb929417dcc8de99ba87af6109ee5af}{00092}}\ \ \ \ \ has\_deinit:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00093}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a08da6b675d80738b5d4e94b10a76444a}{00093}}\ \ \ \ \ has\_allocator:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00094}\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result_a23f00b3ddfc4a285582fe8eb4f9c1aee}{00094}}\ \ \ \ \ score:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00096}00096\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00097}00097\ \textcolor{comment}{\#\ MODULE\ CATEGORY\ MAP\ (based\ on\ actual\ project\ structure)}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00098}00098\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00100}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a1a9f129f9080dd0dc54cd4c7aee71f8c}{00100}}\ CATEGORY\_MAP\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00101}00101\ \ \ \ \ \textcolor{comment}{\#\ Crypto\ Layer}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00102}00102\ \ \ \ \ \textcolor{stringliteral}{"{}crypto"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00103}00103\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00104}00104\ \ \ \ \ \textcolor{stringliteral}{"{}ripemd160"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00105}00105\ \ \ \ \ \textcolor{stringliteral}{"{}pq\_crypto"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00106}00106\ \ \ \ \ \textcolor{stringliteral}{"{}key\_encryption"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00107}00107\ \ \ \ \ \textcolor{stringliteral}{"{}bip32\_wallet"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00108}00108\ \ \ \ \ \textcolor{comment}{\#\ Chain\ Layer}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00109}00109\ \ \ \ \ \textcolor{stringliteral}{"{}block"{}}:\ ModuleCategory.CHAIN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00110}00110\ \ \ \ \ \textcolor{stringliteral}{"{}blockchain"{}}:\ ModuleCategory.CHAIN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00111}00111\ \ \ \ \ \textcolor{stringliteral}{"{}blockchain\_v2"{}}:\ ModuleCategory.CHAIN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00112}00112\ \ \ \ \ \textcolor{stringliteral}{"{}transaction"{}}:\ ModuleCategory.CHAIN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00113}00113\ \ \ \ \ \textcolor{stringliteral}{"{}genesis"{}}:\ ModuleCategory.CHAIN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00114}00114\ \ \ \ \ \textcolor{stringliteral}{"{}mempool"{}}:\ ModuleCategory.CHAIN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00115}00115\ \ \ \ \ \textcolor{stringliteral}{"{}compact\_transaction"{}}:\ ModuleCategory.CHAIN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00116}00116\ \ \ \ \ \textcolor{comment}{\#\ Consensus}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00117}00117\ \ \ \ \ \textcolor{stringliteral}{"{}consensus"{}}:\ ModuleCategory.CONSENSUS,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00118}00118\ \ \ \ \ \textcolor{stringliteral}{"{}e2e\_mining"{}}:\ ModuleCategory.CONSENSUS,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00119}00119\ \ \ \ \ \textcolor{stringliteral}{"{}miner\_genesis"{}}:\ ModuleCategory.CONSENSUS,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00120}00120\ \ \ \ \ \textcolor{comment}{\#\ Network}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00121}00121\ \ \ \ \ \textcolor{stringliteral}{"{}p2p"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00122}00122\ \ \ \ \ \textcolor{stringliteral}{"{}sync"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00123}00123\ \ \ \ \ \textcolor{stringliteral}{"{}network"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00124}00124\ \ \ \ \ \textcolor{stringliteral}{"{}bootstrap"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00125}00125\ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_server"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00126}00126\ \ \ \ \ \textcolor{stringliteral}{"{}ws\_server"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00127}00127\ \ \ \ \ \textcolor{stringliteral}{"{}node\_launcher"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00128}00128\ \ \ \ \ \textcolor{stringliteral}{"{}cli"{}}:\ ModuleCategory.NETWORK,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00129}00129\ \ \ \ \ \textcolor{comment}{\#\ Storage}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00130}00130\ \ \ \ \ \textcolor{stringliteral}{"{}database"{}}:\ ModuleCategory.STORAGE,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00131}00131\ \ \ \ \ \textcolor{stringliteral}{"{}storage"{}}:\ ModuleCategory.STORAGE,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00132}00132\ \ \ \ \ \textcolor{stringliteral}{"{}binary\_codec"{}}:\ ModuleCategory.STORAGE,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00133}00133\ \ \ \ \ \textcolor{stringliteral}{"{}archive\_manager"{}}:\ ModuleCategory.STORAGE,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00134}00134\ \ \ \ \ \textcolor{stringliteral}{"{}prune\_config"{}}:\ ModuleCategory.STORAGE,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00135}00135\ \ \ \ \ \textcolor{stringliteral}{"{}state\_trie"{}}:\ ModuleCategory.STORAGE,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00136}00136\ \ \ \ \ \textcolor{stringliteral}{"{}witness\_data"{}}:\ ModuleCategory.STORAGE,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00137}00137\ \ \ \ \ \textcolor{comment}{\#\ Wallet}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00138}00138\ \ \ \ \ \textcolor{stringliteral}{"{}wallet"{}}:\ ModuleCategory.WALLET,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00139}00139\ \ \ \ \ \textcolor{stringliteral}{"{}vault\_engine"{}}:\ ModuleCategory.WALLET,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00140}00140\ \ \ \ \ \textcolor{stringliteral}{"{}vault\_reader"{}}:\ ModuleCategory.WALLET,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00141}00141\ \ \ \ \ \textcolor{comment}{\#\ Mining}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00142}00142\ \ \ \ \ \textcolor{stringliteral}{"{}mining\_pool"{}}:\ ModuleCategory.MINING,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00143}00143\ \ \ \ \ \textcolor{stringliteral}{"{}light\_miner"{}}:\ ModuleCategory.MINING,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00144}00144\ \ \ \ \ \textcolor{stringliteral}{"{}light\_client"{}}:\ ModuleCategory.MINING,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00145}00145\ \ \ \ \ \textcolor{stringliteral}{"{}main"{}}:\ ModuleCategory.MINING,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00146}00146\ \ \ \ \ \textcolor{comment}{\#\ Shard}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00147}00147\ \ \ \ \ \textcolor{stringliteral}{"{}sub\_block"{}}:\ ModuleCategory.SHARD,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00148}00148\ \ \ \ \ \textcolor{stringliteral}{"{}shard\_config"{}}:\ ModuleCategory.SHARD,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00149}00149\ \ \ \ \ \textcolor{stringliteral}{"{}shard\_coordinator"{}}:\ ModuleCategory.SHARD,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00150}00150\ \ \ \ \ \textcolor{stringliteral}{"{}metachain"{}}:\ ModuleCategory.SHARD,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00151}00151\ \ \ \ \ \textcolor{comment}{\#\ Economic}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00152}00152\ \ \ \ \ \textcolor{stringliteral}{"{}bread\_ledger"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00153}00153\ \ \ \ \ \textcolor{stringliteral}{"{}domain\_minter"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00154}00154\ \ \ \ \ \textcolor{stringliteral}{"{}spark\_invariants"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00155}00155\ \ \ \ \ \textcolor{stringliteral}{"{}ubi\_distributor"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00156}00156\ \ \ \ \ \textcolor{stringliteral}{"{}payment\_channel"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00157}00157\ \ \ \ \ \textcolor{stringliteral}{"{}bridge\_relay"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00158}00158\ \ \ \ \ \textcolor{stringliteral}{"{}oracle"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00159}00159\ \ \ \ \ \textcolor{stringliteral}{"{}omni\_brain"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00160}00160\ \ \ \ \ \textcolor{stringliteral}{"{}synapse\_priority"{}}:\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00161}00161\ \ \ \ \ \textcolor{stringliteral}{"{}os\_mode"{}}:\ ModuleCategory.UTIL,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00162}00162\ \ \ \ \ \textcolor{comment}{\#\ New\ modules}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00163}00163\ \ \ \ \ \textcolor{stringliteral}{"{}schnorr"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00164}00164\ \ \ \ \ \textcolor{stringliteral}{"{}multisig"{}}:\ ModuleCategory.CRYPTO,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00165}00165\ \ \ \ \ \textcolor{stringliteral}{"{}governance"{}}:\ ModuleCategory.CONSENSUS,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00166}00166\ \ \ \ \ \textcolor{stringliteral}{"{}finality"{}}:\ ModuleCategory.CONSENSUS,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00167}00167\ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00169}00169\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00170}00170\ \textcolor{comment}{\#\ BLOCKCHAIN-\/SPECIFIC\ PATTERNS}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00171}00171\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00173}00173\ \textcolor{comment}{\#\ Indicators\ that\ code\ is\ REAL\ blockchain\ implementation}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00174}\doxymbox{\hyperlink{namespaceblockchain__analyzer_ab1d919e9753e6576ed117b0c6e620551}{00174}}\ BLOCKCHAIN\_REAL\_INDICATORS\ =\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00175}00175\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'pub\(\backslash\)s+fn\(\backslash\)s+\(\backslash\)w+'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Public\ functions}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00176}00176\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'const\(\backslash\)s+\(\backslash\)w+\(\backslash\)s*=\(\backslash\)s*struct'}),\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Struct\ definitions}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00177}00177\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'test\(\backslash\)s+"{}'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Test\ blocks}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00178}00178\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'@import\(\backslash\)s*\(\backslash\)('}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Imports}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00179}00179\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'pub\(\backslash\)s+const'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Public\ constants}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00180}00180\ \ \ \ \ \textcolor{comment}{\#\ Blockchain-\/specific}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00181}00181\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'sha256|SHA256|Sha256'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Hash\ functions}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00182}00182\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'secp256k1|ecdsa|ECDSA'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Signing}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00183}00183\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'bip32|bip39|BIP32|BIP39'}),\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ HD\ wallet}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00184}00184\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'merkle|MerkleRoot|merkle\_root'}),\ \ \ \ \ \ \textcolor{comment}{\#\ Merkle\ trees}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00185}00185\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'genesis|Genesis'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Genesis\ block}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00186}00186\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'mempool|Mempool'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Transaction\ pool}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00187}00187\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'consensus|Consensus'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Consensus}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00188}00188\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'mining|mineBlock|mine\_block|nonce'}),\ \ \textcolor{comment}{\#\ Mining}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00189}00189\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'difficulty|retarget'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Difficulty\ adjustment}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00190}00190\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'transaction|Transaction'}),\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ TX\ handling}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00191}00191\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'block\(\backslash\).hash|previous\_hash|prev\_hash'}),\textcolor{comment}{\#\ Block\ linking}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00192}00192\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'validate|verify|Verify'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Validation}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00193}00193\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'sign|signature|Signature'}),\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Signing}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00194}00194\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'allocator'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Memory\ management}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00195}00195\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'deinit|defer\(\backslash\)s'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Cleanup}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00196}00196\ ]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00198}00198\ \textcolor{comment}{\#\ Patterns\ that\ indicate\ STUB/placeholder}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00199}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a02e7311bb6c029789c31257eac2b8a8b}{00199}}\ STUB\_PATTERNS\ =\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00200}00200\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'\(\backslash\)btodo\(\backslash\)b|\(\backslash\)bTODO\(\backslash\)b'},\ re.I),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00201}00201\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'\(\backslash\)bstub\(\backslash\)b|\(\backslash\)bSTUB\(\backslash\)b'},\ re.I),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00202}00202\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'not\(\backslash\)s+implemented'},\ re.I),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00203}00203\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'placeholder'},\ re.I),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00204}00204\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'@panic\(\backslash\)s*\(\backslash\)(\(\backslash\)s*"{}not\ implemented"{}\(\backslash\)s*\(\backslash\))'}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00205}00205\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'@panic\(\backslash\)s*\(\backslash\)(\(\backslash\)s*"{}TODO"{}\(\backslash\)s*\(\backslash\))'}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00206}00206\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'return\(\backslash\)s+error\(\backslash\).NotImplemented'}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00207}00207\ \ \ \ \ re.compile(\textcolor{stringliteral}{r'unreachable;\(\backslash\)s*//.*todo'},\ re.I),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00208}00208\ ]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00210}00210\ \textcolor{comment}{\#\ Security\ patterns\ specific\ to\ blockchain}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00211}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a0ea76bd16659c9f8428978118e1de895}{00211}}\ SECURITY\_PATTERNS\ =\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00212}00212\ \ \ \ \ \textcolor{comment}{\#\ CRITICAL\ -\/\ Private\ key\ handling}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00213}00213\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'private\_key.*=\(\backslash\)s*"{}[0-\/9a-\/fA-\/F]+"{}'}),\ \textcolor{stringliteral}{"{}FAIL"{}},\ \textcolor{stringliteral}{"{}SEC-\/KEY-\/01"{}},\ \textcolor{stringliteral}{"{}Hardcoded\ private\ key\ detected"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00214}00214\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'@memset\(\backslash\)s*\(\backslash\)(\(\backslash\)s*\&\(\backslash\)s*self\(\backslash\).private'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/KEY-\/02"{}},\ \textcolor{stringliteral}{"{}Private\ key\ zeroed\ on\ cleanup\ (good)"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00215}00215\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'private\_key'}),\ \textcolor{stringliteral}{"{}INFO"{}},\ \textcolor{stringliteral}{"{}SEC-\/KEY-\/03"{}},\ \textcolor{stringliteral}{"{}Private\ key\ handling\ present"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00217}00217\ \ \ \ \ \textcolor{comment}{\#\ Memory\ safety}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00218}00218\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'@panic\(\backslash\)s*\(\backslash\)('}),\ \textcolor{stringliteral}{"{}WARN"{}},\ \textcolor{stringliteral}{"{}SEC-\/MEM-\/01"{}},\ \textcolor{stringliteral}{"{}Panic\ call\ -\/\ may\ crash\ node"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00219}00219\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'unreachable'}),\ \textcolor{stringliteral}{"{}WARN"{}},\ \textcolor{stringliteral}{"{}SEC-\/MEM-\/02"{}},\ \textcolor{stringliteral}{"{}Unreachable\ -\/\ undefined\ behavior\ if\ reached"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00220}00220\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'@intCast'}),\ \textcolor{stringliteral}{"{}INFO"{}},\ \textcolor{stringliteral}{"{}SEC-\/MEM-\/03"{}},\ \textcolor{stringliteral}{"{}Integer\ cast\ -\/\ check\ for\ overflow"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00221}00221\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'@ptrCast'}),\ \textcolor{stringliteral}{"{}WARN"{}},\ \textcolor{stringliteral}{"{}SEC-\/MEM-\/04"{}},\ \textcolor{stringliteral}{"{}Pointer\ cast\ -\/\ verify\ safety"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00222}00222\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'while\(\backslash\)s*\(\backslash\)(\(\backslash\)s*true\(\backslash\)s*\(\backslash\))'}),\ \textcolor{stringliteral}{"{}WARN"{}},\ \textcolor{stringliteral}{"{}SEC-\/MEM-\/05"{}},\ \textcolor{stringliteral}{"{}Infinite\ loop\ potential"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00223}00223\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00224}00224\ \ \ \ \ \textcolor{comment}{\#\ Allocator\ discipline}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00225}00225\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'GeneralPurposeAllocator'}),\ \textcolor{stringliteral}{"{}INFO"{}},\ \textcolor{stringliteral}{"{}SEC-\/ALLOC-\/01"{}},\ \textcolor{stringliteral}{"{}GPA\ allocator\ used"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00226}00226\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'ArenaAllocator'}),\ \textcolor{stringliteral}{"{}INFO"{}},\ \textcolor{stringliteral}{"{}SEC-\/ALLOC-\/02"{}},\ \textcolor{stringliteral}{"{}Arena\ allocator\ used"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00227}00227\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'allocator\(\backslash\).alloc\(\backslash\)('}),\ \textcolor{stringliteral}{"{}INFO"{}},\ \textcolor{stringliteral}{"{}SEC-\/ALLOC-\/03"{}},\ \textcolor{stringliteral}{"{}Manual\ allocation"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00228}00228\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'defer\(\backslash\)s+.*\(\backslash\).deinit\(\backslash\)(\(\backslash\))'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/ALLOC-\/04"{}},\ \textcolor{stringliteral}{"{}Defer\ deinit\ pattern\ (good)"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00230}00230\ \ \ \ \ \textcolor{comment}{\#\ Crypto\ correctness}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00231}00231\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'pub\(\backslash\)s+fn\(\backslash\)s+verify'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/CRYPTO-\/01"{}},\ \textcolor{stringliteral}{"{}Verification\ function\ present"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00232}00232\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'pub\(\backslash\)s+fn\(\backslash\)s+sign'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/CRYPTO-\/02"{}},\ \textcolor{stringliteral}{"{}Signing\ function\ present"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00233}00233\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'HMAC|hmac'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/CRYPTO-\/03"{}},\ \textcolor{stringliteral}{"{}HMAC\ authentication\ present"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00234}00234\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'AES|aes.*256|Aes256'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/CRYPTO-\/04"{}},\ \textcolor{stringliteral}{"{}AES\ encryption\ present"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00236}00236\ \ \ \ \ \textcolor{comment}{\#\ Consensus\ safety}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00237}00237\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'validateBlock|validate\_block'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/CONS-\/01"{}},\ \textcolor{stringliteral}{"{}Block\ validation\ present"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00238}00238\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'double.*spend|replay.*attack'},\ re.I),\ \textcolor{stringliteral}{"{}INFO"{}},\ \textcolor{stringliteral}{"{}SEC-\/CONS-\/02"{}},\ \textcolor{stringliteral}{"{}Anti-\/replay/double-\/spend\ referenced"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00240}00240\ \ \ \ \ \textcolor{comment}{\#\ Network}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00241}00241\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'timeout|TIMEOUT'}),\ \textcolor{stringliteral}{"{}PASS"{}},\ \textcolor{stringliteral}{"{}SEC-\/NET-\/01"{}},\ \textcolor{stringliteral}{"{}Timeout\ handling\ present"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00242}00242\ \ \ \ \ (re.compile(\textcolor{stringliteral}{r'0\(\backslash\).0\(\backslash\).0\(\backslash\).0'}),\ \textcolor{stringliteral}{"{}WARN"{}},\ \textcolor{stringliteral}{"{}SEC-\/NET-\/02"{}},\ \textcolor{stringliteral}{"{}Binding\ to\ all\ interfaces"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00243}00243\ ]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00245}00245\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00246}00246\ \textcolor{comment}{\#\ ANALYSIS\ FUNCTIONS}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00247}00247\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00249}\doxymbox{\hyperlink{namespaceblockchain__analyzer_ae57258d08f0578c7554d2c24d95a4e5a}{00249}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_ae57258d08f0578c7554d2c24d95a4e5a}{check\_syntax}}(path:\ Path)\ -\/>\ Tuple[Optional[bool],\ str]:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00250}00250\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ Zig\ syntax\ using\ zig\ ast-\/check."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00251}00251\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}ast-\/check"{}},\ str(path)],}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=15}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result.returncode\ ==\ 0,\ result.stderr[:300]\ \textcolor{keywordflow}{if}\ result.stderr\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00257}00257\ \ \ \ \ \textcolor{keywordflow}{except}\ FileNotFoundError:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None},\ \textcolor{stringliteral}{"{}zig\ not\ found\ in\ PATH"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00259}00259\ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None},\ \textcolor{stringliteral}{"{}ast-\/check\ timeout"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00261}00261\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None},\ str(e)[:100]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00263}00263\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00265}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a05aa4c086d91584ad9a65820dd472888}{00265}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_a05aa4c086d91584ad9a65820dd472888}{extract\_imports}}(code:\ str)\ -\/>\ List[str]:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00266}00266\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Extract\ @import\ statements."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00267}00267\ \ \ \ \ imports\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00268}00268\ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ re.finditer(\textcolor{stringliteral}{r'@import\(\backslash\)s*\(\backslash\)(\(\backslash\)s*"{}([\string^"{}]+)"{}\(\backslash\)s*\(\backslash\))'},\ code):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ imp\ =\ m.group(1)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\ !=\ \textcolor{stringliteral}{"{}std"{}}\ \textcolor{keywordflow}{and}\ imp\ !=\ \textcolor{stringliteral}{"{}builtin"{}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ imports.append(imp.replace(\textcolor{stringliteral}{"{}.zig"{}},\ \textcolor{stringliteral}{"{}"{}}))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00272}00272\ \ \ \ \ \textcolor{keywordflow}{return}\ imports}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00273}00273\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00275}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a3954f10b7e063b485967681f25aff12c}{00275}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_a3954f10b7e063b485967681f25aff12c}{count\_tests}}(code:\ str)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00276}00276\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Count\ test\ blocks."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00277}00277\ \ \ \ \ \textcolor{keywordflow}{return}\ len(re.findall(\textcolor{stringliteral}{r'test\(\backslash\)s+"{}[\string^"{}]*"{}'},\ code))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00280}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55}{00280}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55}{analyze\_module}}(module\_path:\ Path,\ verbose:\ bool\ =\ \textcolor{keyword}{False})\ -\/>\ ModuleResult:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00281}00281\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analyze\ a\ single\ Zig\ module\ with\ blockchain-\/specific\ checks."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00282}00282\ \ \ \ \ name\ =\ module\_path.stem}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00284}00284\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ code\ =\ module\_path.read\_text(encoding=\textcolor{stringliteral}{'utf-\/8'},\ errors=\textcolor{stringliteral}{'replace'})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00286}00286\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{ModuleResult}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ name=name,\ path=module\_path,\ status=ModuleStatus.ERROR,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ findings=[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}(\textcolor{stringliteral}{"{}READ"{}},\ Severity.FAIL,\ name,\ 0,\ f\textcolor{stringliteral}{"{}Cannot\ read:\ \{e\}"{}})]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00292}00292\ \ \ \ \ lines\ =\ code.count(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00293}00293\ \ \ \ \ non\_empty\ =\ sum(1\ \textcolor{keywordflow}{for}\ l\ \textcolor{keywordflow}{in}\ code.splitlines()\ \textcolor{keywordflow}{if}\ l.strip()\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ l.strip().startswith(\textcolor{stringliteral}{'//'}))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00295}00295\ \ \ \ \ \textcolor{comment}{\#\ Count\ functions}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00296}00296\ \ \ \ \ all\_fns\ =\ re.findall(\textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?(?:export\(\backslash\)s+)?fn\(\backslash\)s+\(\backslash\)w+'},\ code)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00297}00297\ \ \ \ \ pub\_fns\ =\ re.findall(\textcolor{stringliteral}{r'pub\(\backslash\)s+(?:export\(\backslash\)s+)?fn\(\backslash\)s+\(\backslash\)w+'},\ code)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00298}00298\ \ \ \ \ exports\ =\ re.findall(\textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?export\(\backslash\)s+fn\(\backslash\)s+\(\backslash\)w+'},\ code)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00299}00299\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00300}00300\ \ \ \ \ \textcolor{comment}{\#\ Extract\ imports\ and\ tests}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00301}00301\ \ \ \ \ imports\ =\ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a05aa4c086d91584ad9a65820dd472888}{extract\_imports}}(code)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00302}00302\ \ \ \ \ tests\ =\ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a3954f10b7e063b485967681f25aff12c}{count\_tests}}(code)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00304}00304\ \ \ \ \ \textcolor{comment}{\#\ Check\ key\ patterns}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00305}00305\ \ \ \ \ has\_init\ =\ bool(re.search(\textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?fn\(\backslash\)s+init(?:With\(\backslash\)w+)?\(\backslash\)s*\(\backslash\)('},\ code))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00306}00306\ \ \ \ \ has\_deinit\ =\ bool(re.search(\textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?fn\(\backslash\)s+deinit\(\backslash\)s*\(\backslash\)('},\ code))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00307}00307\ \ \ \ \ has\_allocator\ =\ bool(re.search(\textcolor{stringliteral}{r'allocator|Allocator'},\ code))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00308}00308\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00309}00309\ \ \ \ \ \textcolor{comment}{\#\ Stub\ detection}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00310}00310\ \ \ \ \ stub\_hits\ =\ [p.pattern\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ STUB\_PATTERNS\ \textcolor{keywordflow}{if}\ p.search(code)]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00312}00312\ \ \ \ \ \textcolor{comment}{\#\ Real\ indicator\ counting}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00313}00313\ \ \ \ \ real\_hits\ =\ sum(1\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ BLOCKCHAIN\_REAL\_INDICATORS\ \textcolor{keywordflow}{if}\ p.search(code))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00314}00314\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00315}00315\ \ \ \ \ \textcolor{comment}{\#\ Determine\ status}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00316}00316\ \ \ \ \ is\_crypto\_module\ =\ CATEGORY\_MAP.get(name)\ \textcolor{keywordflow}{in}\ (ModuleCategory.CRYPTO,\ ModuleCategory.CONSENSUS)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00317}00317\ \ \ \ \ \textcolor{keywordflow}{if}\ non\_empty\ <\ 10:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.EMPTY}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00319}00319\ \ \ \ \ \textcolor{keywordflow}{elif}\ stub\_hits\ \textcolor{keywordflow}{and}\ real\_hits\ <\ 4:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.STUB}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00321}00321\ \ \ \ \ \textcolor{keywordflow}{elif}\ stub\_hits\ \textcolor{keywordflow}{and}\ real\_hits\ >=\ 4:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.PARTIAL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00323}00323\ \ \ \ \ \textcolor{keywordflow}{elif}\ real\_hits\ >=\ 5\ \textcolor{keywordflow}{and}\ len(pub\_fns)\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.REAL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00325}00325\ \ \ \ \ \textcolor{keywordflow}{elif}\ is\_crypto\_module\ \textcolor{keywordflow}{and}\ len(pub\_fns)\ >=\ 3\ \textcolor{keywordflow}{and}\ tests\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Crypto/stateless\ modules\ don't\ need\ init/deinit\ to\ be\ REAL}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.REAL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00328}00328\ \ \ \ \ \textcolor{keywordflow}{elif}\ real\_hits\ >=\ 4\ \textcolor{keywordflow}{and}\ tests\ >\ 3:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.REAL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00330}00330\ \ \ \ \ \textcolor{keywordflow}{elif}\ real\_hits\ >=\ 4:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00331}00331\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.PARTIAL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00332}00332\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ status\ =\ ModuleStatus.PARTIAL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00335}00335\ \ \ \ \ \textcolor{comment}{\#\ Category}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00336}00336\ \ \ \ \ category\ =\ CATEGORY\_MAP.get(name,\ ModuleCategory.UTIL)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00337}00337\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00338}00338\ \ \ \ \ \textcolor{comment}{\#\ Security\ findings}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00339}00339\ \ \ \ \ findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00340}00340\ \ \ \ \ \textcolor{keywordflow}{for}\ pattern,\ sev,\ rule\_id,\ msg\ \textcolor{keywordflow}{in}\ SECURITY\_PATTERNS:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ match\ \textcolor{keywordflow}{in}\ pattern.finditer(code):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ \ \ \ \ line\_num\ =\ code[:match.start()].count(\textcolor{stringliteral}{'\(\backslash\)n'})\ +\ 1}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rule\_id=rule\_id,\ severity=\doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity}{Severity}}(sev),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module=name,\ line=line\_num,\ message=msg,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ evidence=match.group(0)[:60]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00347}00347\ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00349}00349\ \ \ \ \ \textcolor{comment}{\#\ Syntax\ check}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00350}00350\ \ \ \ \ \textcolor{keywordflow}{if}\ module\_path.suffix\ ==\ \textcolor{stringliteral}{'.zig'}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ syntax\_ok,\ syntax\_err\ =\ \doxymbox{\hyperlink{namespaceblockchain__analyzer_ae57258d08f0578c7554d2c24d95a4e5a}{check\_syntax}}(module\_path)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ syntax\_ok\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{False}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00354}00354\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rule\_id=\textcolor{stringliteral}{"{}SYNTAX"{}},\ severity=Severity.FAIL,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00355}00355\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module=name,\ line=0,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00356}00356\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ message=f\textcolor{stringliteral}{"{}Syntax\ error:\ \{syntax\_err[:100]\}"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ syntax\_ok\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rule\_id=\textcolor{stringliteral}{"{}SYNTAX"{}},\ severity=Severity.PASS,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module=name,\ line=0,\ message=\textcolor{stringliteral}{"{}Syntax\ OK"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00363}00363\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00364}00364\ \ \ \ \ \textcolor{comment}{\#\ Check\ init/deinit\ pairs\ for\ modules\ with\ allocators}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00365}00365\ \ \ \ \ \textcolor{keywordflow}{if}\ has\_allocator\ \textcolor{keywordflow}{and}\ has\_init\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ has\_deinit:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00366}00366\ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00367}00367\ \ \ \ \ \ \ \ \ \ \ \ \ rule\_id=\textcolor{stringliteral}{"{}SEC-\/ALLOC-\/05"{}},\ severity=Severity.WARN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00368}00368\ \ \ \ \ \ \ \ \ \ \ \ \ module=name,\ line=0,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00369}00369\ \ \ \ \ \ \ \ \ \ \ \ \ message=\textcolor{stringliteral}{"{}Has\ init()\ +\ allocator\ but\ no\ deinit()\ -\/\ potential\ memory\ leak"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00370}00370\ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00371}00371\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00372}00372\ \ \ \ \ \textcolor{comment}{\#\ Check\ test\ coverage}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00373}00373\ \ \ \ \ \textcolor{keywordflow}{if}\ tests\ ==\ 0\ \textcolor{keywordflow}{and}\ status\ \textcolor{keywordflow}{in}\ (ModuleStatus.REAL,\ ModuleStatus.PARTIAL):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00374}00374\ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00375}00375\ \ \ \ \ \ \ \ \ \ \ \ \ rule\_id=\textcolor{stringliteral}{"{}TEST-\/01"{}},\ severity=Severity.WARN,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00376}00376\ \ \ \ \ \ \ \ \ \ \ \ \ module=name,\ line=0,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00377}00377\ \ \ \ \ \ \ \ \ \ \ \ \ message=\textcolor{stringliteral}{"{}No\ inline\ tests\ found\ in\ module"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00378}00378\ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00380}00380\ \ \ \ \ \textcolor{comment}{\#\ Calculate\ score\ (0-\/100)}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00381}00381\ \ \ \ \ score\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00382}00382\ \ \ \ \ \textcolor{keywordflow}{if}\ status\ ==\ ModuleStatus.REAL:\ score\ +=\ 40}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00383}00383\ \ \ \ \ \textcolor{keywordflow}{elif}\ status\ ==\ ModuleStatus.PARTIAL:\ score\ +=\ 20}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00384}00384\ \ \ \ \ \textcolor{keywordflow}{elif}\ status\ ==\ ModuleStatus.STUB:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00385}00385\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00386}00386\ \ \ \ \ \textcolor{keywordflow}{if}\ len(all\_fns)\ >\ 3:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00387}00387\ \ \ \ \ \textcolor{keywordflow}{if}\ len(all\_fns)\ >\ 10:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00388}00388\ \ \ \ \ \textcolor{keywordflow}{if}\ len(pub\_fns)\ >\ 0:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00389}00389\ \ \ \ \ \textcolor{keywordflow}{if}\ len(exports)\ >\ 0:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00390}00390\ \ \ \ \ \textcolor{keywordflow}{if}\ non\_empty\ >\ 50:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00391}00391\ \ \ \ \ \textcolor{keywordflow}{if}\ non\_empty\ >\ 200:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00392}00392\ \ \ \ \ \textcolor{keywordflow}{if}\ tests\ >\ 0:\ score\ +=\ 10}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00393}00393\ \ \ \ \ \textcolor{keywordflow}{if}\ tests\ >\ 3:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00394}00394\ \ \ \ \ \textcolor{keywordflow}{if}\ has\_init:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00395}00395\ \ \ \ \ \textcolor{keywordflow}{if}\ has\_deinit:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00396}00396\ \ \ \ \ \textcolor{keywordflow}{if}\ has\_allocator\ \textcolor{keywordflow}{and}\ has\_deinit:\ score\ +=\ 5}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00397}00397\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00398}00398\ \ \ \ \ \textcolor{comment}{\#\ Penalty\ for\ failures}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00399}00399\ \ \ \ \ fail\_count\ =\ sum(1\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ findings\ \textcolor{keywordflow}{if}\ f.severity\ ==\ Severity.FAIL)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00400}00400\ \ \ \ \ score\ -\/=\ fail\_count\ *\ 10}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00401}00401\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00402}00402\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{ModuleResult}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00403}00403\ \ \ \ \ \ \ \ \ name=name,\ path=module\_path,\ status=status,\ category=category,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00404}00404\ \ \ \ \ \ \ \ \ lines=lines,\ non\_empty\_lines=non\_empty,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00405}00405\ \ \ \ \ \ \ \ \ functions=len(all\_fns),\ pub\_functions=len(pub\_fns),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00406}00406\ \ \ \ \ \ \ \ \ exports=len(exports),\ tests=tests,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00407}00407\ \ \ \ \ \ \ \ \ imports=imports,\ findings=findings,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00408}00408\ \ \ \ \ \ \ \ \ has\_init=has\_init,\ has\_deinit=has\_deinit,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00409}00409\ \ \ \ \ \ \ \ \ has\_allocator=has\_allocator,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00410}00410\ \ \ \ \ \ \ \ \ score=max(0,\ min(100,\ score))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00411}00411\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00412}00412\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00413}00413\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00414}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a7aad694695a9c4179d428dbe7681773a}{00414}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_a7aad694695a9c4179d428dbe7681773a}{scan\_all\_modules}}()\ -\/>\ List[ModuleResult]:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00415}00415\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scan\ core/,\ test/,\ agent/\ directories."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00416}00416\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00417}00417\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00418}00418\ \ \ \ \ dirs\ =\ [(CORE,\ \textcolor{stringliteral}{"{}core"{}}),\ (TEST,\ \textcolor{stringliteral}{"{}test"{}}),\ (AGENT,\ \textcolor{stringliteral}{"{}agent"{}})]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00419}00419\ \ \ \ \ \textcolor{keywordflow}{for}\ d,\ label\ \textcolor{keywordflow}{in}\ dirs:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00420}00420\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ d.exists():}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00421}00421\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00422}00422\ \ \ \ \ \ \ \ \ zig\_files\ =\ sorted(d.glob(\textcolor{stringliteral}{"{}*.zig"{}}))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00423}00423\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Scanning\ \{len(zig\_files)\}\ Zig\ files\ in\ \{label\}/..."{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00424}00424\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ fpath\ \textcolor{keywordflow}{in}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00425}00425\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55}{analyze\_module}}(fpath)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00426}00426\ \ \ \ \ \ \ \ \ \ \ \ \ results.append(result)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00427}00427\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00428}00428\ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00429}00429\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00430}00430\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00431}00431\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00432}00432\ \textcolor{comment}{\#\ REPORTS}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00433}00433\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00434}00434\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00435}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a5240b17bab1ac67fe999eea407e82882}{00435}}\ G\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}};\ Y\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}};\ R\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}};\ B\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[94m"{}};\ C\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}};\ W\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00436}00436\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00437}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a0c305067196cff3a40f7c6ae184c4e1e}{00437}}\ STATUS\_COLORS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00438}00438\ \ \ \ \ ModuleStatus.REAL:\ G,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00439}00439\ \ \ \ \ ModuleStatus.PARTIAL:\ Y,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00440}00440\ \ \ \ \ ModuleStatus.STUB:\ Y,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00441}00441\ \ \ \ \ ModuleStatus.EMPTY:\ R,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00442}00442\ \ \ \ \ ModuleStatus.ERROR:\ R,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00443}00443\ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00444}00444\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00445}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a743ea126c6bdcb4396ba3e4e7dc8246a}{00445}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_a743ea126c6bdcb4396ba3e4e7dc8246a}{print\_report}}(results:\ List[ModuleResult],\ verbose:\ bool\ =\ \textcolor{keyword}{False}):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00446}00446\ \ \ \ \ SEP\ =\ \textcolor{stringliteral}{"{}="{}}\ *\ 90}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00447}00447\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00448}00448\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00449}00449\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}OmniBus\ Blockchain\ Core\ -\/\ Module\ Analysis\ v2.0\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00450}00450\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Scanned:\ \{len(results)\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00451}00451\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00453}00453\ \ \ \ \ \textcolor{comment}{\#\ Group\ by\ category}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00454}00454\ \ \ \ \ by\_category\ =\ defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00455}00455\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00456}00456\ \ \ \ \ \ \ \ \ by\_category[r.category].append(r)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00457}00457\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00458}00458\ \ \ \ \ cat\_order\ =\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00459}00459\ \ \ \ \ \ \ \ \ ModuleCategory.CRYPTO,\ ModuleCategory.CHAIN,\ ModuleCategory.CONSENSUS,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00460}00460\ \ \ \ \ \ \ \ \ ModuleCategory.NETWORK,\ ModuleCategory.STORAGE,\ ModuleCategory.WALLET,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00461}00461\ \ \ \ \ \ \ \ \ ModuleCategory.MINING,\ ModuleCategory.SHARD,\ ModuleCategory.ECONOMIC,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00462}00462\ \ \ \ \ \ \ \ \ ModuleCategory.UTIL}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00463}00463\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00464}00464\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00465}00465\ \ \ \ \ \textcolor{keywordflow}{for}\ cat\ \textcolor{keywordflow}{in}\ cat\_order:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00466}00466\ \ \ \ \ \ \ \ \ mods\ =\ by\_category.get(cat,\ [])}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00467}00467\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ mods:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00468}00468\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00469}00469\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00470}00470\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}\{C\}[\{cat.value\}]\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00471}00471\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{'Module':<30\}\ \{'Status':<10\}\ \{'Lines':>6\}\ \{'Funcs':>6\}\ \{'Tests':>6\}\ \{'Score':>6\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00472}00472\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{'-\/'\ *\ 76\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00473}00473\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00474}00474\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ sorted(mods,\ key=\textcolor{keyword}{lambda}\ x:\ -\/x.score):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00475}00475\ \ \ \ \ \ \ \ \ \ \ \ \ col\ =\ STATUS\_COLORS.get(r.status,\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00476}00476\ \ \ \ \ \ \ \ \ \ \ \ \ init\_mark\ =\ \textcolor{stringliteral}{"{}I"{}}\ \textcolor{keywordflow}{if}\ r.has\_init\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}."{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00477}00477\ \ \ \ \ \ \ \ \ \ \ \ \ deinit\_mark\ =\ \textcolor{stringliteral}{"{}D"{}}\ \textcolor{keywordflow}{if}\ r.has\_deinit\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}."{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00478}00478\ \ \ \ \ \ \ \ \ \ \ \ \ alloc\_mark\ =\ \textcolor{stringliteral}{"{}A"{}}\ \textcolor{keywordflow}{if}\ r.has\_allocator\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}."{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00479}00479\ \ \ \ \ \ \ \ \ \ \ \ \ marks\ =\ f\textcolor{stringliteral}{"{}[\{init\_mark\}\{deinit\_mark\}\{alloc\_mark\}]"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00480}00480\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00481}00481\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{r.name:<25\}\ \{marks\}\ \{col\}\{r.status.value:<10\}\{W\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00482}00482\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{r.non\_empty\_lines:>6\}\ \{r.functions:>6\}\ \{r.tests:>6\}\ \{r.score:>5\}\%"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00483}00483\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00484}00484\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00485}00485\ \ \ \ \ counts\ =\ defaultdict(int)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00486}00486\ \ \ \ \ total\_lines\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00487}00487\ \ \ \ \ total\_tests\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00488}00488\ \ \ \ \ total\_fns\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00489}00489\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00490}00490\ \ \ \ \ \ \ \ \ counts[r.status.value]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00491}00491\ \ \ \ \ \ \ \ \ total\_lines\ +=\ r.non\_empty\_lines}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00492}00492\ \ \ \ \ \ \ \ \ total\_tests\ +=\ r.tests}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00493}00493\ \ \ \ \ \ \ \ \ total\_fns\ +=\ r.functions}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00494}00494\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00495}00495\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00496}00496\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}SUMMARY\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00497}00497\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00498}00498\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{G\}REAL:\ \ \ \ \ \{counts.get('REAL',\ 0):>3\}\{W\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00499}00499\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{Y\}PARTIAL:\ \ \{counts.get('PARTIAL',\ 0):>3\}\{W\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00500}00500\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{Y\}STUB:\ \ \ \ \ \{counts.get('STUB',\ 0):>3\}\{W\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00501}00501\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{R\}EMPTY:\ \ \ \ \{counts.get('EMPTY',\ 0):>3\}\{W\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00502}00502\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{R\}ERROR:\ \ \ \ \{counts.get('ERROR',\ 0):>3\}\{W\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00503}00503\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{'':3s\}Total:\ \ \ \{len(results):>3\}\ modules\ |\ \{total\_lines:,\}\ LOC\ |\ \{total\_fns\}\ functions\ |\ \{total\_tests\}\ tests"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00505}00505\ \ \ \ \ \textcolor{comment}{\#\ Average\ score}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00506}00506\ \ \ \ \ avg\ =\ sum(r.score\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results)\ /\ len(results)\ \textcolor{keywordflow}{if}\ results\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00507}00507\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Average\ Quality\ Score:\ \{BOLD\}\{avg:.1f\}\%\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00509}00509\ \ \ \ \ \textcolor{comment}{\#\ Findings\ summary}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00510}00510\ \ \ \ \ all\_findings\ =\ [f\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ r.findings]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00511}00511\ \ \ \ \ fails\ =\ [f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ all\_findings\ \textcolor{keywordflow}{if}\ f.severity\ ==\ Severity.FAIL]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00512}00512\ \ \ \ \ warns\ =\ [f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ all\_findings\ \textcolor{keywordflow}{if}\ f.severity\ ==\ Severity.WARN]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00513}00513\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00514}00514\ \ \ \ \ \textcolor{keywordflow}{if}\ fails:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00515}00515\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{R\}FAILURES\ (\{len(fails)\}):\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00516}00516\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ fails[:15]:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00517}00517\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ [\{f.rule\_id\}]\ \{f.module\}:\{f.line\}\ -\/\ \{f.message\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00518}00518\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00519}00519\ \ \ \ \ \textcolor{keywordflow}{if}\ warns\ \textcolor{keywordflow}{and}\ verbose:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00520}00520\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{Y\}WARNINGS\ (\{len(warns)\}):\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00521}00521\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ warns[:20]:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00522}00522\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ [\{f.rule\_id\}]\ \{f.module\}:\{f.line\}\ -\/\ \{f.message\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00523}00523\ \ \ \ \ \textcolor{keywordflow}{elif}\ warns:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00524}00524\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{Y\}WARNINGS:\ \{len(warns)\}\ (use\ -\/-\/verbose\ to\ see)\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00525}00525\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00526}00526\ \ \ \ \ \textcolor{comment}{\#\ Modules\ without\ tests}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00527}00527\ \ \ \ \ no\_tests\ =\ [r\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.tests\ ==\ 0\ \textcolor{keywordflow}{and}\ r.status\ ==\ ModuleStatus.REAL]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00528}00528\ \ \ \ \ \textcolor{keywordflow}{if}\ no\_tests:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00529}00529\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{Y\}REAL\ modules\ without\ tests:\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00530}00530\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ no\_tests:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00531}00531\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ -\/\ \{r.name\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00532}00532\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00533}00533\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{SEP\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00534}00534\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00535}00535\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00536}\doxymbox{\hyperlink{namespaceblockchain__analyzer_afb865586d6c19a3d55f82271821a3519}{00536}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_afb865586d6c19a3d55f82271821a3519}{generate\_json}}(results:\ List[ModuleResult],\ path:\ Path):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00537}00537\ \ \ \ \ data\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00538}00538\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tool"{}}:\ \textcolor{stringliteral}{"{}blockchain\_analyzer"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00539}00539\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00540}00540\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00541}00541\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00542}00542\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ r.name,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00543}00543\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}path"{}}:\ str(r.path),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00544}00544\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}category"{}}:\ r.category.value,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00545}00545\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}status"{}}:\ r.status.value,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00546}00546\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lines"{}}:\ r.lines,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00547}00547\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}non\_empty\_lines"{}}:\ r.non\_empty\_lines,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00548}00548\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}functions"{}}:\ r.functions,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00549}00549\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pub\_functions"{}}:\ r.pub\_functions,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00550}00550\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}exports"{}}:\ r.exports,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00551}00551\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ r.tests,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00552}00552\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imports"{}}:\ r.imports,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00553}00553\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}has\_init"{}}:\ r.has\_init,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00554}00554\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}has\_deinit"{}}:\ r.has\_deinit,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00555}00555\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}has\_allocator"{}}:\ r.has\_allocator,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00556}00556\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}score"{}}:\ r.score,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00557}00557\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}findings"{}}:\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00558}00558\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}rule"{}}:\ f.rule\_id,\ \textcolor{stringliteral}{"{}severity"{}}:\ f.severity.value,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00559}00559\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}line"{}}:\ f.line,\ \textcolor{stringliteral}{"{}message"{}}:\ f.message,\ \textcolor{stringliteral}{"{}evidence"{}}:\ f.evidence\}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00560}00560\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ r.findings}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00561}00561\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00562}00562\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00563}00563\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00564}00564\ \ \ \ \ \ \ \ \ ],}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00565}00565\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}summary"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00566}00566\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total"{}}:\ len(results),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00567}00567\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}real"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.status\ ==\ ModuleStatus.REAL),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00568}00568\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}partial"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.status\ ==\ ModuleStatus.PARTIAL),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00569}00569\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stub"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.status\ ==\ ModuleStatus.STUB),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00570}00570\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}empty"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.status\ ==\ ModuleStatus.EMPTY),}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00571}00571\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}avg\_score"{}}:\ sum(r.score\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results)\ /\ len(results)\ \textcolor{keywordflow}{if}\ results\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00572}00572\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00573}00573\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00574}00574\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'w'},\ encoding=\textcolor{stringliteral}{'utf-\/8'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00575}00575\ \ \ \ \ \ \ \ \ json.dump(data,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00576}00576\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ JSON\ report:\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00577}00577\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00578}00578\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00579}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a31141a0bed02d489d5950dc121c3f905}{00579}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_a31141a0bed02d489d5950dc121c3f905}{generate\_html}}(results:\ List[ModuleResult],\ path:\ Path):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00580}00580\ \ \ \ \ by\_cat\ =\ defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00581}00581\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00582}00582\ \ \ \ \ \ \ \ \ by\_cat[r.category.value].append(r)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00583}00583\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00584}00584\ \ \ \ \ rows\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00585}00585\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ sorted(results,\ key=\textcolor{keyword}{lambda}\ x:\ (x.category.value,\ -\/x.score)):}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00586}00586\ \ \ \ \ \ \ \ \ color\ =\ \{\textcolor{stringliteral}{"{}REAL"{}}:\ \textcolor{stringliteral}{"{}\#b2f2bb"{}},\ \textcolor{stringliteral}{"{}PARTIAL"{}}:\ \textcolor{stringliteral}{"{}\#fff3bf"{}},\ \textcolor{stringliteral}{"{}STUB"{}}:\ \textcolor{stringliteral}{"{}\#ffe8cc"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00587}00587\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}EMPTY"{}}:\ \textcolor{stringliteral}{"{}\#ffc9c9"{}},\ \textcolor{stringliteral}{"{}ERROR"{}}:\ \textcolor{stringliteral}{"{}\#ffc9c9"{}}\}.get(r.status.value,\ \textcolor{stringliteral}{"{}\#f0f0f0"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00588}00588\ \ \ \ \ \ \ \ \ fails\ =\ sum(1\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ r.findings\ \textcolor{keywordflow}{if}\ f.severity\ ==\ Severity.FAIL)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00589}00589\ \ \ \ \ \ \ \ \ warns\ =\ sum(1\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ r.findings\ \textcolor{keywordflow}{if}\ f.severity\ ==\ Severity.WARN)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00590}00590\ \ \ \ \ \ \ \ \ rows\ +=\ f\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00591}00591\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ <tr\ style="{}background:\ \{color\}20"{}>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00592}00592\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td><b>\{r.name\}</b></td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00593}00593\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td><span\ class="{}cat"{}>\{r.category.value\}</span></td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00594}00594\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td\ style="{}background:\ \{color\}"{}>\{r.status.value\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00595}00595\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{r.non\_empty\_lines\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00596}00596\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{r.functions\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00597}00597\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{r.tests\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00598}00598\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{'I'\ if\ r.has\_init\ else\ '-\/'\}\{'D'\ if\ r.has\_deinit\ else\ '-\/'\}\{'A'\ if\ r.has\_allocator\ else\ '-\/'\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00599}00599\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{fails\}F/\{warns\}W</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00600}00600\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td><b>\{r.score\}\%</b></td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00601}00601\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ </tr>"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00602}00602\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00603}00603\ \ \ \ \ avg\ =\ sum(r.score\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results)\ /\ len(results)\ \textcolor{keywordflow}{if}\ results\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00604}00604\ \ \ \ \ total\_real\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.status\ ==\ ModuleStatus.REAL)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00605}00605\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00606}00606\ \ \ \ \ html\ =\ f\textcolor{stringliteral}{"{}"{}"{}<!DOCTYPE\ html>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00607}00607\ \textcolor{stringliteral}{<html><head>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00608}00608\ \textcolor{stringliteral}{<meta\ charset="{}utf-\/8"{}>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00609}00609\ \textcolor{stringliteral}{<title>OmniBus\ Blockchain\ Analysis\ v2.0</title>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00610}00610\ \textcolor{stringliteral}{<style>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00611}00611\ \textcolor{stringliteral}{body\ \{\{\ font-\/family:\ 'Consolas',\ monospace;\ background:\ \#0d1117;\ color:\ \#c9d1d9;\ padding:\ 20px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00612}00612\ \textcolor{stringliteral}{h1\ \{\{\ color:\ \#58a6ff;\ margin-\/bottom:\ 5px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00613}00613\ \textcolor{stringliteral}{h2\ \{\{\ color:\ \#8b949e;\ font-\/weight:\ normal;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00614}00614\ \textcolor{stringliteral}{table\ \{\{\ border-\/collapse:\ collapse;\ width:\ 100\%;\ font-\/size:\ 13px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00615}00615\ \textcolor{stringliteral}{th\ \{\{\ background:\ \#161b22;\ color:\ \#58a6ff;\ padding:\ 10px;\ text-\/align:\ left;\ position:\ sticky;\ top:\ 0;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00616}00616\ \textcolor{stringliteral}{td\ \{\{\ padding:\ 8px\ 10px;\ border-\/bottom:\ 1px\ solid\ \#21262d;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00617}00617\ \textcolor{stringliteral}{tr:hover\ td\ \{\{\ background:\ rgba(88,166,255,0.05);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00618}00618\ \textcolor{stringliteral}{.cat\ \{\{\ background:\ \#1f2937;\ padding:\ 2px\ 6px;\ border-\/radius:\ 3px;\ font-\/size:\ 11px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00619}00619\ \textcolor{stringliteral}{.stats\ \{\{\ display:\ flex;\ gap:\ 20px;\ margin:\ 15px\ 0;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00620}00620\ \textcolor{stringliteral}{.stat\ \{\{\ background:\ \#161b22;\ padding:\ 15px;\ border-\/radius:\ 8px;\ text-\/align:\ center;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00621}00621\ \textcolor{stringliteral}{.stat-\/val\ \{\{\ font-\/size:\ 28px;\ font-\/weight:\ bold;\ color:\ \#58a6ff;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00622}00622\ \textcolor{stringliteral}{.stat-\/label\ \{\{\ color:\ \#8b949e;\ font-\/size:\ 12px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00623}00623\ \textcolor{stringliteral}{</style>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00624}00624\ \textcolor{stringliteral}{</head><body>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00625}00625\ \textcolor{stringliteral}{<h1>OmniBus\ Blockchain\ Core\ Analysis</h1>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00626}00626\ \textcolor{stringliteral}{<h2>\{len(results)\}\ modules\ scanned\ |\ Average\ Score:\ \{avg:.1f\}\%</h2>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00627}00627\ \textcolor{stringliteral}{<div\ class="{}stats"{}>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00628}00628\ \textcolor{stringliteral}{\ \ <div\ class="{}stat"{}><div\ class="{}stat-\/val"{}>\{total\_real\}</div><div\ class="{}stat-\/label"{}>REAL</div></div>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00629}00629\ \textcolor{stringliteral}{\ \ <div\ class="{}stat"{}><div\ class="{}stat-\/val"{}>\{sum(r.non\_empty\_lines\ for\ r\ in\ results):,\}</div><div\ class="{}stat-\/label"{}>Lines\ of\ Code</div></div>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00630}00630\ \textcolor{stringliteral}{\ \ <div\ class="{}stat"{}><div\ class="{}stat-\/val"{}>\{sum(r.functions\ for\ r\ in\ results)\}</div><div\ class="{}stat-\/label"{}>Functions</div></div>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00631}00631\ \textcolor{stringliteral}{\ \ <div\ class="{}stat"{}><div\ class="{}stat-\/val"{}>\{sum(r.tests\ for\ r\ in\ results)\}</div><div\ class="{}stat-\/label"{}>Tests</div></div>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00632}00632\ \textcolor{stringliteral}{</div>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00633}00633\ \textcolor{stringliteral}{<table>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00634}00634\ \textcolor{stringliteral}{<thead><tr>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00635}00635\ \textcolor{stringliteral}{\ \ <th>Module</th><th>Category</th><th>Status</th><th>LOC</th><th>Funcs</th><th>Tests</th><th>IDA</th><th>Findings</th><th>Score</th>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00636}00636\ \textcolor{stringliteral}{</tr></thead>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00637}00637\ \textcolor{stringliteral}{<tbody>\{rows\}</tbody>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00638}00638\ \textcolor{stringliteral}{</table>}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00639}00639\ \textcolor{stringliteral}{</body></html>"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00640}00640\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00641}00641\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'w'},\ encoding=\textcolor{stringliteral}{'utf-\/8'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00642}00642\ \ \ \ \ \ \ \ \ f.write(html)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00643}00643\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ HTML\ report:\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00644}00644\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00645}00645\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00646}00646\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00647}00647\ \textcolor{comment}{\#\ MAIN}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00648}00648\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00649}00649\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00650}\doxymbox{\hyperlink{namespaceblockchain__analyzer_a51af30a60f9f02777c6396b8247e356f}{00650}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__analyzer_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00651}00651\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ Blockchain\ Core\ Analyzer\ v2.0"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00652}00652\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/module"{}},\ help=\textcolor{stringliteral}{"{}Analyze\ specific\ module"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00653}00653\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ metavar=\textcolor{stringliteral}{"{}FILE"{}},\ help=\textcolor{stringliteral}{"{}Export\ JSON\ report"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00654}00654\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/html"{}},\ metavar=\textcolor{stringliteral}{"{}FILE"{}},\ help=\textcolor{stringliteral}{"{}Export\ HTML\ report"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00655}00655\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/verbose"{}},\ \textcolor{stringliteral}{"{}-\/v"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Show\ all\ findings"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00656}00656\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00657}00657\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00658}00658\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'='\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00659}00659\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}OmniBus\ Blockchain\ Core\ Analyzer\ v2.0\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00660}00660\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00661}00661\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00662}00662\ \ \ \ \ \textcolor{keywordflow}{if}\ args.module:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00663}00663\ \ \ \ \ \ \ \ \ module\_path\ =\ CORE\ /\ f\textcolor{stringliteral}{"{}\{args.module\}.zig"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00664}00664\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ module\_path.exists():}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00665}00665\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ ERROR:\ Module\ not\ found:\ \{module\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00666}00666\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00667}00667\ \ \ \ \ \ \ \ \ results\ =\ [\doxymbox{\hyperlink{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55}{analyze\_module}}(module\_path,\ args.verbose)]}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00668}00668\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00669}00669\ \ \ \ \ \ \ \ \ results\ =\ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a7aad694695a9c4179d428dbe7681773a}{scan\_all\_modules}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00670}00670\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00671}00671\ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a743ea126c6bdcb4396ba3e4e7dc8246a}{print\_report}}(results,\ verbose=args.verbose)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00672}00672\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00673}00673\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00674}00674\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__analyzer_afb865586d6c19a3d55f82271821a3519}{generate\_json}}(results,\ Path(args.json))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00675}00675\ \ \ \ \ \textcolor{keywordflow}{if}\ args.html:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00676}00676\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a31141a0bed02d489d5950dc121c3f905}{generate\_html}}(results,\ Path(args.html))}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00677}00677\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00678}00678\ \ \ \ \ has\_errors\ =\ any(r.status\ ==\ ModuleStatus.ERROR\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00679}00679\ \ \ \ \ sys.exit(1\ \textcolor{keywordflow}{if}\ has\_errors\ \textcolor{keywordflow}{else}\ 0)}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00680}00680\ }
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00681}00681\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__analyzer_8py_source_l00682}00682\ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

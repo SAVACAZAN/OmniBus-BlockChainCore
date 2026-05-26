@@ -1,0 +1,229 @@
+\doxysection{treasury\+\_\+flow\+\_\+test.\+py}
+\hypertarget{treasury__flow__test_8py_source}{}\label{treasury__flow__test_8py_source}\index{tests/treasury\_flow\_test.py@{tests/treasury\_flow\_test.py}}
+\doxymbox{\hyperlink{treasury__flow__test_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00001}\doxymbox{\hyperlink{namespacetreasury__flow__test}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00003}00003\ \textcolor{stringliteral}{treasury\_flow\_test.py\ —\ end-\/to-\/end\ test\ for\ the\ NS\ pay-\/to-\/claim\ +\ treasury}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00004}00004\ \textcolor{stringliteral}{agent\ market-\/maker\ flow.}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00005}00005\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00006}00006\ \textcolor{stringliteral}{What\ this\ exercises:}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ 1.\ Derive\ a\ wallet\ (or\ read\ one\ provided\ via\ env).}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ 2.\ Read\ the\ current\ ens.omnibus\ treasury\ address\ +\ initial\ state}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ \ \ \ (balance,\ live\ orders).}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ 3.\ Build\ a\ TX\ that\ pays\ 5+\ OMNI\ to\ ens.omnibus\ with\ op\_return\ memo}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ \ \`{}ns\_claim:<name>.omnibus\`{}\ and\ submit\ it\ via\ \`{}sendrawtransaction\`{}.}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ 4.\ Wait\ for\ the\ next\ block,\ then\ \`{}resolvename(<name>)\`{}\ and\ assert\ the}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ \ name\ resolves\ to\ the\ sender's\ address.}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ 5.\ Poll\ \`{}treasury\_getStatus\`{}\ and\ confirm\ the\ agent\ has\ new\ live\ orders}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ \ \ \ after\ the\ balance\ jump\ (eventually\ consistent\ —\ gives\ it\ \string~3\ blocks).}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00016}00016\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00017}00017\ \textcolor{stringliteral}{Run:}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ \ \ python\ treasury\_flow\_test.py\ -\/-\/rpc\ http://127.0.0.1:18332\ -\/-\/name\ test1}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ \ \ python\ treasury\_flow\_test.py\ -\/-\/rpc\ https://omnibusblockchain.cc:8443/api-\/testnet\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00020}00020\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ -\/-\/name\ test1\ -\/-\/token\ 31926ece...}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00021}00021\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00022}00022\ \textcolor{stringliteral}{Set\ OMNIBUS\_PRIVKEY\ (32\ hex\ bytes,\ no\ 0x)\ for\ the\ sender\ wallet,\ OR\ pass}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00023}00023\ \textcolor{stringliteral}{-\/-\/privkey\ on\ the\ command\ line.\ If\ neither\ is\ provided\ we\ cannot\ sign\ —}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00024}00024\ \textcolor{stringliteral}{the\ script\ will\ print\ the\ unsigned\ TX\ shape\ and\ exit\ so\ you\ can\ wire\ it}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00025}00025\ \textcolor{stringliteral}{through\ aweb3\ or\ the\ explorer\ manually.}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00026}00026\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00028}00028\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00029}00029\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00030}00030\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00031}00031\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00032}00032\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00033}00033\ \textcolor{keyword}{import}\ urllib.request}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00034}00034\ \textcolor{keyword}{import}\ urllib.error}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00035}00035\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00038}00038\ \textcolor{comment}{\#\ ──\ RPC\ plumbing\ ─────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00041}\doxymbox{\hyperlink{namespacetreasury__flow__test_a6cdf3c71eb9867d87f62b326775f7626}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_a6cdf3c71eb9867d87f62b326775f7626}{rpc\_call}}(rpc\_url:\ str,\ method:\ str,\ params:\ list,\ *,\ token:\ str\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00042}00042\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}JSON-\/RPC\ 2.0\ helper.\ Returns\ the\ unwrapped\ \`{}result\`{}.\ Raises\ on\ error."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00043}00043\ \ \ \ \ body\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ int(time.time()\ *\ 1000)\ \&\ 0x7FFFFFFF,}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params,}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00048}00048\ \ \ \ \ \}).encode()}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00049}00049\ \ \ \ \ req\ =\ urllib.request.Request(}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ rpc\_url,}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ data=body,}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ headers=\{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\},}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00053}00053\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{if}\ token:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ req.add\_header(\textcolor{stringliteral}{"{}Authorization"{}},\ f\textcolor{stringliteral}{"{}Bearer\ \{token\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ urllib.request.urlopen(req,\ timeout=10)\ \textcolor{keyword}{as}\ resp:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00059}00059\ \ \ \ \ \textcolor{keywordflow}{except}\ urllib.error.HTTPError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}HTTP\ \{e.code\}\ on\ \{method\}:\ \{e.read().decode()[:200]\}"{}})\ \textcolor{keyword}{from}\ e}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{except}\ urllib.error.URLError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}Connection\ failed\ to\ \{rpc\_url\}:\ \{e.reason\}"{}})\ \textcolor{keyword}{from}\ e}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ data\ \textcolor{keywordflow}{and}\ data[\textcolor{stringliteral}{"{}error"{}}]:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}RPC\ error\ on\ \{method\}:\ \{data['error']\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00069}00069\ \textcolor{comment}{\#\ ──\ Step\ helpers\ ─────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00072}\doxymbox{\hyperlink{namespacetreasury__flow__test_a10df6419f2692947347733fccf0d260c}{00072}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_a10df6419f2692947347733fccf0d260c}{get\_treasury\_status}}(rpc\_url:\ str,\ token:\ str\ |\ \textcolor{keywordtype}{None})\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00073}00073\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Returns\ \{treasury\_address,\ balance\_sat,\ live\_orders,\ ...\}."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacetreasury__flow__test_a6cdf3c71eb9867d87f62b326775f7626}{rpc\_call}}(rpc\_url,\ \textcolor{stringliteral}{"{}treasury\_getStatus"{}},\ [],\ token=token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00077}\doxymbox{\hyperlink{namespacetreasury__flow__test_afd1795866219fadf2f5f6325e8e94d6f}{00077}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_afd1795866219fadf2f5f6325e8e94d6f}{get\_treasury\_config}}(rpc\_url:\ str,\ token:\ str\ |\ \textcolor{keywordtype}{None})\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00078}00078\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacetreasury__flow__test_a6cdf3c71eb9867d87f62b326775f7626}{rpc\_call}}(rpc\_url,\ \textcolor{stringliteral}{"{}treasury\_getConfig"{}},\ [],\ token=token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00081}\doxymbox{\hyperlink{namespacetreasury__flow__test_a76393aa026022e1241f4be6650e977a7}{00081}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_a76393aa026022e1241f4be6650e977a7}{resolve\_name}}(rpc\_url:\ str,\ name:\ str,\ token:\ str\ |\ \textcolor{keywordtype}{None})\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00082}00082\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}resolvename\ returns\ \{name,\ address,\ found\}."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00083}00083\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacetreasury__flow__test_a6cdf3c71eb9867d87f62b326775f7626}{rpc\_call}}(rpc\_url,\ \textcolor{stringliteral}{"{}resolvename"{}},\ [name],\ token=token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00086}\doxymbox{\hyperlink{namespacetreasury__flow__test_afbd41ae13bebc41680e1fb5aa124ad65}{00086}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_afbd41ae13bebc41680e1fb5aa124ad65}{get\_block\_height}}(rpc\_url:\ str,\ token:\ str\ |\ \textcolor{keywordtype}{None})\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{return}\ int(\doxymbox{\hyperlink{namespacetreasury__flow__test_a6cdf3c71eb9867d87f62b326775f7626}{rpc\_call}}(rpc\_url,\ \textcolor{stringliteral}{"{}getblockcount"{}},\ [],\ token=token))}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00090}\doxymbox{\hyperlink{namespacetreasury__flow__test_a38b351a32d7fe19e83c6b1588ae0bdbf}{00090}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_a38b351a32d7fe19e83c6b1588ae0bdbf}{wait\_for\_blocks}}(rpc\_url:\ str,\ n:\ int,\ token:\ str\ |\ \textcolor{keywordtype}{None},\ *,\ max\_wait\_s:\ int\ =\ 60)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00091}00091\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Block\ until\ \`{}n\`{}\ more\ blocks\ are\ mined\ or\ \`{}max\_wait\_s\`{}\ elapses."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00092}00092\ \ \ \ \ start\_h\ =\ \doxymbox{\hyperlink{namespacetreasury__flow__test_afbd41ae13bebc41680e1fb5aa124ad65}{get\_block\_height}}(rpc\_url,\ token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00093}00093\ \ \ \ \ target\ =\ start\_h\ +\ n}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00094}00094\ \ \ \ \ deadline\ =\ time.time()\ +\ max\_wait\_s}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{while}\ time.time()\ <\ deadline:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ h\ =\ \doxymbox{\hyperlink{namespacetreasury__flow__test_afbd41ae13bebc41680e1fb5aa124ad65}{get\_block\_height}}(rpc\_url,\ token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ h\ >=\ target:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ time.sleep(2)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00100}00100\ \ \ \ \ \textcolor{keywordflow}{raise}\ TimeoutError(f\textcolor{stringliteral}{"{}Only\ \{get\_block\_height(rpc\_url,\ token)\ -\/\ start\_h\}\ blocks\ mined\ in\ \{max\_wait\_s\}s\ (needed\ \{n\})"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00103}00103\ \textcolor{comment}{\#\ ──\ Main\ flow\ ────────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00106}\doxymbox{\hyperlink{namespacetreasury__flow__test_afe8df5260fa8eefe2e1f6d30312c2038}{00106}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_afe8df5260fa8eefe2e1f6d30312c2038}{fmt\_sat}}(sat:\ int)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}\{sat\ /\ 1\_000\_000\_000:.4f\}\ OMNI"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00110}\doxymbox{\hyperlink{namespacetreasury__flow__test_a7431cb90017e54fe695b23d4190db046}{00110}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetreasury__flow__test_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00111}00111\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\_\_doc\_\_)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00112}00112\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:18332"{}},}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}JSON-\/RPC\ endpoint\ (default:\ testnet\ local)"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00114}00114\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/token"{}},\ default=os.getenv(\textcolor{stringliteral}{"{}OMNIBUS\_RPC\_TOKEN"{}}),}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Bearer\ token\ for\ non-\/loopback\ RPC"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00116}00116\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/name"{}},\ default=\textcolor{stringliteral}{"{}test1"{}},}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Name\ to\ claim\ (3-\/25\ chars,\ [a-\/z0-\/9\_],\ starts\ with\ letter)"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00118}00118\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/tld"{}},\ default=\textcolor{stringliteral}{"{}omnibus"{}},\ choices=[\textcolor{stringliteral}{"{}omnibus"{}},\ \textcolor{stringliteral}{"{}arbitraje"{}}])}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00119}00119\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/from-\/addr"{}},\ default=os.getenv(\textcolor{stringliteral}{"{}OMNIBUS\_TEST\_FROM\_ADDR"{}}),}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Sender\ ob1q…\ address\ (must\ control\ its\ key)"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00121}00121\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/amount-\/omni"{}},\ type=float,\ default=5.0,}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}OMNI\ to\ pay\ (must\ be\ >=\ feeForName)."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00123}00123\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/dry-\/run"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Print\ what\ would\ be\ sent,\ don't\ actually\ submit."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00125}00125\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00127}00127\ \ \ \ \ print(f\textcolor{stringliteral}{"{}[1/6]\ RPC:\ \{args.rpc\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00129}00129\ \ \ \ \ \textcolor{comment}{\#\ ──\ 1.\ Read\ pre-\/test\ state\ ────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00130}00130\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n[2/6]\ Reading\ pre-\/test\ state…"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ cfg\ =\ \doxymbox{\hyperlink{namespacetreasury__flow__test_afd1795866219fadf2f5f6325e8e94d6f}{get\_treasury\_config}}(args.rpc,\ args.token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Config:\ \{cfg\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00134}00134\ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ WARNING:\ treasury\_getConfig\ failed:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Continuing\ —\ node\ may\ be\ on\ an\ older\ build\ that\ pre-\/dates\ this\ RPC."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ cfg\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00138}00138\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00139}00139\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ before\ =\ \doxymbox{\hyperlink{namespacetreasury__flow__test_a10df6419f2692947347733fccf0d260c}{get\_treasury\_status}}(args.rpc,\ args.token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Treasury:\ \{before['treasury\_address']\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Balance:\ \ \{fmt\_sat(before['balance\_sat'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Live\ orders:\ \{before['live\_orders']\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Last\ regrid:\ block\ \{before['last\_regrid\_block']\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ ERROR:\ treasury\_getStatus\ failed:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00149}00149\ \ \ \ \ \textcolor{comment}{\#\ ──\ 2.\ Pre-\/check\ name\ availability\ ────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00150}00150\ \ \ \ \ full\_label\ =\ f\textcolor{stringliteral}{"{}\{args.name\}.\{args.tld\}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00151}00151\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n[3/6]\ Pre-\/check\ '\{full\_label\}'\ availability…"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00152}00152\ \ \ \ \ pre\_resolve\ =\ \doxymbox{\hyperlink{namespacetreasury__flow__test_a76393aa026022e1241f4be6650e977a7}{resolve\_name}}(args.rpc,\ args.name,\ args.token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00153}00153\ \ \ \ \ \textcolor{keywordflow}{if}\ pre\_resolve.get(\textcolor{stringliteral}{"{}found"{}}):}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ ABORTING:\ '\{full\_label\}'\ already\ taken\ →\ \{pre\_resolve.get('address')\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ \ \ Use\ -\/-\/name\ <something\_else>\ to\ pick\ a\ fresh\ name."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 2}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00157}00157\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Name\ is\ available."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00159}00159\ \ \ \ \ \textcolor{comment}{\#\ ──\ 3.\ Build\ pay-\/to-\/claim\ TX\ ──────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00160}00160\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n[4/6]\ Build\ pay-\/to-\/claim\ TX…"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00161}00161\ \ \ \ \ treasury\_addr\ =\ before[\textcolor{stringliteral}{"{}treasury\_address"{}}]}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00162}00162\ \ \ \ \ amount\_sat\ =\ int(args.amount\_omni\ *\ 1\_000\_000\_000)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00163}00163\ \ \ \ \ op\_return\ =\ f\textcolor{stringliteral}{"{}ns\_claim:\{full\_label\}"{}}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00165}00165\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ to:\ \ \ \ \ \ \ \ \{treasury\_addr\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00166}00166\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ amount:\ \ \ \ \{fmt\_sat(amount\_sat)\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00167}00167\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ op\_return:\ \{op\_return!r\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00169}00169\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.from\_addr:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \ \ \ \ No\ -\/-\/from-\/addr\ /\ OMNIBUS\_TEST\_FROM\_ADDR\ set."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ The\ TX\ shape\ above\ is\ correct;\ submit\ it\ via\ aweb3\ /\ explorer\ /\ wallet\ CLI."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Once\ it\ lands,\ re-\/run\ this\ script\ with\ -\/-\/dry-\/run\ to\ inspect\ post-\/state."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 3\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.dry\_run\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{if}\ args.dry\_run:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \ \ \ \ [DRY-\/RUN]\ Would\ submit\ TX\ from\ \{args.from\_addr\};\ skipping."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00179}00179\ \ \ \ \ \textcolor{comment}{\#\ ──\ 4.\ Submit\ via\ sendrawtransaction\ (chain\ handles\ signing)\ ──────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00180}00180\ \ \ \ \ \textcolor{comment}{\#\ NOTE:\ The\ chain's\ sendrawtransaction\ takes\ already-\/signed\ TXs.\ We}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00181}00181\ \ \ \ \ \textcolor{comment}{\#\ don't\ sign\ here\ because\ that\ requires\ the\ privkey\ +\ the\ chain's}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00182}00182\ \ \ \ \ \textcolor{comment}{\#\ canonical\ TX-\/hash\ format.\ In\ practice\ this\ script\ is\ meant\ to\ verify}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00183}00183\ \ \ \ \ \textcolor{comment}{\#\ the\ *receive-\/side*\ —\ once\ aweb3\ builds\ +\ signs\ +\ submits\ the\ TX,\ this}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00184}00184\ \ \ \ \ \textcolor{comment}{\#\ script\ reads\ the\ post-\/state.\ The\ branch\ below\ is\ for\ nodes\ that}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00185}00185\ \ \ \ \ \textcolor{comment}{\#\ expose\ a\ high-\/level\ "{}sendnamedclaim"{}\ RPC\ (not\ in\ scope\ yet).}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00187}00187\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \ \ \ \ WARNING:\ This\ script\ does\ not\ sign\ TXs\ in-\/process."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00188}00188\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Submit\ the\ TX\ above\ through\ your\ wallet\ UI\ (aweb3\ →\ Send\ page\ or\ NamesPage),"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00189}00189\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ then\ re-\/run\ with\ \`{}-\/-\/dry-\/run`\ after\ 1-\/2\ blocks\ to\ verify\ the\ receive-\/side."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00190}00190\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Skipping\ submit;\ jumping\ to\ post-\/state\ verification\ with\ a\ 30s\ wait…"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00191}00191\ \ \ \ \ time.sleep(30)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00193}00193\ \ \ \ \ \textcolor{comment}{\#\ ──\ 5.\ Wait\ +\ verify\ post-\/state\ ───────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00194}00194\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n[5/6]\ Verify\ '\{full\_label\}'\ is\ now\ registered…"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00195}00195\ \ \ \ \ post\_resolve\ =\ \doxymbox{\hyperlink{namespacetreasury__flow__test_a76393aa026022e1241f4be6650e977a7}{resolve\_name}}(args.rpc,\ args.name,\ args.token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00196}00196\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ post\_resolve.get(\textcolor{stringliteral}{"{}found"{}}):}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ MISS:\ name\ still\ not\ registered\ after\ wait.\ Either\ the\ TX\ wasn't\ submitted,"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ it\ didn't\ include\ the\ right\ op\_return,\ or\ the\ node\ didn't\ apply\ it."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ Check\ node\ logs\ for\ \`{}[NS-\/CLAIM]`\ lines."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 4}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00201}00201\ \ \ \ \ claimed\_addr\ =\ post\_resolve[\textcolor{stringliteral}{"{}address"{}}]}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00202}00202\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ OK:\ '\{full\_label\}'\ →\ \{claimed\_addr\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00204}00204\ \ \ \ \ \textcolor{comment}{\#\ ──\ 6.\ Verify\ treasury\ agent\ reacted\ ──────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00205}00205\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n[6/6]\ Verify\ treasury\ agent\ reacted\ to\ balance\ change…"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00206}00206\ \ \ \ \ after\ =\ \doxymbox{\hyperlink{namespacetreasury__flow__test_a10df6419f2692947347733fccf0d260c}{get\_treasury\_status}}(args.rpc,\ args.token)}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00207}00207\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Balance:\ \{fmt\_sat(before['balance\_sat'])\}\ →\ \{fmt\_sat(after['balance\_sat'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00208}00208\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Live\ orders:\ \{before['live\_orders']\}\ →\ \{after['live\_orders']\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00209}00209\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ Last\ regrid\ block:\ \{before['last\_regrid\_block']\}\ →\ \{after['last\_regrid\_block']\}"{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{if}\ after[\textcolor{stringliteral}{"{}live\_orders"{}}]\ >\ before[\textcolor{stringliteral}{"{}live\_orders"{}}]:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ OK:\ agent\ placed\ new\ orders."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00213}00213\ \ \ \ \ \textcolor{keywordflow}{elif}\ after[\textcolor{stringliteral}{"{}last\_regrid\_block"{}}]\ >\ before[\textcolor{stringliteral}{"{}last\_regrid\_block"{}}]:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ OK:\ agent\ regrid'd\ (orders\ may\ have\ been\ swapped\ 1-\/for-\/1)."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00215}00215\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ INFO:\ agent\ didn't\ regrid\ yet\ —\ cooldown\ \{cfg['min\_regrid\_blocks']\ if\ cfg\ else\ '?'\}\ blocks."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00218}00218\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)nAll\ checks\ complete."{}})}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00220}00220\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00222}00222\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{treasury__flow__test_8py_source_l00223}00223\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacetreasury__flow__test_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

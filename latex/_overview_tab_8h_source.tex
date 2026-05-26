@@ -1,0 +1,53 @@
+\doxysection{Overview\+Tab.\+h}
+\hypertarget{_overview_tab_8h_source}{}\label{_overview_tab_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/OverviewTab.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/OverviewTab.h}}
+\doxymbox{\hyperlink{_overview_tab_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QTableView>}}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QProgressBar>}}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00009}00009\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00011}00011\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_block_table_model}{BlockTableModel}};}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00012}00012\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_mempool_table_model}{MempoolTableModel}};}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00014}\doxymbox{\hyperlink{classomni_1_1_overview_tab}{00014}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_overview_tab_a115dc861927d51bc9cffe983912c7028}{OverviewTab}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00015}00015\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00016}00016\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00017}00017\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_overview_tab_a115dc861927d51bc9cffe983912c7028}{OverviewTab}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00019}00019\ \textcolor{keyword}{public}\ slots:}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00020}00020\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_overview_tab_ab23cb7823c4571e04fc5a04937e73b73}{onWalletUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\&\ info);}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_overview_tab_a0ffefeafdaff8746d5c6f47409ae901c}{onNetworkUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_network_info}{NetworkInfo}}\&\ info);}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_overview_tab_af93314883116f49992ed78e130e6152d}{onMempoolUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats}{MempoolStats}}\&\ stats);}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00023}00023\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_overview_tab_a2472b4e61925d5fd77d1558803b8ebc7}{onNewBlock}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\&\ \doxymbox{\hyperlink{namespaceblock}{block}});}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_overview_tab_a8d15046b3bd239a9c78bad87ed807f46}{onNewTx}}(\textcolor{keyword}{const}\ QString\&\ txid,\ \textcolor{keyword}{const}\ QString\&\ from,\ qint64\ amountSat);}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00025}00025\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_overview_tab_afa6e9f3cb834cac58c54a663199b7c5a}{onBlockHeightChanged}}(\textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00027}00027\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00028}00028\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00030}00030\ \ \ \ \ QLabel*\ m\_balanceLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00031}00031\ \ \ \ \ QLabel*\ m\_balanceSatLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00032}00032\ \ \ \ \ QLabel*\ m\_addressLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00033}00033\ \ \ \ \ QLabel*\ m\_blockHeightLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00034}00034\ \ \ \ \ QLabel*\ m\_difficultyLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00035}00035\ \ \ \ \ QLabel*\ m\_mempoolLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00036}00036\ \ \ \ \ QLabel*\ m\_peerCountLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00037}00037\ \ \ \ \ QLabel*\ m\_nodeStatusLabel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00038}00038\ \ \ \ \ QProgressBar*\ m\_syncProgress;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00040}00040\ \ \ \ \ QTableView*\ m\_recentBlocksView;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00041}00041\ \ \ \ \ QTableView*\ m\_mempoolView;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00043}00043\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_block_table_model}{BlockTableModel}}*\ m\_blockModel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00044}00044\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model}{MempoolTableModel}}*\ m\_mempoolModel;}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00045}00045\ \};}
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_overview_tab_8h_source_l00047}00047\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

@@ -1,0 +1,165 @@
+\doxysection{frontend/\+node\+\_\+modules/\+clsx Directory Reference}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38}{}\label{dir_ff5f28da419d75a9d4912217ac49db38}\index{frontend/node\_modules/clsx Directory Reference@{frontend/node\_modules/clsx Directory Reference}}
+Directory dependency graph for clsx:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5774}{}\doxysubsection{\texorpdfstring{clsx \+[!\+[CI]\+(\href{https://github.com/lukeed/clsx/workflows/CI/badge.svg}{\texttt{https:\+/\+/\+github.\+com/\+lukeed/\+clsx/\+workflows/\+\+CI/\+badge.\+svg}})]\+(\href{https://github.com/lukeed/clsx/actions?query=workflow\%3ACI}{\texttt{https:\+/\+/\+github.\+com/\+lukeed/\+clsx/\+actions?query=workflow\%3\+ACI}}) \+[!\+[codecov]\+(\href{https://badgen.net/codecov/c/github/lukeed/clsx}{\texttt{https:\+/\+/\+badgen.\+net/\+codecov/\+c/\+github/\+lukeed/\+clsx}})]\+(\href{https://codecov.io/gh/lukeed/clsx}{\texttt{https:\+/\+/\+codecov.\+io/\+gh/\+lukeed/\+clsx}}) \+[!\+[licenses]\+(\href{https://licenses.dev/b/npm/clsx}{\texttt{https:\+/\+/\+licenses.\+dev/\+b/\+npm/\+clsx}})]\+(\href{https://licenses.dev/npm/clsx}{\texttt{https:\+/\+/\+licenses.\+dev/\+npm/\+clsx}})}{clsx \+[!\+[CI]\+(\href{https://github.com/lukeed/clsx/workflows/CI/badge.svg}{\texttt{https:\+/\+/\+github.\+com/\+lukeed/\+clsx/\+workflows/\+\+CI/\+badge.\+svg}})]\+(\href{https://github.com/lukeed/clsx/actions?query=workflow\%3ACI}{\texttt{https:\+/\+/\+github.\+com/\+lukeed/\+clsx/\+actions?query=workflow\%3\+ACI}}) \+[!\+[codecov]\+(\href{https://badgen.net/codecov/c/github/lukeed/clsx}{\texttt{https:\+/\+/\+badgen.\+net/\+codecov/\+c/\+github/\+lukeed/\+clsx}})]\+(\href{https://codecov.io/gh/lukeed/clsx}{\texttt{https:\+/\+/\+codecov.\+io/\+gh/\+lukeed/\+clsx}}) \+[!\+[licenses]\+(\href{https://licenses.dev/b/npm/clsx}{\texttt{https:\+/\+/\+licenses.\+dev/\+b/\+npm/\+clsx}})]\+(\href{https://licenses.dev/npm/clsx}{\texttt{https:\+/\+/\+licenses.\+dev/\+npm/\+clsx}})}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5774}
+\begin{quote}
+A tiny (239B) utility for constructing {\ttfamily class\+Name} strings conditionally.~\newline
+Also serves as a \+[faster]\+(bench) \& smaller drop-\/in replacement for the {\ttfamily classnames} module. \end{quote}
+
+
+This module is available in three formats:\+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{ES Module}}:\+ {\ttfamily dist/\+clsx.\+mjs}
+\item {\bfseries{Common\+JS}}:\+ {\ttfamily dist/\+clsx.\+js}
+\item {\bfseries{UMD}}:\+ {\ttfamily dist/\+clsx.\+min.\+js}
+\end{DoxyItemize}\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5775}{}\doxysubsection{\texorpdfstring{Install}{Install}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5775}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ npm\ install\ -\/-\/save\ clsx}
+
+\end{DoxyCode}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5776}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5776}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ clsx\ from\ 'clsx';}
+\DoxyCodeLine{//\ or}
+\DoxyCodeLine{import\ \{\ clsx\ \}\ from\ 'clsx';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Strings\ (variadic)}
+\DoxyCodeLine{clsx('foo',\ true\ \&\&\ 'bar',\ 'baz');}
+\DoxyCodeLine{//=>\ 'foo\ bar\ baz'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Objects}
+\DoxyCodeLine{clsx(\{\ foo:true,\ bar:false,\ baz:isTrue()\ \});}
+\DoxyCodeLine{//=>\ 'foo\ baz'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Objects\ (variadic)}
+\DoxyCodeLine{clsx(\{\ foo:true\ \},\ \{\ bar:false\ \},\ null,\ \{\ '-\/-\/foobar':'hello'\ \});}
+\DoxyCodeLine{//=>\ 'foo\ -\/-\/foobar'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Arrays}
+\DoxyCodeLine{clsx(['foo',\ 0,\ false,\ 'bar']);}
+\DoxyCodeLine{//=>\ 'foo\ bar'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Arrays\ (variadic)}
+\DoxyCodeLine{clsx(['foo'],\ ['',\ 0,\ false,\ 'bar'],\ [['baz',\ [['hello'],\ 'there']]]);}
+\DoxyCodeLine{//=>\ 'foo\ bar\ baz\ hello\ there'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Kitchen\ sink\ (with\ nesting)}
+\DoxyCodeLine{clsx('foo',\ [1\ \&\&\ 'bar',\ \{\ baz:false,\ bat:null\ \},\ ['hello',\ ['world']]],\ 'cya');}
+\DoxyCodeLine{//=>\ 'foo\ bar\ hello\ world\ cya'}
+
+\end{DoxyCode}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5777}{}\doxysubsection{\texorpdfstring{API}{API}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5777}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5778}{}\doxysubsubsection{\texorpdfstring{clsx(...\+input)}{clsx(...\+input)}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5778}
+Returns:\+ {\ttfamily String}\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5779}{}\doxysubsubsubsection{\texorpdfstring{input}{input}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5779}
+Type:\+ {\ttfamily Mixed}
+
+The {\ttfamily clsx} function can take {\itshape {\bfseries{any}}} number of arguments, each of which can be an Object, Array, Boolean, or String.
+
+\begin{quote}
+{\bfseries{Important:\+}} {\itshape Any} falsey values are discarded!~\newline
+Standalone Boolean values are discarded as well. \end{quote}
+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{clsx(true,\ false,\ '',\ null,\ undefined,\ 0,\ NaN);}
+\DoxyCodeLine{//=>\ ''}
+
+\end{DoxyCode}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5780}{}\doxysubsection{\texorpdfstring{Modes}{Modes}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5780}
+There are multiple "{}versions"{} of {\ttfamily clsx} available, which allows you to bring only the functionality you need!\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5781}{}\doxysubsubsubsection{\texorpdfstring{{\ttfamily clsx}}{{\ttfamily clsx}}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5781}
+\begin{quote}
+{\bfseries{Size (gzip):\+}} 239 bytes~\newline
+ {\bfseries{Availability:\+}} Common\+JS, ES Module, UMD \end{quote}
+
+
+The default {\ttfamily clsx} module; see APIAPI for info.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ clsx\ \}\ from\ 'clsx';}
+\DoxyCodeLine{//\ or}
+\DoxyCodeLine{import\ clsx\ from\ 'clsx';}
+
+\end{DoxyCode}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5782}{}\doxysubsubsubsection{\texorpdfstring{{\ttfamily clsx/\+lite}}{{\ttfamily clsx/\+lite}}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5782}
+\begin{quote}
+{\bfseries{Size (gzip):\+}} 140 bytes~\newline
+ {\bfseries{Availability:\+}} Common\+JS, ES Module~\newline
+ {\bfseries{CAUTION:\+}} Accepts {\bfseries{ONLY}} string arguments! \end{quote}
+
+
+Ideal for applications that {\itshape {\bfseries{only}}} use the string-\/builder pattern.
+
+Any non-\/string arguments are ignored!
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ clsx\ \}\ from\ 'clsx/lite';}
+\DoxyCodeLine{//\ or}
+\DoxyCodeLine{import\ clsx\ from\ 'clsx/lite';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ string}
+\DoxyCodeLine{clsx('hello',\ true\ \&\&\ 'foo',\ false\ \&\&\ 'bar');}
+\DoxyCodeLine{//\ =>\ "{}hello\ foo"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ NOTE:\ Any\ non-\/string\ input(s)\ ignored}
+\DoxyCodeLine{clsx(\{\ foo:\ true\ \});}
+\DoxyCodeLine{//=>\ "{}"{}}
+
+\end{DoxyCode}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5783}{}\doxysubsection{\texorpdfstring{Benchmarks}{Benchmarks}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5783}
+For snapshots of cross-\/browser results, check out the \+[{\ttfamily bench}]\+(bench) directory\texorpdfstring{$\sim$}{\string~}!\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5784}{}\doxysubsection{\texorpdfstring{Support}{Support}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5784}
+All versions of Node.\+js are supported.
+
+All browsers that support \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray\#Browser_compatibility}{\texttt{{\ttfamily Array.\+is\+Array}}} are supported (IE9+).
+
+\texorpdfstring{$>$}{>}{\bfseries{Note:\+}} For IE8 support and older, please install {\ttfamily clsx@1.\+0.\+x} and beware of \href{https://github.com/lukeed/clsx/issues/17}{\texttt{\#17}}.\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5785}{}\doxysubsection{\texorpdfstring{Tailwind Support}{Tailwind Support}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5785}
+Here some additional (optional) steps to enable classes autocompletion using {\ttfamily clsx} with Tailwind CSS.
+
+
+
+{\bfseries{}}\begin{adjustwidth}{1em}{0em}
+Visual Studio Code 
+
+
+
+
+\begin{DoxyEnumerate}
+\item \href{https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss}{\texttt{Install the "{}\+Tailwind CSS Intelli\+Sense"{} Visual Studio Code extension}}
+\item Add the following to your \href{https://code.visualstudio.com/docs/getstarted/settings}{\texttt{{\ttfamily settings.\+json}}}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ "{}tailwindCSS.experimental.classRegex"{}:\ [}
+\DoxyCodeLine{\ \ \ ["{}clsx\(\backslash\)\(\backslash\)(([\string^)]*)\(\backslash\)\(\backslash\))"{},\ "{}(?:'|\(\backslash\)"{}|`)([\string^']*)(?:'|\(\backslash\)"{}|`)"{}]}
+\DoxyCodeLine{\ ]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+ 
+\end{DoxyEnumerate}\end{adjustwidth}
+
+
+You may find the \`{}clsx/\+lite\`{}{\ttfamily clsx/\+lite} module useful within Tailwind contexts. This is especially true if/\+when your application {\bfseries{only}} composes classes in this pattern:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{clsx('text-\/base',\ props.active\ \&\&\ 'text-\/primary',\ props.className);}
+
+\end{DoxyCode}
+\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5786}{}\doxysubsection{\texorpdfstring{Related}{Related}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5786}
+
+\begin{DoxyItemize}
+\item \href{https://github.com/lukeed/obj-str}{\texttt{obj-\/str}} -\/ A smaller (96B) and similiar utility that only works with Objects.
+\end{DoxyItemize}\hypertarget{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5787}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_ff5f28da419d75a9d4912217ac49db38_autotoc_md5787}
+MIT © \href{https://lukeed.com}{\texttt{Luke Edwards}} 

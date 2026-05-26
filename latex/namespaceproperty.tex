@@ -1,0 +1,23 @@
+\doxysection{property Namespace Reference}
+\hypertarget{namespaceproperty}{}\label{namespaceproperty}\index{property@{property}}
+
+
+-\/based-\/crypto  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/based-\/crypto 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Property-Based Cryptographic Testing.
+
+Tests fundamental cryptographic properties:
+  - sign/verify roundtrip for ANY random (msg, sk) pair
+  - verify must FAIL for wrong message, wrong key, corrupted signature
+  - SHA256(SHA256(x)) determinism
+  - BIP-32 child derivation consistency: m/0/1 == (m/0)/1
+
+Uses Python hashlib as SHA-256 reference.  5000 random test cases by default.
+\end{DoxyVerb}
+ 

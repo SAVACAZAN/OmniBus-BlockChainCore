@@ -1,0 +1,53 @@
+\doxysection{tools/\+\+LEARNING/\+git-\/zig-\/evolution.py File Reference}
+\hypertarget{git-zig-evolution_8py}{}\label{git-zig-evolution_8py}\index{tools/LEARNING/git-\/zig-\/evolution.py@{tools/LEARNING/git-\/zig-\/evolution.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacegit-zig-evolution}{git-\/zig-\/evolution}}
+\item 
+namespace \doxymbox{\hyperlink{namespacegit}{git}}
+\begin{DoxyCompactList}\small\item\em -\/zig-\/evolution \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{git-\/zig-\/evolution.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{git-\/zig-\/evolution.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74}{git-\/zig-\/evolution.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_adf0e2aa4d06b5ca38e44721821eca783}{git-\/zig-\/evolution.\+log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}{git-\/zig-\/evolution.\+run\+\_\+git}} (list\+[str]\+ args, str cwd)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacegit-zig-evolution_aa498602fce9ff6b792ef009597081a93}{git-\/zig-\/evolution.\+get\+\_\+commits}} (str cwd, int max\+\_\+commits=200)
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_ae23c0e01a3fac822627f315c3bd715ac}{git-\/zig-\/evolution.\+get\+\_\+file\+\_\+at\+\_\+commit}} (str cwd, str commit\+\_\+hash, str file\+\_\+path)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacegit-zig-evolution_aa2b4571da638f0d2ce2089c0a2e9604a}{git-\/zig-\/evolution.\+list\+\_\+zig\+\_\+files}} (str cwd, str commit\+\_\+hash)
+\item 
+int \doxymbox{\hyperlink{namespacegit-zig-evolution_a9e37984b9df268e6fc00b0abed5c9a27}{git-\/zig-\/evolution.\+count\+\_\+loc}} (str source)
+\item 
+int \doxymbox{\hyperlink{namespacegit-zig-evolution_a2b2891e715a164437979a30153ddef76}{git-\/zig-\/evolution.\+complexity\+\_\+score}} (str source)
+\item 
+bool \doxymbox{\hyperlink{namespacegit-zig-evolution_a38d052450fdb6c1e9cc1273181f2c761}{git-\/zig-\/evolution.\+has\+\_\+allocations}} (str source)
+\item 
+bool \doxymbox{\hyperlink{namespacegit-zig-evolution_a73956d33be817e7537546311e43392b4}{git-\/zig-\/evolution.\+fix\+\_\+indicator}} (str commit\+\_\+msg)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacegit-zig-evolution_a9e9960d4c7756bb68a1da8cce11a78d9}{git-\/zig-\/evolution.\+analyze\+\_\+evolution}} (str cwd, int max\+\_\+commits)
+\item 
+int \doxymbox{\hyperlink{namespacegit-zig-evolution_a7431cb90017e54fe695b23d4190db046}{git-\/zig-\/evolution.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a3a0904634d69ecb240683fc884c34e02}{git-\/zig-\/evolution.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a1c61ef499bffe47f1436a7633079def6}{git-\/zig-\/evolution.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a666c8aed86e55995ac75035797ac462d}{git-\/zig-\/evolution.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_ac48acdb273637f065885833c6f7421cf}{git-\/zig-\/evolution.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a3f3464d7c8bc36b9f8ce540f288b6b5d}{git-\/zig-\/evolution.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}

@@ -1,0 +1,562 @@
+\chapter{Omni\+Bus OS — Toate Modulele, Arhitectură, Integrare Block\+Chain\+Core }
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s}{}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s}\index{OmniBus OS — Toate Modulele, Arhitectură, Integrare BlockChainCore@{OmniBus OS — Toate Modulele, Arhitectură, Integrare BlockChainCore}}
+\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11411}%
+\Hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11411}%
+
+
+{\bfseries{Data:\+}} 2026-\/03-\/27 \texorpdfstring{$\vert$}{|} {\bfseries{Status:\+}} Document viu — ACTUALIZAT Sprint S1–\+S7 {\bfseries{Path local:\+}} {\ttfamily C:\+\textbackslash{}Kits work\textbackslash{}limaje de programare\textbackslash{}Omni\+Bus\textbackslash{}} {\bfseries{Git\+Hub:\+}} {\ttfamily github.\+com/\+\+SAVACAZAN/\+\+Omni\+Bus} {\bfseries{Faza curentă:\+}} Phase 80 (Production) — Security Complete
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11413}{}\doxysection{\texorpdfstring{Arhitectura:\+ 7 OS Layers (bare-\/metal x86-\/64)}{Arhitectura:\+ 7 OS Layers (bare-\/metal x86-\/64)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11413}
+Omni\+Bus rulează {\bfseries{direct pe hardware}} fără kernel convențional. Bootloader-\/ul (Stage 1 ASM → Stage 2) pornește în protected mode și încarcă 7 straturi OS simultane în memorie.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ Layer\ 7:\ Neuro\ OS\ \ \ \ \ \ \ \ (Zig)\ \ 0x2D0000\ \ 512KB\ \ ML/Genetic│}
+\DoxyCodeLine{│\ \ Layer\ 6:\ Bank\ OS\ \ \ \ \ \ \ \ \ (C)\ \ \ \ 0x280000\ \ 192KB\ \ SWIFT/ACH\ │}
+\DoxyCodeLine{│\ \ Layer\ 5:\ BlockchainOS\ \ \ \ (Zig)\ \ 0x250000\ \ 192KB\ \ Solana/EGLD│}
+\DoxyCodeLine{│\ \ Layer\ 4:\ Execution\ OS\ \ \ \ (C/Zig)\ 0x130000\ 128KB\ \ Orders/HMAC│}
+\DoxyCodeLine{│\ \ Layer\ 3:\ Analytics\ OS\ \ \ \ (Zig)\ \ 0x150000\ \ 256KB\ \ Prețuri\ \ \ │}
+\DoxyCodeLine{│\ \ Layer\ 2:\ Grid\ OS\ \ \ \ \ \ \ \ \ (Zig)\ \ 0x110000\ \ 128KB\ \ Trading\ \ \ │}
+\DoxyCodeLine{│\ \ Layer\ 1:\ Ada\ Mother\ OS\ \ \ (Ada)\ \ 0x100000\ \ \ 64KB\ \ Kernel/IPC│}
+\DoxyCodeLine{│\ \ L0:\ \ \ \ \ \ Bootloader\ \ \ \ \ \ (ASM)\ \ 0x007C00\ \ 512B\ \ \ Stage1→2\ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+
+
+{\bfseries{Plugin Segment}} (0x350000+, 1MB+):\+ module DSL, bytecode custom, omnibus\+\_\+blockchain\+\_\+os, omnibus\+\_\+network\+\_\+os.
+
+{\bfseries{Build:\+}} {\ttfamily make \doxylink{namespacebuild}{build}} → {\ttfamily ./\+build/\+omnibus.iso} (bootabil QEMU/\+hardware) {\bfseries{Test:\+}} {\ttfamily make qemu} → boot în QEMU
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11415}{}\doxysection{\texorpdfstring{Harta completă a modulelor (54 subdirectoare)}{Harta completă a modulelor (54 subdirectoare)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11415}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11416}{}\doxysubsection{\texorpdfstring{TIER 1 — Core OS Layers (active, Phase 72)}{TIER 1 — Core OS Layers (active, Phase 72)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11416}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Path  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Memory  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Limbaj  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+{\bfseries{ada\+\_\+mother\+\_\+os}}  &modules/\+ada\+\_\+mother\+\_\+os/\+  &0x100000 64KB  &Ada/\+\+SPARK  &Kernel validation, IPC master, securitate formală  \\
+{\bfseries{grid\+\_\+os}}  &modules/\+grid\+\_\+os/\+  &0x110000 128KB  &Zig  &Grid trading engine, matching, multi-\/exchange  \\
+{\bfseries{execution\+\_\+os}}  &modules/\+execution\+\_\+os/\+  &0x130000 128KB  &C/\+\+Zig/\+\+ASM  &Order execution, HMAC-\/\+SHA256 signing CEX  \\
+{\bfseries{analytics\+\_\+os}}  &modules/\+analytics\+\_\+os/\+  &0x150000 256KB  &Zig  &Agregare prețuri, market matrix, consensus  \\
+{\bfseries{blockchain\+\_\+os}}  &modules/\+blockchain\+\_\+os/\+  &0x250000 192KB  &Zig  &Solana flash loans, EGLD staking, wallet  \\
+{\bfseries{bank\+\_\+os}}  &modules/\+bank\+\_\+os/\+  &0x280000 192KB  &C/\+\+Zig  &SWIFT (8KB), ACH (11.\+8\+KB), settlement bancar real  \\
+{\bfseries{neuro\+\_\+os}}  &(modules/\+neuro\+\_\+os/\+)  &0x2\+D0000 512KB  &Zig  &ML models, algoritm genetic, optimizare parametri  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11417}{}\doxysubsection{\texorpdfstring{TIER 2 — Omni\+Bus Blockchain OS (Plugin Segment)}{TIER 2 — Omni\+Bus Blockchain OS (Plugin Segment)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11417}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Path  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Memory  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișiere cheie  \\
+{\bfseries{omnibus\+\_\+blockchain\+\_\+os}}  &modules/\+omnibus\+\_\+blockchain\+\_\+os/\+  &0x5\+D0000 512KB code + 0x650000 512KB data  &omnibus\+\_\+blockchain\+\_\+os.\+zig — {\bfseries{37KB binary}} ✅  \\
+{\bfseries{omnibus\+\_\+network\+\_\+os}}  &modules/\+omnibus\+\_\+network\+\_\+os/\+  &0x5\+E0000 64KB  &omnibus\+\_\+network\+\_\+os.\+zig (DEV\+\_\+\+MODE=false, UDP E1000 real) — {\bfseries{1572B}} ✅  \\
+{\bfseries{miner\+\_\+coordinator\+\_\+os}}  &modules/\+miner\+\_\+coordinator\+\_\+os/\+  &0x6\+D0000 256KB code + 0x710000 128KB data  &miner\+\_\+coordinator\+\_\+os.\+zig — {\bfseries{1896B}} ✅ Phase 67  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11418}{}\doxysubsection{\texorpdfstring{TIER 3 — Securitate și Governance}{TIER 3 — Securitate și Governance}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11418}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+consensus\+\_\+engine\+\_\+os  &Byzantine fault tolerance, 4/\+6 quorum  \\
+checksum\+\_\+os  &Validare Tier 1  \\
+audit\+\_\+log\+\_\+os  &Logging evenimente  \\
+zorin\+\_\+os  &Access control  \\
+domain\+\_\+resolver  &ENS/\+\+Ar\+NS domain resolution  \\
+sel4\+\_\+microkernel  &Formal verification microkernel  \\
+cross\+\_\+validator\+\_\+os  &Divergence detection cross-\/shard  \\
+slashing\+\_\+protection\+\_\+os  &Validator insurance  \\
+mev\+\_\+guard\+\_\+os  &Sandwich attack protection  \\
+flash\+\_\+loan\+\_\+protection\+\_\+os  &DEX security  \\
+circuit\+\_\+breaker\+\_\+os  &Emergency halt  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11419}{}\doxysubsection{\texorpdfstring{TIER 4 — Date și Storage}{TIER 4 — Date și Storage}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11419}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+database\+\_\+os  &Data persistence  \\
+cassandra\+\_\+os  &Distributed storage  \\
+historical\+\_\+analytics\+\_\+os  &Time-\/series data  \\
+persistent\+\_\+state\+\_\+os  &State checkpointing  \\
+rpc\+\_\+state\+\_\+os  &RPC state management  \\
+cache\+\_\+l3\+\_\+os  &L3 cache optimization  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11420}{}\doxysubsection{\texorpdfstring{TIER 5 — Mining și Staking}{TIER 5 — Mining și Staking}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11420}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+asic\+\_\+miner\+\_\+os  &ASIC mining integration  \\
+asic\+\_\+optimizer\+\_\+os  &ASIC hashrate optimization  \\
+gpu\+\_\+miner\+\_\+os  &GPU mining  \\
+gpu\+\_\+optimizer\+\_\+os  &GPU optimization  \\
+lightweight\+\_\+miner\+\_\+os  &Light miner (low resource)  \\
+liquid\+\_\+staking\+\_\+os  &Staking rewards  \\
+staking\+\_\+boost\+\_\+os  &Staking multiplier  \\
+stratum\+\_\+v2\+\_\+gateway  &Stratum v2 protocol  \\
+{\bfseries{miner\+\_\+coordinator\+\_\+os}}  &{\bfseries{✅ Phase 67}} — 64 workers (CPU/\+\+GPU/\+\+ASIC/\+\+Light), nonce ranges non-\/overlapping, IPC 0x86–0x88  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11421}{}\doxysubsection{\texorpdfstring{TIER 6 — Blockchain Extension}{TIER 6 — Blockchain Extension}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11421}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+cross\+\_\+chain\+\_\+bridge\+\_\+os  &Bridge BTC/\+\+ETH/\+\+EGLD/\+\+SOL  \\
+l2\+\_\+rollup\+\_\+bridge\+\_\+os  &L2 rollup bridge  \\
+zk\+\_\+rollups\+\_\+os  &ZK rollup support  \\
+on\+\_\+ramp\+\_\+os  &Fiat/\+\+USDC on-\/ramp  \\
+orderflow\+\_\+auction\+\_\+os  &MEV recapture /\+ OFA  \\
+dao\+\_\+governance\+\_\+os  &Governance on-\/chain  \\
+status\+\_\+token\+\_\+os  &Status token distribution  \\
+{\bfseries{pqc\+\_\+gate\+\_\+os}}  &{\bfseries{✅ Phase 72}} — HMAC-\/\+SHA256 real, verify\+\_\+ml\+\_\+dsa/\+fn\+\_\+dsa/\+slh\+\_\+dsa, IPC 0x41–0x47, 0x490000 64KB  \\
+{\bfseries{quantum\+\_\+resistant\+\_\+crypto\+\_\+os}}  &{\bfseries{✅ Phase 71}} — ML-\/\+DSA NTT/\+\+INTT Z\+\_\+q=8380417 n=256, SHA-\/256+\+HMAC freestanding, 0x480000 64KB  \\
+quantum\+\_\+detector\+\_\+os  &Detecție atac quantum  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11422}{}\doxysubsection{\texorpdfstring{TIER 8 — Securitate Avansată (Phase 73–80, NOU 2026-\/03-\/27)}{TIER 8 — Securitate Avansată (Phase 73–80, NOU 2026-\/03-\/27)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11422}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Phase  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Address  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Size  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+73  &{\bfseries{anti\+\_\+vm\+\_\+os}}  &0x5\+F0000  &32KB  &CPUID timing (\texorpdfstring{$>$}{>}1000 cycles=VM), SHA-\/256 hardware fingerprint, safe-\/lock  \\
+74  &{\bfseries{firewall\+\_\+os}}  &0x5\+F8000  &32KB  &Kernel-\/level firewall, CIDR parser, anti-\/spoofing RFC 1918, stealth drop  \\
+75  &{\bfseries{esp\+\_\+os}}  &0x600000  &64KB  &RFC 4303 ESP:\+ SPI+\+Seq\+Num+\+ICV, AES-\/256-\/\+GCM, anti-\/replay bitmap  \\
+76  &{\bfseries{sad\+\_\+spd\+\_\+os}}  &0x610000  &32KB  &SAD (max 64 SA) + SPD (max 32 policy) per RFC 4301  \\
+77  &{\bfseries{key\+\_\+rotation\+\_\+os}}  &0x618000  &48KB  &Auto-\/rotate 1GB OR 3600s, PBKDF2-\/\+HMAC-\/\+SHA256, secure zero  \\
+78  &{\bfseries{zkp\+\_\+os}}  &0x624000  &96KB  &Fiat-\/\+Shamir ZKP port 8337, SHA256+\+HMAC, timing MAX 8M cycles  \\
+79  &{\bfseries{ota\+\_\+update\+\_\+os}}  &0x63\+C000  &32KB  &Port 8336, Ed25519 verify, staging buffer, rollback pointer  \\
+80  &{\bfseries{nat\+\_\+traversal\+\_\+os}}  &0x644000  &32KB  &UDP encap ESP RFC 3948, port 4500 NAT-\/T, keepalive 60M cycles  \\
+\end{DoxyTable}
+
+
+{\bfseries{Security Dispatcher v3}} (Phase 52F):\+ 15 module (L1=7 + L2=8), safe-\/lock gate @ 0x5\+F000C bit2\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11423}{}\doxysubsection{\texorpdfstring{TIER 7 — Infrastructure și Divers}{TIER 7 — Infrastructure și Divers}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11423}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+logging\+\_\+os  &Sistem loguri  \\
+metrics\+\_\+os  &Metrici performanță  \\
+autorepair\+\_\+os  &Auto-\/repair module  \\
+disaster\+\_\+recovery\+\_\+os  &Recovery și backup  \\
+performance\+\_\+profiler\+\_\+os  &Profiling bare-\/metal  \\
+parameter\+\_\+tuning\+\_\+os  &Auto-\/tuning parametri  \\
+async\+\_\+ipc\+\_\+os  &IPC async între module  \\
+multiprocessor\+\_\+os  &Multi-\/core support  \\
+multi\+\_\+node\+\_\+federation\+\_\+os  &Multi-\/node federation  \\
+federation\+\_\+os  &Federation protocol  \\
+cloud\+\_\+federation\+\_\+os  &Cloud bridge  \\
+cloud\+\_\+adapters  &Cloud provider adapters  \\
+compliance\+\_\+reporter\+\_\+os  &Rapoarte compliance  \\
+convergence\+\_\+test\+\_\+os  &Test convergență  \\
+replay\+\_\+os  &Replay attack protection  \\
+report\+\_\+os  &Raportare generală  \\
+ml\+\_\+inference\+\_\+os  &ML inference engine  \\
+stealth\+\_\+os  &MEV stealth /\+ obfuscare  \\
+up\+\_\+module\+\_\+os  &Module update  \\
+pcie\+\_\+driver  &PCIe driver bare-\/metal  \\
+api\+\_\+auth\+\_\+os  &API authentication  \\
+alert\+\_\+system\+\_\+os  &Sistem alerte  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11424}{}\doxysubsection{\texorpdfstring{Module speciale}{Module speciale}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11424}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+genesis\+\_\+and\+\_\+faucet  &Genesis block + faucet testnet  \\
+status\+\_\+token\+\_\+distribution  &Distribuție token status  \\
+agent\+\_\+omni\+\_\+sales  &Agent sales OMNI  \\
+security/\+  &Fișiere securitate generale  \\
+formal\+\_\+proofs/\+  &Coq + Why3 proofs  \\
+formal\+\_\+proofs\+\_\+os  &Ada/\+\+SPARK formal OS proofs  \\
+bot\+\_\+strategies  &Strategii bot trading  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11426}{}\doxysection{\texorpdfstring{omnibus\+\_\+blockchain\+\_\+os — Detalii (cel mai relevant pentru integrare)}{omnibus\+\_\+blockchain\+\_\+os — Detalii (cel mai relevant pentru integrare)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11426}
+{\bfseries{Path:\+}} {\ttfamily modules/\+omnibus\+\_\+blockchain\+\_\+os/\+} {\bfseries{Memory:\+}} 0x5\+D0000–0x5\+DFFFF (64KB) {\bfseries{Fișier principal:\+}} {\ttfamily omnibus\+\_\+blockchain\+\_\+os.\+zig} (893 linii)\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11427}{}\doxysubsection{\texorpdfstring{Sub-\/module importate}{Sub-\/module importate}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11427}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ token\ \ \ \ \ \ \ \ \ \ =\ @import("{}omni\_token.zig"{});}
+\DoxyCodeLine{const\ distribution\ \ \ =\ @import("{}token\_distribution.zig"{});}
+\DoxyCodeLine{const\ wallet\ \ \ \ \ \ \ \ \ =\ @import("{}omnibus\_wallet.zig"{});}
+\DoxyCodeLine{const\ blockchain\ \ \ \ \ =\ @import("{}omnibus\_blockchain.zig"{});}
+\DoxyCodeLine{const\ simulator\ \ \ \ \ \ =\ @import("{}blockchain\_simulator.zig"{});}
+\DoxyCodeLine{const\ miner\_rewards\ \ =\ @import("{}miner\_rewards.zig"{});}
+\DoxyCodeLine{const\ network\ \ \ \ \ \ \ \ =\ @import("{}network\_integration.zig"{});}
+\DoxyCodeLine{const\ token\_registry\ =\ @import("{}token\_registry.zig"{});}
+\DoxyCodeLine{const\ oracle\_consensus\ =\ @import("{}oracle\_consensus.zig"{});}
+\DoxyCodeLine{const\ ws\_collector\ \ \ =\ @import("{}ws\_collector.zig"{});}
+\DoxyCodeLine{const\ node\_identity\ \ =\ @import("{}node\_identity.zig"{});}
+\DoxyCodeLine{const\ vault\_storage\ \ =\ @import("{}vault\_storage.zig"{});}
+\DoxyCodeLine{const\ p2p\_node\ \ \ \ \ \ \ =\ @import("{}p2p\_node.zig"{});}
+\DoxyCodeLine{const\ genesis\_block\ \ =\ @import("{}genesis\_block.zig"{});}
+\DoxyCodeLine{const\ e1000\ \ \ \ \ \ \ \ \ \ =\ @import("{}nic\_e1000.zig"{});}
+\DoxyCodeLine{const\ ipc\ \ \ \ \ \ \ \ \ \ \ \ =\ @import("{}ipc.zig"{});}
+\DoxyCodeLine{const\ kraken\_feed\ \ \ \ =\ @import("{}kraken\_feed.zig"{});}
+\DoxyCodeLine{const\ coinbase\_feed\ \ =\ @import("{}coinbase\_feed.zig"{});}
+\DoxyCodeLine{const\ lcx\_feed\ \ \ \ \ \ \ =\ @import("{}lcx\_feed.zig"{});}
+\DoxyCodeLine{const\ agent\_wallet\ \ \ =\ @import("{}agent\_wallet.zig"{});}
+\DoxyCodeLine{const\ block\_explorer\ =\ @import("{}block\_explorer\_os.zig"{});}
+\DoxyCodeLine{const\ usdc\_onramp\ \ \ \ =\ @import("{}usdc\_erc20\_onramp.zig"{});}
+\DoxyCodeLine{const\ client\_wallet\ \ =\ @import("{}client\_wallet.zig"{});}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11428}{}\doxysubsection{\texorpdfstring{IPC Opcodes exportate (ipc\+\_\+dispatch)}{IPC Opcodes exportate (ipc\+\_\+dispatch)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11428}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Opcode  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Semnătură  \\
+0x70  &token\+\_\+transfer  &(from, to, amount) → success  \\
+0x71  &token\+\_\+balance  &(address, token\+\_\+type) → balance  \\
+0x72  &token\+\_\+mint  &(token\+\_\+type, amount) → success  \\
+0x73  &token\+\_\+burn  &(token\+\_\+type, amount) → success  \\
+0x74  &airdrop\+\_\+claim  &(address) → amount  \\
+0x75  &stake\+\_\+create  &(address, amount, days) → stake\+\_\+id  \\
+0x76  &staking\+\_\+rewards  &(address) → rewards  \\
+0x77  &validator\+\_\+reward  &(address) → reward  \\
+0x78  &wallet\+\_\+create  &(domain) → wallet\+\_\+id  \\
+0x79  &wallet\+\_\+balance  &(wallet\+\_\+id, chain) → balance  \\
+0x7A  &wallet\+\_\+address  &(wallet\+\_\+id, chain) → addr\+\_\+ptr  \\
+0x7B  &block\+\_\+height  &() → height  \\
+0x7C  &submit\+\_\+transaction  &(tx\+\_\+ptr, tx\+\_\+len) → tx\+\_\+id  \\
+0x7D  &account\+\_\+create  &(address) → success  \\
+0x7E  &balance\+\_\+query  &(address) → balance  \\
+0x7F  &stats\+\_\+get  &() → stats\+\_\+ptr  \\
+0x80  &miner\+\_\+register  &(address, type, hashrate) → success  \\
+0x81  &miner\+\_\+award\+\_\+block  &(address, height, reward) → success  \\
+0x82  &miner\+\_\+claim\+\_\+rewards  &(address) → amount  \\
+0x83  &miner\+\_\+get\+\_\+earnings  &(address) → earnings  \\
+0x84  &miner\+\_\+adjust\+\_\+difficulty  &(block\+\_\+height) → difficulty  \\
+0x85  &miner\+\_\+global\+\_\+stats  &() → stats\+\_\+ptr  \\
+{\bfseries{0x86}}  &{\bfseries{coord\+\_\+get\+\_\+template}}  &{\bfseries{() → template\+\_\+ptr @ 0x6\+D4000}} ← Phase 67  \\
+{\bfseries{0x87}}  &{\bfseries{coord\+\_\+submit\+\_\+solution}}  &{\bfseries{(nonce, worker\+\_\+id) → 1=accepted}} ← Phase 67  \\
+{\bfseries{0x88}}  &{\bfseries{coord\+\_\+get\+\_\+difficulty}}  &{\bfseries{() → u64 difficulty}} ← Phase 67  \\
+0x90  &network\+\_\+init  &(environment) → success  \\
+0x91  &network\+\_\+add\+\_\+peer  &(peer\+\_\+id\+\_\+ptr, port) → success  \\
+0x92  &network\+\_\+peer\+\_\+count  &() → count  \\
+0x93  &network\+\_\+bridge\+\_\+initiate  &(token\+\_\+type, source\+\_\+chain, amount) → bridge\+\_\+id  \\
+0x94  &network\+\_\+get\+\_\+stats  &() → stats\+\_\+ptr  \\
+0x95  &network\+\_\+route\+\_\+tx  &(tx\+\_\+ptr, tx\+\_\+len) → success  \\
+0x96  &network\+\_\+sync\+\_\+blocks  &(start\+\_\+height, end\+\_\+height) → count  \\
+0x97  &network\+\_\+block\+\_\+sync\+\_\+complete  &(block\+\_\+count) → success  \\
+0x\+A0  &explorer\+\_\+get\+\_\+block  &(height) → block\+\_\+ptr  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11429}{}\doxysubsection{\texorpdfstring{Oracle Consensus (oracle\+\_\+consensus.\+zig)}{Oracle Consensus (oracle\+\_\+consensus.\+zig)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11429}
+
+\begin{DoxyItemize}
+\item {\bfseries{4/\+6 validator voting}} pe price snapshots (50 tokeni)
+\item {\ttfamily QUORUM\+\_\+\+THRESHOLD = 1} în DEV\+\_\+\+MODE (4 în producție)
+\item Memory:\+ 0x5\+D7000–0x5\+D8\+FFF
+\item Validators:\+ 6 static, geographic region hash
+\item Anti-\/manipulation:\+ penalizare validatori cu devieri extreme
+\item Prețuri commise = imutabile (nu se pot schimba după quorum)
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11430}{}\doxysubsection{\texorpdfstring{P2P Node (p2p\+\_\+node.\+zig)}{P2P Node (p2p\+\_\+node.\+zig)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11430}
+
+\begin{DoxyItemize}
+\item UDP gossip protocol pe portul {\bfseries{6626}}
+\item {\ttfamily MAX\+\_\+\+PEERS = 64}, {\ttfamily DEDUP\+\_\+\+SIZE = 512}
+\item {\ttfamily DEV\+\_\+\+MODE = true} (single-\/node testing, fără seed peers)
+\item Packet types:\+ TX/\+\+BLOCK\+\_\+\+PROPOSAL/\+\+BLOCK\+\_\+\+COMMIT/\+\+PRICE\+\_\+\+SNAPSHOT/\+\+HEARTBEAT/\+\+GOSSIP\+\_\+\+ROUTE
+\item Routing:\+ {\ttfamily vid\+\_\+shard\+\_\+grid.\+gossip\+\_\+route()} → VID Shard Grid BHG routing
+\item Flow:\+ {\ttfamily ws\+\_\+collector.\+has\+\_\+complete\+\_\+block()} → {\ttfamily broadcast\+\_\+block()} → UDP → NIC e1000
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11431}{}\doxysubsection{\texorpdfstring{Shared Memory Flow — miner\+\_\+coordinator\+\_\+os ↔ omnibus\+\_\+blockchain\+\_\+os}{Shared Memory Flow — miner\+\_\+coordinator\+\_\+os ↔ omnibus\+\_\+blockchain\+\_\+os}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11431}
+{\bfseries{Template shared la 0x6\+D4000}} (citit direct de coordinator, scris de blockchain\+\_\+os):\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{miner\_coordinator\_os\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ omnibus\_blockchain\_os}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ├──\ IPC\ 0x86\ (get\_template)\ ─────────►│\ refresh\_coord\_template()}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │◄──\ template\_ptr:\ 0x6D4000\ ──────────┤\ \ \ scrie\ 97\ bytes\ la\ 0x6D4000}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ poll\_template\_from\_shared\_memory()\ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ citește\ direct\ 0x6D4000\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ update\_template()\ →\ workers\ WORKING\ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ [worker\ găsește\ nonce\ valid]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ├──\ IPC\ 0x87\ (nonce,\ worker\_id)\ ──────►│\ award\_block(worker,\ height,\ reward)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ block\_height\ +=\ 1}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ block\_hash\ XOR\ nonce}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │◄──\ 1\ (accepted)\ ───────────────────┤\ refresh\_coord\_template()\ →\ 0x6D4000}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ├──\ IPC\ 0x86\ (get\_template)\ ─────────►│\ (template\ nou\ pentru\ round\ următor)}
+
+\end{DoxyCode}
+
+
+{\bfseries{Layout template @ 0x6\+D4000 (97 bytes):\+}}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Offset  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Size  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Câmp  \\
+0  &4  &version (u32 LE)  \\
+4  &32  &prev\+\_\+hash  \\
+36  &32  &merkle\+\_\+root  \\
+68  &8  &timestamp (u64 LE)  \\
+76  &4  &bits /\+ compact difficulty  \\
+80  &8  &height (block următor)  \\
+88  &8  &reward\+\_\+omni (satoshi)  \\
+96  &1  &valid (1=ready, 0=not init)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Coordinator opcodes proprii (broadcast via IPC bus 0x100110):\+}}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Opcode  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Direcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  \\
+0x\+B0  &coord → IPC bus  &broadcast status (worker\+\_\+count, hashrate, blocks\+\_\+found)  \\
+0x\+B1  &coord → IPC bus  &notify reward distribution  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11432}{}\doxysubsection{\texorpdfstring{omnibus\+\_\+blockchain.\+zig — Block Structure}{omnibus\+\_\+blockchain.\+zig — Block Structure}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11432}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmnibusBlockHeader:}
+\DoxyCodeLine{\ \ version,\ timestamp,\ height}
+\DoxyCodeLine{\ \ previous\_omni\_hash\ [32]u8}
+\DoxyCodeLine{\ \ merkle\_root\ [32]u8}
+\DoxyCodeLine{\ \ pq\_root\ [32]u8\ \ \ \ \ \ \ \ \ \ //\ Post-\/quantum\ commitment}
+\DoxyCodeLine{\ \ difficulty,\ nonce}
+\DoxyCodeLine{}
+\DoxyCodeLine{OmnibusBlock:}
+\DoxyCodeLine{\ \ header\ +\ transactions[1024]}
+\DoxyCodeLine{\ \ anchor\_proof\ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ Legătura\ la\ BTC/ETH/EGLD/SOL/OP/BASE}
+\DoxyCodeLine{\ \ pq\_signatures[4]\ \ \ \ \ \ \ \ \ \ //\ Un\ sig\ per\ domeniu\ PQ}
+\DoxyCodeLine{}
+\DoxyCodeLine{AnchorChain:\ BITCOIN\ /\ ETHEREUM\ /\ EGLD\ /\ SOLANA\ /\ OPTIMISM\ /\ BASE}
+\DoxyCodeLine{TransactionType:\ TRANSFER\ /\ CONTRACT\_CALL\ /\ DOMAIN\_ANCHOR\ /\ KEY\_ROTATION\ /\ GOVERNANCE\ /\ CROSS\_CHAIN}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11434}{}\doxysection{\texorpdfstring{miner\+\_\+coordinator\+\_\+os — Detalii (Phase 67, nou)}{miner\+\_\+coordinator\+\_\+os — Detalii (Phase 67, nou)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11434}
+{\bfseries{Path:\+}} {\ttfamily modules/\+miner\+\_\+coordinator\+\_\+os/\+} {\bfseries{Memory:\+}} 0x6\+D0000 (256KB code) + 0x710000 (128KB data) {\bfseries{Binary:\+}} {\ttfamily build/\+miner\+\_\+coordinator\+\_\+os.\+bin} — 1896 bytes ✅ {\bfseries{Fișiere:\+}} {\ttfamily miner\+\_\+coordinator\+\_\+os.\+zig}, {\ttfamily miner\+\_\+coordinator\+\_\+os.\+ld}, {\ttfamily libc\+\_\+stubs.\+asm}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11435}{}\doxysubsection{\texorpdfstring{Arhitectură}{Arhitectură}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11435}
+
+\begin{DoxyItemize}
+\item {\bfseries{64 workers}} (Miner\+Type:\+ CPU/\+\+GPU/\+\+ASIC/\+\+Light)
+\item Fiecare worker primește range nonce non-\/overlapping:\+ {\ttfamily worker\+\_\+id × 4B … (worker\+\_\+id+1) × 4B}
+\item {\bfseries{Share ring buffer}} — 64 slot-\/uri circular pentru shares înainte de confirmare
+\item {\bfseries{Pool mode}} — {\ttfamily share\+\_\+diff = block\+\_\+diff /\+ 16} (granularitate recompense pool)
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11436}{}\doxysubsection{\texorpdfstring{Entry points exportate}{Entry points exportate}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11436}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+{\ttfamily init\+\_\+plugin()}  &Boot:\+ init state + request prim template  \\
+{\ttfamily run\+\_\+coordinator\+\_\+cycle()}  &Scheduler:\+ poll template \texorpdfstring{$\sim$}{\string~}1s, detect offline workers \texorpdfstring{$>$}{>}10s, process shares, broadcast status \texorpdfstring{$\sim$}{\string~}5s  \\
+{\ttfamily register\+\_\+worker(type, addr, hashrate)}  &Înregistrare miner nou → worker\+\_\+id  \\
+{\ttfamily submit\+\_\+share(worker\+\_\+id, nonce, hash)}  &Share submission + validare difficulty  \\
+{\ttfamily update\+\_\+template(tmpl, id)}  &Actualizare template din exterior  \\
+{\ttfamily update\+\_\+difficulty(diff)}  &Set difficulty nouă  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11437}{}\doxysubsection{\texorpdfstring{IPC folosit}{IPC folosit}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11437}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Opcode  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Destinație  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  \\
+0x86  &omnibus\+\_\+blockchain\+\_\+os  &get\+\_\+block\+\_\+template() → ptr 0x6\+D4000  \\
+0x87  &omnibus\+\_\+blockchain\+\_\+os  &submit\+\_\+solution(nonce, worker\+\_\+id)  \\
+0x88  &omnibus\+\_\+blockchain\+\_\+os  &get\+\_\+difficulty()  \\
+0x80  &omnibus\+\_\+blockchain\+\_\+os  &register\+\_\+miner(addr, type, hashrate)  \\
+0x\+B0  &IPC bus broadcast  &status (hashrate, blocks)  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11439}{}\doxysection{\texorpdfstring{omnibus\+\_\+network\+\_\+os — Detalii (actualizat Phase 67)}{omnibus\+\_\+network\+\_\+os — Detalii (actualizat Phase 67)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11439}
+{\bfseries{Path:\+}} {\ttfamily modules/\+omnibus\+\_\+network\+\_\+os/\+} {\bfseries{Memory:\+}} 0x5\+E0000 (64KB) + 0x5\+F0000 Udp\+State {\bfseries{Binary:\+}} {\ttfamily build/\+omnibus\+\_\+network\+\_\+os.\+bin} — 1572 bytes ✅ (era 94B cu DEV\+\_\+\+MODE) {\bfseries{Fișiere:\+}} {\ttfamily omnibus\+\_\+network\+\_\+os.\+zig} (NOU, entry point), {\ttfamily network\+\_\+layer.\+zig}, {\ttfamily gossip.\+zig}, {\ttfamily peer\+\_\+management.\+zig}, {\ttfamily packet\+\_\+validator.\+zig}, {\ttfamily wallet\+\_\+api.\+zig}, {\ttfamily web\+\_\+api.\+zig}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11440}{}\doxysubsection{\texorpdfstring{omnibus\+\_\+network\+\_\+os.\+zig (nou, Phase 67)}{omnibus\+\_\+network\+\_\+os.\+zig (nou, Phase 67)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11440}
+
+\begin{DoxyItemize}
+\item {\bfseries{DEV\+\_\+\+MODE = false}} — UDP activ real via E1000 NIC
+\item {\ttfamily recv\+\_\+tick()} — polling RX ring E1000, parsează magic {\ttfamily 0x4\+F4\+D4\+E49}
+\item {\ttfamily send\+\_\+udp\+\_\+packet()} — build frame ETH(14\+B) + IP(20\+B) + UDP(8\+B) + payload
+\item {\ttfamily run\+\_\+network\+\_\+cycle()} — export:\+ poll RX + heartbeat la 300ms
+\item Seed peer automat la init:\+ {\ttfamily 10.\+0.\+2.\+2:\+6626} (QEMU NAT = host)
+\item IP checksum RFC 791 implementat bare-\/metal
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11441}{}\doxysubsection{\texorpdfstring{network\+\_\+layer.\+zig}{network\+\_\+layer.\+zig}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11441}
+
+\begin{DoxyItemize}
+\item UDP Gossip Protocol, port 6626
+\item {\ttfamily Packet\+Header} magic {\ttfamily 0x4\+F4\+D4\+E49} ("{}\+OMNI"{})
+\item Packet types:\+ TX /\+ STAKING /\+ ORACLE\+\_\+\+VOTE /\+ BLOCK\+\_\+\+PROPOSAL /\+ BLOCK\+\_\+\+COMMIT /\+ PRICE\+\_\+\+SNAPSHOT /\+ HEARTBEAT /\+ ADDRESS\+\_\+\+REGISTRATION /\+ CONFLICT\+\_\+\+REPORT /\+ SLASHING\+\_\+\+EVIDENCE /\+ MERKLE\+\_\+\+PROOF
+\item {\ttfamily Network\+State} la 0x5\+E0000:\+ peer\+\_\+table\+[1000]\+, deduplication window\+[1024]\+
+\item Gossip:\+ epidemic broadcast → 1 miliard noduri în \texorpdfstring{$<$}{<}1 secundă (design target)
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11442}{}\doxysubsection{\texorpdfstring{web\+\_\+api.\+zig + wallet\+\_\+api.\+zig}{web\+\_\+api.\+zig + wallet\+\_\+api.\+zig}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11442}
+
+\begin{DoxyItemize}
+\item HTTP server embedded (bare-\/metal, fără OS)
+\item Endpoints REST pentru wallet queries din exterior
+\item Compatibil cu Block\+Chain\+Core RPC pe port 8332
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11444}{}\doxysection{\texorpdfstring{blockchain\+\_\+os (Layer 5) — Solana/\+\+EGLD}{blockchain\+\_\+os (Layer 5) — Solana/\+\+EGLD}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11444}
+{\bfseries{Path:\+}} {\ttfamily modules/\+blockchain\+\_\+os/\+} {\bfseries{Memory:\+}} 0x250000–0x27\+FFFF (192KB) {\bfseries{Rol:\+}} Flash loans Solana + EGLD staking + wallet integrare L1
+
+{\bfseries{Fișiere cheie:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily blockchain\+\_\+os.\+zig} — entry point, flash loan + swap
+\item {\ttfamily solana.\+zig} — Solana RPC client bare-\/metal
+\item {\ttfamily raydium.\+zig} — Raydium DEX flash loan executor
+\item {\ttfamily flash\+\_\+loan\+\_\+executor.\+zig} — execuție atomică flash loan
+\item {\ttfamily blockchain\+\_\+wallet.\+zig} — wallet integrat Layer 5
+\item {\ttfamily blockchain\+\_\+wallet\+\_\+integration.\+zig} — bridge wallet ↔ chain
+\item {\ttfamily universal\+\_\+wallet\+\_\+generator.\+zig} — generare universală wallet
+\end{DoxyItemize}
+
+{\bfseries{IPC exports:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily init\+\_\+plugin()} — inițializare la boot
+\item {\ttfamily request\+\_\+flash\+\_\+loan()} — cerere flash loan Solana
+\item {\ttfamily execute\+\_\+atomic\+\_\+swap()} — swap atomic cross-\/chain
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11446}{}\doxysection{\texorpdfstring{miner\+\_\+coordinator\+\_\+os — TODO (gol)}{miner\+\_\+coordinator\+\_\+os — TODO (gol)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11446}
+{\bfseries{Status:\+}} Director creat la {\ttfamily modules/\+miner\+\_\+coordinator\+\_\+os/\+} — {\bfseries{fără fișiere}}.
+
+{\bfseries{Ce ar trebui să conțină}} (bazat pe Block\+Chain\+Core integrare):\+
+\begin{DoxyItemize}
+\item Coordonare mineri din Omni\+Bus OS cu {\ttfamily mining\+\_\+pool.\+zig} din Block\+Chain\+Core
+\item Distribuție hashrate între GPU/\+\+ASIC/\+lightweight miners
+\item Stratum v2 → Omni\+Bus OS bridge
+\item Reward distribution pe slot (cu opcode IPC 0x81/\+0x82)
+\end{DoxyItemize}
+
+{\bfseries{Propunere fișiere:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{miner\_coordinator\_os.zig\ \ \ —\ entry\ point,\ IPC\ opcodes\ 0x80–0x85}
+\DoxyCodeLine{miner\_registry.zig\ \ \ \ \ \ \ \ \ —\ registry\ mineri\ activi}
+\DoxyCodeLine{hashrate\_balancer.zig\ \ \ \ \ \ —\ load\ balancing\ GPU/ASIC/light}
+\DoxyCodeLine{reward\_scheduler.zig\ \ \ \ \ \ \ —\ programare\ rewards\ per\ epoch}
+\DoxyCodeLine{stratum\_bridge.zig\ \ \ \ \ \ \ \ \ —\ Stratum\ v2\ →\ IPC\ bridge}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11448}{}\doxysection{\texorpdfstring{Integrare cu Block\+Chain\+Core}{Integrare cu Block\+Chain\+Core}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11448}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11449}{}\doxysubsection{\texorpdfstring{Ce există acum}{Ce există acum}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11449}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus OS  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block\+Chain\+Core  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Legătura  \\
+{\ttfamily omnibus\+\_\+blockchain\+\_\+os.\+zig}  &{\ttfamily main.\+zig} + {\ttfamily blockchain.\+zig}  &Paralel — Omni\+Bus OS are propriul blockchain engine  \\
+{\ttfamily oracle\+\_\+consensus.\+zig}  &{\ttfamily oracle.\+zig}  &Același concept — BID/\+\+ASK per exchange, 4/\+6 BFT  \\
+{\ttfamily p2p\+\_\+node.\+zig}  &{\ttfamily p2p.\+zig} + {\ttfamily network.\+zig}  &P2P similar — UDP gossip vs TCP mock  \\
+{\ttfamily vault\+\_\+storage.\+zig}  &{\ttfamily vault\+\_\+reader.\+zig}  &Vault similar — bare-\/metal vs Named Pipe/\+\+Unix socket  \\
+{\ttfamily ws\+\_\+collector.\+zig}  &{\ttfamily rpc\+\_\+server.\+zig}  &WS collector vs JSON-\/\+RPC 2.\+0  \\
+{\ttfamily miner\+\_\+rewards.\+zig}  &{\ttfamily ubi\+\_\+distributor.\+zig}  &Reward distribution similar  \\
+{\ttfamily genesis\+\_\+block.\+zig}  &{\ttfamily genesis.\+zig}  &Genesis similar  \\
+{\ttfamily ipc.\+zig} protocol  &Named Pipe /\+ Unix socket  &Transport diferit, semantic similar  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11450}{}\doxysubsection{\texorpdfstring{Divergențe arhitecturale}{Divergențe arhitecturale}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11450}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus OS  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block\+Chain\+Core  \\
+Runtime  &Bare-\/metal (fără OS)  &Orice OS (Windows/\+\+Linux/\+mac\+OS)  \\
+Block time  &1s + 10 sub-\/blocks  &1s + 10 sub-\/blocks (identic!)  \\
+P2P  &UDP gossip port 6626  &TCP mock (real = TODO)  \\
+Wallet  &5 domenii PQ bare-\/metal  &5 domenii PQ via bip32\+\_\+wallet.\+zig  \\
+Vault  &vault\+\_\+storage.\+zig (memoria 0x5\+D6000)  &vault\+\_\+reader.\+zig (Named Pipe/\+\+Unix socket)  \\
+Oracle  &4/\+6 validator voting  &BID/\+\+ASK per exchange, best\+Ask/\+best\+Bid  \\
+Sharding  &vid\+\_\+shard\+\_\+grid.\+zig (VID Shard Grid)  &shard\+\_\+coordinator.\+zig (4 sharduri)  \\
+Metachain  &(implicit în blockchain cycle)  &metachain.\+zig (EGLD-\/style, explicit)  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11451}{}\doxysubsection{\texorpdfstring{Ce lipsește din Omni\+Bus OS față de Block\+Chain\+Core}{Ce lipsește din Omni\+Bus OS față de Block\+Chain\+Core}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11451}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block\+Chain\+Core  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus OS  \\
+Metachain EGLD-\/style  &✅ metachain.\+zig  &⚠️ nu există explicit  \\
+Payment\+Channel Hydra L2  &✅ payment\+\_\+channel.\+zig  &❌ lipsă  \\
+Ada/\+\+SPARK comptime invariants  &✅ spark\+\_\+invariants.\+zig  &⚠️ Ada extern (ada\+\_\+mother\+\_\+os)  \\
+UBI distributor  &✅ ubi\+\_\+distributor.\+zig  &⚠️ în miner\+\_\+rewards.\+zig parțial  \\
+Bread\+Ledger  &✅ bread\+\_\+ledger.\+zig  &❌ lipsă  \\
+Omni\+Brain Node\+Type  &✅ omni\+\_\+brain.\+zig  &❌ lipsă (dar Neuro OS e echivalent)  \\
+Light client SPV  &✅ light\+\_\+client.\+zig  &❌ lipsă  \\
+Seg\+Wit compact TX  &✅ compact\+\_\+transaction.\+zig  &❌ lipsă  \\
+State Trie  &✅ state\+\_\+trie.\+zig  &❌ lipsă  \\
+Archive Manager  &✅ archive\+\_\+manager.\+zig  &❌ lipsă  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11452}{}\doxysubsection{\texorpdfstring{Ce lipsește din Block\+Chain\+Core față de Omni\+Bus OS}{Ce lipsește din Block\+Chain\+Core față de Omni\+Bus OS}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11452}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus OS  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block\+Chain\+Core  \\
+P2P TCP real  &UDP gossip real (port 6626)  &TCP mock (framework)  \\
+Flash loans Solana  &✅ blockchain\+\_\+os/\+solana.\+zig  &❌ lipsă  \\
+SWIFT/\+\+ACH settlement  &✅ bank\+\_\+os  &❌ lipsă  \\
+MEV protection  &✅ mev\+\_\+guard\+\_\+os, stealth\+\_\+os  &❌ lipsă  \\
+ASIC/\+\+GPU mining  &✅ asic\+\_\+miner\+\_\+os, gpu\+\_\+miner\+\_\+os  &❌ lipsă  \\
+Formal verification Ada  &✅ ada\+\_\+mother\+\_\+os (Ada/\+\+SPARK)  &✅ spark\+\_\+invariants.\+zig (Zig comptime)  \\
+NIC driver bare-\/metal  &✅ nic\+\_\+e1000.\+zig  &❌ (nu e nevoie, OS managed)  \\
+ZK rollups  &✅ zk\+\_\+rollups\+\_\+os  &❌ planificat  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11454}{}\doxysection{\texorpdfstring{Propuneri de lucru pe Omni\+Bus OS}{Propuneri de lucru pe Omni\+Bus OS}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11454}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11455}{}\doxysubsection{\texorpdfstring{P1 — miner\+\_\+coordinator\+\_\+os (GREU, director gol)}{P1 — miner\+\_\+coordinator\+\_\+os (GREU, director gol)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11455}
+Implementare {\ttfamily miner\+\_\+coordinator\+\_\+os.\+zig} ca bridge între:\+
+\begin{DoxyItemize}
+\item {\ttfamily asic\+\_\+miner\+\_\+os} /\+ {\ttfamily gpu\+\_\+miner\+\_\+os} /\+ {\ttfamily lightweight\+\_\+miner\+\_\+os} (existente)
+\item {\ttfamily stratum\+\_\+v2\+\_\+gateway} (existent)
+\item IPC opcodes 0x80–0x85 din {\ttfamily omnibus\+\_\+blockchain\+\_\+os}
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11456}{}\doxysubsection{\texorpdfstring{P2 — metachain.\+zig în omnibus\+\_\+blockchain\+\_\+os}{P2 — metachain.\+zig în omnibus\+\_\+blockchain\+\_\+os}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11456}
+Adăugare {\ttfamily metachain.\+zig} (portare din Block\+Chain\+Core) ca sub-\/modul al {\ttfamily omnibus\+\_\+blockchain\+\_\+os}:\+
+\begin{DoxyItemize}
+\item {\ttfamily begin\+Meta\+Block()} /\+ {\ttfamily add\+Shard\+Header()} /\+ {\ttfamily finalize\+Meta\+Block()} identice
+\item Integrare în {\ttfamily run\+\_\+blockchain\+\_\+cycle()} — după fiecare bloc
+\item Compatibil cu {\ttfamily vid\+\_\+shard\+\_\+grid.\+zig} pentru shard ID
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11457}{}\doxysubsection{\texorpdfstring{P3 — vault\+\_\+storage.\+zig ↔ Super\+Vault bridge}{P3 — vault\+\_\+storage.\+zig ↔ Super\+Vault bridge}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11457}
+Acum {\ttfamily vault\+\_\+storage.\+zig} stochează în memoria bare-\/metal (0x5\+D6000). Propunere:\+ adăugare opțional Named Pipe fallback când Omni\+Bus rulează sub Windows (în VM/\+\+QEMU cu host pipe) → refolosire {\ttfamily vault\+\_\+service.\+exe} din Super\+Vault.\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11458}{}\doxysubsection{\texorpdfstring{P4 — network\+\_\+layer.\+zig → Block\+Chain\+Core P2P}{P4 — network\+\_\+layer.\+zig → Block\+Chain\+Core P2P}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11458}
+Portarea protocolului UDP gossip din {\ttfamily omnibus\+\_\+network\+\_\+os/\+network\+\_\+layer.\+zig} în {\ttfamily Block\+Chain\+Core/\+core/\+p2p.\+zig} pentru a înlocui TCP mock-\/ul. Magic {\ttfamily 0x4\+F4\+D4\+E49}, port 6626, packet types identice.
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11460}{}\doxysection{\texorpdfstring{IPC Protocol (ipc.\+zig) — referință}{IPC Protocol (ipc.\+zig) — referință}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11460}
+Toate modulele comunică cu Ada Mother OS via:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Memory:\ 0x100110\ (IPC\ Control\ Block)}
+\DoxyCodeLine{Auth\ gate:\ 0x100050}
+\DoxyCodeLine{}
+\DoxyCodeLine{Request\ flow:}
+\DoxyCodeLine{\ \ 1.\ Modul\ scrie\ payload\ în\ propria\ memorie}
+\DoxyCodeLine{\ \ 2.\ Scrie\ IPC\_REQUEST\_*\ cod\ la\ 0x100110+0}
+\DoxyCodeLine{\ \ 3.\ Scrie\ MODULE\_ID\ la\ 0x100110+2}
+\DoxyCodeLine{\ \ 4.\ Setează\ STATUS\ =\ BUSY\ la\ 0x100110+1}
+\DoxyCodeLine{\ \ 5.\ Setează\ auth\ gate\ =\ 0x01}
+\DoxyCodeLine{\ \ 6.\ Spin-\/wait\ STATUS\ ==\ DONE\ (max\ 1024\ iterații)}
+\DoxyCodeLine{\ \ 7.\ Citește\ return\_value\ de\ la\ 0x100110+16}
+\DoxyCodeLine{}
+\DoxyCodeLine{Module\ IDs:}
+\DoxyCodeLine{\ \ 0x04\ =\ MODULE\_BLOCKCHAIN}
+\DoxyCodeLine{\ \ 0x05\ =\ MODULE\_NEURO}
+\DoxyCodeLine{\ \ 0x10\ =\ MODULE\_OMNI\_BLOCKCHAIN\ \ (omnibus\_blockchain\_os)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11462}{}\doxysection{\texorpdfstring{Fișiere speciale în omnibus\+\_\+blockchain\+\_\+os}{Fișiere speciale în omnibus\+\_\+blockchain\+\_\+os}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___o_s___m_o_d_u_l_e_s_autotoc_md11462}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol  \\
+{\ttfamily omni\+\_\+token.\+zig}  &Supply fix 21M OMNI, transfer, burn, mint  \\
+{\ttfamily token\+\_\+distribution.\+zig}  &Airdrop, staking, validator rewards, referrals  \\
+{\ttfamily omnibus\+\_\+wallet.\+zig}  &HD wallet BIP-\/39/\+32, 7 chains + 5 domenii PQ  \\
+{\ttfamily omnibus\+\_\+blockchain.\+zig}  &Block struct + anchor proofs BTC/\+\+ETH/\+\+EGLD/\+\+SOL/\+\+OP/\+\+BASE  \\
+{\ttfamily blockchain\+\_\+simulator.\+zig}  &Simulare in-\/memory:\+ 10K accounts, 100 blocuri  \\
+{\ttfamily miner\+\_\+rewards.\+zig}  &Distribuție rewards mineri  \\
+{\ttfamily oracle\+\_\+consensus.\+zig}  &4/\+6 BFT oracle, 50 tokeni, 6 validatori  \\
+{\ttfamily ws\+\_\+collector.\+zig}  &Web\+Socket collector prețuri live  \\
+{\ttfamily node\+\_\+identity.\+zig}  &Identity nod:\+ ID, region, peers  \\
+{\ttfamily vault\+\_\+storage.\+zig}  &Storage chei la 0x5\+D6000 (bare-\/metal)  \\
+{\ttfamily p2p\+\_\+node.\+zig}  &UDP gossip, port 6626, VID Shard Grid routing  \\
+{\ttfamily genesis\+\_\+block.\+zig}  &Genesis block hardcodat  \\
+{\ttfamily nic\+\_\+e1000.\+zig}  &NIC Intel e1000 driver bare-\/metal (TX/\+\+RX)  \\
+{\ttfamily kraken\+\_\+feed.\+zig}  &Kraken Web\+Socket price feed  \\
+{\ttfamily coinbase\+\_\+feed.\+zig}  &Coinbase Advanced price feed  \\
+{\ttfamily lcx\+\_\+feed.\+zig}  &LCX price feed  \\
+{\ttfamily agent\+\_\+wallet.\+zig}  &Agent HD wallet derivation  \\
+{\ttfamily block\+\_\+explorer\+\_\+os.\+zig}  &Block explorer embedded  \\
+{\ttfamily usdc\+\_\+erc20\+\_\+onramp.\+zig}  &USDC → OMNI mint (Sepolia testnet)  \\
+{\ttfamily client\+\_\+wallet.\+zig}  &5 domenii PQ per client, ERC20 bridge  \\
+{\ttfamily vid\+\_\+shard\+\_\+grid.\+zig}  &VID Shard Grid BHG routing  \\
+{\ttfamily binary\+\_\+dictionary.\+zig}  &Dicționar binar opcodes  \\
+{\ttfamily omnibus\+\_\+complete\+\_\+metadata.\+zig}  &Metadata completă ecosistem  \\
+{\ttfamily pqc\+\_\+wallet\+\_\+bridge.\+zig}  &Bridge PQ wallet ↔ chain  \\
+{\ttfamily network\+\_\+integration.\+zig}  &Network config, Anchor\+Chain, peer state  \\
+{\ttfamily ipc.\+zig}  &IPC bare-\/metal (shared memory, spin-\/wait)  \\
+{\ttfamily id\+\_\+conflict\+\_\+resolver.\+zig}  &Rezolvare conflicte ID nod  \\
+\end{DoxyTable}

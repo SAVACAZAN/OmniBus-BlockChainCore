@@ -1,0 +1,395 @@
+\chapter{Module:\+ {\ttfamily sub\+\_\+block} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block}{}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block}\index{Module: $<$tt$>$sub\_block$<$/tt$>$@{Module: $<$tt$>$sub\_block$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3245}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3245}%
+
+
+\begin{quote}
+Sub-\/block engine — 10 sub-\/blocks × 100ms = 1 Key\+Block (1s), faster confirmation times while maintaining security. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+sub\+\_\+block.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 403 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 11 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 7
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3247}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3247}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3248}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3248}
+
+\begin{DoxyItemize}
+\item \`{}\+Sub\+Block\`{}{\ttfamily Sub\+Block}
+\end{DoxyItemize}— Sub-\/block — confirmare soft la 0.\+1s
+\begin{DoxyItemize}
+\item \`{}\+Key\+Block\`{}{\ttfamily Key\+Block}
+\end{DoxyItemize}— Data structure for key block. Fields include:\+ block\+\_\+number, sub\+\_\+blocks, received...
+\begin{DoxyItemize}
+\item \`{}\+Sub\+Block\+Engine\`{}{\ttfamily Sub\+Block\+Engine}
+\end{DoxyItemize}— Data structure for sub block engine. Fields include:\+ current\+\_\+key\+\_\+block, block\+\_\+nu...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3249}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3249}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3250}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3250}
+
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Transaction()\`{}{\ttfamily add\+Transaction()}
+\end{DoxyItemize}— Adds a new transaction to the collection.
+\begin{DoxyItemize}
+\item \`{}finalize()\`{}{\ttfamily finalize()}
+\end{DoxyItemize}— Performs the finalize operation on the sub\+\_\+block module.
+\begin{DoxyItemize}
+\item \`{}is\+Valid()\`{}{\ttfamily is\+Valid()}
+\end{DoxyItemize}— Checks whether the valid condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Sub\+Block()\`{}{\ttfamily add\+Sub\+Block()}
+\end{DoxyItemize}— Adauga un sub-\/bloc (trebuie sa aiba sub\+\_\+id unic 0-\/9) Returneaza true d...
+\begin{DoxyItemize}
+\item \`{}finalize()\`{}{\ttfamily finalize()}
+\end{DoxyItemize}— Finalizeaza Key-\/\+Block-\/ul — calculeaza hash-\/ul agregat
+\begin{DoxyItemize}
+\item \`{}total\+Tx\+Count()\`{}{\ttfamily total\+Tx\+Count()}
+\end{DoxyItemize}— Total TX-\/uri din toate sub-\/blocurile
+\begin{DoxyItemize}
+\item \`{}latency\+Ms()\`{}{\ttfamily latency\+Ms()}
+\end{DoxyItemize}— Latenta totala de la primul sub-\/bloc la finalizare (ms)
+\begin{DoxyItemize}
+\item \`{}missing()\`{}{\ttfamily missing()}
+\end{DoxyItemize}— Cate sub-\/blocuri lipsesc
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the sub\+\_\+block module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3252}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3252}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3253}{}\doxysubsection{\texorpdfstring{{\ttfamily Sub\+Block}}{{\ttfamily Sub\+Block}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3253}
+Sub-\/block — confirmare soft la 0.\+1s
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily sub\+\_\+id}  &{\ttfamily u8}  &Sub\+\_\+id  \\
+{\ttfamily block\+\_\+number}  &{\ttfamily u32}  &Block\+\_\+number  \\
+{\ttfamily timestamp\+\_\+ms}  &{\ttfamily i64}  &Timestamp\+\_\+ms  \\
+{\ttfamily merkle\+\_\+root}  &{\ttfamily \+[32]\+u8}  &Merkle\+\_\+root  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily nonce}  &{\ttfamily u64}  &Nonce  \\
+{\ttfamily hash}  &{\ttfamily \+[32]\+u8}  &Hash  \\
+{\ttfamily tx\+\_\+count}  &{\ttfamily u32}  &Tx\+\_\+count  \\
+{\ttfamily transactions}  &{\ttfamily array\+\_\+list.\+Managed(\+Transaction)}  &Transactions  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily sub\+\_\+id}  &{\ttfamily u8}  &Sub\+\_\+id  \\
+{\ttfamily block\+\_\+number}  &{\ttfamily u32}  &Block\+\_\+number  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 18}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3255}{}\doxysubsection{\texorpdfstring{{\ttfamily Key\+Block}}{{\ttfamily Key\+Block}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3255}
+Data structure for key block. Fields include:\+ block\+\_\+number, sub\+\_\+blocks, received, state, started\+\_\+at\+\_\+ms.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily block\+\_\+number}  &{\ttfamily u32}  &Block\+\_\+number  \\
+{\ttfamily sub\+\_\+blocks}  &{\ttfamily \+[SUB\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+BLOCK]\+?Sub\+Block}  &Sub\+\_\+blocks  \\
+{\ttfamily received}  &{\ttfamily u8}  &Received  \\
+{\ttfamily state}  &{\ttfamily Key\+Block\+State}  &State  \\
+{\ttfamily started\+\_\+at\+\_\+ms}  &{\ttfamily i64}  &Started\+\_\+at\+\_\+ms  \\
+{\ttfamily finalized\+\_\+at\+\_\+ms}  &{\ttfamily i64}  &Finalized\+\_\+at\+\_\+ms  \\
+{\ttfamily sub\+\_\+merkle\+\_\+root}  &{\ttfamily \+[32]\+u8}  &Sub\+\_\+merkle\+\_\+root  \\
+{\ttfamily key\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Key\+\_\+hash  \\
+{\ttfamily total\+\_\+reward\+\_\+sat}  &{\ttfamily u64}  &Total\+\_\+reward\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 107}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3257}{}\doxysubsection{\texorpdfstring{{\ttfamily Sub\+Block\+Engine}}{{\ttfamily Sub\+Block\+Engine}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3257}
+Data structure for sub block engine. Fields include:\+ current\+\_\+key\+\_\+block, block\+\_\+number, sub\+\_\+counter, miner\+\_\+id, shard\+\_\+id.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily current\+\_\+key\+\_\+block}  &{\ttfamily Key\+Block}  &Current\+\_\+key\+\_\+block  \\
+{\ttfamily block\+\_\+number}  &{\ttfamily u32}  &Block\+\_\+number  \\
+{\ttfamily sub\+\_\+counter}  &{\ttfamily u8}  &Sub\+\_\+counter  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sub\+Block\+Engine}  &Self  \\
+{\ttfamily txs}  &{\ttfamily \+[]\+Transaction}  &Txs  \\
+{\ttfamily reward\+\_\+sat}  &{\ttfamily u64}  &Reward\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 223}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3259}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3259}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+{\ttfamily Block}  &{\ttfamily blockchain\+\_\+mod.\+Block}  &Block  \\
+{\ttfamily SUB\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+BLOCK}  &{\ttfamily u8 = 10}  &S u b\+\_\+ b l o c k s\+\_\+ p e r\+\_\+ b l o c k  \\
+{\ttfamily SUB\+\_\+\+BLOCK\+\_\+\+INTERVAL\+\_\+\+MS}  &{\ttfamily u64 = 75}  &S u b\+\_\+ b l o c k\+\_\+ i n t e r v a l\+\_\+ m s  \\
+{\ttfamily Key\+Block\+State}  &{\ttfamily enum \{}  &Key block state  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3261}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3261}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3262}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3262}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *SubBlock)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sub\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 51}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3264}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Transaction()}}{{\ttfamily add\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3264}
+Adds a new transaction to the collection.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addTransaction(self:\ *SubBlock,\ tx:\ Transaction)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sub\+Block}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 55}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3266}{}\doxysubsection{\texorpdfstring{{\ttfamily finalize()}}{{\ttfamily finalize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3266}
+Performs the finalize operation on the sub\+\_\+block module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ finalize(self:\ *SubBlock)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sub\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3268}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Valid()}}{{\ttfamily is\+Valid()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3268}
+Checks whether the valid condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isValid(self:\ *const\ SubBlock)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Sub\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 89}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3270}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3270}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(block\_number:\ u32)\ KeyBlock\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily block\+\_\+number}  &{\ttfamily u32}  &Block\+\_\+number  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Key\+Block}
+
+{\itshape Defined at line 121}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3272}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Sub\+Block()}}{{\ttfamily add\+Sub\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3272}
+Adauga un sub-\/bloc (trebuie sa aiba sub\+\_\+id unic 0-\/9) Returneaza true daca Key-\/\+Block-\/ul e complet (10/\+10)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addSubBlock(self:\ *KeyBlock,\ sb:\ SubBlock)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Key\+Block}  &The instance  \\
+{\ttfamily sb}  &{\ttfamily Sub\+Block}  &Sb  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 137}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3274}{}\doxysubsection{\texorpdfstring{{\ttfamily finalize()}}{{\ttfamily finalize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3274}
+Finalizeaza Key-\/\+Block-\/ul — calculeaza hash-\/ul agregat
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ finalize(self:\ *KeyBlock,\ reward\_sat:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Key\+Block}  &The instance  \\
+{\ttfamily reward\+\_\+sat}  &{\ttfamily u64}  &Reward\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 154}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3276}{}\doxysubsection{\texorpdfstring{{\ttfamily total\+Tx\+Count()}}{{\ttfamily total\+Tx\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3276}
+Total TX-\/uri din toate sub-\/blocurile
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ totalTxCount(self:\ *const\ KeyBlock)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 163}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3278}{}\doxysubsection{\texorpdfstring{{\ttfamily latency\+Ms()}}{{\ttfamily latency\+Ms()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3278}
+Latenta totala de la primul sub-\/bloc la finalizare (ms)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ latencyMs(self:\ *const\ KeyBlock)\ i64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily i64}
+
+{\itshape Defined at line 172}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3280}{}\doxysubsection{\texorpdfstring{{\ttfamily missing()}}{{\ttfamily missing()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3280}
+Cate sub-\/blocuri lipsesc
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ missing(self:\ *const\ KeyBlock)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 178}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3282}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sub__block_autotoc_md3282}
+Performs the print status operation on the sub\+\_\+block module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ KeyBlock)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 209}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

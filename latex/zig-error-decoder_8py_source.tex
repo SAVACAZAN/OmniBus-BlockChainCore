@@ -1,0 +1,95 @@
+\doxysection{zig-\/error-\/decoder.py}
+\hypertarget{zig-error-decoder_8py_source}{}\label{zig-error-decoder_8py_source}\index{tools/DEBUG/zig-\/error-\/decoder.py@{tools/DEBUG/zig-\/error-\/decoder.py}}
+\doxymbox{\hyperlink{zig-error-decoder_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00001}\doxymbox{\hyperlink{namespacezig-error-decoder}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00002}\doxymbox{\hyperlink{namespacezig}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Zig\ Error\ Decoder}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00005}00005\ \textcolor{stringliteral}{Parses\ Zig\ compile\ errors\ and\ suggests\ fixes.}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00009}00009\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00010}00010\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00011}00011\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00012}00012\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00014}\doxymbox{\hyperlink{namespacezig-error-decoder_a44446ad948a43a154bd7083385df31dd}{00014}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00015}\doxymbox{\hyperlink{namespacezig-error-decoder_abc9b27c86e47196c945714d36ed9509a}{00015}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00016}\doxymbox{\hyperlink{namespacezig-error-decoder_a732bb8dfd55178a6fac220e50a7710b2}{00016}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00017}\doxymbox{\hyperlink{namespacezig-error-decoder_a2fbe21102279aaf4a7c9c4c12b4d28b5}{00017}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00020}\doxymbox{\hyperlink{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}{00020}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00021}00021\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00024}\doxymbox{\hyperlink{namespacezig-error-decoder_ad45473e679745a674061a104c94149d8}{00024}}\ ERROR\_PATTERNS:\ List[Dict[str,\ Any]]\ =\ [}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00025}00025\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ use\ of\ undeclared\ identifier\ '(\(\backslash\)w+)'"{}}),}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Add\ missing\ import\ or\ variable\ declaration\ for\ '\{match\}'."{}},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00028}00028\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00029}00029\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ expected\ type\ '(.+?)',\ found\ '(.+?)'"{}}),}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Type\ mismatch:\ cast\ from\ '\{group2\}'\ to\ '\{group1\}'\ using\ @intCast,\ @truncate,\ or\ @as."{}},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00032}00032\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00033}00033\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ no\ field\ named\ '(\(\backslash\)w+)'\ in\ struct\ '(.+?)'"{}}),}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Field\ '\{match\}'\ missing\ in\ struct\ '\{group2\}'.\ Check\ field\ name\ or\ update\ struct\ definition."{}},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00036}00036\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00037}00037\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ unreachable\ code"{}}),}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Remove\ or\ guard\ code\ after\ a\ return,\ break,\ or\ unreachable\ statement."{}},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00040}00040\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00041}00041\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ cannot\ assign\ to\ constant"{}}),}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Change\ 'const'\ to\ 'var'\ for\ the\ binding\ you\ need\ to\ mutate."{}},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00044}00044\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00045}00045\ ]}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00048}\doxymbox{\hyperlink{namespacezig-error-decoder_a4e3566092be6c16209ffd2dcca5b9c47}{00048}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacezig-error-decoder_a4e3566092be6c16209ffd2dcca5b9c47}{decode\_errors}}(text:\ str)\ -\/>\ List[Dict[str,\ str]]:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00049}00049\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ text.splitlines():}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ pat\ \textcolor{keywordflow}{in}\ ERROR\_PATTERNS:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ m\ =\ pat[\textcolor{stringliteral}{"{}regex"{}}].search(line)}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ m:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ suggestion\ =\ pat[\textcolor{stringliteral}{"{}suggestion"{}}]}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ g\ \textcolor{keywordflow}{in}\ enumerate(m.groups(),\ 1):}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ suggestion\ =\ suggestion.replace(f\textcolor{stringliteral}{"{}\{\{group\{i\}\}\}"{}},\ g)}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ suggestion\ =\ suggestion.replace(\textcolor{stringliteral}{"{}\{match\}"{}},\ m.group(1))}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}error"{}}:\ line.strip(),\ \textcolor{stringliteral}{"{}suggestion"{}}:\ suggestion\})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00063}\doxymbox{\hyperlink{namespacezig-error-decoder_a7431cb90017e54fe695b23d4190db046}{00063}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacezig-error-decoder_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00064}00064\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Decode\ Zig\ compile\ errors\ and\ suggest\ fixes"{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00065}00065\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/input"{}},\ default=\textcolor{stringliteral}{"{}-\/"{}},\ help=\textcolor{stringliteral}{"{}File\ with\ zig\ build\ output\ (default:\ stdin)"{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00066}00066\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}zig-\/fix-\/suggestions.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00067}00067\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{if}\ args.input\ ==\ \textcolor{stringliteral}{"{}-\/"{}}:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ text\ =\ sys.stdin.read()}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.input,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ text\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00075}00075\ \ \ \ \ \doxymbox{\hyperlink{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Zig\ Error\ Decoder\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00076}00076\ \ \ \ \ results\ =\ \doxymbox{\hyperlink{namespacezig-error-decoder_a4e3566092be6c16209ffd2dcca5b9c47}{decode\_errors}}(text)}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00078}00078\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}ERROR:\ \{r['error']\}"{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}\ \ -\/>\ \{r['suggestion']\}"{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00082}00082\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ json.dump(\{\textcolor{stringliteral}{"{}errors"{}}:\ results\},\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00084}00084\ \ \ \ \ \doxymbox{\hyperlink{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nSuggestions\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00088}00088\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{zig-error-decoder_8py_source_l00089}00089\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacezig-error-decoder_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

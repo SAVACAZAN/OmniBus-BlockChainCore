@@ -1,0 +1,243 @@
+\doxysection{test-\/failure-\/learner.py}
+\hypertarget{test-failure-learner_8py_source}{}\label{test-failure-learner_8py_source}\index{tools/LEARNING/test-\/failure-\/learner.py@{tools/LEARNING/test-\/failure-\/learner.py}}
+\doxymbox{\hyperlink{test-failure-learner_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00001}\doxymbox{\hyperlink{namespacetest-failure-learner}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00002}\doxymbox{\hyperlink{namespacetest}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00003}00003\ \textcolor{stringliteral}{test-\/failure-\/learner.py}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00005}00005\ \textcolor{stringliteral}{Parse\ the\ git\ log\ of\ a\ BlockChainCore\ repository\ to\ identify\ commits\ where}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00006}00006\ \textcolor{stringliteral}{\ tests\ failed\ (CI\ failures,\ manual\ fix-\/up\ commits,\ or\ commit\ messages\ that}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00007}00007\ \textcolor{stringliteral}{\ mention\ a\ failing\ test).\ \ Cross-\/reference\ the\ failing\ test\ with\ the\ files}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00008}00008\ \textcolor{stringliteral}{\ that\ changed\ in\ the\ commit\ and\ in\ the\ preceding\ commit\ to\ build}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00009}00009\ \textcolor{stringliteral}{\ "{}if\ you\ change\ X,\ check\ test\ Y"{}\ heuristics.}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00011}00011\ \textcolor{stringliteral}{Outputs:\ failure-\/patterns.json}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00012}00012\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00014}00014\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00015}00015\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00016}00016\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00017}00017\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00018}00018\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00020}00020\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00021}00021\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00022}00022\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00024}\doxymbox{\hyperlink{namespacetest-failure-learner_a3b039811786875635ec0c35ac4d61829}{00024}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00025}\doxymbox{\hyperlink{namespacetest-failure-learner_ad7e8c921b22404f083d658e67d4bad09}{00025}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00026}\doxymbox{\hyperlink{namespacetest-failure-learner_a0cd3d4101020c81a14a08baa0007cb3d}{00026}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00027}\doxymbox{\hyperlink{namespacetest-failure-learner_a896a3822fd55a0d8ec64185ee42f9254}{00027}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00028}\doxymbox{\hyperlink{namespacetest-failure-learner_a02719ca88ad123fefc34fada733de42f}{00028}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00031}\doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00031}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00032}00032\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00035}\doxymbox{\hyperlink{namespacetest-failure-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00036}00036\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00039}\doxymbox{\hyperlink{namespacetest-failure-learner_abf994b8269849d29e07697ea8a840f74}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00043}\doxymbox{\hyperlink{namespacetest-failure-learner_adf0e2aa4d06b5ca38e44721821eca783}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00047}\doxymbox{\hyperlink{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}(args:\ list[str],\ cwd:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00048}00048\ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}git"{}}]\ +\ args,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ cwd=cwd,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ text=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ errors=\textcolor{stringliteral}{"{}replace"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00055}00055\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{if}\ result.returncode\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}git\ \{'\ '.join(args)\}\ failed:\ \{result.stderr\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{return}\ result.stdout}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00061}\doxymbox{\hyperlink{namespacetest-failure-learner_a67f49afe0b0c0885ad9a373539458c24}{00061}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_a67f49afe0b0c0885ad9a373539458c24}{get\_all\_commits}}(cwd:\ str,\ max\_commits:\ int\ =\ 500)\ -\/>\ list[dict[str,\ str]]:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00062}00062\ \ \ \ \ fmt\ =\ \textcolor{stringliteral}{"{}\%H|\%aI|\%s"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00063}00063\ \ \ \ \ out\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}log"{}},\ f\textcolor{stringliteral}{"{}-\/-\/format=\{fmt\}"{}},\ f\textcolor{stringliteral}{"{}-\/n\{max\_commits\}"{}}],\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00064}00064\ \ \ \ \ commits:\ list[dict[str,\ str]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ out.strip().splitlines():}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}|"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ parts\ =\ line.split(\textcolor{stringliteral}{"{}|"{}},\ 2)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ commits.append(\{\textcolor{stringliteral}{"{}hash"{}}:\ parts[0],\ \textcolor{stringliteral}{"{}date"{}}:\ parts[1],\ \textcolor{stringliteral}{"{}message"{}}:\ parts[2]\})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{return}\ commits}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00073}\doxymbox{\hyperlink{namespacetest-failure-learner_a67825f85b5121d471419dc0f805e3a7e}{00073}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_a67825f85b5121d471419dc0f805e3a7e}{get\_changed\_files}}(cwd:\ str,\ commit\_hash:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00074}00074\ \ \ \ \ out\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}diff-\/tree"{}},\ \textcolor{stringliteral}{"{}-\/-\/no-\/commit-\/id"{}},\ \textcolor{stringliteral}{"{}-\/-\/name-\/only"{}},\ \textcolor{stringliteral}{"{}-\/r"{}},\ commit\_hash],\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00075}00075\ \ \ \ \ \textcolor{keywordflow}{return}\ [ln\ \textcolor{keywordflow}{for}\ ln\ \textcolor{keywordflow}{in}\ out.strip().splitlines()\ \textcolor{keywordflow}{if}\ ln]}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00078}\doxymbox{\hyperlink{namespacetest-failure-learner_a6248a369c13cae0eeac0ac610b04d766}{00078}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_a6248a369c13cae0eeac0ac610b04d766}{extract\_test\_names}}(message:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00079}00079\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Heuristic\ extraction\ of\ test\ names\ from\ commit\ messages."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00080}00080\ \ \ \ \ names:\ list[str]\ =\ []}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00081}00081\ \ \ \ \ \textcolor{comment}{\#\ Patterns\ like\ "{}test:\ foo\_bar"{},\ "{}fix\ test\_foo"{},\ "{}foo.test.zig"{},\ etc.}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00082}00082\ \ \ \ \ patterns\ =\ [}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}test[:\(\backslash\)s]+([\(\backslash\)w\_]+)"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}test\_([\(\backslash\)w\_]+)"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}([\(\backslash\)w\_]+\(\backslash\).test\(\backslash\).zig)"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}([\(\backslash\)w\_]+\_test\(\backslash\).zig)"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00087}00087\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{for}\ pat\ \textcolor{keywordflow}{in}\ patterns:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ re.finditer(pat,\ message,\ re.IGNORECASE):}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ names.append(m.group(1))}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00091}00091\ \ \ \ \ \textcolor{keywordflow}{return}\ list(dict.fromkeys(names))}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00094}\doxymbox{\hyperlink{namespacetest-failure-learner_a6a6b1fc3c819007a709b49c652efa542}{00094}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_a6a6b1fc3c819007a709b49c652efa542}{is\_test\_failure\_commit}}(message:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00095}00095\ \ \ \ \ msg\ =\ message.lower()}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00096}00096\ \ \ \ \ indicators\ =\ [}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fix\ test"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\ fail"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}failing\ test"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}broken\ test"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\ broken"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\ panic"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\ crash"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ci\ fix"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ci:\ fix"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regression"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}revert"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00108}00108\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{return}\ any(ind\ \textcolor{keywordflow}{in}\ msg\ \textcolor{keywordflow}{for}\ ind\ \textcolor{keywordflow}{in}\ indicators)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00112}\doxymbox{\hyperlink{namespacetest-failure-learner_ae78e10fb4efc05ea312c7ed3c10d6334}{00112}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_ae78e10fb4efc05ea312c7ed3c10d6334}{find\_preceding\_commit}}(cwd:\ str,\ commit\_hash:\ str)\ -\/>\ str\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00113}00113\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ out\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}rev-\/list"{}},\ \textcolor{stringliteral}{"{}-\/-\/parents"{}},\ \textcolor{stringliteral}{"{}-\/n1"{}},\ commit\_hash],\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ parts\ =\ out.strip().split()}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ parts[1]\ \textcolor{keywordflow}{if}\ len(parts)\ >\ 1\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00117}00117\ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00121}\doxymbox{\hyperlink{namespacetest-failure-learner_ac7cc810241d5cf8b7412ed5d0e64c828}{00121}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_ac7cc810241d5cf8b7412ed5d0e64c828}{learn\_failures}}(cwd:\ str,\ max\_commits:\ int)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00122}00122\ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Fetching\ up\ to\ \{max\_commits\}\ commits\ …"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00123}00123\ \ \ \ \ commits\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_a67f49afe0b0c0885ad9a373539458c24}{get\_all\_commits}}(cwd,\ max\_commits)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00124}00124\ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Total\ commits:\ \{len(commits)\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00126}00126\ \ \ \ \ patterns:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00127}00127\ \ \ \ \ test\_failure\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00129}00129\ \ \ \ \ \textcolor{keywordflow}{for}\ idx,\ commit\ \textcolor{keywordflow}{in}\ enumerate(commits):}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ \doxymbox{\hyperlink{namespacetest-failure-learner_a6a6b1fc3c819007a709b49c652efa542}{is\_test\_failure\_commit}}(commit[\textcolor{stringliteral}{"{}message"{}}]):}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ test\_failure\_count\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ changed\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_a67825f85b5121d471419dc0f805e3a7e}{get\_changed\_files}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}])}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ tests\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_a6248a369c13cae0eeac0ac610b04d766}{extract\_test\_names}}(commit[\textcolor{stringliteral}{"{}message"{}}])}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Also\ try\ to\ infer\ test\ file\ from\ changed\ files}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ changed:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}test"{}}\ \textcolor{keywordflow}{in}\ f.lower()\ \textcolor{keywordflow}{and}\ f.endswith(\textcolor{stringliteral}{"{}.zig"{}}):}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ base\ =\ os.path.basename(f)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ base\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ tests:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tests.append(base)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Look\ at\ parent\ commit\ for\ files\ that\ might\ have\ caused\ the\ break}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ parent\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_ae78e10fb4efc05ea312c7ed3c10d6334}{find\_preceding\_commit}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}])}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ parent\_changed:\ list[str]\ =\ []}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ parent:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ parent\_changed\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_a67825f85b5121d471419dc0f805e3a7e}{get\_changed\_files}}(cwd,\ parent)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ all\_files\ =\ list(dict.fromkeys(changed\ +\ parent\_changed))}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ source\_files\ =\ [f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ all\_files\ \textcolor{keywordflow}{if}\ f.endswith(\textcolor{stringliteral}{"{}.zig"{}})\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}test"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ f.lower()]}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ patterns.append(}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commit"{}}:\ commit[\textcolor{stringliteral}{"{}hash"{}}],}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}date"{}}:\ commit[\textcolor{stringliteral}{"{}date"{}}],}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}message"{}}:\ commit[\textcolor{stringliteral}{"{}message"{}}],}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests\_mentioned"{}}:\ tests,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}files\_changed"{}}:\ changed,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}likely\_source\_files"{}}:\ source\_files,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}parent\_commit"{}}:\ parent,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (idx\ +\ 1)\ \%\ 50\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}\ \ scanned\ \{idx\ +\ 1\}/\{len(commits)\}\ commits,\ found\ \{test\_failure\_count\}\ failures"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00168}00168\ \ \ \ \ \textcolor{comment}{\#\ Build\ aggregated\ "{}if\ X\ then\ Y"{}\ rules}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00169}00169\ \ \ \ \ rules:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00170}00170\ \ \ \ \ file\_to\_tests:\ dict[str,\ list[str]]\ =\ defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ patterns:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ src\ \textcolor{keywordflow}{in}\ p[\textcolor{stringliteral}{"{}likely\_source\_files"{}}]:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ tst\ \textcolor{keywordflow}{in}\ p[\textcolor{stringliteral}{"{}tests\_mentioned"{}}]:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ file\_to\_tests[src].append(tst)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00176}00176\ \ \ \ \ \textcolor{keywordflow}{for}\ src\_file,\ test\_list\ \textcolor{keywordflow}{in}\ file\_to\_tests.items():}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ freq:\ dict[str,\ int]\ =\ defaultdict(int)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ test\_list:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ freq[t]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ top\_tests\ =\ sorted(freq.items(),\ key=\textcolor{keyword}{lambda}\ x:\ x[1],\ reverse=\textcolor{keyword}{True})[:5]}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ rules.append(}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}if\_you\_change"{}}:\ src\_file,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}check\_tests"{}}:\ [t[0]\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ top\_tests],}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}confidence\_hits"{}}:\ [t[1]\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ top\_tests],}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00189}00189\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commits\_scanned"{}}:\ len(commits),}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\_failure\_commits\_found"{}}:\ test\_failure\_count,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}patterns"{}}:\ patterns,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rules"{}}:\ rules,}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00195}00195\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00196}00196\ \ \ \ \ \textcolor{keywordflow}{return}\ report}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00199}\doxymbox{\hyperlink{namespacetest-failure-learner_a7431cb90017e54fe695b23d4190db046}{00199}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest-failure-learner_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00200}00200\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}Learn\ test\ failure\ patterns\ from\ git\ history."{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00202}00202\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00203}00203\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/repo"{}},\ default=\textcolor{stringliteral}{"{}."{}},\ help=\textcolor{stringliteral}{"{}Path\ to\ git\ repository"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00204}00204\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/max-\/commits"{}},\ type=int,\ default=500,\ help=\textcolor{stringliteral}{"{}Commits\ to\ scan\ (default:\ 500)"{}}}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00206}00206\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00207}00207\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/output"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}tools/LEARNING/failure-\/patterns.json"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}},}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00211}00211\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00212}00212\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00214}00214\ \ \ \ \ repo\ =\ os.path.abspath(args.repo)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00215}00215\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isdir(os.path.join(repo,\ \textcolor{stringliteral}{"{}.git"{}})):}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}\{repo\}\ is\ not\ a\ git\ repository."{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespacetest-failure-learner_ac7cc810241d5cf8b7412ed5d0e64c828}{learn\_failures}}(repo,\ args.max\_commits)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00221}00221\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(str(exc))}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00225}00225\ \ \ \ \ out\_path\ =\ os.path.join(repo,\ args.output)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00226}00226\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00227}00227\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00230}00230\ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00231}00231\ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Failure\ commits\ found:\ \{report['test\_failure\_commits\_found']\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00232}00232\ \ \ \ \ \doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Heuristic\ rules\ generated:\ \{len(report['rules'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00236}00236\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{test-failure-learner_8py_source_l00237}00237\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacetest-failure-learner_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

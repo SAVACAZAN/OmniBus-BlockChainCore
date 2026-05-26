@@ -1,0 +1,499 @@
+\doxysection{test\+\_\+runner.\+py}
+\hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source}{}\label{_t_e_s_t_i_n_g_2test__runner_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/TESTING/test\_runner.py@{archived-\/4-\/eterniti/tools-\/python/TESTING/test\_runner.py}}
+\doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00001}00001\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00003}00003\ \textcolor{stringliteral}{test\_runner.py\ -\/\ OmniBus\ Blockchain\ Test\ Runner\ v2.0}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00005}00005\ \textcolor{stringliteral}{Ruleaza\ toate\ testele\ Zig\ pentru\ blockchain\ cu\ raportare\ detaliata:}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ 8\ grupuri\ de\ teste\ din\ build.zig}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Teste\ individuale\ per\ modul}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Teste\ din\ test/\ directory}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Verbose\ mode\ cu\ output\ complet}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ CI\ mode\ (JSON\ output)}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ Retry\ failed\ tests}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00013}00013\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ python\ tools/test\_runner.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Run\ all\ test\ groups}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ python\ tools/test\_runner.py\ crypto\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Run\ test-\/crypto\ only}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ python\ tools/test\_runner.py\ -\/-\/file\ secp256k1\ \ \ \#\ Run\ single\ module\ test}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00017}00017\ \textcolor{stringliteral}{\ \ python\ tools/test\_runner.py\ -\/-\/verbose\ \ \ \ \ \ \ \ \ \ \#\ Show\ full\ zig\ output}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ python\ tools/test\_runner.py\ -\/-\/ci\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ CI\ mode\ (JSON)}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ python\ tools/test\_runner.py\ -\/-\/list\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ List\ available\ tests}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00020}00020\ \textcolor{stringliteral}{\ \ python\ tools/test\_runner.py\ -\/-\/retry\ 2\ \ \ \ \ \ \ \ \ \ \#\ Retry\ failures\ N\ times}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00021}00021\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00023}00023\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00024}00024\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00025}00025\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00026}00026\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00027}00027\ \textcolor{keyword}{import}\ shutil}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00028}00028\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00029}00029\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ field}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00030}00030\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ List,\ Dict,\ Optional,\ Tuple}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00031}00031\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00032}00032\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00034}\doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{00034}}\ ROOT\ =\ Path(\_\_file\_\_).parent.parent.parent}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00035}\doxymbox{\hyperlink{namespacetest__runner_a2aa2ac7439f47449332d1a8008a09b75}{00035}}\ CORE\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00036}\doxymbox{\hyperlink{namespacetest__runner_ada7920a9ab0d986f1967ce172be5f92e}{00036}}\ TEST\_DIR\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}test"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00038}00038\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00039}00039\ \textcolor{comment}{\#\ TEST\ DEFINITIONS\ (matched\ to\ build.zig\ exactly)}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00040}00040\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00042}\doxymbox{\hyperlink{namespacetest__runner_a2b778768973caa636037a3a8db029241}{00042}}\ TEST\_GROUPS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00043}00043\ \ \ \ \ \textcolor{stringliteral}{"{}crypto"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/crypto"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}secp256k1\ +\ BIP32\ +\ SHA256\ +\ RIPEMD160"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}bip32\_wallet"{}},\ \textcolor{stringliteral}{"{}crypto"{}},\ \textcolor{stringliteral}{"{}ripemd160"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00047}00047\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00048}00048\ \ \ \ \ \textcolor{stringliteral}{"{}chain"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/chain"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}blockchain\ +\ genesis\ +\ consensus\ +\ mempool\ +\ database"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}block"{}},\ \textcolor{stringliteral}{"{}transaction"{}},\ \textcolor{stringliteral}{"{}blockchain"{}},\ \textcolor{stringliteral}{"{}genesis"{}},\ \textcolor{stringliteral}{"{}mempool"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}consensus"{}},\ \textcolor{stringliteral}{"{}database"{}},\ \textcolor{stringliteral}{"{}miner\_genesis"{}},\ \textcolor{stringliteral}{"{}e2e\_mining"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00053}00053\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00054}00054\ \ \ \ \ \textcolor{stringliteral}{"{}net"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/net"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}P2P\ +\ sync\ +\ RPC\ +\ bootstrap\ +\ CLI"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}rpc\_server"{}},\ \textcolor{stringliteral}{"{}p2p"{}},\ \textcolor{stringliteral}{"{}sync"{}},\ \textcolor{stringliteral}{"{}network"{}},\ \textcolor{stringliteral}{"{}node\_launcher"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bootstrap"{}},\ \textcolor{stringliteral}{"{}cli"{}},\ \textcolor{stringliteral}{"{}vault\_reader"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00059}00059\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00060}00060\ \ \ \ \ \textcolor{stringliteral}{"{}shard"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/shard"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}sub-\/blocks\ +\ sharding\ +\ blockchain\ v2"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}sub\_block"{}},\ \textcolor{stringliteral}{"{}shard\_config"{}},\ \textcolor{stringliteral}{"{}blockchain\_v2"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00064}00064\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00065}00065\ \ \ \ \ \textcolor{stringliteral}{"{}storage"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/storage"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}storage\ +\ binary\ codec\ +\ archive\ +\ state\ trie"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}storage"{}},\ \textcolor{stringliteral}{"{}binary\_codec"{}},\ \textcolor{stringliteral}{"{}archive\_manager"{}},\ \textcolor{stringliteral}{"{}prune\_config"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}state\_trie"{}},\ \textcolor{stringliteral}{"{}compact\_transaction"{}},\ \textcolor{stringliteral}{"{}witness\_data"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00070}00070\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00071}00071\ \ \ \ \ \textcolor{stringliteral}{"{}light"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/light"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}light\ client\ +\ light\ miner\ +\ mining\ pool\ +\ encryption"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}light\_client"{}},\ \textcolor{stringliteral}{"{}light\_miner"{}},\ \textcolor{stringliteral}{"{}mining\_pool"{}},\ \textcolor{stringliteral}{"{}key\_encryption"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00075}00075\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00076}00076\ \ \ \ \ \textcolor{stringliteral}{"{}pq"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/pq"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}Post-\/quantum\ crypto\ pure\ Zig\ (fara\ liboqs)"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}pq\_crypto"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00080}00080\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00081}00081\ \ \ \ \ \textcolor{stringliteral}{"{}wallet"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ \textcolor{stringliteral}{"{}test-\/wallet"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ \textcolor{stringliteral}{"{}Wallet\ cu\ PQ\ (necesita\ liboqs)"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ [\textcolor{stringliteral}{"{}wallet"{}}],}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}requires\_liboqs"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00086}00086\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00087}00087\ \}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00089}00089\ \textcolor{comment}{\#\ Modules\ that\ can\ be\ tested\ individually\ but\ aren't\ in\ any\ group}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00090}\doxymbox{\hyperlink{namespacetest__runner_a9464482942964dd5ea26a2692c14d503}{00090}}\ EXTRA\_TESTABLE\ =\ [}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00091}00091\ \ \ \ \ \textcolor{stringliteral}{"{}bread\_ledger"{}},\ \textcolor{stringliteral}{"{}domain\_minter"{}},\ \textcolor{stringliteral}{"{}spark\_invariants"{}},\ \textcolor{stringliteral}{"{}ubi\_distributor"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00092}00092\ \ \ \ \ \textcolor{stringliteral}{"{}payment\_channel"{}},\ \textcolor{stringliteral}{"{}bridge\_relay"{}},\ \textcolor{stringliteral}{"{}oracle"{}},\ \textcolor{stringliteral}{"{}omni\_brain"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00093}00093\ \ \ \ \ \textcolor{stringliteral}{"{}synapse\_priority"{}},\ \textcolor{stringliteral}{"{}os\_mode"{}},\ \textcolor{stringliteral}{"{}metachain"{}},\ \textcolor{stringliteral}{"{}shard\_coordinator"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00094}00094\ \ \ \ \ \textcolor{stringliteral}{"{}vault\_engine"{}},\ \textcolor{stringliteral}{"{}ws\_server"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00095}00095\ ]}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00097}00097\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00098}00098\ \textcolor{comment}{\#\ COLORS}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00099}00099\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00101}\doxymbox{\hyperlink{namespacetest__runner_a1d45c1d44bace7647a6f8a7f07c74d4b}{00101}}\ G\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}};\ R\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}};\ Y\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}};\ B\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[94m"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00102}\doxymbox{\hyperlink{namespacetest__runner_a2f8f94e0e0e1e582a041bddf7b52c23a}{00102}}\ C\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}};\ W\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}};\ DIM\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00104}00104\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00105}00105\ \textcolor{comment}{\#\ DATA\ CLASSES}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00106}00106\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00108}00108\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00109}00109\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00110}00110\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00111}00111\ \ \ \ \ command:\ str}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00112}00112\ \ \ \ \ passed:\ bool}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00113}00113\ \ \ \ \ output:\ str}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00114}\doxymbox{\hyperlink{classtest__runner_1_1_test_result_acb221b4d52391a911d169ac87a02d5cf}{00114}}\ \ \ \ \ stderr:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00115}\doxymbox{\hyperlink{classtest__runner_1_1_test_result_ada97968ec98120fc21e98e1fc78d4a1a}{00115}}\ \ \ \ \ duration\_ms:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00116}\doxymbox{\hyperlink{classtest__runner_1_1_test_result_a628a9f7cb9308e71d6b609531335d49d}{00116}}\ \ \ \ \ test\_count:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00117}\doxymbox{\hyperlink{classtest__runner_1_1_test_result_aa4c279d2f6ee4262ec2f2f379454aef0}{00117}}\ \ \ \ \ skip\_count:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00118}\doxymbox{\hyperlink{classtest__runner_1_1_test_result_a4557cafaab6239cd633c05c3883be74a}{00118}}\ \ \ \ \ fail\_details:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00120}00120\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00121}\doxymbox{\hyperlink{classtest__runner_1_1_test_suite_result}{00121}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classtest__runner_1_1_test_suite_result}{TestSuiteResult}}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00122}00122\ \ \ \ \ group:\ str}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00123}\doxymbox{\hyperlink{classtest__runner_1_1_test_suite_result_a7cecdf33331b9311041c3873bbfcbf86}{00123}}\ \ \ \ \ results:\ List[TestResult]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00124}\doxymbox{\hyperlink{classtest__runner_1_1_test_suite_result_a4228828799171f78dc9bd1ce385bbaf0}{00124}}\ \ \ \ \ total\_duration\_ms:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00126}00126\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00127}00127\ \textcolor{comment}{\#\ PREREQUISITES\ CHECK}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00128}00128\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00130}\doxymbox{\hyperlink{namespacetest__runner_a1217fb568b6ed6069d010dc27901f71c}{00130}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a1217fb568b6ed6069d010dc27901f71c}{check\_prerequisites}}()\ -\/>\ List[str]:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00131}00131\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ if\ required\ tools\ are\ available."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00132}00132\ \ \ \ \ issues\ =\ []}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00134}00134\ \ \ \ \ \textcolor{comment}{\#\ Check\ zig}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00135}00135\ \ \ \ \ zig\_path\ =\ shutil.which(\textcolor{stringliteral}{"{}zig"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00136}00136\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ zig\_path:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ issues.append(\textcolor{stringliteral}{"{}zig\ not\ found\ in\ PATH"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ r\ =\ subprocess.run([\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}version"{}}],\ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=5)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Zig:\ \{r.stdout.strip()\}\ (\{zig\_path\})"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ issues.append(\textcolor{stringliteral}{"{}zig\ found\ but\ cannot\ get\ version"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00145}00145\ \ \ \ \ \textcolor{comment}{\#\ Check\ build.zig}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00146}00146\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ (ROOT\ /\ \textcolor{stringliteral}{"{}build.zig"{}}).exists():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ issues.append(\textcolor{stringliteral}{"{}build.zig\ not\ found\ in\ project\ root"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00149}00149\ \ \ \ \ \textcolor{comment}{\#\ Check\ core/}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ CORE.exists():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ issues.append(\textcolor{stringliteral}{"{}core/\ directory\ not\ found"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00152}00152\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ zig\_count\ =\ len(list(CORE.glob(\textcolor{stringliteral}{"{}*.zig"{}})))}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Core\ modules:\ \{zig\_count\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00156}00156\ \ \ \ \ \textcolor{comment}{\#\ Check\ liboqs\ (optional)}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00157}00157\ \ \ \ \ liboqs\_path\ =\ Path(\textcolor{stringliteral}{"{}C:/Kits\ work/limaje\ de\ programare/liboqs-\/src/build/lib/liboqs.a"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00158}00158\ \ \ \ \ \textcolor{keywordflow}{if}\ liboqs\_path.exists():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ liboqs:\ \{G\}available\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00160}00160\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ liboqs:\ \{Y\}not\ found\ (wallet\ tests\ may\ fail)\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00163}00163\ \ \ \ \ \textcolor{keywordflow}{return}\ issues}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00166}00166\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00167}00167\ \textcolor{comment}{\#\ TEST\ EXECUTION}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00168}00168\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00170}\doxymbox{\hyperlink{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}{00170}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}{run\_zig\_build\_test}}(name:\ str,\ verbose:\ bool\ =\ \textcolor{keyword}{False},\ timeout:\ int\ =\ 120)\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00171}00171\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ a\ zig\ build\ test\ target."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00172}00172\ \ \ \ \ start\ =\ datetime.now()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00173}00173\ \ \ \ \ cmd\ =\ [\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}build"{}},\ name]}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ cmd,\ cwd=ROOT,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=timeout}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ duration\ =\ int((datetime.now()\ -\/\ start).total\_seconds()\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ passed\ =\ result.returncode\ ==\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ output\ =\ result.stdout}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ stderr\ =\ result.stderr}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Parse\ test\ counts\ from\ output}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ test\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ skip\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ (output\ +\ stderr).splitlines():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}test"{}}\ \textcolor{keywordflow}{in}\ line.lower()\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}passed"{}}\ \textcolor{keywordflow}{in}\ line.lower():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ test\_count\ =\ int(re.search(\textcolor{stringliteral}{r'(\(\backslash\)d+)\(\backslash\)s+passed'},\ line).group(1))}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}skipped"{}}\ \textcolor{keywordflow}{in}\ line.lower():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ skip\_count\ =\ int(re.search(\textcolor{stringliteral}{r'(\(\backslash\)d+)\(\backslash\)s+skipped'},\ line).group(1))}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Extract\ failure\ details}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ fail\_details\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ passed:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ lines\ =\ stderr.strip().split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ fail\_details\ =\ \textcolor{stringliteral}{'\(\backslash\)n'}.join(lines[-\/10:])}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00207}00207\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ name=name,\ command=\textcolor{stringliteral}{'\ '}.join(cmd),\ passed=passed,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ output=output,\ stderr=stderr,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=duration,\ test\_count=test\_count,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ skip\_count=skip\_count,\ fail\_details=fail\_details}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00215}00215\ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ duration\ =\ int((datetime.now()\ -\/\ start).total\_seconds()\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ name=name,\ command=\textcolor{stringliteral}{'\ '}.join(cmd),\ passed=\textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ output=\textcolor{stringliteral}{"{}"{}},\ stderr=f\textcolor{stringliteral}{"{}TIMEOUT\ after\ \{timeout\}s"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=duration,\ fail\_details=f\textcolor{stringliteral}{"{}Timeout\ after\ \{timeout\}s"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00222}00222\ \ \ \ \ \textcolor{keywordflow}{except}\ FileNotFoundError:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ name=name,\ command=\textcolor{stringliteral}{'\ '}.join(cmd),\ passed=\textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ output=\textcolor{stringliteral}{"{}"{}},\ stderr=\textcolor{stringliteral}{"{}zig\ not\ found\ in\ PATH"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=0,\ fail\_details=\textcolor{stringliteral}{"{}zig\ binary\ not\ found"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00228}00228\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ name=name,\ command=\textcolor{stringliteral}{'\ '}.join(cmd),\ passed=\textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ output=\textcolor{stringliteral}{"{}"{}},\ stderr=str(e),}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=0,\ fail\_details=str(e)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00236}\doxymbox{\hyperlink{namespacetest__runner_a0e58698b95b151481e03e521f2f35896}{00236}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a0e58698b95b151481e03e521f2f35896}{run\_single\_module\_test}}(module\_name:\ str,\ verbose:\ bool\ =\ \textcolor{keyword}{False})\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00237}00237\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ test\ for\ a\ single\ .zig\ file\ using\ zig\ test."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00238}00238\ \ \ \ \ \textcolor{comment}{\#\ Try\ core/\ first,\ then\ test/}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00239}00239\ \ \ \ \ module\_path\ =\ CORE\ /\ f\textcolor{stringliteral}{"{}\{module\_name\}.zig"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00240}00240\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ module\_path.exists():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ module\_path\ =\ TEST\_DIR\ /\ f\textcolor{stringliteral}{"{}\{module\_name\}.zig"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00242}00242\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ module\_path.exists():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ name=module\_name,\ command=\textcolor{stringliteral}{"{}"{}},\ passed=\textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ output=\textcolor{stringliteral}{"{}"{}},\ stderr=f\textcolor{stringliteral}{"{}Module\ not\ found:\ \{module\_name\}.zig"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ fail\_details=f\textcolor{stringliteral}{"{}File\ not\ found\ in\ core/\ or\ test/"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00249}00249\ \ \ \ \ start\ =\ datetime.now()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00250}00250\ \ \ \ \ cmd\ =\ [\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}test"{}},\ str(module\_path)]}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00252}00252\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ cmd,\ cwd=ROOT,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=60}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ duration\ =\ int((datetime.now()\ -\/\ start).total\_seconds()\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00259}00259\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ name=module\_name,\ command=\textcolor{stringliteral}{'\ '}.join(cmd),}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ passed=result.returncode\ ==\ 0,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ output=result.stdout,\ stderr=result.stderr,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=duration,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ fail\_details=result.stderr[-\/500:]\ \textcolor{keywordflow}{if}\ result.returncode\ !=\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00267}00267\ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ name=module\_name,\ command=\textcolor{stringliteral}{'\ '}.join(cmd),\ passed=\textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ output=\textcolor{stringliteral}{"{}"{}},\ stderr=\textcolor{stringliteral}{"{}TIMEOUT"{}},\ duration\_ms=60000,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ fail\_details=\textcolor{stringliteral}{"{}Timeout\ after\ 60s"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00273}00273\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{TestResult}}(}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \ \ \ \ name=module\_name,\ command=\textcolor{stringliteral}{'\ '}.join(cmd),\ passed=\textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ output=\textcolor{stringliteral}{"{}"{}},\ stderr=str(e),\ duration\_ms=0,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ fail\_details=str(e)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00281}\doxymbox{\hyperlink{namespacetest__runner_a59fa8d854fb17968cd282076d2e25d7e}{00281}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a59fa8d854fb17968cd282076d2e25d7e}{run\_test\_directory}}()\ -\/>\ List[TestResult]:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00282}00282\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ all\ test\ files\ from\ test/\ directory."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00283}00283\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00284}00284\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ TEST\_DIR.exists():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00286}00286\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00287}00287\ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ sorted(TEST\_DIR.glob(\textcolor{stringliteral}{"{}*.zig"{}})):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}test/\{f.name\}\{W\}"{}},\ end=\textcolor{stringliteral}{''},\ flush=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespacetest__runner_a0e58698b95b151481e03e521f2f35896}{run\_single\_module\_test}}(f.stem)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{G\}PASS\{W\}"{}}\ \textcolor{keywordflow}{if}\ r.passed\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{R\}FAIL\{W\}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)r\ \ \ \ [\{status\}]\ test/\{f.name\}\ (\{r.duration\_ms\}ms)"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00294}00294\ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00295}00295\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00297}00297\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00298}00298\ \textcolor{comment}{\#\ REPORT}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00299}00299\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00301}\doxymbox{\hyperlink{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05}{00301}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05}{print\_group\_result}}(group\_name:\ str,\ info:\ dict,\ result:\ TestResult):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00302}00302\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ result\ for\ a\ test\ group."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00303}00303\ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{G\}PASS\{W\}"{}}\ \textcolor{keywordflow}{if}\ result.passed\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{R\}FAIL\{W\}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00304}00304\ \ \ \ \ liboqs\ =\ f\textcolor{stringliteral}{"{}\ \{Y\}(liboqs)\{W\}"{}}\ \textcolor{keywordflow}{if}\ info.get(\textcolor{stringliteral}{"{}requires\_liboqs"{}})\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00305}00305\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{status\}]\ \{group\_name:<12\}\ \{result.duration\_ms:>6\}ms\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{DIM\}\{info['description']\}\{W\}\{liboqs\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00308}00308\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ result.passed\ \textcolor{keywordflow}{and}\ result.fail\_details:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ result.fail\_details.split(\textcolor{stringliteral}{'\(\backslash\)n'})[-\/3:]:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ line.strip():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \{R\}\{line.strip()[:80]\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00312}00312\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00314}\doxymbox{\hyperlink{namespacetest__runner_a107aca59d52c2ee330fb5591bda9845f}{00314}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a107aca59d52c2ee330fb5591bda9845f}{print\_summary}}(group\_results:\ Dict[str,\ TestResult],\ extra\_results:\ List[TestResult]):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00315}00315\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ full\ test\ summary."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00316}00316\ \ \ \ \ all\_results\ =\ list(group\_results.values())\ +\ extra\_results}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00317}00317\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00318}00318\ \ \ \ \ passed\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ all\_results\ \textcolor{keywordflow}{if}\ r.passed)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00319}00319\ \ \ \ \ failed\ =\ len(all\_results)\ -\/\ passed}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00320}00320\ \ \ \ \ total\_ms\ =\ sum(r.duration\_ms\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ all\_results)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00322}00322\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'='\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00323}00323\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}TEST\ SUMMARY\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00324}00324\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00325}00325\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00326}00326\ \ \ \ \ \textcolor{comment}{\#\ Groups}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00327}00327\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ result\ \textcolor{keywordflow}{in}\ group\_results.items():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{G\}PASS\{W\}"{}}\ \textcolor{keywordflow}{if}\ result.passed\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{R\}FAIL\{W\}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{status\}]\ \{name:<20\}\ (\{result.duration\_ms\}ms)"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00331}00331\ \ \ \ \ \textcolor{comment}{\#\ Extra\ (test/\ dir)}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00332}00332\ \ \ \ \ \textcolor{keywordflow}{if}\ extra\_results:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{C\}test/\ directory:\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ extra\_results:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00335}00335\ \ \ \ \ \ \ \ \ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{G\}PASS\{W\}"{}}\ \textcolor{keywordflow}{if}\ r.passed\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{R\}FAIL\{W\}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00336}00336\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{status\}]\ \{r.name:<20\}\ (\{r.duration\_ms\}ms)"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00337}00337\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00338}00338\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'-\/'\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00339}00339\ \ \ \ \ total\_str\ =\ f\textcolor{stringliteral}{"{}\{G\}\{passed\}\ passed\{W\}"{}}\ \textcolor{keywordflow}{if}\ failed\ ==\ 0\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{G\}\{passed\}\ passed\{W\},\ \{R\}\{failed\}\ failed\{W\}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00340}00340\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total:\ \{len(all\_results)\}\ |\ \{total\_str\}\ |\ \{total\_ms\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00341}00341\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='\ *\ 60\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00343}00343\ \ \ \ \ \textcolor{keywordflow}{return}\ failed\ ==\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00344}00344\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00345}00345\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00346}\doxymbox{\hyperlink{namespacetest__runner_a8da15babdf3c552d023c33e0cec36227}{00346}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a8da15babdf3c552d023c33e0cec36227}{export\_json}}(group\_results:\ Dict[str,\ TestResult],\ extra\_results:\ List[TestResult],\ path:\ Path):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00347}00347\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Export\ results\ to\ JSON."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00348}00348\ \ \ \ \ all\_results\ =\ list(group\_results.values())\ +\ extra\_results}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00349}00349\ \ \ \ \ data\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tool"{}}:\ \textcolor{stringliteral}{"{}test\_runner"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now().isoformat(),}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total"{}}:\ len(all\_results),}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00354}00354\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ all\_results\ \textcolor{keywordflow}{if}\ r.passed),}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00355}00355\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}failed"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ all\_results\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ r.passed),}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00356}00356\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_duration\_ms"{}}:\ sum(r.duration\_ms\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ all\_results),}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}groups"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ \ \ \ \ name:\ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ r.passed,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}duration\_ms"{}}:\ r.duration\_ms,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ r.command,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fail\_details"{}}:\ r.fail\_details\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ r.passed\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00363}00363\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00364}00364\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ r\ \textcolor{keywordflow}{in}\ group\_results.items()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00365}00365\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00366}00366\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\_files"{}}:\ [}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00367}00367\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00368}00368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ r.name,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00369}00369\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ r.passed,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00370}00370\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}duration\_ms"{}}:\ r.duration\_ms,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00371}00371\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}command"{}}:\ r.command,}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00372}00372\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00373}00373\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ extra\_results}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00374}00374\ \ \ \ \ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00375}00375\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00376}00376\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'w'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00377}00377\ \ \ \ \ \ \ \ \ json.dump(data,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00378}00378\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Results\ exported\ to:\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00380}00380\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00381}00381\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00382}00382\ \textcolor{comment}{\#\ MAIN}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00383}00383\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00385}00385\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00386}00386\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00387}00387\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__runner_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00388}00388\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ Blockchain\ Test\ Runner\ v2.0"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00389}00389\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}test"{}},\ nargs=\textcolor{stringliteral}{"{}?"{}},\ help=\textcolor{stringliteral}{"{}Test\ group\ to\ run\ (crypto/chain/net/shard/storage/light/pq/wallet)"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00390}00390\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/file"{}},\ \textcolor{stringliteral}{"{}-\/f"{}},\ help=\textcolor{stringliteral}{"{}Test\ a\ single\ module\ by\ name"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00391}00391\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/verbose"{}},\ \textcolor{stringliteral}{"{}-\/v"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Show\ full\ zig\ output"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00392}00392\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/ci"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}CI\ mode\ (JSON\ output)"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00393}00393\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ metavar=\textcolor{stringliteral}{"{}FILE"{}},\ help=\textcolor{stringliteral}{"{}Export\ JSON\ report"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00394}00394\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/list"{}},\ \textcolor{stringliteral}{"{}-\/l"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}List\ available\ tests"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00395}00395\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/retry"{}},\ type=int,\ default=0,\ help=\textcolor{stringliteral}{"{}Retry\ failed\ tests\ N\ times"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00396}00396\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/test-\/dir"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Also\ run\ tests\ from\ test/\ directory"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00397}00397\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/timeout"{}},\ type=int,\ default=120,\ help=\textcolor{stringliteral}{"{}Timeout\ per\ test\ group\ (seconds)"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00398}00398\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00399}00399\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00400}00400\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'='\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00401}00401\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}OmniBus\ Blockchain\ Test\ Runner\ v2.0\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00402}00402\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='\ *\ 60\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00403}00403\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00404}00404\ \ \ \ \ \textcolor{comment}{\#\ List\ mode}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00405}00405\ \ \ \ \ \textcolor{keywordflow}{if}\ args.list:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00406}00406\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}Test\ Groups\ (from\ build.zig):\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00407}00407\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ info\ \textcolor{keywordflow}{in}\ TEST\_GROUPS.items():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00408}00408\ \ \ \ \ \ \ \ \ \ \ \ \ liboqs\ =\ \textcolor{stringliteral}{"{}\ (requires\ liboqs)"{}}\ \textcolor{keywordflow}{if}\ info.get(\textcolor{stringliteral}{"{}requires\_liboqs"{}})\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00409}00409\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{C\}\{name:<10\}\{W\}\ \{info['description']\}\{liboqs\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ \ modules:\ \{',\ '.join(info['modules'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00411}00411\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Test\ Files\ (test/\ directory):\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00412}00412\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ TEST\_DIR.exists():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00413}00413\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ sorted(TEST\_DIR.glob(\textcolor{stringliteral}{"{}*.zig"{}})):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00414}00414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{f.stem\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00415}00415\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Extra\ Testable\ Modules:\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00416}00416\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ EXTRA\_TESTABLE:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00417}00417\ \ \ \ \ \ \ \ \ \ \ \ \ exists\ =\ (CORE\ /\ f\textcolor{stringliteral}{"{}\{m\}.zig"{}}).exists()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00418}00418\ \ \ \ \ \ \ \ \ \ \ \ \ mark\ =\ G\ +\ \textcolor{stringliteral}{"{}+"{}}\ +\ W\ \textcolor{keywordflow}{if}\ exists\ \textcolor{keywordflow}{else}\ R\ +\ \textcolor{stringliteral}{"{}-\/"{}}\ +\ W}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00419}00419\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ [\{mark\}]\ \{m\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00420}00420\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00421}00421\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00422}00422\ \ \ \ \ \textcolor{comment}{\#\ Prerequisites}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00423}00423\ \ \ \ \ issues\ =\ \doxymbox{\hyperlink{namespacetest__runner_a1217fb568b6ed6069d010dc27901f71c}{check\_prerequisites}}()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00424}00424\ \ \ \ \ \textcolor{keywordflow}{if}\ issues:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00425}00425\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ issues:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00426}00426\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{R\}ERROR:\ \{i\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00427}00427\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00428}00428\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00429}00429\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00430}00430\ \ \ \ \ group\_results\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00431}00431\ \ \ \ \ extra\_results\ =\ []}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00432}00432\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00433}00433\ \ \ \ \ \textcolor{comment}{\#\ Single\ file\ mode}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00434}00434\ \ \ \ \ \textcolor{keywordflow}{if}\ args.file:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00435}00435\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Testing\ module:\ \{args.file\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00436}00436\ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacetest__runner_a0e58698b95b151481e03e521f2f35896}{run\_single\_module\_test}}(args.file,\ args.verbose)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00437}00437\ \ \ \ \ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{G\}PASS\{W\}"{}}\ \textcolor{keywordflow}{if}\ result.passed\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{R\}FAIL\{W\}"{}}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00438}00438\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{status\}]\ \{args.file\}\ (\{result.duration\_ms\}ms)"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00439}00439\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.verbose\ \textcolor{keywordflow}{and}\ (result.output\ \textcolor{keywordflow}{or}\ result.stderr):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00440}00440\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{DIM\}\{result.output\}\{result.stderr\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00441}00441\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ result.passed\ \textcolor{keywordflow}{and}\ result.fail\_details:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00442}00442\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{R\}Error:\{W\}\(\backslash\)n\{result.fail\_details\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00443}00443\ \ \ \ \ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ result.passed\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00444}00444\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00445}00445\ \ \ \ \ \textcolor{comment}{\#\ Specific\ group}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00446}00446\ \ \ \ \ \textcolor{keywordflow}{if}\ args.test:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00447}00447\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.test\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ TEST\_GROUPS:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00448}00448\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{R\}Unknown\ test\ group:\ \{args.test\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00449}00449\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Available:\ \{',\ '.join(TEST\_GROUPS.keys())\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00450}00450\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00451}00451\ \ \ \ \ \ \ \ \ info\ =\ TEST\_GROUPS[args.test]}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00452}00452\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Running:\ \{args.test\}\ -\/\ \{info['description']\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00453}00453\ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}{run\_zig\_build\_test}}(info[\textcolor{stringliteral}{'command'}],\ args.verbose,\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00454}00454\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05}{print\_group\_result}}(args.test,\ info,\ result)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00455}00455\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.verbose\ \textcolor{keywordflow}{and}\ (result.output\ \textcolor{keywordflow}{or}\ result.stderr):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00456}00456\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{DIM\}\{result.output\}\{result.stderr\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00457}00457\ \ \ \ \ \ \ \ \ group\_results[args.test]\ =\ result}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00458}00458\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00459}00459\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ All\ groups}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00460}00460\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}Running\ all\ test\ groups...\{W\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00461}00461\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ info\ \textcolor{keywordflow}{in}\ TEST\_GROUPS.items():}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00462}00462\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}{run\_zig\_build\_test}}(info[\textcolor{stringliteral}{'command'}],\ args.verbose,\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00463}00463\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00464}00464\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Retry\ logic}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00465}00465\ \ \ \ \ \ \ \ \ \ \ \ \ retries\ =\ 0}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00466}00466\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keywordflow}{not}\ result.passed\ \textcolor{keywordflow}{and}\ retries\ <\ args.retry:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00467}00467\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ retries\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00468}00468\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{Y\}Retry\ \{retries\}/\{args.retry\}...\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00469}00469\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}{run\_zig\_build\_test}}(info[\textcolor{stringliteral}{'command'}],\ args.verbose,\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00470}00470\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00471}00471\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05}{print\_group\_result}}(name,\ info,\ result)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00472}00472\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.verbose\ \textcolor{keywordflow}{and}\ result.stderr:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00473}00473\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}\{result.stderr[:200]\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00474}00474\ \ \ \ \ \ \ \ \ \ \ \ \ group\_results[name]\ =\ result}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00475}00475\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00476}00476\ \ \ \ \ \textcolor{comment}{\#\ Test\ directory}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00477}00477\ \ \ \ \ \textcolor{keywordflow}{if}\ args.test\_dir\ \textcolor{keywordflow}{or}\ (\textcolor{keywordflow}{not}\ args.test\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ args.file):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00478}00478\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ TEST\_DIR.exists()\ \textcolor{keywordflow}{and}\ list(TEST\_DIR.glob(\textcolor{stringliteral}{"{}*.zig"{}})):}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00479}00479\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Running\ test/\ directory...\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00480}00480\ \ \ \ \ \ \ \ \ \ \ \ \ extra\_results\ =\ \doxymbox{\hyperlink{namespacetest__runner_a59fa8d854fb17968cd282076d2e25d7e}{run\_test\_directory}}()}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00481}00481\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00482}00482\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00483}00483\ \ \ \ \ all\_passed\ =\ \doxymbox{\hyperlink{namespacetest__runner_a107aca59d52c2ee330fb5591bda9845f}{print\_summary}}(group\_results,\ extra\_results)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00484}00484\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00485}00485\ \ \ \ \ \textcolor{comment}{\#\ Export}}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00486}00486\ \ \ \ \ json\_path\ =\ Path(args.json)\ \textcolor{keywordflow}{if}\ args.json\ \textcolor{keywordflow}{else}\ (Path(\textcolor{stringliteral}{"{}test\_results.json"{}})\ \textcolor{keywordflow}{if}\ args.ci\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00487}00487\ \ \ \ \ \textcolor{keywordflow}{if}\ json\_path:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00488}00488\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetest__runner_a8da15babdf3c552d023c33e0cec36227}{export\_json}}(group\_results,\ extra\_results,\ json\_path)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00489}00489\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00490}00490\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ all\_passed\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00491}00491\ }
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00492}00492\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{_t_e_s_t_i_n_g_2test__runner_8py_source_l00493}00493\ \ \ \ \ \doxymbox{\hyperlink{namespacetest__runner_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

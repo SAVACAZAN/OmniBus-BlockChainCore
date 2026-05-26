@@ -1,0 +1,224 @@
+\doxysection{rpc-\/fuzzer Namespace Reference}
+\hypertarget{namespacerpc-fuzzer}{}\label{namespacerpc-fuzzer}\index{rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacerpc-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacerpc-fuzzer_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacerpc-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+dict\+[str, Any]\+\texorpdfstring{$\vert$}{|}str \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\+\_\+payload}} (str\texorpdfstring{$\vert$}{|}None method, Any params, Any req\+\_\+id=1)
+\item 
+str \doxymbox{\hyperlink{namespacerpc-fuzzer_aba61937fd2424f199322e415b0a7afd6}{random\+\_\+string}} (int length)
+\item 
+Any \doxymbox{\hyperlink{namespacerpc-fuzzer_ae394746018a0c8f7f2355bb63594a7d1}{deep\+\_\+nest}} (int depth)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacerpc-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{fuzz\+\_\+cases}} ()
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacerpc-fuzzer_a20c94067d83177e7cc128c638465814b}{send\+\_\+rpc}} (str url, dict\+[str, Any]\+\texorpdfstring{$\vert$}{|}list\+[Any]\+\texorpdfstring{$\vert$}{|}str payload, float timeout=10.\+0)
+\item 
+int \doxymbox{\hyperlink{namespacerpc-fuzzer_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacerpc-fuzzer_aa5b2572edbb9682d57f4ca56a080d752}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerpc-fuzzer_adf212a1094304b5f45a729e0a950eeb1}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerpc-fuzzer_a0c331332bf9337ea45d59c690e2bcafa}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerpc-fuzzer_ad1c44f81a1eaff0e2712e242ed8f63cc}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerpc-fuzzer_a4b4a858b06e1407eb25f3017c06ec910}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacerpc-fuzzer_doc-func-members}
+\Hypertarget{namespacerpc-fuzzer_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!build\_payload@{build\_payload}}
+\index{build\_payload@{build\_payload}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{build\_payload()}{build\_payload()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2} 
+ dict\+[str, Any]\+ \texorpdfstring{$\vert$}{|} str build\+\_\+payload (\begin{DoxyParamCaption}\item[{str \texorpdfstring{$\vert$}{|} None}]{method}{, }\item[{Any}]{params}{, }\item[{Any }]{req\+\_\+id}{ = {\ttfamily 1}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacerpc-fuzzer_ae394746018a0c8f7f2355bb63594a7d1}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!deep\_nest@{deep\_nest}}
+\index{deep\_nest@{deep\_nest}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{deep\_nest()}{deep\_nest()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_ae394746018a0c8f7f2355bb63594a7d1} 
+ Any deep\+\_\+nest (\begin{DoxyParamCaption}\item[{int}]{depth}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacerpc-fuzzer_ae310059fa6ef4da9b187bac45a37374d}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!fuzz\_cases@{fuzz\_cases}}
+\index{fuzz\_cases@{fuzz\_cases}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{fuzz\_cases()}{fuzz\_cases()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_ae310059fa6ef4da9b187bac45a37374d} 
+ list\+[dict\+[str, Any]\+]\+ fuzz\+\_\+cases (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00075}{75}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacerpc-fuzzer_abf994b8269849d29e07697ea8a840f74}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacerpc-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacerpc-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacerpc-fuzzer_a7431cb90017e54fe695b23d4190db046}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!main@{main}}
+\index{main@{main}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00256}{256}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacerpc-fuzzer_aba61937fd2424f199322e415b0a7afd6}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!random\_string@{random\_string}}
+\index{random\_string@{random\_string}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{random\_string()}{random\_string()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_aba61937fd2424f199322e415b0a7afd6} 
+ str random\+\_\+string (\begin{DoxyParamCaption}\item[{int}]{length}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00065}{65}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacerpc-fuzzer_a20c94067d83177e7cc128c638465814b}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!send\_rpc@{send\_rpc}}
+\index{send\_rpc@{send\_rpc}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{send\_rpc()}{send\_rpc()}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_a20c94067d83177e7cc128c638465814b} 
+ dict\+[str, Any]\+ send\+\_\+rpc (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{dict\+[str, Any]\+ \texorpdfstring{$\vert$}{|} list\+[Any]\+ \texorpdfstring{$\vert$}{|} str}]{payload}{, }\item[{float }]{timeout}{ = {\ttfamily 10.0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00224}{224}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+
+
+\label{namespacerpc-fuzzer_doc-var-members}
+\Hypertarget{namespacerpc-fuzzer_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacerpc-fuzzer_ad1c44f81a1eaff0e2712e242ed8f63cc}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_ad1c44f81a1eaff0e2712e242ed8f63cc} 
+str \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/fuzzer.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+\Hypertarget{namespacerpc-fuzzer_aa5b2572edbb9682d57f4ca56a080d752}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_aa5b2572edbb9682d57f4ca56a080d752} 
+str \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/fuzzer.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+\Hypertarget{namespacerpc-fuzzer_adf212a1094304b5f45a729e0a950eeb1}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!RED@{RED}}
+\index{RED@{RED}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_adf212a1094304b5f45a729e0a950eeb1} 
+str \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/fuzzer.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+\Hypertarget{namespacerpc-fuzzer_a4b4a858b06e1407eb25f3017c06ec910}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!RESET@{RESET}}
+\index{RESET@{RESET}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_a4b4a858b06e1407eb25f3017c06ec910} 
+str \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/fuzzer.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+
+\Hypertarget{namespacerpc-fuzzer_a0c331332bf9337ea45d59c690e2bcafa}\index{rpc-\/fuzzer@{rpc-\/fuzzer}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!rpc-\/fuzzer@{rpc-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacerpc-fuzzer_a0c331332bf9337ea45d59c690e2bcafa} 
+str \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/fuzzer.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-fuzzer_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{rpc-fuzzer_8py_source}{rpc-\/fuzzer.\+py}}.
+

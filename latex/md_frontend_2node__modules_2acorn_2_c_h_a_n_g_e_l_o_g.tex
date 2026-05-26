@@ -1,0 +1,490 @@
+\chapter{8.\+16.\+0 (2026-\/02-\/19) }
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g}{}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g}\index{8.16.0 (2026-\/02-\/19)@{8.16.0 (2026-\/02-\/19)}}
+\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4974}%
+\Hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4974}%
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4975}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4975}
+The {\ttfamily source\+Type} option can now be set to {\ttfamily "{}commonjs"{}} to have the parser treat the top level scope as a function scope.
+
+Add support for Unicode 17.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4976}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4976}
+Don\textquotesingle{}t recognize {\ttfamily await using} as contextual keywords when followed directly by a backslash.
+
+Fix an issue where the parser would allow {\ttfamily return} statements in {\ttfamily static} blocks when {\ttfamily allow\+Return\+Outside\+Function} was enabled.
+
+Properly reject {\ttfamily using} declarations that appear directly in {\ttfamily switch} or {\ttfamily for} head scopes.
+
+Fix some corner case issues in the recognition of {\ttfamily using} syntax.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4977}{}\doxysection{\texorpdfstring{8.\+15.\+0 (2025-\/06-\/08)}{8.\+15.\+0 (2025-\/06-\/08)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4977}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4978}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4978}
+Support {\ttfamily using} and {\ttfamily await using} syntax.
+
+The {\ttfamily Any\+Node} type is now defined in such a way that plugins can extend it.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4979}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4979}
+Fix an issue where the {\ttfamily bigint} property of literal nodes for non-\/decimal bigints had the wrong format.
+
+The {\ttfamily acorn} CLI tool no longer crashes when emitting a tree that contains a bigint.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4980}{}\doxysection{\texorpdfstring{8.\+14.\+1 (2025-\/03-\/05)}{8.\+14.\+1 (2025-\/03-\/05)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4980}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4981}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4981}
+Fix an issue where {\ttfamily await} expressions in class field initializers were inappropriately allowed.
+
+Properly allow await inside an async arrow function inside a class field initializer.
+
+Mention the source file name in syntax error messages when given.
+
+Properly add an empty {\ttfamily attributes} property to every form of {\ttfamily Export\+Named\+Declaration}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4982}{}\doxysection{\texorpdfstring{8.\+14.\+0 (2024-\/10-\/27)}{8.\+14.\+0 (2024-\/10-\/27)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4982}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4983}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4983}
+Support ES2025 import attributes.
+
+Support ES2025 Reg\+Exp modifiers.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4984}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4984}
+Support some missing Unicode properties.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4985}{}\doxysection{\texorpdfstring{8.\+13.\+0 (2024-\/10-\/16)}{8.\+13.\+0 (2024-\/10-\/16)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4985}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4986}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4986}
+Upgrade to Unicode 16.\+0.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4987}{}\doxysection{\texorpdfstring{8.\+12.\+1 (2024-\/07-\/03)}{8.\+12.\+1 (2024-\/07-\/03)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4987}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4988}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4988}
+Fix a regression that caused Acorn to no longer run on Node versions \texorpdfstring{$<$}{<}8.\+10.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4989}{}\doxysection{\texorpdfstring{8.\+12.\+0 (2024-\/06-\/14)}{8.\+12.\+0 (2024-\/06-\/14)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4989}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4990}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4990}
+Support ES2025 duplicate capture group names in regular expressions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4991}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4991}
+Include {\ttfamily Variable\+Declarator} in the {\ttfamily Any\+Node} type so that walker objects can refer to it without getting a type error.
+
+Properly raise a parse error for invalid {\ttfamily for}/\+{\ttfamily of} statements using {\ttfamily async} as binding name.
+
+Properly recognize "{}use strict"{} when preceded by a string with an escaped newline.
+
+Mark the {\ttfamily Parser} constructor as protected, not private, so plugins can extend it without type errors.
+
+Fix a bug where some invalid {\ttfamily delete} expressions were let through when the operand was parenthesized and {\ttfamily preserve\+Parens} was enabled.
+
+Properly normalize line endings in raw strings of invalid template tokens.
+
+Properly track line numbers for escaped newlines in strings.
+
+Fix a bug that broke line number accounting after a template literal with invalid escape sequences.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4992}{}\doxysection{\texorpdfstring{8.\+11.\+3 (2023-\/12-\/29)}{8.\+11.\+3 (2023-\/12-\/29)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4992}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4993}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4993}
+Add {\ttfamily Function} and {\ttfamily Class} to the {\ttfamily Aggregate\+Type} type, so that they can be used in walkers without raising a type error.
+
+Make sure {\ttfamily on\+Token} get an {\ttfamily import} keyword token when parsing {\ttfamily import.\+meta}.
+
+Fix a bug where {\ttfamily .loc.\+start} could be undefined for {\ttfamily new.\+target} {\ttfamily meta} nodes.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4994}{}\doxysection{\texorpdfstring{8.\+11.\+2 (2023-\/10-\/27)}{8.\+11.\+2 (2023-\/10-\/27)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4994}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4995}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4995}
+Fix a bug that caused regular expressions after colon tokens to not be properly tokenized in some circumstances.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4996}{}\doxysection{\texorpdfstring{8.\+11.\+1 (2023-\/10-\/26)}{8.\+11.\+1 (2023-\/10-\/26)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4996}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4997}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4997}
+Fix a regression where {\ttfamily on\+Token} would receive \textquotesingle{}name\textquotesingle{} tokens for \textquotesingle{}new\textquotesingle{} keyword tokens.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4998}{}\doxysection{\texorpdfstring{8.\+11.\+0 (2023-\/10-\/26)}{8.\+11.\+0 (2023-\/10-\/26)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4998}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4999}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md4999}
+Fix an issue where tokenizing (without parsing) an object literal with a property named {\ttfamily class} or {\ttfamily function} could, in some circumstance, put the tokenizer into an invalid state.
+
+Fix an issue where a slash after a call to a propery named the same as some keywords would be tokenized as a regular expression.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5000}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5000}
+Upgrade to Unicode 15.\+1.
+
+Use a set of new, much more precise, Type\+Script types.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5001}{}\doxysection{\texorpdfstring{8.\+10.\+0 (2023-\/07-\/05)}{8.\+10.\+0 (2023-\/07-\/05)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5001}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5002}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5002}
+Add a {\ttfamily check\+Private\+Fields} option that disables strict checking of private property use.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5003}{}\doxysection{\texorpdfstring{8.\+9.\+0 (2023-\/06-\/16)}{8.\+9.\+0 (2023-\/06-\/16)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5003}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5004}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5004}
+Forbid dynamic import after {\ttfamily new}, even when part of a member expression.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5005}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5005}
+Add Unicode properties for ES2023.
+
+Add support for the {\ttfamily v} flag to regular expressions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5006}{}\doxysection{\texorpdfstring{8.\+8.\+2 (2023-\/01-\/23)}{8.\+8.\+2 (2023-\/01-\/23)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5006}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5007}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5007}
+Fix a bug that caused {\ttfamily allow\+Hash\+Bang} to be set to false when not provided, even with {\ttfamily ecma\+Version \texorpdfstring{$>$}{>}= 14}.
+
+Fix an exception when passing no option object to {\ttfamily parse} or {\ttfamily new Parser}.
+
+Fix incorrect parse error on {\ttfamily if (0) let\textbackslash{}n\+[astral identifier char]\+}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5008}{}\doxysection{\texorpdfstring{8.\+8.\+1 (2022-\/10-\/24)}{8.\+8.\+1 (2022-\/10-\/24)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5008}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5009}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5009}
+Make type for {\ttfamily Comment} compatible with estree types.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5010}{}\doxysection{\texorpdfstring{8.\+8.\+0 (2022-\/07-\/21)}{8.\+8.\+0 (2022-\/07-\/21)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5010}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5011}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5011}
+Allow parentheses around spread args in destructuring object assignment.
+
+Fix an issue where the tree contained {\ttfamily directive} properties in when parsing with a language version that doesn\textquotesingle{}t support them.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5012}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5012}
+Support hashbang comments by default in ECMAScript 2023 and later.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5013}{}\doxysection{\texorpdfstring{8.\+7.\+1 (2021-\/04-\/26)}{8.\+7.\+1 (2021-\/04-\/26)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5013}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5014}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5014}
+Stop handling {\ttfamily "{}use strict"{}} directives in ECMAScript versions before 5.
+
+Fix an issue where duplicate quoted export names in {\ttfamily export \texorpdfstring{$\ast$}{*}} syntax were incorrectly checked.
+
+Add missing type for {\ttfamily tok\+Types}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5015}{}\doxysection{\texorpdfstring{8.\+7.\+0 (2021-\/12-\/27)}{8.\+7.\+0 (2021-\/12-\/27)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5015}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5016}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5016}
+Support quoted export names.
+
+Upgrade to Unicode 14.
+
+Add support for Unicode 13 properties in regular expressions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5017}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5017}
+Use a loop to find line breaks, because the existing regexp search would overrun the end of the searched range and waste a lot of time in minified code.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5018}{}\doxysection{\texorpdfstring{8.\+6.\+0 (2021-\/11-\/18)}{8.\+6.\+0 (2021-\/11-\/18)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5018}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5019}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5019}
+Fix a bug where an object literal with multiple {\ttfamily \+\_\+\+\_\+proto\+\_\+\+\_\+} properties would incorrectly be accepted if a later property value held an assigment.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5020}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5020}
+Support class private fields with the {\ttfamily in} operator.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5021}{}\doxysection{\texorpdfstring{8.\+5.\+0 (2021-\/09-\/06)}{8.\+5.\+0 (2021-\/09-\/06)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5021}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5022}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5022}
+Improve context-\/dependent tokenization in a number of corner cases.
+
+Fix location tracking after a 0x2028 or 0x2029 character in a string literal (which before did not increase the line number).
+
+Fix an issue where arrow function bodies in for loop context would inappropriately consume {\ttfamily in} operators.
+
+Fix wrong end locations stored on Sequence\+Expression nodes.
+
+Implement restriction that {\ttfamily for}/\+{\ttfamily of} loop LHS can\textquotesingle{}t start with {\ttfamily let}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5023}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5023}
+Add support for ES2022 class static blocks.
+
+Allow multiple input files to be passed to the CLI tool.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5024}{}\doxysection{\texorpdfstring{8.\+4.\+1 (2021-\/06-\/24)}{8.\+4.\+1 (2021-\/06-\/24)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5024}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5025}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5025}
+Fix a bug where {\ttfamily allow\+Await\+Outside\+Function} would allow {\ttfamily await} in class field initializers, and setting {\ttfamily ecma\+Version} to 13 or higher would allow top-\/level await in non-\/module sources.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5026}{}\doxysection{\texorpdfstring{8.\+4.\+0 (2021-\/06-\/11)}{8.\+4.\+0 (2021-\/06-\/11)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5026}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5027}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5027}
+A new option, {\ttfamily allow\+Super\+Outside\+Method}, can be used to suppress the error when {\ttfamily super} is used in the wrong context.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5028}{}\doxysection{\texorpdfstring{8.\+3.\+0 (2021-\/05-\/31)}{8.\+3.\+0 (2021-\/05-\/31)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5028}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5029}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5029}
+Default {\ttfamily allow\+Await\+Outside\+Function} to true for ECMAScript 2022 an higher.
+
+Add support for the {\ttfamily d} (\href{https://github.com/tc39/proposal-regexp-match-indices}{\texttt{indices}}) regexp flag.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5030}{}\doxysection{\texorpdfstring{8.\+2.\+4 (2021-\/05-\/04)}{8.\+2.\+4 (2021-\/05-\/04)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5030}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5031}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5031}
+Fix spec conformity in corner case \textquotesingle{}for await (async of ...)\textquotesingle{}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5032}{}\doxysection{\texorpdfstring{8.\+2.\+3 (2021-\/05-\/04)}{8.\+2.\+3 (2021-\/05-\/04)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5032}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5033}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5033}
+Fix an issue where the library couldn\textquotesingle{}t parse \textquotesingle{}for (async of ...)\textquotesingle{}.
+
+Fix a bug in UTF-\/16 decoding that would read characters incorrectly in some circumstances.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5034}{}\doxysection{\texorpdfstring{8.\+2.\+2 (2021-\/04-\/29)}{8.\+2.\+2 (2021-\/04-\/29)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5034}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5035}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5035}
+Fix a bug where a class field initialized to an async arrow function wouldn\textquotesingle{}t allow await inside it. Same issue existed for generator arrow functions with yield.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5036}{}\doxysection{\texorpdfstring{8.\+2.\+1 (2021-\/04-\/24)}{8.\+2.\+1 (2021-\/04-\/24)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5036}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5037}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5037}
+Fix a regression introduced in 8.\+2.\+0 where static or async class methods with keyword names fail to parse.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5038}{}\doxysection{\texorpdfstring{8.\+2.\+0 (2021-\/04-\/24)}{8.\+2.\+0 (2021-\/04-\/24)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5038}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5039}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5039}
+Add support for ES2022 class fields and private methods.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5040}{}\doxysection{\texorpdfstring{8.\+1.\+1 (2021-\/04-\/12)}{8.\+1.\+1 (2021-\/04-\/12)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5040}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5041}{}\doxysubsection{\texorpdfstring{Various}{Various}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5041}
+Stop shipping source maps in the NPM package.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5042}{}\doxysection{\texorpdfstring{8.\+1.\+0 (2021-\/03-\/09)}{8.\+1.\+0 (2021-\/03-\/09)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5042}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5043}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5043}
+Fix a spurious error in nested destructuring arrays.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5044}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5044}
+Expose {\ttfamily allow\+Await\+Outside\+Function} in CLI interface.
+
+Make {\ttfamily allow\+Import\+Export\+Anywhere} also apply to {\ttfamily import.\+meta}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5045}{}\doxysection{\texorpdfstring{8.\+0.\+5 (2021-\/01-\/25)}{8.\+0.\+5 (2021-\/01-\/25)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5045}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5046}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5046}
+Adjust package.\+json to work with Node 12.\+16.\+0 and 13.\+0-\/13.\+6.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5047}{}\doxysection{\texorpdfstring{8.\+0.\+4 (2020-\/10-\/05)}{8.\+0.\+4 (2020-\/10-\/05)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5047}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5048}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5048}
+Make {\ttfamily await x \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} y} an error, following the spec.
+
+Fix potentially exponential regular expression.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5049}{}\doxysection{\texorpdfstring{8.\+0.\+3 (2020-\/10-\/02)}{8.\+0.\+3 (2020-\/10-\/02)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5049}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5050}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5050}
+Fix a wasteful loop during {\ttfamily Parser} creation when setting {\ttfamily ecma\+Version} to {\ttfamily "{}latest"{}}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5051}{}\doxysection{\texorpdfstring{8.\+0.\+2 (2020-\/09-\/30)}{8.\+0.\+2 (2020-\/09-\/30)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5051}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5052}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5052}
+Make the Type\+Script types reflect the current allowed values for {\ttfamily ecma\+Version}.
+
+Fix another regexp/\+division tokenizer issue.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5053}{}\doxysection{\texorpdfstring{8.\+0.\+1 (2020-\/08-\/12)}{8.\+0.\+1 (2020-\/08-\/12)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5053}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5054}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5054}
+Provide the correct value in the {\ttfamily version} export.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5055}{}\doxysection{\texorpdfstring{8.\+0.\+0 (2020-\/08-\/12)}{8.\+0.\+0 (2020-\/08-\/12)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5055}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5056}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5056}
+Disallow expressions like {\ttfamily (a = b) = c}.
+
+Make non-\/octal escape sequences a syntax error in strict mode.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5057}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5057}
+The package can now be loaded directly as an ECMAScript module in node 13+.
+
+Update to the set of Unicode properties from ES2021.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5058}{}\doxysubsection{\texorpdfstring{Breaking changes}{Breaking changes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5058}
+The {\ttfamily ecma\+Version} option is now required. For the moment, omitting it will still work with a warning, but that will change in a future release.
+
+Some changes to method signatures that may be used by plugins.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5059}{}\doxysection{\texorpdfstring{7.\+4.\+0 (2020-\/08-\/03)}{7.\+4.\+0 (2020-\/08-\/03)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5059}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5060}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5060}
+Add support for logical assignment operators.
+
+Add support for numeric separators.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5061}{}\doxysection{\texorpdfstring{7.\+3.\+1 (2020-\/06-\/11)}{7.\+3.\+1 (2020-\/06-\/11)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5061}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5062}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5062}
+Make the string in the {\ttfamily version} export match the actual library version.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5063}{}\doxysection{\texorpdfstring{7.\+3.\+0 (2020-\/06-\/11)}{7.\+3.\+0 (2020-\/06-\/11)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5063}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5064}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5064}
+Fix a bug that caused parsing of object patterns with a property named {\ttfamily set} that had a default value to fail.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5065}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5065}
+Add support for optional chaining ({\ttfamily ?.}).\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5066}{}\doxysection{\texorpdfstring{7.\+2.\+0 (2020-\/05-\/09)}{7.\+2.\+0 (2020-\/05-\/09)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5066}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5067}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5067}
+Fix precedence issue in parsing of async arrow functions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5068}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5068}
+Add support for nullish coalescing.
+
+Add support for {\ttfamily import.\+meta}.
+
+Support {\ttfamily export \texorpdfstring{$\ast$}{*} as ...} syntax.
+
+Upgrade to Unicode 13.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5069}{}\doxysection{\texorpdfstring{6.\+4.\+1 (2020-\/03-\/09)}{6.\+4.\+1 (2020-\/03-\/09)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5069}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5070}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5070}
+More carefully check for valid UTF16 surrogate pairs in regexp validator.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5071}{}\doxysection{\texorpdfstring{7.\+1.\+1 (2020-\/03-\/01)}{7.\+1.\+1 (2020-\/03-\/01)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5071}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5072}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5072}
+Treat {\ttfamily \textbackslash{}8} and {\ttfamily \textbackslash{}9} as invalid escapes in template strings.
+
+Allow unicode escapes in property names that are keywords.
+
+Don\textquotesingle{}t error on an exponential operator expression as argument to {\ttfamily await}.
+
+More carefully check for valid UTF16 surrogate pairs in regexp validator.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5073}{}\doxysection{\texorpdfstring{7.\+1.\+0 (2019-\/09-\/24)}{7.\+1.\+0 (2019-\/09-\/24)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5073}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5074}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5074}
+Disallow trailing object literal commas when ecma\+Version is less than 5.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5075}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5075}
+Add a static {\ttfamily acorn} property to the {\ttfamily Parser} class that contains the entire module interface, to allow plugins to access the instance of the library that they are acting on.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5076}{}\doxysection{\texorpdfstring{7.\+0.\+0 (2019-\/08-\/13)}{7.\+0.\+0 (2019-\/08-\/13)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5076}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5077}{}\doxysubsection{\texorpdfstring{Breaking changes}{Breaking changes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5077}
+Changes the node format for dynamic imports to use the {\ttfamily Import\+Expression} node type, as defined in \href{https://github.com/estree/estree/blob/master/es2020.md\#importexpression}{\texttt{ESTree}}.
+
+Makes 10 (ES2019) the default value for the {\ttfamily ecma\+Version} option.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5078}{}\doxysection{\texorpdfstring{6.\+3.\+0 (2019-\/08-\/12)}{6.\+3.\+0 (2019-\/08-\/12)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5078}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5079}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5079}
+{\ttfamily source\+Type:\+ "{}\doxylink{namespacemodule}{module}"{}} can now be used even when {\ttfamily ecma\+Version} is less than 6, to parse module-\/style code that otherwise conforms to an older standard.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5080}{}\doxysection{\texorpdfstring{6.\+2.\+1 (2019-\/07-\/21)}{6.\+2.\+1 (2019-\/07-\/21)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5080}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5081}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5081}
+Fix bug causing Acorn to treat some characters as identifier characters that shouldn\textquotesingle{}t be treated as such.
+
+Fix issue where setting the {\ttfamily allow\+Reserved} option to {\ttfamily "{}never"{}} allowed reserved words in some circumstances.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5082}{}\doxysection{\texorpdfstring{6.\+2.\+0 (2019-\/07-\/04)}{6.\+2.\+0 (2019-\/07-\/04)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5082}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5083}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5083}
+Improve valid assignment checking in {\ttfamily for}/\+{\ttfamily in} and {\ttfamily for}/\+{\ttfamily of} loops.
+
+Disallow binding {\ttfamily let} in patterns.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5084}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5084}
+Support bigint syntax with {\ttfamily ecma\+Version} \texorpdfstring{$>$}{>}= 11.
+
+Support dynamic {\ttfamily import} syntax with {\ttfamily ecma\+Version} \texorpdfstring{$>$}{>}= 11.
+
+Upgrade to Unicode version 12.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5085}{}\doxysection{\texorpdfstring{6.\+1.\+1 (2019-\/02-\/27)}{6.\+1.\+1 (2019-\/02-\/27)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5085}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5086}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5086}
+Fix bug that caused parsing default exports of with names to fail.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5087}{}\doxysection{\texorpdfstring{6.\+1.\+0 (2019-\/02-\/08)}{6.\+1.\+0 (2019-\/02-\/08)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5087}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5088}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5088}
+Fix scope checking when redefining a {\ttfamily var} as a lexical binding.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5089}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5089}
+Split up {\ttfamily parse\+Subscripts} to use an internal {\ttfamily parse\+Subscript} method to make it easier to extend with plugins.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5090}{}\doxysection{\texorpdfstring{6.\+0.\+7 (2019-\/02-\/04)}{6.\+0.\+7 (2019-\/02-\/04)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5090}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5091}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5091}
+Check that exported bindings are defined.
+
+Don\textquotesingle{}t treat {\ttfamily \textbackslash{}u180e} as a whitespace character.
+
+Check for duplicate parameter names in methods.
+
+Don\textquotesingle{}t allow shorthand properties when they are generators or async methods.
+
+Forbid binding {\ttfamily await} in async arrow function\textquotesingle{}s parameter list.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5092}{}\doxysection{\texorpdfstring{6.\+0.\+6 (2019-\/01-\/30)}{6.\+0.\+6 (2019-\/01-\/30)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5092}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5093}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5093}
+The content of class declarations and expressions is now always parsed in strict mode.
+
+Don\textquotesingle{}t allow {\ttfamily let} or {\ttfamily const} to bind the variable name {\ttfamily let}.
+
+Treat class declarations as lexical.
+
+Don\textquotesingle{}t allow a generator function declaration as the sole body of an {\ttfamily if} or {\ttfamily else}.
+
+Ignore {\ttfamily "{}use strict"{}} when after an empty statement.
+
+Allow string line continuations with special line terminator characters.
+
+Treat {\ttfamily for} bodies as part of the {\ttfamily for} scope when checking for conflicting bindings.
+
+Fix bug with parsing {\ttfamily yield} in a {\ttfamily for} loop initializer.
+
+Implement special cases around scope checking for functions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5094}{}\doxysection{\texorpdfstring{6.\+0.\+5 (2019-\/01-\/02)}{6.\+0.\+5 (2019-\/01-\/02)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5094}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5095}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5095}
+Fix Type\+Script type for {\ttfamily Parser.\+extend} and add {\ttfamily allow\+Await\+Outside\+Function} to options type.
+
+Don\textquotesingle{}t treat {\ttfamily let} as a keyword when the next token is {\ttfamily \{} on the next line.
+
+Fix bug that broke checking for parentheses around an object pattern in a destructuring assignment when {\ttfamily preserve\+Parens} was on.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5096}{}\doxysection{\texorpdfstring{6.\+0.\+4 (2018-\/11-\/05)}{6.\+0.\+4 (2018-\/11-\/05)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5096}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5097}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5097}
+Further improvements to tokenizing regular expressions in corner cases.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5098}{}\doxysection{\texorpdfstring{6.\+0.\+3 (2018-\/11-\/04)}{6.\+0.\+3 (2018-\/11-\/04)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5098}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5099}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5099}
+Fix bug in tokenizing an expression-\/less return followed by a function followed by a regular expression.
+
+Remove stray symlink in the package tarball.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5100}{}\doxysection{\texorpdfstring{6.\+0.\+2 (2018-\/09-\/26)}{6.\+0.\+2 (2018-\/09-\/26)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5100}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5101}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5101}
+Fix bug where default expressions could fail to parse inside an object destructuring assignment expression.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5102}{}\doxysection{\texorpdfstring{6.\+0.\+1 (2018-\/09-\/14)}{6.\+0.\+1 (2018-\/09-\/14)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5102}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5103}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5103}
+Fix wrong value in {\ttfamily version} export.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5104}{}\doxysection{\texorpdfstring{6.\+0.\+0 (2018-\/09-\/14)}{6.\+0.\+0 (2018-\/09-\/14)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5104}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5105}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5105}
+Better handle variable-\/redefinition checks for catch bindings and functions directly under if statements.
+
+Forbid {\ttfamily new.\+target} in top-\/level arrow functions.
+
+Fix issue with parsing a regexp after {\ttfamily yield} in some contexts.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5106}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5106}
+The package now comes with Type\+Script definitions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5107}{}\doxysubsection{\texorpdfstring{Breaking changes}{Breaking changes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5107}
+The default value of the {\ttfamily ecma\+Version} option is now 9 (2018).
+
+Plugins work differently, and will have to be rewritten to work with this version.
+
+The loose parser and walker have been moved into separate packages ({\ttfamily acorn-\/loose} and {\ttfamily acorn-\/walk}).\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5108}{}\doxysection{\texorpdfstring{5.\+7.\+3 (2018-\/09-\/10)}{5.\+7.\+3 (2018-\/09-\/10)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5108}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5109}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5109}
+Fix failure to tokenize regexps after expressions like {\ttfamily x.\+of}.
+
+Better error message for unterminated template literals.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5110}{}\doxysection{\texorpdfstring{5.\+7.\+2 (2018-\/08-\/24)}{5.\+7.\+2 (2018-\/08-\/24)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5110}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5111}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5111}
+Properly handle {\ttfamily allow\+Await\+Outside\+Function} in for statements.
+
+Treat function declarations at the top level of modules like let bindings.
+
+Don\textquotesingle{}t allow async function declarations as the only statement under a label.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5112}{}\doxysection{\texorpdfstring{5.\+7.\+0 (2018-\/06-\/15)}{5.\+7.\+0 (2018-\/06-\/15)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5112}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5113}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5113}
+Upgraded to Unicode 11.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5114}{}\doxysection{\texorpdfstring{5.\+6.\+0 (2018-\/05-\/31)}{5.\+6.\+0 (2018-\/05-\/31)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5114}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5115}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5115}
+Allow U+2028 and U+2029 in string when ECMAVersion \texorpdfstring{$>$}{>}= 10.
+
+Allow binding-\/less catch statements when ECMAVersion \texorpdfstring{$>$}{>}= 10.
+
+Add {\ttfamily allow\+Await\+Outside\+Function} option for parsing top-\/level {\ttfamily await}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5116}{}\doxysection{\texorpdfstring{5.\+5.\+3 (2018-\/03-\/08)}{5.\+5.\+3 (2018-\/03-\/08)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5116}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5117}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5117}
+A {\itshape second} republish of the code in 5.\+5.\+1, this time with yarn, to hopefully get valid timestamps.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5118}{}\doxysection{\texorpdfstring{5.\+5.\+2 (2018-\/03-\/08)}{5.\+5.\+2 (2018-\/03-\/08)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5118}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5119}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5119}
+A republish of the code in 5.\+5.\+1 in an attempt to solve an issue with the file timestamps in the npm package being 0.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5120}{}\doxysection{\texorpdfstring{5.\+5.\+1 (2018-\/03-\/06)}{5.\+5.\+1 (2018-\/03-\/06)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5120}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5121}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5121}
+Fix misleading error message for octal escapes in template strings.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5122}{}\doxysection{\texorpdfstring{5.\+5.\+0 (2018-\/02-\/27)}{5.\+5.\+0 (2018-\/02-\/27)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5122}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5123}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5123}
+The identifier character categorization is now based on Unicode version 10.
+
+Acorn will now validate the content of regular expressions, including new ES9 features.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5124}{}\doxysection{\texorpdfstring{5.\+4.\+0 (2018-\/02-\/01)}{5.\+4.\+0 (2018-\/02-\/01)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5124}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5125}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5125}
+Disallow duplicate or escaped flags on regular expressions.
+
+Disallow octal escapes in strings in strict mode.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5126}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5126}
+Add support for async iteration.
+
+Add support for object spread and rest.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5127}{}\doxysection{\texorpdfstring{5.\+3.\+0 (2017-\/12-\/28)}{5.\+3.\+0 (2017-\/12-\/28)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5127}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5128}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5128}
+Fix parsing of floating point literals with leading zeroes in loose mode.
+
+Allow duplicate property names in object patterns.
+
+Don\textquotesingle{}t allow static class methods named {\ttfamily prototype}.
+
+Disallow async functions directly under {\ttfamily if} or {\ttfamily else}.
+
+Parse right-\/hand-\/side of {\ttfamily for}/\+{\ttfamily of} as an assignment expression.
+
+Stricter parsing of {\ttfamily for}/\+{\ttfamily in}.
+
+Don\textquotesingle{}t allow unicode escapes in contextual keywords.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5129}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5129}
+Parsing class members was factored into smaller methods to allow plugins to hook into it.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5130}{}\doxysection{\texorpdfstring{5.\+2.\+1 (2017-\/10-\/30)}{5.\+2.\+1 (2017-\/10-\/30)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5130}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5131}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5131}
+Fix a token context corruption bug.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5132}{}\doxysection{\texorpdfstring{5.\+2.\+0 (2017-\/10-\/30)}{5.\+2.\+0 (2017-\/10-\/30)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5132}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5133}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5133}
+Fix token context tracking for {\ttfamily class} and {\ttfamily function} in property-\/name position.
+
+Make sure {\ttfamily \%\texorpdfstring{$\ast$}{*}} isn\textquotesingle{}t parsed as a valid operator.
+
+Allow shorthand properties {\ttfamily get} and {\ttfamily set} to be followed by default values.
+
+Disallow {\ttfamily super} when not in callee or object position.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5134}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5134}
+Support \href{https://github.com/estree/estree/compare/b3de58c9997504d6fba04b72f76e6dd1619ee4eb...1da8e603237144f44710360f8feb7a9977e905e0}{\texttt{{\ttfamily directive} property}} on directive expression statements.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5135}{}\doxysection{\texorpdfstring{5.\+1.\+2 (2017-\/09-\/04)}{5.\+1.\+2 (2017-\/09-\/04)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5135}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5136}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5136}
+Disable parsing of legacy HTML-\/style comments in modules.
+
+Fix parsing of async methods whose names are keywords.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5137}{}\doxysection{\texorpdfstring{5.\+1.\+1 (2017-\/07-\/06)}{5.\+1.\+1 (2017-\/07-\/06)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5137}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5138}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5138}
+Fix problem with disambiguating regexp and division after a class.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5139}{}\doxysection{\texorpdfstring{5.\+1.\+0 (2017-\/07-\/05)}{5.\+1.\+0 (2017-\/07-\/05)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5139}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5140}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5140}
+Fix tokenizing of regexps in an object-\/desctructuring {\ttfamily for}/\+{\ttfamily of} loop and after {\ttfamily yield}.
+
+Parse zero-\/prefixed numbers with non-\/octal digits as decimal.
+
+Allow object/\+array patterns in rest parameters.
+
+Don\textquotesingle{}t error when {\ttfamily yield} is used as a property name.
+
+Allow {\ttfamily async} as a shorthand object property.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5141}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5141}
+Implement the \href{https://github.com/tc39/proposal-template-literal-revision}{\texttt{template literal revision proposal}} for ES9.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5142}{}\doxysection{\texorpdfstring{5.\+0.\+3 (2017-\/04-\/01)}{5.\+0.\+3 (2017-\/04-\/01)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5142}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5143}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5143}
+Fix spurious duplicate variable definition errors for named functions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5144}{}\doxysection{\texorpdfstring{5.\+0.\+2 (2017-\/03-\/30)}{5.\+0.\+2 (2017-\/03-\/30)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5144}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5145}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5145}
+A binary operator after a parenthesized arrow expression is no longer incorrectly treated as an error.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5146}{}\doxysection{\texorpdfstring{5.\+0.\+0 (2017-\/03-\/28)}{5.\+0.\+0 (2017-\/03-\/28)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5146}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5147}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5147}
+Raise an error for duplicated lexical bindings.
+
+Fix spurious error when an assignement expression occurred after a spread expression.
+
+Accept regular expressions after {\ttfamily of} (in {\ttfamily for}/\+{\ttfamily of}), {\ttfamily yield} (in a generator), and braced arrow functions.
+
+Allow labels in front or {\ttfamily var} declarations, even in strict mode.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5148}{}\doxysubsection{\texorpdfstring{Breaking changes}{Breaking changes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5148}
+Parse declarations following {\ttfamily export default} as declaration nodes, not expressions. This means that class and function declarations nodes can now have {\ttfamily null} as their {\ttfamily id}.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5149}{}\doxysection{\texorpdfstring{4.\+0.\+11 (2017-\/02-\/07)}{4.\+0.\+11 (2017-\/02-\/07)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5149}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5150}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5150}
+Allow all forms of member expressions to be parenthesized as lvalue.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5151}{}\doxysection{\texorpdfstring{4.\+0.\+10 (2017-\/02-\/07)}{4.\+0.\+10 (2017-\/02-\/07)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5151}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5152}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5152}
+Don\textquotesingle{}t expect semicolons after default-\/exported functions or classes, even when they are expressions.
+
+Check for use of {\ttfamily \textquotesingle{}use strict\textquotesingle{}} directives in non-\/simple parameter functions, even when already in strict mode.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5153}{}\doxysection{\texorpdfstring{4.\+0.\+9 (2017-\/02-\/06)}{4.\+0.\+9 (2017-\/02-\/06)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5153}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5154}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5154}
+Fix incorrect error raised for parenthesized simple assignment targets, so that {\ttfamily (x) = 1} parses again.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5155}{}\doxysection{\texorpdfstring{4.\+0.\+8 (2017-\/02-\/03)}{4.\+0.\+8 (2017-\/02-\/03)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5155}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5156}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5156}
+Solve spurious parenthesized pattern errors by temporarily erring on the side of accepting programs that our delayed errors don\textquotesingle{}t handle correctly yet.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5157}{}\doxysection{\texorpdfstring{4.\+0.\+7 (2017-\/02-\/02)}{4.\+0.\+7 (2017-\/02-\/02)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5157}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5158}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5158}
+Accept invalidly rejected code like {\ttfamily (x).y = 2} again.
+
+Don\textquotesingle{}t raise an error when a function {\itshape inside} strict code has a non-\/simple parameter list.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5159}{}\doxysection{\texorpdfstring{4.\+0.\+6 (2017-\/02-\/02)}{4.\+0.\+6 (2017-\/02-\/02)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5159}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5160}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5160}
+Fix exponential behavior (manifesting itself as a complete hang for even relatively small source files) introduced by the new \textquotesingle{}use strict\textquotesingle{} check.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5161}{}\doxysection{\texorpdfstring{4.\+0.\+5 (2017-\/02-\/02)}{4.\+0.\+5 (2017-\/02-\/02)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5161}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5162}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5162}
+Disallow parenthesized pattern expressions.
+
+Allow keywords as export names.
+
+Don\textquotesingle{}t allow the {\ttfamily async} keyword to be parenthesized.
+
+Properly raise an error when a keyword contains a character escape.
+
+Allow {\ttfamily "{}use strict"{}} to appear after other string literal expressions.
+
+Disallow labeled declarations.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5163}{}\doxysection{\texorpdfstring{4.\+0.\+4 (2016-\/12-\/19)}{4.\+0.\+4 (2016-\/12-\/19)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5163}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5164}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5164}
+Fix crash when {\ttfamily export} was followed by a keyword that can\textquotesingle{}t be exported.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5165}{}\doxysection{\texorpdfstring{4.\+0.\+3 (2016-\/08-\/16)}{4.\+0.\+3 (2016-\/08-\/16)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5165}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5166}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5166}
+Allow regular function declarations inside single-\/statement {\ttfamily if} branches in loose mode. Forbid them entirely in strict mode.
+
+Properly parse properties named {\ttfamily async} in ES2017 mode.
+
+Fix bug where reserved words were broken in ES2017 mode.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5167}{}\doxysection{\texorpdfstring{4.\+0.\+2 (2016-\/08-\/11)}{4.\+0.\+2 (2016-\/08-\/11)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5167}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5168}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5168}
+Don\textquotesingle{}t ignore period or \textquotesingle{}e\textquotesingle{} characters after octal numbers.
+
+Fix broken parsing for call expressions in default parameter values of arrow functions.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5169}{}\doxysection{\texorpdfstring{4.\+0.\+1 (2016-\/08-\/08)}{4.\+0.\+1 (2016-\/08-\/08)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5169}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5170}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5170}
+Fix false positives in duplicated export name errors.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5171}{}\doxysection{\texorpdfstring{4.\+0.\+0 (2016-\/08-\/07)}{4.\+0.\+0 (2016-\/08-\/07)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5171}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5172}{}\doxysubsection{\texorpdfstring{Breaking changes}{Breaking changes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5172}
+The default {\ttfamily ecma\+Version} option value is now 7.
+
+A number of internal method signatures changed, so plugins might need to be updated.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5173}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5173}
+The parser now raises errors on duplicated export names.
+
+{\ttfamily arguments} and {\ttfamily eval} can now be used in shorthand properties.
+
+Duplicate parameter names in non-\/simple argument lists now always produce an error.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5174}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5174}
+The {\ttfamily ecma\+Version} option now also accepts year-\/style version numbers (2015, etc).
+
+Support for {\ttfamily async}/\+{\ttfamily await} syntax when {\ttfamily ecma\+Version} is \texorpdfstring{$>$}{>}= 8.
+
+Support for trailing commas in call expressions when {\ttfamily ecma\+Version} is \texorpdfstring{$>$}{>}= 8.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5175}{}\doxysection{\texorpdfstring{3.\+3.\+0 (2016-\/07-\/25)}{3.\+3.\+0 (2016-\/07-\/25)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5175}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5176}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5176}
+Fix bug in tokenizing of regexp operator after a function declaration.
+
+Fix parser crash when parsing an array pattern with a hole.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5177}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5177}
+Implement check against complex argument lists in functions that enable strict mode in ES7.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5178}{}\doxysection{\texorpdfstring{3.\+2.\+0 (2016-\/06-\/07)}{3.\+2.\+0 (2016-\/06-\/07)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5178}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5179}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5179}
+Improve handling of lack of unicode regexp support in host environment.
+
+Properly reject shorthand properties whose name is a keyword.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5180}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5180}
+Visitors created with {\ttfamily visit.\+make} now have their base as {\itshape prototype}, rather than copying properties into a fresh object.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5181}{}\doxysection{\texorpdfstring{3.\+1.\+0 (2016-\/04-\/18)}{3.\+1.\+0 (2016-\/04-\/18)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5181}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5182}{}\doxysubsection{\texorpdfstring{Bug fixes}{Bug fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5182}
+Properly tokenize the division operator directly after a function expression.
+
+Allow trailing comma in destructuring arrays.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5183}{}\doxysection{\texorpdfstring{3.\+0.\+4 (2016-\/02-\/25)}{3.\+0.\+4 (2016-\/02-\/25)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5183}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5184}{}\doxysubsection{\texorpdfstring{Fixes}{Fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5184}
+Allow update expressions as left-\/hand-\/side of the ES7 exponential operator.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5185}{}\doxysection{\texorpdfstring{3.\+0.\+2 (2016-\/02-\/10)}{3.\+0.\+2 (2016-\/02-\/10)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5185}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5186}{}\doxysubsection{\texorpdfstring{Fixes}{Fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5186}
+Fix bug that accidentally made {\ttfamily undefined} a reserved word when parsing ES7.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5187}{}\doxysection{\texorpdfstring{3.\+0.\+0 (2016-\/02-\/10)}{3.\+0.\+0 (2016-\/02-\/10)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5187}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5188}{}\doxysubsection{\texorpdfstring{Breaking changes}{Breaking changes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5188}
+The default value of the {\ttfamily ecma\+Version} option is now 6 (used to be 5).
+
+Support for comprehension syntax (which was dropped from the draft spec) has been removed.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5189}{}\doxysubsection{\texorpdfstring{Fixes}{Fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5189}
+{\ttfamily let} and {\ttfamily yield} are now “contextual keywords”, meaning you can mostly use them as identifiers in ES5 non-\/strict code.
+
+A parenthesized class or function expression after {\ttfamily export default} is now parsed correctly.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5190}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5190}
+When {\ttfamily ecma\+Version} is set to 7, Acorn will parse the exponentiation operator ({\ttfamily \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}}).
+
+The identifier character ranges are now based on Unicode 8.\+0.\+0.
+
+Plugins can now override the {\ttfamily raise\+Recoverable} method to override the way non-\/critical errors are handled.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5191}{}\doxysection{\texorpdfstring{2.\+7.\+0 (2016-\/01-\/04)}{2.\+7.\+0 (2016-\/01-\/04)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5191}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5192}{}\doxysubsection{\texorpdfstring{Fixes}{Fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5192}
+Stop allowing rest parameters in setters.
+
+Disallow {\ttfamily y} rexexp flag in ES5.
+
+Disallow {\ttfamily \textbackslash{}00} and {\ttfamily \textbackslash{}000} escapes in strict mode.
+
+Raise an error when an import name is a reserved word.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5193}{}\doxysection{\texorpdfstring{2.\+6.\+2 (2015-\/11-\/10)}{2.\+6.\+2 (2015-\/11-\/10)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5193}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5194}{}\doxysubsection{\texorpdfstring{Fixes}{Fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5194}
+Don\textquotesingle{}t crash when no options object is passed.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5195}{}\doxysection{\texorpdfstring{2.\+6.\+0 (2015-\/11-\/09)}{2.\+6.\+0 (2015-\/11-\/09)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5195}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5196}{}\doxysubsection{\texorpdfstring{Fixes}{Fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5196}
+Add {\ttfamily await} as a reserved word in module sources.
+
+Disallow {\ttfamily yield} in a parameter default value for a generator.
+
+Forbid using a comma after a rest pattern in an array destructuring.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5197}{}\doxysubsection{\texorpdfstring{New features}{New features}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5197}
+Support parsing stdin in command-\/line tool.\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5198}{}\doxysection{\texorpdfstring{2.\+5.\+0 (2015-\/10-\/27)}{2.\+5.\+0 (2015-\/10-\/27)}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5198}
+\hypertarget{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5199}{}\doxysubsection{\texorpdfstring{Fixes}{Fixes}}\label{md_frontend_2node__modules_2acorn_2_c_h_a_n_g_e_l_o_g_autotoc_md5199}
+Fix tokenizer support in the command-\/line tool.
+
+Stop allowing {\ttfamily new.\+target} outside of functions.
+
+Remove legacy {\ttfamily guard} and {\ttfamily guarded\+Handler} properties from try nodes.
+
+Stop allowing multiple {\ttfamily \+\_\+\+\_\+proto\+\_\+\+\_\+} properties on an object literal in strict mode.
+
+Don\textquotesingle{}t allow rest parameters to be non-\/identifier patterns.
+
+Check for duplicate paramter names in arrow functions. 

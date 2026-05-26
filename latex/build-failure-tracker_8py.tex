@@ -1,0 +1,51 @@
+\doxysection{tools/\+\+LEARNING/\+build-\/failure-\/tracker.py File Reference}
+\hypertarget{build-failure-tracker_8py}{}\label{build-failure-tracker_8py}\index{tools/LEARNING/build-\/failure-\/tracker.py@{tools/LEARNING/build-\/failure-\/tracker.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacebuild-failure-tracker}{build-\/failure-\/tracker}}
+\item 
+namespace \doxymbox{\hyperlink{namespacebuild}{build}}
+\begin{DoxyCompactList}\small\item\em -\/zig-\/updater \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{build-\/failure-\/tracker.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{build-\/failure-\/tracker.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_abf994b8269849d29e07697ea8a840f74}{build-\/failure-\/tracker.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_adf0e2aa4d06b5ca38e44721821eca783}{build-\/failure-\/tracker.\+log\+\_\+warn}} (str msg)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_ade86b26ca9d0db00795c863bd17f6395}{build-\/failure-\/tracker.\+extract\+\_\+zig\+\_\+errors}} (str text)
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacebuild-failure-tracker_a38070d1d76c26e6a96575884cec69906}{build-\/failure-\/tracker.\+extract\+\_\+module\+\_\+from\+\_\+error}} (str line)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_ac63e4d635a9d544cfd6c1fa08eccda31}{build-\/failure-\/tracker.\+scan\+\_\+log\+\_\+files}} (str log\+\_\+dir)
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_af75e1ce2fb614a29a830e10ed79788eb}{build-\/failure-\/tracker.\+run\+\_\+git}} (list\+[str]\+ args, str cwd)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_a67825f85b5121d471419dc0f805e3a7e}{build-\/failure-\/tracker.\+get\+\_\+changed\+\_\+files}} (str cwd, str commit\+\_\+hash)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_a5fb9a201f35bc5768554c3657262016e}{build-\/failure-\/tracker.\+scan\+\_\+git\+\_\+build\+\_\+failures}} (str cwd, int max\+\_\+commits=200)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_a6d3afc9b6307eb436c5ff605b68645b5}{build-\/failure-\/tracker.\+find\+\_\+xy\+\_\+patterns}} (list\+[dict\+[str, Any]\+]\+ records)
+\item 
+int \doxymbox{\hyperlink{namespacebuild-failure-tracker_a7431cb90017e54fe695b23d4190db046}{build-\/failure-\/tracker.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_a4317aebada363d0d1f9107ff0ab54f4b}{build-\/failure-\/tracker.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_a627ec28744e7868587f2f9bcb51d7daf}{build-\/failure-\/tracker.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_ab365d160fbfac11b407f7f85438ea904}{build-\/failure-\/tracker.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_a96d0c632e9963cf1f685308fa15bbfed}{build-\/failure-\/tracker.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_afe22cdeafe87cc0a0dbbe6dd3c929ddf}{build-\/failure-\/tracker.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+list \doxymbox{\hyperlink{namespacebuild-failure-tracker_aa3e6135c14cbb8b05348f63b7aff7ebf}{build-\/failure-\/tracker.\+ZIG\+\_\+\+ERROR\+\_\+\+PATTERNS}}
+\end{DoxyCompactItemize}

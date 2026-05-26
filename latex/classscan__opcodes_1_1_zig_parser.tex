@@ -1,0 +1,237 @@
+\doxysection{scan\+\_\+opcodes.\+Zig\+Parser Class Reference}
+\hypertarget{classscan__opcodes_1_1_zig_parser}{}\label{classscan__opcodes_1_1_zig_parser}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_aac66a30111f36a2c224f49b565759822}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str content, str filename)
+\item 
+str \doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_a42f95beac1e475cc6f2d02d1f7cb1bcd}{get\+\_\+line\+\_\+context}} (self, int line\+\_\+num)
+\item 
+List\+[\doxymbox{\hyperlink{classscan__opcodes_1_1_constant}{Constant}}]\+ \doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_ac5f3e5ce5e3662d7c8b5f0a665477a17}{parse\+\_\+constants}} (self)
+\item 
+List\+[\doxymbox{\hyperlink{classscan__opcodes_1_1_enum_def}{Enum\+Def}}]\+ \doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_a7e88a6fee1aff2afaa381d82a1eafb61}{parse\+\_\+enums}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_ab48760df6eb26515e7ad6804e5c2690e}{content}} = content
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_a7d287628d1e5761f1561ea558051d2d6}{filename}} = filename
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_aa9f623f86b3d5bde0277cd66b44fed5c}{lines}} = content.\+split(\textquotesingle{}\textbackslash{}n\textquotesingle{})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_ae30fccd7c206519d3699d162a9825cff}{CONST\+\_\+\+PATTERN}}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_a88c871734f2b0e98502a815bd2ad0505}{ENUM\+\_\+\+PATTERN}}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_ac773d6ecfd7f9907f90ee26bad4ea50e}{INLINE\+\_\+\+ENUM\+\_\+\+PATTERN}}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_a60e99f1021fb2fda895caaeb6d27bfff}{COMMENT\+\_\+\+PATTERN}} = re.\+compile(r\textquotesingle{}/\+/\+(.+)\$\textquotesingle{}, re.\+MULTILINE)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_ab39bed31739c22dd3247294d5f8f03bf}{\+\_\+is\+\_\+simple\+\_\+constant}} (self, str value)
+\item 
+List\+[\doxymbox{\hyperlink{classscan__opcodes_1_1_enum_variant}{Enum\+Variant}}]\+ \doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser_adc678c46a270084fa02a60b58d444e69}{\+\_\+parse\+\_\+enum\+\_\+body}} (self, str body)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Parser pentru fișiere Zig.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00076}{76}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+
+
+\label{classscan__opcodes_1_1_zig_parser_doc-constructors}
+\Hypertarget{classscan__opcodes_1_1_zig_parser_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classscan__opcodes_1_1_zig_parser_aac66a30111f36a2c224f49b565759822}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_aac66a30111f36a2c224f49b565759822} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{content}{, }\item[{str}]{filename}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00097}{97}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+
+
+\label{classscan__opcodes_1_1_zig_parser_doc-func-members}
+\Hypertarget{classscan__opcodes_1_1_zig_parser_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classscan__opcodes_1_1_zig_parser_ab39bed31739c22dd3247294d5f8f03bf}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!\_is\_simple\_constant@{\_is\_simple\_constant}}
+\index{\_is\_simple\_constant@{\_is\_simple\_constant}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{\_is\_simple\_constant()}{\_is\_simple\_constant()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_ab39bed31739c22dd3247294d5f8f03bf} 
+ bool scan\+\_\+opcodes.\+Zig\+Parser.\+\_\+is\+\_\+simple\+\_\+constant (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{value}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Verifică dacă valoarea este o constantă simplă (nu structură).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00153}{153}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classscan__opcodes_1_1_zig_parser_adc678c46a270084fa02a60b58d444e69}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!\_parse\_enum\_body@{\_parse\_enum\_body}}
+\index{\_parse\_enum\_body@{\_parse\_enum\_body}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{\_parse\_enum\_body()}{\_parse\_enum\_body()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_adc678c46a270084fa02a60b58d444e69} 
+ List\+[\doxymbox{\hyperlink{classscan__opcodes_1_1_enum_variant}{Enum\+Variant}}]\+ scan\+\_\+opcodes.\+Zig\+Parser.\+\_\+parse\+\_\+enum\+\_\+body (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{body}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Parsează corpul unui enum.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00206}{206}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classscan__opcodes_1_1_zig_parser_a42f95beac1e475cc6f2d02d1f7cb1bcd}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!get\_line\_context@{get\_line\_context}}
+\index{get\_line\_context@{get\_line\_context}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{get\_line\_context()}{get\_line\_context()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_a42f95beac1e475cc6f2d02d1f7cb1bcd} 
+ str scan\+\_\+opcodes.\+Zig\+Parser.\+get\+\_\+line\+\_\+context (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int}]{line\+\_\+num}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ia comentariul deasupra unei linii sau de pe aceeași linie.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00102}{102}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{classscan__opcodes_1_1_zig_parser_ac5f3e5ce5e3662d7c8b5f0a665477a17}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!parse\_constants@{parse\_constants}}
+\index{parse\_constants@{parse\_constants}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{parse\_constants()}{parse\_constants()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_ac5f3e5ce5e3662d7c8b5f0a665477a17} 
+ List\+[\doxymbox{\hyperlink{classscan__opcodes_1_1_constant}{Constant}}]\+ scan\+\_\+opcodes.\+Zig\+Parser.\+parse\+\_\+constants (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extrage toate constantele simple din fișier (fără structuri complexe).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00123}{123}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classscan__opcodes_1_1_zig_parser_a7e88a6fee1aff2afaa381d82a1eafb61}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!parse\_enums@{parse\_enums}}
+\index{parse\_enums@{parse\_enums}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{parse\_enums()}{parse\_enums()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_a7e88a6fee1aff2afaa381d82a1eafb61} 
+ List\+[\doxymbox{\hyperlink{classscan__opcodes_1_1_enum_def}{Enum\+Def}}]\+ scan\+\_\+opcodes.\+Zig\+Parser.\+parse\+\_\+enums (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extrage toate enum-urile din fișier.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00171}{171}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+
+
+\label{classscan__opcodes_1_1_zig_parser_doc-variable-members}
+\Hypertarget{classscan__opcodes_1_1_zig_parser_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classscan__opcodes_1_1_zig_parser_a60e99f1021fb2fda895caaeb6d27bfff}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!COMMENT\_PATTERN@{COMMENT\_PATTERN}}
+\index{COMMENT\_PATTERN@{COMMENT\_PATTERN}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{COMMENT\_PATTERN}{COMMENT\_PATTERN}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_a60e99f1021fb2fda895caaeb6d27bfff} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+COMMENT\+\_\+\+PATTERN = re.\+compile(r\textquotesingle{}/\+/\+(.+)\$\textquotesingle{}, re.\+MULTILINE)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00095}{95}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_zig_parser_ae30fccd7c206519d3699d162a9825cff}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!CONST\_PATTERN@{CONST\_PATTERN}}
+\index{CONST\_PATTERN@{CONST\_PATTERN}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{CONST\_PATTERN}{CONST\_PATTERN}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_ae30fccd7c206519d3699d162a9825cff} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+CONST\+\_\+\+PATTERN\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'\string^\(\backslash\)s*(pub\(\backslash\)s+)?const\(\backslash\)s+(\(\backslash\)w+)\(\backslash\)s*[:=]\(\backslash\)s*([\string^;]+)(?:;|\$)'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ re.MULTILINE}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_zig_parser_ab48760df6eb26515e7ad6804e5c2690e}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!content@{content}}
+\index{content@{content}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{content}{content}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_ab48760df6eb26515e7ad6804e5c2690e} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+content = content}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00098}{98}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_zig_parser_a88c871734f2b0e98502a815bd2ad0505}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!ENUM\_PATTERN@{ENUM\_PATTERN}}
+\index{ENUM\_PATTERN@{ENUM\_PATTERN}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{ENUM\_PATTERN}{ENUM\_PATTERN}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_a88c871734f2b0e98502a815bd2ad0505} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+ENUM\+\_\+\+PATTERN\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?const\(\backslash\)s+(\(\backslash\)w+)\(\backslash\)s*=\(\backslash\)s*enum\(\backslash\)s*\(\backslash\)\{([\string^\}]+)\(\backslash\)\}'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ re.DOTALL}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00085}{85}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_zig_parser_a7d287628d1e5761f1561ea558051d2d6}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!filename@{filename}}
+\index{filename@{filename}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{filename}{filename}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_a7d287628d1e5761f1561ea558051d2d6} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+filename = filename}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00099}{99}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_zig_parser_ac773d6ecfd7f9907f90ee26bad4ea50e}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!INLINE\_ENUM\_PATTERN@{INLINE\_ENUM\_PATTERN}}
+\index{INLINE\_ENUM\_PATTERN@{INLINE\_ENUM\_PATTERN}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{INLINE\_ENUM\_PATTERN}{INLINE\_ENUM\_PATTERN}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_ac773d6ecfd7f9907f90ee26bad4ea50e} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+INLINE\+\_\+\+ENUM\+\_\+\+PATTERN\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'pub\(\backslash\)s+const\(\backslash\)s+(\(\backslash\)w+)\(\backslash\)s*=\(\backslash\)s*enum\(\backslash\)s*\(\backslash\)(\(\backslash\)s*\(\backslash\)w+\(\backslash\)s*\(\backslash\))\(\backslash\)s*\(\backslash\)\{([\string^\}]+)\(\backslash\)\}'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ re.DOTALL}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00090}{90}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_zig_parser_aa9f623f86b3d5bde0277cd66b44fed5c}\index{scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}!lines@{lines}}
+\index{lines@{lines}!scan\_opcodes.ZigParser@{scan\_opcodes.ZigParser}}
+\doxysubsubsection{\texorpdfstring{lines}{lines}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_zig_parser_aa9f623f86b3d5bde0277cd66b44fed5c} 
+scan\+\_\+opcodes.\+Zig\+Parser.\+lines = content.\+split(\textquotesingle{}\textbackslash{}n\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00100}{100}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+ai-\/opcode-\/research/\+\doxymbox{\hyperlink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py}}\end{DoxyCompactItemize}

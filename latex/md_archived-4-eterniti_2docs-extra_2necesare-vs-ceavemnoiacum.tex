@@ -1,0 +1,465 @@
+\chapter{Necesare vs Ce Avem Acum -\/ Omni\+Bus Blockchain }
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum}{}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum}\index{Necesare vs Ce Avem Acum -\/ OmniBus Blockchain@{Necesare vs Ce Avem Acum -\/ OmniBus Blockchain}}
+\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md514}%
+\Hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md514}%
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md515}{}\doxysection{\texorpdfstring{📋 Overview}{📋 Overview}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md515}
+{\bfseries{Scală target:\+}} 100-\/2000 noduri validatori ~\newline
+ {\bfseries{Block time:\+}} 1 secundă (10 sub-\/blocuri × 0.\+1s) ~\newline
+ {\bfseries{TPS target:\+}} 4000-\/5000+ tranzacții/\+secundă ~\newline
+ {\bfseries{Arhitectură:\+}} PoW + Casper FFG (hybrid) + Sharding
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md517}{}\doxysection{\texorpdfstring{✅ IMPLEMENTAT (Ce avem funcțional)}{✅ IMPLEMENTAT (Ce avem funcțional)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md517}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md518}{}\doxysubsection{\texorpdfstring{1. Consens \& Finalitate}{1. Consens \& Finalitate}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md518}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  \\
+PoW (Proof of Work)  &✅ Funcțional  &{\ttfamily core/\+consensus.\+zig}  \\
+Casper FFG  &✅ Implementat  &{\ttfamily core/\+finality.\+zig}  \\
+Checkpoint-\/uri (64 blocuri)  &✅ Activ  &{\ttfamily CHECKPOINT\+\_\+\+INTERVAL = 64}  \\
+Justification (2/\+3+ voturi)  &✅ Funcțional  &{\ttfamily has\+Supermajority()}  \\
+Finalization  &✅ Implementat  &Casper FFG rule  \\
+Slashing (equivocation)  &✅ Detectat  &{\ttfamily slash\+\_\+count} tracking  \\
+Double-\/vote detection  &✅ Validat  &{\ttfamily validator\+\_\+votes\+[]\+} array  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md519}{}\doxysubsection{\texorpdfstring{2. Sub-\/blocuri \& Mining}{2. Sub-\/blocuri \& Mining}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md519}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+Sub\+Block (0.\+1s)  &✅ Funcțional  &10 sub-\/blocuri /\+ Key\+Block  \\
+Key\+Block (1s)  &✅ Agregare completă  &Merkle root din 10 sub-\/blocuri  \\
+Sub\+Block\+Engine  &✅ Orchestrare  &Tick-\/based generation  \\
+Shard assignment  &✅ Per sub-\/bloc  &{\ttfamily shard\+\_\+id} în Sub\+Block  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md520}{}\doxysubsection{\texorpdfstring{3. Sharding}{3. Sharding}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md520}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+Shard\+Coordinator  &✅ EGLD-\/style  &Hash-\/based routing  \\
+4 Shards active  &✅ Configurat  &{\ttfamily num\+\_\+shards = 4}  \\
+Cross-\/shard TX detection  &✅ Funcțional  &{\ttfamily is\+Cross\+Shard()}  \\
+Adaptive sharding  &✅ Logică prezentă  &Split/\+merge la 80\%/\+20\% load  \\
+Metachain support  &✅ Constant definit  &{\ttfamily METACHAIN\+\_\+\+SHARD = 0x\+FF}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md521}{}\doxysubsection{\texorpdfstring{4. Networking P2P}{4. Networking P2P}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md521}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+TCP Transport  &✅ Windows + Linux  &{\ttfamily ws2\+\_\+32} fallback  \\
+Binary protocol  &✅ Header + payload  &9-\/byte header  \\
+Gossip protocol  &✅ Deduplicare  &{\ttfamily Seen\+Hashes} ring buffer  \\
+TX relay  &✅ Funcțional  &{\ttfamily broadcast\+Tx()}  \\
+Block announce  &✅ Funcțional  &{\ttfamily broadcast\+Block()}  \\
+PEX (Peer Exchange)  &✅ Implementat  &{\ttfamily encode\+Peer\+List/\+decode\+Peer\+List}  \\
+Rate limiting  &✅ Per-\/peer  &100 msg/\+sec, 10MB/\+sec  \\
+Subnet diversity  &✅ Anti-\/eclipse  &Max 2 peers /\+ /\+16 subnet  \\
+Ban system  &✅ Activ  &{\ttfamily Banned\+Peer} tracking  \\
+Reconnect queue  &✅ Persistent  &{\ttfamily Reconnect\+Info}  \\
+SPV header sync  &✅ Complet  &{\ttfamily sync\+Headers()}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md522}{}\doxysubsection{\texorpdfstring{5. Peer Scoring (Bitcoin-\/style)}{5. Peer Scoring (Bitcoin-\/style)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md522}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+Misbehavior tracking  &✅ Funcțional  &{\ttfamily Peer\+Score} struct  \\
+Auto-\/ban  &✅ La -\/100 score  &{\ttfamily BAN\+\_\+\+THRESHOLD}  \\
+Event deltas  &✅ Configurate  &Valid block:\+ +1, Double-\/spend:\+ -\/100  \\
+Ban expiry  &✅ 24 ore  &{\ttfamily BAN\+\_\+\+DURATION\+\_\+\+SEC}  \\
+Trust levels  &✅ 0-\/100 scale  &{\ttfamily trust\+Level()}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md523}{}\doxysubsection{\texorpdfstring{6. Staking \& Validatori}{6. Staking \& Validatori}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md523}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+Validator registration  &✅ Cu stake  &Min 100 OMNI  \\
+Active set  &✅ Max 128  &{\ttfamily MAX\+\_\+\+VALIDATORS}  \\
+Delegation tracking  &✅ Structuri definite  &{\ttfamily Delegation} struct  \\
+Unbonding period  &✅ 7 zile  &{\ttfamily UNBONDING\+\_\+\+PERIOD = 604800} blocuri  \\
+Weighted selection  &✅ Random by stake  &{\ttfamily select\+Proposer()}  \\
+Downtime slashing  &✅ 1\% penalty  &{\ttfamily DOWNTIME\+\_\+\+PENALTY\+\_\+\+PCT}  \\
+Double-\/sign slashing  &✅ 33\% penalty  &{\ttfamily SLASH\+\_\+\+DOUBLE\+\_\+\+SIGN\+\_\+\+PCT}  \\
+Invalid block slashing  &✅ 10\% penalty  &{\ttfamily SLASH\+\_\+\+INVALID\+\_\+\+BLOCK\+\_\+\+PCT}  \\
+Evidence submission  &✅ Complet  &{\ttfamily submit\+Slash\+Evidence()}  \\
+Reporter rewards  &✅ 10\% din slash  &{\ttfamily REPORTER\+\_\+\+REWARD\+\_\+\+PCT}  \\
+Slash history  &✅ Persistent  &{\ttfamily get\+Slash\+History()}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md524}{}\doxysubsection{\texorpdfstring{7. Mempool}{7. Mempool}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md524}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+FIFO queue  &✅ Anti-\/\+MEV  &{\ttfamily Mempool\+Entry} list  \\
+Max 10K TX  &✅ Limită activă  &{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+TX}  \\
+Fee market  &✅ Sortare by fee  &{\ttfamily get\+By\+Fee()}  \\
+Median fee estimation  &✅ Pentru RPC  &{\ttfamily median\+Fee()}  \\
+Nonce tracking  &✅ Per-\/address  &{\ttfamily pending\+\_\+count} Hash\+Map  \\
+Replace-\/by-\/nonce  &✅ Fee bumping  &{\ttfamily replace\+By\+Nonce()}  \\
+TX expiry  &✅ 14 zile  &{\ttfamily MEMPOOL\+\_\+\+EXPIRY\+\_\+\+SEC}  \\
+Locktime support  &✅ Timelocked TX  &{\ttfamily get\+Mineable()} filtering  \\
+Memory management  &✅ 300MB limit  &{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+MEMORY}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md525}{}\doxysubsection{\texorpdfstring{8. BLS Signatures (Simulat)}{8. BLS Signatures (Simulat)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md525}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+Key generation  &✅ Simulat  &32-\/byte secret, 48-\/byte pubkey  \\
+Signing  &✅ HMAC-\/based  &{\ttfamily bls\+Sign()}  \\
+Verification  &✅ Structural  &{\ttfamily bls\+Verify()}  \\
+Aggregation  &✅ XOR-\/based  &{\ttfamily bls\+Aggregate()}  \\
+Threshold signatures  &✅ t-\/of-\/n  &{\ttfamily Bls\+Threshold} struct  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md526}{}\doxysubsection{\texorpdfstring{9. Light Client (SPV)}{9. Light Client (SPV)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md526}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+Block headers  &✅ 200 bytes each  &{\ttfamily Block\+Header} struct  \\
+Merkle proofs  &✅ Verificare completă  &{\ttfamily verify\+Merkle\+Proof()}  \\
+Bloom filters  &✅ 512 bytes  &{\ttfamily Bloom\+Filter} struct  \\
+Header pruning  &✅ Keep last 1000  &{\ttfamily max\+\_\+headers\+\_\+to\+\_\+keep}  \\
+Chain validation  &✅ Links + timestamp  &{\ttfamily validate\+Header()}  \\
+Fast sync  &✅ From checkpoint  &{\ttfamily fast\+Sync\+From\+Checkpoint()}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md527}{}\doxysubsection{\texorpdfstring{10. Storage \& Codec}{10. Storage \& Codec}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md527}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Detalii  \\
+Binary codec  &✅ Serde complet  &{\ttfamily binary\+\_\+codec.\+zig}  \\
+State trie  &✅ Definit  &{\ttfamily state\+\_\+trie.\+zig}  \\
+Archive manager  &✅ Rotație fișiere  &{\ttfamily archive\+\_\+manager.\+zig}  \\
+Compact blocks  &✅ Comprimare  &{\ttfamily compact\+\_\+blocks.\+zig}  \\
+Witness data  &✅ Format definit  &{\ttfamily witness\+\_\+data.\+zig}  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md529}{}\doxysection{\texorpdfstring{❌ LIPSEȘ\+TE (Ce trebuie implementat)}{❌ LIPSEȘ\+TE (Ce trebuie implementat)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md529}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md530}{}\doxysubsection{\texorpdfstring{🔴 CRITIC -\/ Blochează scalarea la 2000 noduri}{🔴 CRITIC -\/ Blochează scalarea la 2000 noduri}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md530}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md531}{}\doxysubsubsection{\texorpdfstring{1. LMD GHOST Fork Choice Rule}{1. LMD GHOST Fork Choice Rule}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md531}
+{\bfseries{Ce e:\+}} Algoritmul care alege "{}lanțul cel mai greu"{} după voturi, nu doar cel mai lung ~\newline
+ {\bfseries{De ce e necesar:\+}} La 1s/\+bloc și fork-\/uri frecvente, PoW pure nu e suficient ~\newline
+ {\bfseries{Status:\+}} ❌ Lipsește complet ~\newline
+ {\bfseries{Implementare necesară:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Pseudo-\/cod}
+\DoxyCodeLine{pub\ const\ LMDGhost\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ latest\_attestations:\ [MAX\_VALIDATORS]Attestation,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getHead(self:\ *LMDGhost,\ finalized\_checkpoint:\ Checkpoint)\ -\/>\ BlockHash\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Pornește\ de\ la\ checkpoint\ finalizat}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Alege\ ramura\ cu\ cele\ mai\ multe\ voturi\ cumulative}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}2-\/3 zile ~\newline
+ {\bfseries{Fișiere noi:\+}} {\ttfamily core/\+lmd\+\_\+ghost.\+zig}\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md532}{}\doxysubsubsection{\texorpdfstring{2. BLS12-\/381 Real (Nu simulat)}{2. BLS12-\/381 Real (Nu simulat)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md532}
+{\bfseries{Ce e:\+}} Curbe eliptice pairing-\/friendly pentru agregare reală de semnături ~\newline
+ {\bfseries{De ce e necesar:\+}} Simularea actuală (XOR) nu oferă securitate criptografică reală ~\newline
+ {\bfseries{Status:\+}} ❌ Simulat doar ~\newline
+ {\bfseries{Soluții:\+}}
+\begin{DoxyItemize}
+\item Opțiune A:\+ Integrare {\ttfamily blst} (BLS signatures by Supranational) -\/ recomandat
+\item Opțiune B:\+ {\ttfamily mcl} library (BLS12-\/381 în C++)
+\item Opțiune C:\+ Pure Zig (foarte lent, doar pentru test)
+\end{DoxyItemize}
+
+{\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}3-\/5 zile (incl. bindings C) ~\newline
+ {\bfseries{Fișiere modificate:\+}} {\ttfamily core/\+bls\+\_\+signatures.\+zig}\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md533}{}\doxysubsubsection{\texorpdfstring{3. Committee Selection (VRF Sampling)}{3. Committee Selection (VRF Sampling)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md533}
+{\bfseries{Ce e:\+}} Selectare aleatorie a unui subset de validatori (ex:\+ 128 din 2000) per slot ~\newline
+ {\bfseries{De ce e necesar:\+}} 2000 validatori × 10 sub-\/blocuri = 20K voturi/\+secundă = flood ~\newline
+ {\bfseries{Status:\+}} ❌ Toți validatorii votează acum ~\newline
+ {\bfseries{Implementare necesară:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ CommitteeSelector\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ selectCommittee(seed:\ [32]u8,\ total\_validators:\ u16,\ committee\_size:\ u16)\ -\/>\ []ValidatorIndex;}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ //\ VRF\ pentru\ selecție\ verificabilă}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ vrfProve(sk:\ SecretKey,\ seed:\ []u8)\ -\/>\ VRFProof;}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ vrfVerify(pk:\ PublicKey,\ seed:\ []u8,\ proof:\ VRFProof)\ -\/>\ bool;}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}2-\/3 zile ~\newline
+ {\bfseries{Fișiere noi:\+}} {\ttfamily core/\+committee\+\_\+selection.\+zig}, {\ttfamily core/\+vrf.\+zig}\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md534}{}\doxysubsubsection{\texorpdfstring{4. BLS Aggregation la Nivel de Rețea}{4. BLS Aggregation la Nivel de Rețea}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md534}
+{\bfseries{Ce e:\+}} Agregarea semnăturilor BLS înainte de propagare ~\newline
+ {\bfseries{De ce e necesar:\+}} Reducere de la 2000 semnături la 1 per mesaj ~\newline
+ {\bfseries{Status:\+}} ❌ Are funcția {\ttfamily bls\+Aggregate()} dar nu e folosită în P2P ~\newline
+ {\bfseries{Implementare necesară:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ În\ p2p.zig}
+\DoxyCodeLine{pub\ fn\ broadcastAggregatedAttestation(attestations:\ []Attestation)\ \{}
+\DoxyCodeLine{\ \ \ \ const\ agg\_sig\ =\ blsAggregate(attestations.map(|a|\ a.signature));}
+\DoxyCodeLine{\ \ \ \ const\ agg\_pubkey\ =\ blsAggregateKeys(attestations.map(|a|\ a.pubkey));}
+\DoxyCodeLine{\ \ \ \ //\ Propagă\ doar\ semnătura\ agregată}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}1-\/2 zile ~\newline
+ {\bfseries{Fișiere modificate:\+}} {\ttfamily core/\+p2p.\+zig}\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md535}{}\doxysubsubsection{\texorpdfstring{5. Inactivity Leak}{5. Inactivity Leak}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md535}
+{\bfseries{Ce e:\+}} Penalizare progresivă pentru validatori offline (ca Ethereum 2.\+0) ~\newline
+ {\bfseries{De ce e necesar:\+}} Dacă 1/\+3 din rețea cade, restul trebuie să poată finaliza ~\newline
+ {\bfseries{Status:\+}} ❌ Lipsește ~\newline
+ {\bfseries{Implementare necesară:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ InactivityLeak\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ offline\_epochs:\ [MAX\_VALIDATORS]u64,\ //\ câte\ epoci\ a\ fost\ offline}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ processEpoch(self:\ *InactivityLeak,\ participation:\ []bool)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Dacă\ <\ 2/3\ participare,\ începe\ penalizarea}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Reduce\ stake-\/ul\ validatorilor\ offline\ progresiv}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}1-\/2 zile ~\newline
+ {\bfseries{Fișiere noi:\+}} {\ttfamily core/\+inactivity\+\_\+leak.\+zig}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md537}{}\doxysubsection{\texorpdfstring{🟡 IMPORTANT -\/ Optimizare performanță}{🟡 IMPORTANT -\/ Optimizare performanță}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md537}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md538}{}\doxysubsubsection{\texorpdfstring{6. State Sharding Complet}{6. State Sharding Complet}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md538}
+{\bfseries{Ce e:\+}} Fiecare shard își menține propria stare, nu doar coordonatorul ~\newline
+ {\bfseries{De ce e necesar:\+}} Un nod nu trebuie să stocheze toată starea ~\newline
+ {\bfseries{Status:\+}} ⚠️ Are coordonator dar nu și split efectiv al stării ~\newline
+ {\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item State root per shard
+\item Cross-\/shard state proofs
+\item Shard state sync
+\end{DoxyItemize}
+
+{\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}5-\/7 zile ~\newline
+ {\bfseries{Fișiere noi:\+}} {\ttfamily core/\+shard\+\_\+state.\+zig}, {\ttfamily core/\+cross\+\_\+shard\+\_\+state.\+zig}\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md539}{}\doxysubsubsection{\texorpdfstring{7. Parallel Transaction Execution}{7. Parallel Transaction Execution}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md539}
+{\bfseries{Ce e:\+}} Execuție paralelă a TX-\/urilor independente pe multiple core-\/uri ~\newline
+ {\bfseries{De ce e necesar:\+}} Crește TPS de la 5000 la potențial 20000+ ~\newline
+ {\bfseries{Status:\+}} ❌ Secvențial acum ~\newline
+ {\bfseries{Implementare necesară:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ ParallelExecutor\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ executeParallel(txs:\ []Transaction,\ num\_threads:\ u8)\ -\/>\ []TransactionResult\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Detectează\ dependențe\ (aceeași\ adresă\ =\ conflict)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Grupează\ TX-\/uri\ independente}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Execută\ în\ paralel\ pe\ thread\ pool}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}3-\/4 zile ~\newline
+ {\bfseries{Fișiere noi:\+}} {\ttfamily core/\+parallel\+\_\+exec.\+zig}\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md540}{}\doxysubsubsection{\texorpdfstring{8. RANDAO (On-\/chain Randomness)}{8. RANDAO (On-\/chain Randomness)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md540}
+{\bfseries{Ce e:\+}} Sursă de randomness verificabilă pentru selecția comitetelor ~\newline
+ {\bfseries{De ce e necesar:\+}} Nu poți folosi block hash (minerii pot manipula) ~\newline
+ {\bfseries{Status:\+}} ❌ Lipsește ~\newline
+ {\bfseries{Implementare necesară:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ RANDAO\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ reveals:\ [MAX\_VALIDATORS][32]u8,\ //\ Hash\ pre-\/commitments}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ commit(self:\ *RANDAO,\ validator:\ u16,\ hash:\ [32]u8);}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ reveal(self:\ *RANDAO,\ validator:\ u16,\ value:\ [32]u8);}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getRandomness(self:\ *RANDAO)\ -\/>\ [32]u8;\ //\ XOR\ de\ toate\ reveal-\/urile}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}2-\/3 zile ~\newline
+ {\bfseries{Fișiere noi:\+}} {\ttfamily core/\+randao.\+zig}\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md541}{}\doxysubsubsection{\texorpdfstring{9. Gossipsub Protocol (libp2p-\/style)}{9. Gossipsub Protocol (libp2p-\/style)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md541}
+{\bfseries{Ce e:\+}} Protocol de gossip mesh cu forwarding controlat ~\newline
+ {\bfseries{De ce e necesar:\+}} Gossipul actual e prea simplu pentru 2000 noduri ~\newline
+ {\bfseries{Status:\+}} ⚠️ Are deduplicare dar nu și mesh formation ~\newline
+ {\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item Topic subscription
+\item Mesh maintenance (graft/\+prune)
+\item Message validation pipeline
+\item Fan-\/out pentru topic-\/uri noi
+\end{DoxyItemize}
+
+{\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}4-\/5 zile ~\newline
+ {\bfseries{Fișiere modificate:\+}} {\ttfamily core/\+p2p.\+zig} (extensii majore)\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md542}{}\doxysubsubsection{\texorpdfstring{10. Snapshotting pentru Fast Sync}{10. Snapshotting pentru Fast Sync}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md542}
+{\bfseries{Ce e:\+}} Puncte de restaurare periodice pentru sincronizare rapidă ~\newline
+ {\bfseries{De ce e necesar:\+}} Un nod nou nu trebuie să proceseze 1M blocuri ~\newline
+ {\bfseries{Status:\+}} ⚠️ Light client are fast sync, full node nu ~\newline
+ {\bfseries{Implementare necesară:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ SnapshotManager\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ createSnapshot(height:\ u64)\ -\/>\ Snapshot;\ //\ State\ trie\ +\ validator\ set}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ restoreFromSnapshot(snapshot:\ Snapshot)\ -\/>\ BlockchainState;}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}2-\/3 zile ~\newline
+ {\bfseries{Fișiere noi:\+}} {\ttfamily core/\+snapshot.\+zig}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md544}{}\doxysubsection{\texorpdfstring{🟢 NICE TO HAVE -\/ Îmbunătățiri UX}{🟢 NICE TO HAVE -\/ Îmbunătățiri UX}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md544}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md545}{}\doxysubsubsection{\texorpdfstring{11. Dynamic Gas Limit}{11. Dynamic Gas Limit}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md545}
+{\bfseries{Ce e:\+}} Ajustare automată a numărului de TX per bloc în funcție de load ~\newline
+ {\bfseries{Status:\+}} ❌ Block size static acum ~\newline
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}1 zi\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md546}{}\doxysubsubsection{\texorpdfstring{12. Health Check RPC}{12. Health Check RPC}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md546}
+{\bfseries{Ce e:\+}} Endpoint care raportează CPU, RAM, network health în timp real ~\newline
+ {\bfseries{Status:\+}} ❌ Lipsește ~\newline
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}1 zi\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md547}{}\doxysubsubsection{\texorpdfstring{13. Merkle Patricia Tries pentru State}{13. Merkle Patricia Tries pentru State}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md547}
+{\bfseries{Ce e:\+}} Structură de date eficientă pentru starea conturilor ~\newline
+ {\bfseries{Status:\+}} ⚠️ Are {\ttfamily state\+\_\+trie.\+zig} dar nu e utilizat complet ~\newline
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}2-\/3 zile\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md548}{}\doxysubsubsection{\texorpdfstring{14. State Pruning}{14. State Pruning}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md548}
+{\bfseries{Ce e:\+}} Ștergerea stării vechi (de acum \texorpdfstring{$>$}{>}1 an) pentru a reduce DB ~\newline
+ {\bfseries{Status:\+}} ⚠️ Are config în {\ttfamily prune\+\_\+config.\+zig} dar nu implementare completă ~\newline
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}2 zile\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md549}{}\doxysubsubsection{\texorpdfstring{15. Bandwidth Throttling per Peer}{15. Bandwidth Throttling per Peer}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md549}
+{\bfseries{Ce e:\+}} Limitare dinamică a bandwidth-\/ului în funcție de peer score ~\newline
+ {\bfseries{Status:\+}} ⚠️ Are rate limiting per message count, nu și bandwidth ~\newline
+ {\bfseries{Efort:\+}} \texorpdfstring{$\sim$}{\string~}1-\/2 zile
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md551}{}\doxysection{\texorpdfstring{📊 Rezumat Implementare}{📊 Rezumat Implementare}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md551}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md552}{}\doxysubsection{\texorpdfstring{Estimare Totală Efort}{Estimare Totală Efort}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md552}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prioritate  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Iteme  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Zile Estimate  \\
+🔴 CRITIC  &5 iteme  &10-\/15 zile  \\
+🟡 IMPORTANT  &5 iteme  &15-\/20 zile  \\
+🟢 NICE TO HAVE  &5 iteme  &7-\/9 zile  \\
+{\bfseries{TOTAL}}  &{\bfseries{15 iteme}}  &{\bfseries{32-\/44 zile}}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md553}{}\doxysubsection{\texorpdfstring{Dependențe}{Dependențe}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md553}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{BLS12-\/381\ Real}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{BLS\ Aggregation\ în\ P2P}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Committee\ Selection\ (VRF)}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{LMD\ GHOST\ (depinde\ de\ voturi\ agregate)}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Inactivity\ Leak}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md554}{}\doxysubsection{\texorpdfstring{Roadmap Recomandată}{Roadmap Recomandată}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md554}
+{\bfseries{Sprint 1 (Zilele 1-\/7):\+ Fundație Cripto}}
+\begin{DoxyEnumerate}
+\item BLS12-\/381 real cu blst
+\item BLS aggregation în P2P
+\item Committee selection VRF
+\end{DoxyEnumerate}
+
+{\bfseries{Sprint 2 (Zilele 8-\/14):\+ Consens Avansat}}
+\begin{DoxyEnumerate}
+\item LMD GHOST fork choice
+\item Inactivity leak
+\item RANDAO randomness
+\end{DoxyEnumerate}
+
+{\bfseries{Sprint 3 (Zilele 15-\/21):\+ Scalabilitate State}}
+\begin{DoxyEnumerate}
+\item State sharding complet
+\item Parallel execution
+\item Snapshotting
+\end{DoxyEnumerate}
+
+{\bfseries{Sprint 4 (Zilele 22-\/30):\+ Optimizări}}
+\begin{DoxyEnumerate}
+\item Gossipsub mesh
+\item Dynamic gas limit
+\item Health checks
+\item State pruning
+\item Merkle Patricia Tries
+\item Bandwidth throttling
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md556}{}\doxysection{\texorpdfstring{🔍 Cum testăm scalarea?}{🔍 Cum testăm scalarea?}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md556}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md557}{}\doxysubsection{\texorpdfstring{Test Local (înainte de mainnet)}{Test Local (înainte de mainnet)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md557}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Simulează\ 2000\ noduri\ cu\ Docker\ Compose}
+\DoxyCodeLine{\#\ docker-\/compose.yml\ cu\ 2000\ container\ instances}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Generează\ TX-\/uri\ cu\ script}
+\DoxyCodeLine{./scripts/flood\_test.sh\ -\/-\/tps\ 5000\ -\/-\/duration\ 60}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Monitorizează\ metrici}
+\DoxyCodeLine{\#\ -\/\ Latency\ per\ sub-\/bloc}
+\DoxyCodeLine{\#\ -\/\ Message\ count\ per\ secundă}
+\DoxyCodeLine{\#\ -\/\ CPU/RAM\ per\ nod}
+\DoxyCodeLine{\#\ -\/\ Bandwidth\ usage}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md558}{}\doxysubsection{\texorpdfstring{Metrici de succes}{Metrici de succes}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md558}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metrică  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Target  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status Acum  \\
+Block time  &1s  &✅ 10s (scade la 1s)  \\
+Sub-\/blocuri  &10/\+sec  &✅ Funcțional  \\
+TPS  &5000+  &✅ Testat 4000-\/5000  \\
+Validatori  &2000  &❌ Testat doar 100  \\
+Latență rețea  &\texorpdfstring{$<$}{<}50ms RTT  &⚠️ Necesită test  \\
+Semnături agregate  &1 per bloc  &❌ Lipsește  \\
+Finalitate  &\texorpdfstring{$<$}{<}2 min  &✅ 64-\/128 sec  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md560}{}\doxysection{\texorpdfstring{📝 Notă pentru echipă}{📝 Notă pentru echipă}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md560}
+{\bfseries{Ce avem acum e SOLID:\+}}
+\begin{DoxyItemize}
+\item Arhitectura hybrid Po\+W+\+PoS e corect gândită
+\item Sub-\/blocurile funcționează bine pentru throughput
+\item Sharding-\/ul are fundația pusă
+\item P2\+P-\/ul are hardening bun (ban, rate limiting, subnet diversity)
+\end{DoxyItemize}
+
+{\bfseries{Ce ne blochează scalarea:\+}}
+\begin{DoxyItemize}
+\item Absența LMD GHOST pentru fork choice rapid
+\item Lipsa committee selection (toți votează = flood)
+\item BLS simulat în loc de curbe reale
+\item Lipsa inactivity leak pentru reziliență
+\end{DoxyItemize}
+
+{\bfseries{Recomandare:\+}} Implementeaza cele 5 iteme critice inainte de orice mainnet cu \texorpdfstring{$>$}{>}100 validatori.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md562}{}\doxysection{\texorpdfstring{v0.\+2.\+0 — Module noi (2026-\/03-\/31)}{v0.\+2.\+0 — Module noi (2026-\/03-\/31)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md562}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md563}{}\doxysubsection{\texorpdfstring{Adresare \& Wallet (BTC parity 115\%)}{Adresare \& Wallet (BTC parity 115\%)}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md563}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componenta  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fisier  \\
+Bech32/\+\+Bech32m (BIP-\/173/\+350)  &Implementat  &{\ttfamily core/\+bech32.\+zig}  \\
+Adrese ob1q... (42 chars, ca BTC bc1q)  &Implementat  &HRP="{}ob"{}  \\
+xpub/\+xprv extended keys  &Implementat  &{\ttfamily core/\+bip32\+\_\+wallet.\+zig}  \\
+WIF, master\+\_\+fingerprint, hash160  &Implementat  &{\ttfamily core/\+bip32\+\_\+wallet.\+zig}  \\
+Change addresses (chain=1)  &Implementat  &{\ttfamily derive\+Change\+Address()}  \\
+Passphrase BIP-\/39  &Implementat  &{\ttfamily init\+From\+Mnemonic\+Passphrase()}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md564}{}\doxysubsection{\texorpdfstring{Tranzactii \& UTXO}{Tranzactii \& UTXO}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md564}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componenta  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fisier  \\
+UTXO Set complet  &Implementat  &{\ttfamily core/\+utxo.\+zig}  \\
+RBF (Replace-\/\+By-\/\+Fee)  &Implementat  &{\ttfamily core/\+transaction.\+zig} + {\ttfamily mempool.\+zig}  \\
+CPFP (Child-\/\+Pays-\/\+For-\/\+Parent)  &Implementat  &{\ttfamily core/\+mempool.\+zig}  \\
+PSBT (BIP-\/174)  &Implementat  &{\ttfamily core/\+psbt.\+zig}  \\
+Sequence number (BIP-\/125)  &Implementat  &{\ttfamily core/\+transaction.\+zig}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md565}{}\doxysubsection{\texorpdfstring{Layer 2 \& Lightning}{Layer 2 \& Lightning}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md565}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componenta  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fisier  \\
+HTLC Contracts  &Implementat  &{\ttfamily core/\+htlc.\+zig}  \\
+Lightning Network  &Implementat  &{\ttfamily core/\+lightning.\+zig}  \\
+Block Filters (BIP-\/157/\+158)  &Implementat  &{\ttfamily core/\+block\+\_\+filter.\+zig}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md566}{}\doxysubsection{\texorpdfstring{Networking \& Privacy}{Networking \& Privacy}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md566}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componenta  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fisier  \\
+Tor SOCKS5 proxy  &Implementat  &{\ttfamily core/\+tor\+\_\+proxy.\+zig}  \\
+BIP-\/324 encrypted P2P  &Implementat  &{\ttfamily core/\+encrypted\+\_\+p2p.\+zig}  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md567}{}\doxysubsection{\texorpdfstring{Multi-\/\+Chain Wallet}{Multi-\/\+Chain Wallet}}\label{md_archived-4-eterniti_2docs-extra_2necesare-vs-ceavemnoiacum_autotoc_md567}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componenta  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fisier  \\
+19-\/chain wallet (1 mnemonic)  &Implementat  &{\ttfamily \doxylink{generate__multiwallet_8py}{scripts/\+generate\+\_\+multiwallet.\+py}}  \\
+138 adrese:\+ OMNI+\+BTC+\+ETH+\+SOL+\+ADA+\+DOT+...  &Implementat  &Account-\/based structure  \\
+\end{DoxyTable}
+
+
+{\bfseries{Total module Zig:\+ 78 \texorpdfstring{$\vert$}{|} BTC parity:\+ 115\% + 30 extras}} 

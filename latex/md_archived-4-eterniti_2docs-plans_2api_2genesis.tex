@@ -1,0 +1,249 @@
+\chapter{Module:\+ {\ttfamily genesis} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis}{}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis}\index{Module: $<$tt$>$genesis$<$/tt$>$@{Module: $<$tt$>$genesis$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1600}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1600}%
+
+
+\begin{quote}
+Genesis block initialization — creates the first block with network config (mainnet/\+testnet), initial balances, and chain parameters. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+genesis.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 247 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 7 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 6
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1602}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1602}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1603}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1603}
+
+\begin{DoxyItemize}
+\item \`{}\+Network\+Config\`{}{\ttfamily Network\+Config}
+\end{DoxyItemize}— Configuratia retelei — schimbabila fara sa afecteze trecutul
+\begin{DoxyItemize}
+\item \`{}\+Genesis\+State\`{}{\ttfamily Genesis\+State}
+\end{DoxyItemize}— Starea Genesis — toate datele necesare pentru primul bloc\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1604}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1604}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1605}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1605}
+
+\begin{DoxyItemize}
+\item \`{}mainnet()\`{}{\ttfamily mainnet()}
+\end{DoxyItemize}— Performs the mainnet operation on the genesis module.
+\begin{DoxyItemize}
+\item \`{}testnet()\`{}{\ttfamily testnet()}
+\end{DoxyItemize}— Performs the testnet operation on the genesis module.
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the genesis module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}build\+Blockchain()\`{}{\ttfamily build\+Blockchain()}
+\end{DoxyItemize}— Construieste Blockchain-\/ul cu blocul genesis corect Returneaza un Bloc...
+\begin{DoxyItemize}
+\item \`{}validate\+Genesis\+Block()\`{}{\ttfamily validate\+Genesis\+Block()}
+\end{DoxyItemize}— Verifica daca un blockchain existent are genesis-\/ul corect
+\begin{DoxyItemize}
+\item \`{}calculate\+Genesis\+Message\+Hash()\`{}{\ttfamily calculate\+Genesis\+Message\+Hash()}
+\end{DoxyItemize}— Calculeaza hash-\/ul mesajului genesis (pentru audit)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1607}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1607}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1608}{}\doxysubsection{\texorpdfstring{{\ttfamily Network\+Config}}{{\ttfamily Network\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1608}
+Configuratia retelei — schimbabila fara sa afecteze trecutul
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily version}  &{\ttfamily u32}  &Version  \\
+{\ttfamily genesis\+\_\+timestamp}  &{\ttfamily i64}  &Genesis\+\_\+timestamp  \\
+{\ttfamily genesis\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Genesis\+\_\+hash  \\
+{\ttfamily genesis\+\_\+message}  &{\ttfamily \+[]\+const u8}  &Genesis\+\_\+message  \\
+{\ttfamily max\+\_\+supply\+\_\+sat}  &{\ttfamily u64}  &Max\+\_\+supply\+\_\+sat  \\
+{\ttfamily initial\+\_\+reward\+\_\+sat}  &{\ttfamily u64}  &Initial\+\_\+reward\+\_\+sat  \\
+{\ttfamily halving\+\_\+interval}  &{\ttfamily u64}  &Halving\+\_\+interval  \\
+{\ttfamily block\+\_\+time\+\_\+ms}  &{\ttfamily u32}  &Block\+\_\+time\+\_\+ms  \\
+{\ttfamily micro\+\_\+blocks}  &{\ttfamily u8}  &Micro\+\_\+blocks  \\
+{\ttfamily rpc\+\_\+port}  &{\ttfamily u16}  &Rpc\+\_\+port  \\
+{\ttfamily initial\+\_\+difficulty}  &{\ttfamily u32}  &Initial\+\_\+difficulty  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 27}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1610}{}\doxysubsection{\texorpdfstring{{\ttfamily Genesis\+State}}{{\ttfamily Genesis\+State}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1610}
+Starea Genesis — toate datele necesare pentru primul bloc
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Network\+Config}  &Config  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 120}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1612}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1612}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &Block  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &Blockchain  \\
+{\ttfamily GENESIS\+\_\+\+TIMESTAMP}  &{\ttfamily i64 = 1\+\_\+743\+\_\+000\+\_\+000}  &G e n e s i s\+\_\+ t i m e s t a m p  \\
+{\ttfamily GENESIS\+\_\+\+VERSION}  &{\ttfamily u32 = 1}  &G e n e s i s\+\_\+ v e r s i o n  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1614}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1614}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1615}{}\doxysubsection{\texorpdfstring{{\ttfamily mainnet()}}{{\ttfamily mainnet()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1615}
+Performs the mainnet operation on the genesis module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ mainnet()\ NetworkConfig\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Network\+Config}
+
+{\itshape Defined at line 53}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1617}{}\doxysubsection{\texorpdfstring{{\ttfamily testnet()}}{{\ttfamily testnet()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1617}
+Performs the testnet operation on the genesis module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ testnet()\ NetworkConfig\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Network\+Config}
+
+{\itshape Defined at line 70}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1619}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1619}
+Performs the print operation on the genesis module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ NetworkConfig)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Network\+Config}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1621}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1621}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(config:\ NetworkConfig,\ allocator:\ std.mem.Allocator)\ GenesisState\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Network\+Config}  &Config  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Genesis\+State}
+
+{\itshape Defined at line 124}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1623}{}\doxysubsection{\texorpdfstring{{\ttfamily build\+Blockchain()}}{{\ttfamily build\+Blockchain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1623}
+Construieste Blockchain-\/ul cu blocul genesis corect Returneaza un Blockchain gata de mining
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ buildBlockchain(self:\ *const\ GenesisState)\ !Blockchain\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Genesis\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Blockchain}
+
+{\itshape Defined at line 130}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1625}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Genesis\+Block()}}{{\ttfamily validate\+Genesis\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1625}
+Verifica daca un blockchain existent are genesis-\/ul corect
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validateGenesisBlock(self:\ *const\ GenesisState,\ bc:\ *const\ Blockchain)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Genesis\+State}  &The instance  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &Bc  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 156}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1627}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Genesis\+Message\+Hash()}}{{\ttfamily calculate\+Genesis\+Message\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2genesis_autotoc_md1627}
+Calculeaza hash-\/ul mesajului genesis (pentru audit)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateGenesisMessageHash(self:\ *const\ GenesisState)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Genesis\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 166}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

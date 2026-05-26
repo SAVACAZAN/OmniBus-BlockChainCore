@@ -274,7 +274,7 @@ test "integration: full miner cycle — order to reward" {
 
     // ── 8. Sign with miner key ──
     const miner_privkey = [_]u8{0x42} ** 32;
-    submitter.signMerkleRoot(miner_privkey);
+    try submitter.signMerkleRoot(miner_privkey);
     try std.testing.expectEqual(settlement.BatchStatus.signed, submitter.current_batch.status);
     try std.testing.expect(submitter.isReady());
 
@@ -523,7 +523,7 @@ test "integration: bridge listener -> matching engine -> settlement" {
     submitter.buildMerkleTree();
     try std.testing.expectEqual(settlement.BatchStatus.merkle_built, submitter.current_batch.status);
 
-    submitter.signMerkleRoot([_]u8{0xBE} ** 32);
+    try submitter.signMerkleRoot([_]u8{0xBE} ** 32);
     try std.testing.expectEqual(settlement.BatchStatus.signed, submitter.current_batch.status);
     try std.testing.expect(submitter.isReady());
 
@@ -758,7 +758,7 @@ test "integration: full pipeline end-to-end" {
     try std.testing.expectEqual(@as(u64, 150_000_000_000), total_volume); // 3 * 50 OMNI
 
     submitter.buildMerkleTree();
-    submitter.signMerkleRoot([_]u8{0xDE} ** 32);
+    try submitter.signMerkleRoot([_]u8{0xDE} ** 32);
     try std.testing.expect(submitter.isReady());
 
     // Verify all 3 merkle proofs
@@ -909,7 +909,7 @@ test "integration: settlement multi-fill merkle proofs" {
     submitter.buildMerkleTree();
     try std.testing.expectEqual(@as(u32, 4), submitter.current_batch.leaf_count);
 
-    submitter.signMerkleRoot([_]u8{0x99} ** 32);
+    try submitter.signMerkleRoot([_]u8{0x99} ** 32);
 
     // Verify every single proof
     for (0..4) |i| {

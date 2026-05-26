@@ -1,0 +1,293 @@
+\doxysection{consensus-\/attack-\/sim Namespace Reference}
+\hypertarget{namespaceconsensus-attack-sim}{}\label{namespaceconsensus-attack-sim}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceconsensus-attack-sim_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a361c5f0bd145fe720a509d70f35b6843}{simulate\+\_\+51\+\_\+attack}} (float network\+\_\+ghps, float attacker\+\_\+fraction, float duration\+\_\+hours)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ac3fbd109327474770036b21820e83367}{simulate\+\_\+selfish\+\_\+mining}} (float network\+\_\+ghps, float attacker\+\_\+fraction, int rounds=1000)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae7e6f74fc99ab26bbf8de7de3250a715}{simulate\+\_\+eclipse\+\_\+attack}} (int num\+\_\+peers=8, int malicious\+\_\+peers=8)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a209dc44027a98c0ee9c77f93325b7b12}{simulate\+\_\+long\+\_\+range\+\_\+attack}} (float stake\+\_\+fraction, int history\+\_\+days)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_aee6430161293cdddff3c68a7a5a0a3d3}{simulate\+\_\+nothing\+\_\+at\+\_\+stake}} (int validators, int attacker\+\_\+validators, int forks=10)
+\item 
+int \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a14f30d3b65d103465398defdd35d794d}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_acf6670f0d20c6f202469e7b5a4263e07}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_acbfabc1526ce0f38fe356936162302db}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_aabbdbef89ba9f113b9a9c79c9d4c5df1}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a2aa1b510c9f6b1007f2f11485e4df32c}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ad5dd5f6952bdd8cbb8cf4095b383f2e5}{BLOCK\+\_\+\+TIME\+\_\+\+SEC}} = 10.\+0
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a08329e879cdf0667c29574733945e318}{BLOCK\+\_\+\+REWARD}} = 50.\+0
+\item 
+int \doxymbox{\hyperlink{namespaceconsensus-attack-sim_aa20f97b4370626f407f80e18cc19a171}{HASHRATE\+\_\+\+NETWORK\+\_\+\+GHPS}} = 1\+\_\+000\+\_\+000
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae01eaf17374b7240dcbca3b40c334d71}{COST\+\_\+\+PER\+\_\+\+GHPS\+\_\+\+HOUR}} = 0.\+05
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a1c56f113cc1cd6bf67e4ba552a71fb14}{COST\+\_\+\+ECLIPSE\+\_\+\+NODE\+\_\+\+RENT}} = 500.\+0
+\item 
+float \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a020e12a1b20671ed04e016e7236ae7fb}{COST\+\_\+\+STAKE\+\_\+\+PER\+\_\+\+OMNI}} = 1.\+0
+\end{DoxyCompactItemize}
+
+
+\label{namespaceconsensus-attack-sim_doc-func-members}
+\Hypertarget{namespaceconsensus-attack-sim_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceconsensus-attack-sim_abf994b8269849d29e07697ea8a840f74}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceconsensus-attack-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceconsensus-attack-sim_adf0e2aa4d06b5ca38e44721821eca783}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_a7431cb90017e54fe695b23d4190db046}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!main@{main}}
+\index{main@{main}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00175}{175}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceconsensus-attack-sim_a361c5f0bd145fe720a509d70f35b6843}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!simulate\_51\_attack@{simulate\_51\_attack}}
+\index{simulate\_51\_attack@{simulate\_51\_attack}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{simulate\_51\_attack()}{simulate\_51\_attack()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a361c5f0bd145fe720a509d70f35b6843} 
+ dict\+[str, Any]\+ simulate\+\_\+51\+\_\+attack (\begin{DoxyParamCaption}\item[{float}]{network\+\_\+ghps}{, }\item[{float}]{attacker\+\_\+fraction}{, }\item[{float}]{duration\+\_\+hours}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Estimate 51% attack feasibility.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00062}{62}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceconsensus-attack-sim_ae7e6f74fc99ab26bbf8de7de3250a715}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!simulate\_eclipse\_attack@{simulate\_eclipse\_attack}}
+\index{simulate\_eclipse\_attack@{simulate\_eclipse\_attack}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{simulate\_eclipse\_attack()}{simulate\_eclipse\_attack()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_ae7e6f74fc99ab26bbf8de7de3250a715} 
+ dict\+[str, Any]\+ simulate\+\_\+eclipse\+\_\+attack (\begin{DoxyParamCaption}\item[{int }]{num\+\_\+peers}{ = {\ttfamily 8}, }\item[{int }]{malicious\+\_\+peers}{ = {\ttfamily 8}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Estimate eclipse attack cost.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00120}{120}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceconsensus-attack-sim_a209dc44027a98c0ee9c77f93325b7b12}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!simulate\_long\_range\_attack@{simulate\_long\_range\_attack}}
+\index{simulate\_long\_range\_attack@{simulate\_long\_range\_attack}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{simulate\_long\_range\_attack()}{simulate\_long\_range\_attack()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a209dc44027a98c0ee9c77f93325b7b12} 
+ dict\+[str, Any]\+ simulate\+\_\+long\+\_\+range\+\_\+attack (\begin{DoxyParamCaption}\item[{float}]{stake\+\_\+fraction}{, }\item[{int}]{history\+\_\+days}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}PoS long-range: attacker with historical stake fraction rewinds chain.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00137}{137}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceconsensus-attack-sim_aee6430161293cdddff3c68a7a5a0a3d3}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!simulate\_nothing\_at\_stake@{simulate\_nothing\_at\_stake}}
+\index{simulate\_nothing\_at\_stake@{simulate\_nothing\_at\_stake}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{simulate\_nothing\_at\_stake()}{simulate\_nothing\_at\_stake()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_aee6430161293cdddff3c68a7a5a0a3d3} 
+ dict\+[str, Any]\+ simulate\+\_\+nothing\+\_\+at\+\_\+stake (\begin{DoxyParamCaption}\item[{int}]{validators}{, }\item[{int}]{attacker\+\_\+validators}{, }\item[{int }]{forks}{ = {\ttfamily 10}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Simulate nothing-at-stake: attacker stakes on multiple forks.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00151}{151}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespaceconsensus-attack-sim_ac3fbd109327474770036b21820e83367}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!simulate\_selfish\_mining@{simulate\_selfish\_mining}}
+\index{simulate\_selfish\_mining@{simulate\_selfish\_mining}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{simulate\_selfish\_mining()}{simulate\_selfish\_mining()}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_ac3fbd109327474770036b21820e83367} 
+ dict\+[str, Any]\+ simulate\+\_\+selfish\+\_\+mining (\begin{DoxyParamCaption}\item[{float}]{network\+\_\+ghps}{, }\item[{float}]{attacker\+\_\+fraction}{, }\item[{int }]{rounds}{ = {\ttfamily 1000}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Simple selfish mining simulation (Eyal & Sirer model approximation).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+
+
+\label{namespaceconsensus-attack-sim_doc-var-members}
+\Hypertarget{namespaceconsensus-attack-sim_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceconsensus-attack-sim_a08329e879cdf0667c29574733945e318}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!BLOCK\_REWARD@{BLOCK\_REWARD}}
+\index{BLOCK\_REWARD@{BLOCK\_REWARD}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{BLOCK\_REWARD}{BLOCK\_REWARD}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a08329e879cdf0667c29574733945e318} 
+float \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+BLOCK\+\_\+\+REWARD = 50.\+0}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_ad5dd5f6952bdd8cbb8cf4095b383f2e5}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!BLOCK\_TIME\_SEC@{BLOCK\_TIME\_SEC}}
+\index{BLOCK\_TIME\_SEC@{BLOCK\_TIME\_SEC}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{BLOCK\_TIME\_SEC}{BLOCK\_TIME\_SEC}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_ad5dd5f6952bdd8cbb8cf4095b383f2e5} 
+float \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+BLOCK\+\_\+\+TIME\+\_\+\+SEC = 10.\+0}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_a1c56f113cc1cd6bf67e4ba552a71fb14}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!COST\_ECLIPSE\_NODE\_RENT@{COST\_ECLIPSE\_NODE\_RENT}}
+\index{COST\_ECLIPSE\_NODE\_RENT@{COST\_ECLIPSE\_NODE\_RENT}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{COST\_ECLIPSE\_NODE\_RENT}{COST\_ECLIPSE\_NODE\_RENT}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a1c56f113cc1cd6bf67e4ba552a71fb14} 
+float \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+COST\+\_\+\+ECLIPSE\+\_\+\+NODE\+\_\+\+RENT = 500.\+0}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_ae01eaf17374b7240dcbca3b40c334d71}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!COST\_PER\_GHPS\_HOUR@{COST\_PER\_GHPS\_HOUR}}
+\index{COST\_PER\_GHPS\_HOUR@{COST\_PER\_GHPS\_HOUR}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{COST\_PER\_GHPS\_HOUR}{COST\_PER\_GHPS\_HOUR}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_ae01eaf17374b7240dcbca3b40c334d71} 
+float \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+COST\+\_\+\+PER\+\_\+\+GHPS\+\_\+\+HOUR = 0.\+05}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_a020e12a1b20671ed04e016e7236ae7fb}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!COST\_STAKE\_PER\_OMNI@{COST\_STAKE\_PER\_OMNI}}
+\index{COST\_STAKE\_PER\_OMNI@{COST\_STAKE\_PER\_OMNI}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{COST\_STAKE\_PER\_OMNI}{COST\_STAKE\_PER\_OMNI}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a020e12a1b20671ed04e016e7236ae7fb} 
+float \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+COST\+\_\+\+STAKE\+\_\+\+PER\+\_\+\+OMNI = 1.\+0}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_aabbdbef89ba9f113b9a9c79c9d4c5df1}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_aabbdbef89ba9f113b9a9c79c9d4c5df1} 
+str \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_a14f30d3b65d103465398defdd35d794d}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a14f30d3b65d103465398defdd35d794d} 
+str \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_aa20f97b4370626f407f80e18cc19a171}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!HASHRATE\_NETWORK\_GHPS@{HASHRATE\_NETWORK\_GHPS}}
+\index{HASHRATE\_NETWORK\_GHPS@{HASHRATE\_NETWORK\_GHPS}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{HASHRATE\_NETWORK\_GHPS}{HASHRATE\_NETWORK\_GHPS}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_aa20f97b4370626f407f80e18cc19a171} 
+int \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+HASHRATE\+\_\+\+NETWORK\+\_\+\+GHPS = 1\+\_\+000\+\_\+000}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_acf6670f0d20c6f202469e7b5a4263e07}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!RED@{RED}}
+\index{RED@{RED}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_acf6670f0d20c6f202469e7b5a4263e07} 
+str \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_a2aa1b510c9f6b1007f2f11485e4df32c}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!RESET@{RESET}}
+\index{RESET@{RESET}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_a2aa1b510c9f6b1007f2f11485e4df32c} 
+str \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+
+\Hypertarget{namespaceconsensus-attack-sim_acbfabc1526ce0f38fe356936162302db}\index{consensus-\/attack-\/sim@{consensus-\/attack-\/sim}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!consensus-\/attack-\/sim@{consensus-\/attack-\/sim}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespaceconsensus-attack-sim_acbfabc1526ce0f38fe356936162302db} 
+str \doxymbox{\hyperlink{namespaceconsensus}{consensus}}-\/attack-\/sim.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{consensus-attack-sim_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{consensus-attack-sim_8py_source}{consensus-\/attack-\/sim.\+py}}.
+

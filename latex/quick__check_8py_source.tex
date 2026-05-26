@@ -1,0 +1,322 @@
+\doxysection{quick\+\_\+check.\+py}
+\hypertarget{quick__check_8py_source}{}\label{quick__check_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/agentscripts/quick\_check.py@{archived-\/4-\/eterniti/tools-\/python/agentscripts/quick\_check.py}}
+\doxymbox{\hyperlink{quick__check_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00001}\doxymbox{\hyperlink{namespacequick__check}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ -\/\ Quick\ Check}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00004}00004\ \textcolor{stringliteral}{=================================}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00005}00005\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00006}00006\ \textcolor{stringliteral}{Verificare\ rapidă\ sintaxă\ +\ build.\ Ideal\ pentru\ verificare\ înainte\ de\ commit.}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00007}00007\ \textcolor{stringliteral}{Rulează\ în\ 2-\/5\ secunde.}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00008}00008\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00009}00009\ \textcolor{stringliteral}{Utilizare:}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ \ \ python\ quick\_check.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Check\ complet}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ python\ quick\_check.py\ -\/-\/syntax\ \ \ \ \ \#\ Doar\ sintaxă}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ python\ quick\_check.py\ -\/-\/build\ \ \ \ \ \ \#\ Doar\ build\ rapid}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ python\ quick\_check.py\ -\/-\/test\ \ \ \ \ \ \ \#\ Doar\ teste\ de\ bază}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00014}00014\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00015}00015\ \textcolor{stringliteral}{Autor:\ OmniBus\ AI\ Collective}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00016}00016\ \textcolor{stringliteral}{Versiune:\ 1.0.0}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00017}00017\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00021}00021\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00023}00023\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00024}00024\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ field}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00025}00025\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ List,\ Tuple,\ Optional}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00026}00026\ \textcolor{keyword}{from}\ concurrent.futures\ \textcolor{keyword}{import}\ ThreadPoolExecutor,\ as\_completed}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00029}00029\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00030}\doxymbox{\hyperlink{classquick__check_1_1_check_result}{00030}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classquick__check_1_1_check_result}{CheckResult}}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00031}00031\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Rezultatul\ unei\ verificări."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00032}00032\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00033}00033\ \ \ \ \ passed:\ bool}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00034}00034\ \ \ \ \ duration\_ms:\ float}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00035}\doxymbox{\hyperlink{classquick__check_1_1_check_result_ac5d4184ef27a70bbcda97e223f592acf}{00035}}\ \ \ \ \ output:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00036}\doxymbox{\hyperlink{classquick__check_1_1_check_result_a784a51eb5191994dc703ca3c47d70912}{00036}}\ \ \ \ \ error:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00037}\doxymbox{\hyperlink{classquick__check_1_1_check_result_a152fed0186dd6d5588fa311d509ff129}{00037}}\ \ \ \ \ details:\ List[str]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00040}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker}{00040}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker}{QuickChecker}}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00041}00041\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Execută\ verificări\ rapide\ pe\ proiect."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00042}00042\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00043}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a647db86029ab70e395d4f99dfd953ffa}{00043}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a647db86029ab70e395d4f99dfd953ffa}{\_\_init\_\_}}(self,\ project\_root:\ Path):}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00044}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_aa251f68cd3f6fc2a43f51919872861f9}{00044}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_aa251f68cd3f6fc2a43f51919872861f9}{project\_root}}\ =\ project\_root}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00045}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4}{00045}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4}{results}}:\ List[CheckResult]\ =\ []}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00047}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}{00047}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}{run\_command}}(self,\ cmd:\ List[str],\ timeout:\ int\ =\ 30)\ -\/>\ Tuple[bool,\ str,\ str]:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Execută\ o\ comandă\ și\ returnează\ rezultatul."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cmd,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cwd=self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_aa251f68cd3f6fc2a43f51919872861f9}{project\_root}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ text=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ timeout=timeout}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result.returncode\ ==\ 0,\ result.stdout,\ result.stderr}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}Timeout"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ FileNotFoundError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}"{}},\ f\textcolor{stringliteral}{"{}Comandă\ negăsită:\ \{e\}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00062}00062\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00063}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a7a2c312bd2652217a959a2c3c33a447b}{00063}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a7a2c312bd2652217a959a2c3c33a447b}{check\_syntax}}(self)\ -\/>\ CheckResult:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Verifică\ sintaxa\ Zig\ cu\ zig\ fmt\ -\/-\/check."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ start\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Găsește\ toate\ fișierele\ .zig}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ zig\_files\ =\ list(self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_aa251f68cd3f6fc2a43f51919872861f9}{project\_root}}.rglob(\textcolor{stringliteral}{'*.zig'}))}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ zig\_files\ =\ [f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ zig\_files\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ any(part.startswith(\textcolor{stringliteral}{'.'})\ \textcolor{keywordflow}{or}\ part\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{'zig-\/out'},\ \textcolor{stringliteral}{'.zig-\/cache'}]}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ part\ \textcolor{keywordflow}{in}\ f.parts)]}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ passed\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ failed\_files\ =\ []}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ filepath\ \textcolor{keywordflow}{in}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ ok,\ stdout,\ stderr\ =\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}{run\_command}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{'zig'},\ \textcolor{stringliteral}{'fmt'},\ \textcolor{stringliteral}{'-\/-\/check'},\ str(filepath)],}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ timeout=5}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ stderr:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ passed\_count\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ failed\_files.append(filepath.name)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ duration\ =\ (time.time()\ -\/\ start)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{CheckResult}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}Sintaxă\ Zig"{}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ passed=passed\_count\ ==\ len(zig\_files),}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=duration,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ details=[f\textcolor{stringliteral}{"{}\{passed\_count\}/\{len(zig\_files)\}\ fișiere\ OK"{}}]\ +\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ([f\textcolor{stringliteral}{"{}Failed:\ \{',\ '.join(failed\_files[:3])\}"{}}]\ \textcolor{keywordflow}{if}\ failed\_files\ \textcolor{keywordflow}{else}\ [])}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00095}00095\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00096}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a367f26cde6ed47ff5c2b9869477340c2}{00096}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a367f26cde6ed47ff5c2b9869477340c2}{check\_build}}(self)\ -\/>\ CheckResult:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Încearcă\ build\ rapid\ fără\ liboqs."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ start\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ ok,\ stdout,\ stderr\ =\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}{run\_command}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{'zig'},\ \textcolor{stringliteral}{'build'},\ \textcolor{stringliteral}{'-\/Doqs=false'}],}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=60}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ duration\ =\ (time.time()\ -\/\ start)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Parse\ output\ pentru\ a\ găsi\ erori}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ errors\ =\ []}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stderr:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ stderr.split(\textcolor{stringliteral}{'\(\backslash\)n'}):}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'error:'}\ \textcolor{keywordflow}{in}\ line.lower():}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ errors.append(line.strip())}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{CheckResult}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}Build\ (fără\ liboqs)"{}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ passed=ok,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=duration,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ output=stdout[-\/500:]\ \textcolor{keywordflow}{if}\ stdout\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},\ \ \textcolor{comment}{\#\ Ultimele\ 500\ caractere}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ error=stderr[-\/500:]\ \textcolor{keywordflow}{if}\ stderr\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ details=[f\textcolor{stringliteral}{"{}\{len(errors)\}\ erori"{}}]\ \textcolor{keywordflow}{if}\ errors\ \textcolor{keywordflow}{else}\ [\textcolor{stringliteral}{"{}Build\ reușit"{}}]}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00122}00122\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00123}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ac100246286bbcea7a068de334a27b88b}{00123}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ac100246286bbcea7a068de334a27b88b}{check\_tests\_crypto}}(self)\ -\/>\ CheckResult:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Rulează\ testele\ de\ crypto\ (cele\ mai\ rapide)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ start\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ ok,\ stdout,\ stderr\ =\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}{run\_command}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{'zig'},\ \textcolor{stringliteral}{'build'},\ \textcolor{stringliteral}{'test-\/crypto'},\ \textcolor{stringliteral}{'-\/Doqs=false'}],}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=45}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ duration\ =\ (time.time()\ -\/\ start)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Parse\ pentru\ a\ număra\ teste}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ passed\ =\ 0}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ failed\ =\ 0}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ (stdout\ +\ stderr).split(\textcolor{stringliteral}{'\(\backslash\)n'}):}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'passed'}\ \textcolor{keywordflow}{in}\ line.lower():}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Format:\ "{}X\ passed,\ Y\ failed"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parts\ =\ line.split(\textcolor{stringliteral}{','})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ part\ \textcolor{keywordflow}{in}\ parts:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'passed'}\ \textcolor{keywordflow}{in}\ part:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ passed\ =\ int(part.strip().split()[0])}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'failed'}\ \textcolor{keywordflow}{in}\ part:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ failed\ =\ int(part.strip().split()[0])}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (ValueError,\ IndexError):}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{CheckResult}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}Teste\ Crypto"{}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ passed=ok\ \textcolor{keywordflow}{and}\ failed\ ==\ 0,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=duration,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ output=stdout[-\/300:]\ \textcolor{keywordflow}{if}\ stdout\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ details=[f\textcolor{stringliteral}{"{}\{passed\}\ passed,\ \{failed\}\ failed"{}}]\ \textcolor{keywordflow}{if}\ passed\ \textcolor{keywordflow}{or}\ failed\ \textcolor{keywordflow}{else}\ [\textcolor{stringliteral}{"{}Status\ necunoscut"{}}]}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00157}00157\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00158}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a5dc3ea796035febf0f63dbb0e726fd98}{00158}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a5dc3ea796035febf0f63dbb0e726fd98}{check\_tests\_chain}}(self)\ -\/>\ CheckResult:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Rulează\ testele\ de\ chain."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ start\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ ok,\ stdout,\ stderr\ =\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}{run\_command}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{'zig'},\ \textcolor{stringliteral}{'build'},\ \textcolor{stringliteral}{'test-\/chain'},\ \textcolor{stringliteral}{'-\/Doqs=false'}],}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=45}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ duration\ =\ (time.time()\ -\/\ start)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{CheckResult}}(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}Teste\ Chain"{}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ passed=ok,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ duration\_ms=duration,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ output=stdout[-\/200:]\ \textcolor{keywordflow}{if}\ stdout\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ details=[\textcolor{stringliteral}{"{}Complete"{}}]\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ [\textcolor{stringliteral}{"{}Au\ picat\ teste"{}}]}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00176}00176\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00177}\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a569aaed7344154647b5412808c65bf13}{00177}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a569aaed7344154647b5412808c65bf13}{run\_all}}(self,\ checks\_to\_run:\ List[str]\ =\ \textcolor{keywordtype}{None})\ -\/>\ List[CheckResult]:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Rulează\ toate\ verificările."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ all\_checks\ =\ \{}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'syntax'}:\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a7a2c312bd2652217a959a2c3c33a447b}{check\_syntax}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'build'}:\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a367f26cde6ed47ff5c2b9869477340c2}{check\_build}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'test-\/crypto'}:\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ac100246286bbcea7a068de334a27b88b}{check\_tests\_crypto}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'test-\/chain'}:\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a5dc3ea796035febf0f63dbb0e726fd98}{check\_tests\_chain}},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ checks\_to\_run:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ checks\ =\ \{k:\ v\ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ all\_checks.items()\ \textcolor{keywordflow}{if}\ k\ \textcolor{keywordflow}{in}\ checks\_to\_run\}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ checks\ =\ all\_checks}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Rulează\ în\ paralel\ pentru\ viteză}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ ThreadPoolExecutor(max\_workers=2)\ \textcolor{keyword}{as}\ executor:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ futures\ =\ \{executor.submit(fn()):\ name\ \textcolor{keywordflow}{for}\ name,\ fn\ \textcolor{keywordflow}{in}\ checks.items()\}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ future\ \textcolor{keywordflow}{in}\ as\_completed(futures):}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ future.result()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4}{results}}.append(result)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Sortează\ după\ ordinea\ originală}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ order\ =\ [\textcolor{stringliteral}{'syntax'},\ \textcolor{stringliteral}{'build'},\ \textcolor{stringliteral}{'test-\/crypto'},\ \textcolor{stringliteral}{'test-\/chain'}]}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4}{results}}.sort(key=\textcolor{keyword}{lambda}\ r:\ order.index(next(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ (k\ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ all\_checks.items()\ \textcolor{keywordflow}{if}\ v.\_\_name\_\_\ \textcolor{keywordflow}{in}\ r.name.lower().replace(\textcolor{stringliteral}{'\ '},\ \textcolor{stringliteral}{'\_'})),\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ 0}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ )))}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4}{results}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00207}00207\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00209}\doxymbox{\hyperlink{namespacequick__check_a8b14d99facc6a81da39081fe24640689}{00209}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacequick__check_a8b14d99facc6a81da39081fe24640689}{print\_results}}(results:\ List[CheckResult]):}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00210}00210\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Afișează\ rezultatele."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00211}00211\ \ \ \ \ GREEN\ =\ \textcolor{stringliteral}{'\(\backslash\)033[92m'}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00212}00212\ \ \ \ \ RED\ =\ \textcolor{stringliteral}{'\(\backslash\)033[91m'}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00213}00213\ \ \ \ \ YELLOW\ =\ \textcolor{stringliteral}{'\(\backslash\)033[93m'}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00214}00214\ \ \ \ \ RESET\ =\ \textcolor{stringliteral}{'\(\backslash\)033[0m'}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00215}00215\ \ \ \ \ BOLD\ =\ \textcolor{stringliteral}{'\(\backslash\)033[1m'}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00216}00216\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00217}00217\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}╔══════════════════════════════════════════════════════════════╗\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00218}00218\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}║\ \ \ \ \ \ \ \ \ \ \ \ \ \ OmniBus\ Blockchain\ -\/\ Quick\ Check\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ║\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00219}00219\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}╚══════════════════════════════════════════════════════════════╝\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00220}00220\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00221}00221\ \ \ \ \ total\_time\ =\ 0}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00222}00222\ \ \ \ \ all\_passed\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00223}00223\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00224}00224\ \ \ \ \ \textcolor{keywordflow}{for}\ result\ \textcolor{keywordflow}{in}\ results:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{GREEN\}✓\{RESET\}"{}}\ \textcolor{keywordflow}{if}\ result.passed\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{RED\}✗\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{status\}]\ \{result.name:20\}\ \{result.duration\_ms:6.0f\}ms"{}},\ end=\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result.details:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ (\{result.details[0]\})"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ result.passed:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ all\_passed\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result.error:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ error\_lines\ =\ result.error.strip().split(\textcolor{stringliteral}{'\(\backslash\)n'})[-\/3:]\ \ \textcolor{comment}{\#\ Ultimele\ 3\ linii}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ error\_lines:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \{RED\}\{line\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ total\_time\ +=\ result.duration\_ms}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00241}00241\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00242}00242\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{'─'\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00243}00243\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Timp\ total:\ \{total\_time/1000:.1f\}s"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00244}00244\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00245}00245\ \ \ \ \ \textcolor{keywordflow}{if}\ all\_passed:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{GREEN\}\{BOLD\}✓\ TOATE\ VERIFICĂRILE\ AU\ TRECUT\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00247}00247\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{RED\}\{BOLD\}✗\ AU\ PICAT\ VERIFICĂRI\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00249}00249\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00250}00250\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00252}00252\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00253}\doxymbox{\hyperlink{namespacequick__check_a51af30a60f9f02777c6396b8247e356f}{00253}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacequick__check_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00254}00254\ \ \ \ \ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00255}00255\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00256}00256\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{'Verificare\ rapidă\ sintaxă\ +\ build'},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ epilog=\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00260}00260\ \textcolor{stringliteral}{Exemple:}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00261}00261\ \textcolor{stringliteral}{\ \ python\ quick\_check.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Toate\ verificările}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00262}00262\ \textcolor{stringliteral}{\ \ python\ quick\_check.py\ -\/-\/syntax\ \ \ \ \ \#\ Doar\ sintaxă}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00263}00263\ \textcolor{stringliteral}{\ \ python\ quick\_check.py\ -\/-\/build\ \ \ \ \ \ \#\ Doar\ build}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00264}00264\ \textcolor{stringliteral}{\ \ python\ quick\_check.py\ -\/-\/test\ \ \ \ \ \ \ \#\ Doar\ teste}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00265}00265\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00266}00266\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00267}00267\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/syntax'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ verificare\ sintaxă'})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00269}00269\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/build'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ build'})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00271}00271\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/test'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ teste'})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00273}00273\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/no-\/color'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Fără\ culori'})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00275}00275\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00276}00276\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00277}00277\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00278}00278\ \ \ \ \ \textcolor{keywordflow}{if}\ args.no\_color:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Dezactivează\ culorile}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ builtins}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ builtins.print\ =\ \textcolor{keyword}{lambda}\ *args,\ **kwargs:\ \_\_builtins\_\_[\textcolor{stringliteral}{'print'}](*[}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \ \ \ \ str(arg).replace(\textcolor{stringliteral}{'\(\backslash\)033[92m'},\ \textcolor{stringliteral}{''}).replace(\textcolor{stringliteral}{'\(\backslash\)033[91m'},\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .replace(\textcolor{stringliteral}{'\(\backslash\)033[93m'},\ \textcolor{stringliteral}{''}).replace(\textcolor{stringliteral}{'\(\backslash\)033[0m'},\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .replace(\textcolor{stringliteral}{'\(\backslash\)033[1m'},\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ arg\ \textcolor{keywordflow}{in}\ args}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ ],\ **kwargs)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00287}00287\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00288}00288\ \ \ \ \ \textcolor{comment}{\#\ Determine\ which\ checks\ to\ run}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00289}00289\ \ \ \ \ specific\_checks\ =\ []}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00290}00290\ \ \ \ \ \textcolor{keywordflow}{if}\ args.syntax:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ specific\_checks.append(\textcolor{stringliteral}{'syntax'})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00292}00292\ \ \ \ \ \textcolor{keywordflow}{if}\ args.build:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ specific\_checks.append(\textcolor{stringliteral}{'build'})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00294}00294\ \ \ \ \ \textcolor{keywordflow}{if}\ args.test:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ specific\_checks.extend([\textcolor{stringliteral}{'test-\/crypto'},\ \textcolor{stringliteral}{'test-\/chain'}])}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00296}00296\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00297}00297\ \ \ \ \ \textcolor{comment}{\#\ Find\ project\ root}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00298}00298\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).parent}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00299}00299\ \ \ \ \ project\_root\ =\ script\_dir.parent.parent}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00300}00300\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00301}00301\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n\ \ [INFO]\ Rulează\ verificări...\ (poate\ dura\ 10-\/30\ secunde)\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00302}00302\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00303}00303\ \ \ \ \ \textcolor{comment}{\#\ Run\ checks}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00304}00304\ \ \ \ \ checker\ =\ \doxymbox{\hyperlink{classquick__check_1_1_quick_checker}{QuickChecker}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00305}00305\ \ \ \ \ results\ =\ checker.run\_all(specific\_checks\ \textcolor{keywordflow}{if}\ specific\_checks\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00306}00306\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00307}00307\ \ \ \ \ \textcolor{comment}{\#\ Print\ results}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00308}00308\ \ \ \ \ \doxymbox{\hyperlink{namespacequick__check_a8b14d99facc6a81da39081fe24640689}{print\_results}}(results)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00309}00309\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00310}00310\ \ \ \ \ \textcolor{comment}{\#\ Exit\ code}}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00311}00311\ \ \ \ \ all\_passed\ =\ all(r.passed\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00312}00312\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ all\_passed\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00314}00314\ }
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00315}00315\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{'\_\_main\_\_'}:}
+\DoxyCodeLine{\Hypertarget{quick__check_8py_source_l00316}00316\ \ \ \ \ \doxymbox{\hyperlink{namespacequick__check_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

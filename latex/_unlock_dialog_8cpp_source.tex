@@ -1,0 +1,89 @@
+\doxysection{Unlock\+Dialog.\+cpp}
+\hypertarget{_unlock_dialog_8cpp_source}{}\label{_unlock_dialog_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/UnlockDialog.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/UnlockDialog.cpp}}
+\doxymbox{\hyperlink{_unlock_dialog_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_unlock_dialog_8h}{dialogs/UnlockDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00006}00006\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00008}\doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ab64b60c0f356eeaefd7aa4b4f4c88c42}{00008}}\ \doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ab64b60c0f356eeaefd7aa4b4f4c88c42}{UnlockDialog::UnlockDialog}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00009}00009\ \ \ \ \ :\ QDialog(parent)}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00010}00010\ \{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00011}00011\ \ \ \ \ setWindowTitle(\textcolor{stringliteral}{"{}Unlock\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00012}00012\ \ \ \ \ setMinimumSize(400,\ 300);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00013}00013\ \ \ \ \ setMaximumSize(400,\ 300);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00015}00015\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00016}00016\ \ \ \ \ layout-\/>setSpacing(12);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00017}00017\ \ \ \ \ layout-\/>setContentsMargins(30,\ 25,\ 30,\ 25);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00019}00019\ \ \ \ \ \textcolor{keyword}{auto}*\ title\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Unlock\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00020}00020\ \ \ \ \ title-\/>setStyleSheet(\textcolor{stringliteral}{"{}font-\/size:\ 20px;\ font-\/weight:\ bold;\ color:\ \#00b3a4;"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00021}00021\ \ \ \ \ layout-\/>addWidget(title);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00023}00023\ \ \ \ \ \textcolor{comment}{//\ Wallet\ selector}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00024}00024\ \ \ \ \ layout-\/>addWidget(\textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Select\ Wallet:"{}}));}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00025}00025\ \ \ \ \ m\_walletCombo\ =\ \textcolor{keyword}{new}\ QComboBox;}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00026}00026\ \ \ \ \ m\_walletCombo-\/>setMinimumHeight(36);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00027}00027\ \ \ \ \ layout-\/>addWidget(m\_walletCombo);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00029}00029\ \ \ \ \ \textcolor{comment}{//\ Password}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00030}00030\ \ \ \ \ layout-\/>addWidget(\textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Password:"{}}));}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00031}00031\ \ \ \ \ m\_passwordEdit\ =\ \textcolor{keyword}{new}\ QLineEdit;}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00032}00032\ \ \ \ \ m\_passwordEdit-\/>setEchoMode(QLineEdit::Password);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00033}00033\ \ \ \ \ m\_passwordEdit-\/>setPlaceholderText(\textcolor{stringliteral}{"{}Enter\ wallet\ password"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00034}00034\ \ \ \ \ m\_passwordEdit-\/>setMinimumHeight(36);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00035}00035\ \ \ \ \ layout-\/>addWidget(m\_passwordEdit);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00037}00037\ \ \ \ \ m\_statusLabel\ =\ \textcolor{keyword}{new}\ QLabel;}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00038}00038\ \ \ \ \ m\_statusLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#d94a4a;\ font-\/size:\ 11px;"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00039}00039\ \ \ \ \ layout-\/>addWidget(m\_statusLabel);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00041}00041\ \ \ \ \ layout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00043}00043\ \ \ \ \ \textcolor{comment}{//\ Buttons}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00044}00044\ \ \ \ \ \textcolor{keyword}{auto}*\ btnLayout\ =\ \textcolor{keyword}{new}\ QHBoxLayout;}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00045}00045\ \ \ \ \ \textcolor{keyword}{auto}*\ cancelBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Cancel"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00046}00046\ \ \ \ \ cancelBtn-\/>setMinimumHeight(40);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00047}00047\ \ \ \ \ \textcolor{keyword}{auto}*\ unlockBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Unlock"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00048}00048\ \ \ \ \ unlockBtn-\/>setMinimumHeight(40);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00049}00049\ \ \ \ \ unlockBtn-\/>setStyleSheet(\textcolor{stringliteral}{"{}background:\ \#4a90d9;\ color:\ white;\ font-\/weight:\ bold;"{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00050}00050\ \ \ \ \ btnLayout-\/>addWidget(cancelBtn);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00051}00051\ \ \ \ \ btnLayout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00052}00052\ \ \ \ \ btnLayout-\/>addWidget(unlockBtn);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00053}00053\ \ \ \ \ layout-\/>addLayout(btnLayout);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00055}00055\ \ \ \ \ connect(cancelBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&QDialog::reject);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00056}00056\ \ \ \ \ connect(unlockBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_passwordEdit-\/>text().isEmpty())\ \{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ m\_statusLabel-\/>setText(\textcolor{stringliteral}{"{}Please\ enter\ your\ password."{}});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00060}00060\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00061}00061\ \ \ \ \ \ \ \ \ accept();}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00062}00062\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00064}00064\ \ \ \ \ \textcolor{comment}{//\ Enter\ key\ triggers\ unlock}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00065}00065\ \ \ \ \ connect(m\_passwordEdit,\ \&QLineEdit::returnPressed,\ unlockBtn,\ \&QPushButton::click);}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00066}00066\ \}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00068}\doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ac96e159bd0017de0c1748189453f1ec8}{00068}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ac96e159bd0017de0c1748189453f1ec8}{UnlockDialog::setWallets}}(\textcolor{keyword}{const}\ QList<QPair<QString,\ QString>>\&\ wallets)\ \{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00069}00069\ \ \ \ \ m\_walletCombo-\/>clear();}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ w\ :\ wallets)\ \{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00071}00071\ \ \ \ \ \ \ \ \ m\_walletCombo-\/>addItem(w.second,\ w.first);\ \textcolor{comment}{//\ display\ name,\ data\ =\ id}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00072}00072\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00073}00073\ \}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00075}\doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ad3e6d2a6c4e2f571a8f93d14c776f611}{00075}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ad3e6d2a6c4e2f571a8f93d14c776f611}{UnlockDialog::selectedWalletId}}()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_walletCombo\ ?\ m\_walletCombo-\/>currentData().toString()\ :\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00077}00077\ \}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00079}\doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ac60e50798f91b75f0e279bacdfda0049}{00079}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ac60e50798f91b75f0e279bacdfda0049}{UnlockDialog::password}}()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_passwordEdit\ ?\ m\_passwordEdit-\/>text()\ :\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00081}00081\ \}}
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{_unlock_dialog_8cpp_source_l00083}00083\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

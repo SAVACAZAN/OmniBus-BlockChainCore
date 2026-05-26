@@ -1,0 +1,331 @@
+\chapter{Module:\+ {\ttfamily domain\+\_\+minter} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter}{}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter}\index{Module: $<$tt$>$domain\_minter$<$/tt$>$@{Module: $<$tt$>$domain\_minter$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1522}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1522}%
+
+
+\begin{quote}
+PQ domain minting — register domains (omnibus.\+omni, .love, .food, .rent, .vacation), ownership transfer, lookup by name/\+owner. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+domain\+\_\+minter.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 419 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 10 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 12
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1524}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1524}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1525}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1525}
+
+\begin{DoxyItemize}
+\item \`{}\+Domain\`{}{\ttfamily Domain}
+\end{DoxyItemize}— Un domeniu mintat pe chain
+\begin{DoxyItemize}
+\item \`{}\+Domain\+Registry\`{}{\ttfamily Domain\+Registry}
+\end{DoxyItemize}— Data structure for domain registry. Fields include:\+ allocator, domains, collecte...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1526}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1526}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1527}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1527}
+
+\begin{DoxyItemize}
+\item \`{}prefix()\`{}{\ttfamily prefix()}
+\end{DoxyItemize}— Performs the prefix operation on the domain\+\_\+minter module.
+\begin{DoxyItemize}
+\item \`{}algorithm()\`{}{\ttfamily algorithm()}
+\end{DoxyItemize}— Performs the algorithm operation on the domain\+\_\+minter module.
+\begin{DoxyItemize}
+\item \`{}is\+Soul\+Bound()\`{}{\ttfamily is\+Soul\+Bound()}
+\end{DoxyItemize}— Domeniile non-\/transferabile (Soul\+Bound strict)
+\begin{DoxyItemize}
+\item \`{}mint\+Cost\+Sat()\`{}{\ttfamily mint\+Cost\+Sat()}
+\end{DoxyItemize}— Costul de mintare in SAT OMNI
+\begin{DoxyItemize}
+\item \`{}full\+Name()\`{}{\ttfamily full\+Name()}
+\end{DoxyItemize}— Performs the full name operation on the domain\+\_\+minter module.
+\begin{DoxyItemize}
+\item \`{}level\+Up()\`{}{\ttfamily level\+Up()}
+\end{DoxyItemize}— Performs the level up operation on the domain\+\_\+minter module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_count}{\`{}count()\`{}}{\ttfamily count()}
+\end{DoxyItemize}— Returns the count of .
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the domain\+\_\+minter module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1529}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1529}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1530}{}\doxysubsection{\texorpdfstring{{\ttfamily Domain}}{{\ttfamily Domain}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1530}
+Un domeniu mintat pe chain
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily name}  &{\ttfamily \+[MAX\+\_\+\+NAME\+\_\+\+LEN]\+u8}  &Name  \\
+{\ttfamily name\+\_\+len}  &{\ttfamily u8}  &Name\+\_\+len  \\
+{\ttfamily domain\+\_\+type}  &{\ttfamily Domain\+Type}  &Domain\+\_\+type  \\
+{\ttfamily owner}  &{\ttfamily \+[32]\+u8}  &Owner  \\
+{\ttfamily level}  &{\ttfamily u8}  &Level  \\
+{\ttfamily minted\+\_\+block}  &{\ttfamily u64}  &Minted\+\_\+block  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 71}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1532}{}\doxysubsection{\texorpdfstring{{\ttfamily Domain\+Registry}}{{\ttfamily Domain\+Registry}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1532}
+Data structure for domain registry. Fields include:\+ allocator, domains, collected\+\_\+sat, domain\+\_\+type, username.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily domains}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Domain)}  &Domains  \\
+{\ttfamily collected\+\_\+sat}  &{\ttfamily u64}  &Collected\+\_\+sat  \\
+{\ttfamily domain\+\_\+type}  &{\ttfamily Domain\+Type}  &Domain\+\_\+type  \\
+{\ttfamily username}  &{\ttfamily \+[]\+const u8}  &Username  \\
+{\ttfamily owner}  &{\ttfamily \+[32]\+u8}  &Owner  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 107}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1534}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1534}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Domain\+Type}  &{\ttfamily enum(u8) \{}  &Domain type  \\
+{\ttfamily MAX\+\_\+\+NAME\+\_\+\+LEN}  &{\ttfamily usize = 32}  &M a x\+\_\+ n a m e\+\_\+ l e n  \\
+{\ttfamily MAX\+\_\+\+LEVEL}  &{\ttfamily u8 = 100}  &M a x\+\_\+ l e v e l  \\
+{\ttfamily MAX\+\_\+\+DOMAINS}  &{\ttfamily usize = 65\+\_\+536}  &M a x\+\_\+ d o m a i n s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1536}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1536}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1537}{}\doxysubsection{\texorpdfstring{{\ttfamily prefix()}}{{\ttfamily prefix()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1537}
+Performs the prefix operation on the domain\+\_\+minter module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ prefix(self:\ DomainType)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Domain\+Type}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 27}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1539}{}\doxysubsection{\texorpdfstring{{\ttfamily algorithm()}}{{\ttfamily algorithm()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1539}
+Performs the algorithm operation on the domain\+\_\+minter module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ algorithm(self:\ DomainType)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Domain\+Type}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 37}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1541}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Soul\+Bound()}}{{\ttfamily is\+Soul\+Bound()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1541}
+Domeniile non-\/transferabile (Soul\+Bound strict)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isSoulBound(self:\ DomainType)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Domain\+Type}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 48}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1543}{}\doxysubsection{\texorpdfstring{{\ttfamily mint\+Cost\+Sat()}}{{\ttfamily mint\+Cost\+Sat()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1543}
+Costul de mintare in SAT OMNI
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ mintCostSat(self:\ DomainType)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Domain\+Type}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 56}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1545}{}\doxysubsection{\texorpdfstring{{\ttfamily full\+Name()}}{{\ttfamily full\+Name()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1545}
+Performs the full name operation on the domain\+\_\+minter module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fullName(self:\ *const\ Domain)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Domain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 94}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1547}{}\doxysubsection{\texorpdfstring{{\ttfamily level\+Up()}}{{\ttfamily level\+Up()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1547}
+Performs the level up operation on the domain\+\_\+minter module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ levelUp(self:\ *Domain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Domain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 98}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1549}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1549}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ DomainRegistry\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Domain\+Registry}
+
+{\itshape Defined at line 113}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1551}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1551}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *DomainRegistry)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Domain\+Registry}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 121}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1553}{}\doxysubsection{\texorpdfstring{{\ttfamily count()}}{{\ttfamily count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1553}
+Returns the count of .
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ count(self:\ *const\ DomainRegistry)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Domain\+Registry}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 265}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1555}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2domain__minter_autotoc_md1555}
+Performs the print status operation on the domain\+\_\+minter module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ DomainRegistry)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Domain\+Registry}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 273}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

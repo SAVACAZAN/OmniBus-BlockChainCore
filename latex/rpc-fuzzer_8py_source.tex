@@ -1,0 +1,340 @@
+\doxysection{rpc-\/fuzzer.py}
+\hypertarget{rpc-fuzzer_8py_source}{}\label{rpc-fuzzer_8py_source}\index{tools/REVERSE/rpc-\/fuzzer.py@{tools/REVERSE/rpc-\/fuzzer.py}}
+\doxymbox{\hyperlink{rpc-fuzzer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00001}\doxymbox{\hyperlink{namespacerpc-fuzzer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00003}00003\ \textcolor{stringliteral}{rpc-\/fuzzer.py}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00005}00005\ \textcolor{stringliteral}{Fuzz\ the\ JSON-\/RPC\ interface\ of\ a\ BlockChainCore\ node.}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00006}00006\ \textcolor{stringliteral}{Sends\ malformed\ JSON-\/RPC\ requests:}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ missing\ fields,\ wrong\ types}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ huge\ payloads}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ deeply\ nested\ objects}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ SQL\ injection\ attempts\ inside\ params}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ null\ bytes\ and\ unicode\ exploits}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00013}00013\ \textcolor{stringliteral}{Outputs:\ rpc-\/vulnerabilities.json}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00014}00014\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00016}00016\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00017}00017\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00018}00018\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00019}00019\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00020}00020\ \textcolor{keyword}{import}\ string}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00023}00023\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00024}00024\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00026}00026\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00028}\doxymbox{\hyperlink{namespacerpc-fuzzer_aa5b2572edbb9682d57f4ca56a080d752}{00028}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00029}\doxymbox{\hyperlink{namespacerpc-fuzzer_adf212a1094304b5f45a729e0a950eeb1}{00029}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00030}\doxymbox{\hyperlink{namespacerpc-fuzzer_a0c331332bf9337ea45d59c690e2bcafa}{00030}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00031}\doxymbox{\hyperlink{namespacerpc-fuzzer_ad1c44f81a1eaff0e2712e242ed8f63cc}{00031}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00032}\doxymbox{\hyperlink{namespacerpc-fuzzer_a4b4a858b06e1407eb25f3017c06ec910}{00032}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00035}\doxymbox{\hyperlink{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00036}00036\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00039}\doxymbox{\hyperlink{namespacerpc-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00043}\doxymbox{\hyperlink{namespacerpc-fuzzer_abf994b8269849d29e07697ea8a840f74}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00047}\doxymbox{\hyperlink{namespacerpc-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00048}00048\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00051}00051\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00052}00052\ \textcolor{comment}{\#\ Payload\ generators}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00053}00053\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00054}\doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{00054}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(method:\ str\ |\ \textcolor{keywordtype}{None},\ params:\ Any,\ req\_id:\ Any\ =\ 1)\ -\/>\ dict[str,\ Any]\ |\ str:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00055}00055\ \ \ \ \ payload:\ dict[str,\ Any]\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}}\}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{if}\ method\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}method"{}}]\ =\ method}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{if}\ params\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}params"{}}]\ =\ params}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{if}\ req\_id\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}id"{}}]\ =\ req\_id}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{return}\ payload}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00065}\doxymbox{\hyperlink{namespacerpc-fuzzer_aba61937fd2424f199322e415b0a7afd6}{00065}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_aba61937fd2424f199322e415b0a7afd6}{random\_string}}(length:\ int)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}}.join(random.choices(string.ascii\_letters\ +\ string.digits,\ k=length))}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00069}\doxymbox{\hyperlink{namespacerpc-fuzzer_ae394746018a0c8f7f2355bb63594a7d1}{00069}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_ae394746018a0c8f7f2355bb63594a7d1}{deep\_nest}}(depth:\ int)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{if}\ depth\ <=\ 0:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}key"{}}:\ \textcolor{stringliteral}{"{}value"{}}\}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}nested"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_ae394746018a0c8f7f2355bb63594a7d1}{deep\_nest}}(depth\ -\/\ 1)\}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00075}\doxymbox{\hyperlink{namespacerpc-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{00075}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{fuzz\_cases}}()\ -\/>\ list[dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00076}00076\ \ \ \ \ cases:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00078}00078\ \ \ \ \ \textcolor{comment}{\#\ 1.\ Valid\ baseline}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00079}00079\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}valid\_getblockcount"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00085}00085\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00087}00087\ \ \ \ \ \textcolor{comment}{\#\ 2.\ Missing\ method}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00088}00088\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}missing\_method"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{keywordtype}{None},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00094}00094\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00096}00096\ \ \ \ \ \textcolor{comment}{\#\ 3.\ Missing\ params}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00097}00097\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}missing\_params"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}getblockcount"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1\},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00103}00103\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00105}00105\ \ \ \ \ \textcolor{comment}{\#\ 4.\ Wrong\ type\ for\ params}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00106}00106\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}params\_as\_string"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ \textcolor{stringliteral}{"{}not\_an\_array"{}}),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00112}00112\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00114}00114\ \ \ \ \ \textcolor{comment}{\#\ 5.\ Huge\ payload}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00115}00115\ \ \ \ \ huge\ =\ [\doxymbox{\hyperlink{namespacerpc-fuzzer_aba61937fd2424f199322e415b0a7afd6}{random\_string}}(1024)\ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(1024)]}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00116}00116\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}huge\_payload\_1mb"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ huge),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00122}00122\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00124}00124\ \ \ \ \ \textcolor{comment}{\#\ 6.\ Deeply\ nested\ object}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00125}00125\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}deeply\_nested\_100"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ \doxymbox{\hyperlink{namespacerpc-fuzzer_ae394746018a0c8f7f2355bb63594a7d1}{deep\_nest}}(100)),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00131}00131\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00133}00133\ \ \ \ \ \textcolor{comment}{\#\ 7.\ SQL\ injection\ in\ param}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00134}00134\ \ \ \ \ sql\_inject\ =\ \textcolor{stringliteral}{"{}'\ OR\ '1'='1';\ DROP\ TABLE\ blocks;\ -\/-\/"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00135}00135\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}sql\_injection\_string"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblock"{}},\ [sql\_inject]),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00141}00141\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00143}00143\ \ \ \ \ \textcolor{comment}{\#\ 8.\ Null\ bytes\ in\ JSON}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00144}00144\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}null\_bytes\_in\_json"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload\_raw"{}}:\ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:\ "{}2.0"{},\ "{}method"{}:\ "{}getblock\(\backslash\)u0000count"{},\ "{}params"{}:\ [],\ "{}id"{}:\ 1\}'},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00150}00150\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00152}00152\ \ \ \ \ \textcolor{comment}{\#\ 9.\ Unicode\ exploits}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00153}00153\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}unicode\_overload"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ [\textcolor{stringliteral}{"{}\(\backslash\)u0000\(\backslash\)uFFFF\(\backslash\)u202E"{}}\ *\ 1000]),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00159}00159\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00161}00161\ \ \ \ \ \textcolor{comment}{\#\ 10.\ Negative\ id}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00162}00162\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}negative\_id"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ [],\ -\/999),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00168}00168\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00170}00170\ \ \ \ \ \textcolor{comment}{\#\ 11.\ Method\ as\ array}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00171}00171\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}method\_is\_array"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}([\textcolor{stringliteral}{"{}getblockcount"{}}],\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00177}00177\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00179}00179\ \ \ \ \ \textcolor{comment}{\#\ 12.\ Empty\ batch}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00180}00180\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}empty\_batch"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ [],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00186}00186\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00188}00188\ \ \ \ \ \textcolor{comment}{\#\ 13.\ Batch\ with\ one\ bad\ entry}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00189}00189\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}batch\_mixed"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ [}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{keywordtype}{None},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ ],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00198}00198\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00200}00200\ \ \ \ \ \textcolor{comment}{\#\ 14.\ Very\ large\ number}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00201}00201\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}extreme\_number"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload"{}}:\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a9533037669b4953e1a98b84f60dff3d2}{build\_payload}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ [10**100]),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00207}00207\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00209}00209\ \ \ \ \ \textcolor{comment}{\#\ 15.\ JSON\ with\ trailing\ garbage}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00210}00210\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}trailing\_garbage"{}},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payload\_raw"{}}:\ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getblockcount"{},"{}params"{}:[],"{}id"{}:1\}GARBAGE'},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_error"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00216}00216\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{return}\ cases}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00220}00220\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00221}00221\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00222}00222\ \textcolor{comment}{\#\ RPC\ interaction}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00223}00223\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00224}\doxymbox{\hyperlink{namespacerpc-fuzzer_a20c94067d83177e7cc128c638465814b}{00224}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_a20c94067d83177e7cc128c638465814b}{send\_rpc}}(url:\ str,\ payload:\ dict[str,\ Any]\ |\ list[Any]\ |\ str,\ timeout:\ float\ =\ 10.0)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00225}00225\ \ \ \ \ result:\ dict[str,\ Any]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}http\_status"{}}:\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response"{}}:\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}error"{}}:\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_ms"{}}:\ 0.0,}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00230}00230\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00231}00231\ \ \ \ \ headers\ =\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00232}00232\ \ \ \ \ start\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(payload,\ str):}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ data=payload,\ headers=headers,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ headers=headers,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}http\_status"{}}]\ =\ resp.status\_code}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}response"{}}]\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}response"{}}]\ =\ resp.text[:512]}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00243}00243\ \ \ \ \ \textcolor{keywordflow}{except}\ requests.exceptions.ConnectionError\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}error"{}}]\ =\ f\textcolor{stringliteral}{"{}ConnectionError:\ \{exc\}"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00245}00245\ \ \ \ \ \textcolor{keywordflow}{except}\ requests.exceptions.Timeout:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}error"{}}]\ =\ \textcolor{stringliteral}{"{}Timeout"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00247}00247\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}error"{}}]\ =\ f\textcolor{stringliteral}{"{}Exception:\ \{exc\}"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00249}00249\ \ \ \ \ result[\textcolor{stringliteral}{"{}elapsed\_ms"{}}]\ =\ round((time.perf\_counter()\ -\/\ start)\ *\ 1000,\ 2)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00250}00250\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00252}00252\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00253}00253\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00254}00254\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00255}00255\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00256}\doxymbox{\hyperlink{namespacerpc-fuzzer_a7431cb90017e54fe695b23d4190db046}{00256}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-fuzzer_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00257}00257\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Fuzz\ BlockChainCore\ JSON-\/RPC."{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00258}00258\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/url"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ help=\textcolor{stringliteral}{"{}RPC\ endpoint"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00259}00259\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ username"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00260}00260\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00261}00261\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/timeout"{}},\ type=float,\ default=10.0,\ help=\textcolor{stringliteral}{"{}Request\ timeout"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00262}00262\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}tools/REVERSE/rpc-\/vulnerabilities.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00263}00263\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/cooldown"{}},\ type=float,\ default=0.2,\ help=\textcolor{stringliteral}{"{}Seconds\ between\ requests"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00264}00264\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00266}00266\ \ \ \ \ session\ =\ requests.Session()}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00267}00267\ \ \ \ \ \textcolor{keywordflow}{if}\ args.user\ \textcolor{keywordflow}{or}\ args.password:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ session.auth\ =\ (args.user,\ args.password)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00270}00270\ \ \ \ \ cases\ =\ \doxymbox{\hyperlink{namespacerpc-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{fuzz\_cases}}()}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00271}00271\ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Running\ \{len(cases)\}\ RPC\ fuzz\ cases\ against\ \{args.url\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00272}00272\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00273}00273\ \ \ \ \ results:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00274}00274\ \ \ \ \ \textcolor{keywordflow}{for}\ case\ \textcolor{keywordflow}{in}\ cases:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ raw\ =\ case.get(\textcolor{stringliteral}{"{}payload\_raw"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ payload\ =\ raw\ \textcolor{keywordflow}{if}\ raw\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{else}\ case[\textcolor{stringliteral}{"{}payload"{}}]}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Case:\ \{case['name']\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ probe\ =\ \doxymbox{\hyperlink{namespacerpc-fuzzer_a20c94067d83177e7cc128c638465814b}{send\_rpc}}(args.url,\ payload,\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ has\_error\ =\ probe[\textcolor{stringliteral}{"{}error"{}}]\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ rpc\_error\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(probe.get(\textcolor{stringliteral}{"{}response"{}}),\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ probe[\textcolor{stringliteral}{"{}response"{}}]\ \textcolor{keywordflow}{and}\ probe[\textcolor{stringliteral}{"{}response"{}}][\textcolor{stringliteral}{"{}error"{}}]\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ rpc\_error\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ unexpected\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ case[\textcolor{stringliteral}{"{}expect\_error"{}}]\ \textcolor{keywordflow}{and}\ (has\_error\ \textcolor{keywordflow}{or}\ rpc\_error):}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ unexpected\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}\ \ Unexpected\ error\ on\ \{case['name']\}:\ \{probe['error']\ or\ probe['response']\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ case[\textcolor{stringliteral}{"{}expect\_error"{}}]\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ has\_error\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ rpc\_error:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ If\ it\ didn't\ error\ when\ we\ expected\ an\ error,\ that's\ interesting\ but\ not\ necessarily\ a\ vuln}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ has\_error\ \textcolor{keywordflow}{and}\ probe[\textcolor{stringliteral}{"{}error"{}}]\ ==\ \textcolor{stringliteral}{"{}Timeout"{}}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}\ \ Timeout\ on\ \{case['name']\}\ —\ possible\ DoS\ vector"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ unexpected\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ probe[\textcolor{stringliteral}{"{}http\_status"{}}]\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ (200,\ 400,\ 401,\ 403,\ 404,\ 500,\ \textcolor{keywordtype}{None}):}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}\ \ Unusual\ HTTP\ \{probe['http\_status']\}\ on\ \{case['name']\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ unexpected\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ results.append(}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ case[\textcolor{stringliteral}{"{}name"{}}],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_error"{}}:\ case[\textcolor{stringliteral}{"{}expect\_error"{}}],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}http\_status"{}}:\ probe[\textcolor{stringliteral}{"{}http\_status"{}}],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_error"{}}:\ rpc\_error,}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}network\_error"{}}:\ probe[\textcolor{stringliteral}{"{}error"{}}],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response\_preview"{}}:\ probe[\textcolor{stringliteral}{"{}response"{}}],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_ms"{}}:\ probe[\textcolor{stringliteral}{"{}elapsed\_ms"{}}],}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}unexpected"{}}:\ unexpected,}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ time.sleep(args.cooldown)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00314}00314\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00315}00315\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target\_url"{}}:\ args.url,}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cases\_run"{}}:\ len(cases),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}unexpected\_behaviors"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}unexpected"{}}]),}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}results"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00321}00321\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00323}00323\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00324}00324\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00325}00325\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00328}00328\ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}RPC\ fuzz\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00329}00329\ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Unexpected\ behaviors:\ \{report['unexpected\_behaviors']\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00330}00330\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00332}00332\ }
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00333}00333\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{rpc-fuzzer_8py_source_l00334}00334\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacerpc-fuzzer_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

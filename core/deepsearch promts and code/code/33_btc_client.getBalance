@@ -1,0 +1,5 @@
+// Derive from seed (BIP-44)
+const addr_bytes = try eth.address.deriveAddress(seed, account, index);
+
+// Get checksummed address
+const addr_str = try eth.address.toChecksumAddress(addr_bytes);

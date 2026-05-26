@@ -1,0 +1,13 @@
+var builder = btc_tx.TxBuilder.init(allocator);
+const fee_rate = 5; // sat/vbyte
+
+const result = try builder.build(
+    utxos,
+    &[_]btc_tx.TxOut{.{
+        .amount = send_amount,
+        .script_pubkey = dest_script,
+    }},
+    change_address,
+    change_script,
+    fee_rate,
+);

@@ -1,0 +1,94 @@
+\doxysection{finality-\/checker.py}
+\hypertarget{finality-checker_8py_source}{}\label{finality-checker_8py_source}\index{tools/CONSENSUS/finality-\/checker.py@{tools/CONSENSUS/finality-\/checker.py}}
+\doxymbox{\hyperlink{finality-checker_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00001}\doxymbox{\hyperlink{namespacefinality-checker}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00002}\doxymbox{\hyperlink{namespacefinality}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Casper\ FFG\ Finality\ Checker}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00005}00005\ \textcolor{stringliteral}{Verifies\ checkpoint\ justification\ and\ finalization\ across\ epochs.}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00009}00009\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00010}00010\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00011}00011\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00013}\doxymbox{\hyperlink{namespacefinality-checker_ad50f0d20b7711c316c327da3d787aa11}{00013}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00014}\doxymbox{\hyperlink{namespacefinality-checker_adc717b777e7f085b596e97dcb9032ac7}{00014}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00015}\doxymbox{\hyperlink{namespacefinality-checker_abf6fca0a2fd822124f3d74f34381715a}{00015}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00016}\doxymbox{\hyperlink{namespacefinality-checker_a4116422ddce98e39a3a075770441b186}{00016}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00019}\doxymbox{\hyperlink{namespacefinality-checker_acd59877dca2a9957888013a6f06aab6d}{00019}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefinality-checker_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00020}00020\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00023}\doxymbox{\hyperlink{namespacefinality-checker_a3a33a273a295d585baa9b8f6d56a9c2a}{00023}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefinality-checker_a3a33a273a295d585baa9b8f6d56a9c2a}{check\_finality}}(checkpoints:\ List[Dict[str,\ Any]])\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00024}00024\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Given\ checkpoints\ with\ \{epoch,\ hash,\ votes,\ justified,\ finalized\},\ verify\ Casper\ rules."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00025}00025\ \ \ \ \ results:\ List[Dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00026}00026\ \ \ \ \ last\_justified\ =\ -\/1}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00027}00027\ \ \ \ \ last\_finalized\ =\ -\/1}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00029}00029\ \ \ \ \ \textcolor{keywordflow}{for}\ cp\ \textcolor{keywordflow}{in}\ sorted(checkpoints,\ key=\textcolor{keyword}{lambda}\ x:\ x[\textcolor{stringliteral}{"{}epoch"{}}]):}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ epoch\ =\ cp[\textcolor{stringliteral}{"{}epoch"{}}]}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ votes\ =\ cp.get(\textcolor{stringliteral}{"{}votes"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ threshold\ =\ cp.get(\textcolor{stringliteral}{"{}threshold"{}},\ 100)}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ justified\ =\ votes\ >=\ threshold}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ finalized\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Finalization\ rule:\ two\ consecutive\ justified\ checkpoints}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ justified\ \textcolor{keywordflow}{and}\ last\_justified\ ==\ epoch\ -\/\ 1:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ finalized\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ cp\_result\ =\ \{}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}epoch"{}}:\ epoch,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ cp[\textcolor{stringliteral}{"{}hash"{}}],}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}votes"{}}:\ votes,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}threshold"{}}:\ threshold,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}justified"{}}:\ justified,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}finalized"{}}:\ finalized,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ results.append(cp\_result)}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ justified:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ last\_justified\ =\ epoch}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ finalized:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ last\_finalized\ =\ epoch}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}checkpoints"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}last\_justified\_epoch"{}}:\ last\_justified,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}last\_finalized\_epoch"{}}:\ last\_finalized,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00059}00059\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00062}\doxymbox{\hyperlink{namespacefinality-checker_a7431cb90017e54fe695b23d4190db046}{00062}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefinality-checker_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00063}00063\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Check\ Casper\ FFG\ finality"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00064}00064\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/input"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}JSON\ file\ with\ checkpoints\ list"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00065}00065\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}finality-\/report.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00066}00066\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00068}00068\ \ \ \ \ \textcolor{keyword}{with}\ open(args.input,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ data\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00070}00070\ \ \ \ \ checkpoints\ =\ data.get(\textcolor{stringliteral}{"{}checkpoints"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00072}00072\ \ \ \ \ \doxymbox{\hyperlink{namespacefinality-checker_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Finality\ Checker\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00073}00073\ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespacefinality-checker_a3a33a273a295d585baa9b8f6d56a9c2a}{check\_finality}}(checkpoints)}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00075}00075\ \ \ \ \ \doxymbox{\hyperlink{namespacefinality-checker_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Checkpoints\ analyzed:\ \{len(report['checkpoints'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00076}00076\ \ \ \ \ \doxymbox{\hyperlink{namespacefinality-checker_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}last\_finalized\_epoch"{}}]\ >=\ 0\ \textcolor{keywordflow}{else}\ RED,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Last\ justified\ epoch:\ \{report['last\_justified\_epoch']\}"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00078}00078\ \ \ \ \ \doxymbox{\hyperlink{namespacefinality-checker_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}last\_finalized\_epoch"{}}]\ >=\ 0\ \textcolor{keywordflow}{else}\ RED,}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Last\ finalized\ epoch:\ \{report['last\_finalized\_epoch']\}"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00081}00081\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00083}00083\ \ \ \ \ \doxymbox{\hyperlink{namespacefinality-checker_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nReport\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00084}00084\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00087}00087\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{finality-checker_8py_source_l00088}00088\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacefinality-checker_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

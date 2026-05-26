@@ -1,0 +1,404 @@
+\chapter{Omni\+Bus Ecosystem — Raport Academic Complet }
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t}{}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t}\index{OmniBus Ecosystem — Raport Academic Complet@{OmniBus Ecosystem — Raport Academic Complet}}
+\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11342}%
+\Hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11342}%
+
+
+{\bfseries{Data:\+}} 2026-\/03-\/25 {\bfseries{Scope:\+}} Audit complet cod sursă vs documentație vs roadmap {\bfseries{Proiecte:\+}} Omnibus\+Sidebar (C++) + Omni\+Bus-\/\+Block\+Chain\+Core (Zig + JS + React)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11344}{}\doxysection{\texorpdfstring{1. CE ESTE SISTEMUL (DE LA 0 LA 100)}{1. CE ESTE SISTEMUL (DE LA 0 LA 100)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11344}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11345}{}\doxysubsection{\texorpdfstring{Viziunea}{Viziunea}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11345}
+Omni\+Bus este un ecosistem blockchain post-\/quantum format din 3 straturi:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ STRATUL\ 1\ —\ INTERFAȚĂ\ UTILIZATOR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ OmnibusSidebar.exe\ (C++/ImGui)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ Prețuri\ live\ 3\ exchange-\/uri\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ Tab\ wallet\ conectat\ la\ nod\ propriu\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ Stocare\ criptată\ chei\ API\ (DPAPI)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ STRATUL\ 2\ —\ WALLET\ \&\ SECURITATE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ SuperVault\ +\ OmnibusWallet\ (Python)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ BIP-\/39/44/84\ derivare\ pentru\ 19\ blockchain-\/uri\ \ \ │}
+\DoxyCodeLine{│\ \ •\ 5\ domenii\ Post-\/Quantum\ per\ wallet\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ vault.dat\ criptat\ DPAPI\ pe\ disc\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ STRATUL\ 3\ —\ BLOCKCHAIN\ PROPRIU\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ OmniBus-\/BlockChainCore\ (Zig)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ Nod\ Zig\ nativ\ Windows\ +\ mining\ PoW\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ secp256k1\ real\ +\ liboqs\ PQ\ crypto\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ JSON-\/RPC\ 2.0\ pe\ port\ 8332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ •\ Mining\ pool\ Node.js\ (miners\ dinamici)\ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11347}{}\doxysection{\texorpdfstring{2. INVENTAR COMPLET COD}{2. INVENTAR COMPLET COD}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11347}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11348}{}\doxysubsection{\texorpdfstring{2.\+1 Omnibus\+Sidebar — C++ Desktop App}{2.\+1 Omnibus\+Sidebar — C++ Desktop App}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11348}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Ce face  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+main.\+cpp  &288  &Raylib window + Im\+Gui + 5 tabs + font loading  &✅ REAL  \\
+app\+\_\+state.\+h  &43  &Tick/\+\+Market\+Data structs, mutex globale  &✅ REAL  \\
+fetch.\+cpp  &142  &Win\+INet HTTP, parse JSON Kraken/\+\+LCX/\+\+Coinbase, Fetch\+Loop 1s  &✅ REAL  \\
+win\+\_\+input\+\_\+region.\+cpp  &28  &Set\+Window\+Rgn click-\/through transparent zone  &✅ REAL  \\
+mod\+\_\+prices.\+cpp  &137  &Flash animation, prețuri live pe 3 exchange-\/uri  &✅ REAL  \\
+mod\+\_\+trade.\+cpp  &210  &UI trading complet, modal confirmare  &⚠️ UI real, execuție STUB  \\
+mod\+\_\+charts.\+cpp  &526  &Candlestick OHLCV, 5 timeframe-\/uri, zoom/\+scroll  &✅ REAL  \\
+mod\+\_\+log.\+cpp  &46  &Ring buffer 256 log entries, thread-\/safe  &✅ REAL  \\
+mod\+\_\+toast.\+cpp  &70  &Slide-\/in notifications cu timer expiry  &✅ REAL  \\
+mod\+\_\+wallet.\+cpp  &423  &Win\+HTTP → RPC 8332, getbalance + sendtransaction  &✅ REAL  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11349}{}\doxysubsection{\texorpdfstring{2.\+2 Super\+Vault — C++ + Python}{2.\+2 Super\+Vault — C++ + Python}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11349}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Ce face  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+Vault\+Core/\+vault\+\_\+core.\+h  &107  &C interface v4:\+ 11 opcodes, Vault\+Key\+Entry struct  &✅ REAL  \\
+Vault\+Core/\+vault\+\_\+core\+\_\+windows.\+cpp  &365  &DPAPI Crypt\+Protect\+Data/\+\+Unprotect, format vault.\+dat v4  &✅ REAL  \\
+Vault\+Service/\+vault\+\_\+service.\+cpp  &251  &Named Pipe daemon {\ttfamily \textbackslash{}\textbackslash{}.\textbackslash{}pipe\textbackslash{}Omnibus\+Vault}, refuză GET\+\_\+\+SECRET  &✅ REAL  \\
+Vault\+Client/\+vault\+\_\+client.\+cpp  &208  &Client dual-\/mode (pipe + embedded)  &⚠️ Opcode mai vechi  \\
+Vault\+Manager/\+vault\+\_\+manager\+\_\+gui.\+cpp  &499  &GUI standalone Raylib+\+Im\+Gui pentru vault  &⚠️ Opcode mai vechi  \\
+mod\+\_\+vault.\+cpp  &416  &Tab VAULT în sidebar:\+ DPAPI, vault.\+dat, Secure\+Zero\+Memory  &✅ REAL  \\
+Vault\+Manager/\+vault\+\_\+manager.\+py  &2130  &Tkinter v3:\+ Api\+Keys+\+Wallet+\+PQDomains+\+Tx\+History tabs  &✅ REAL  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11350}{}\doxysubsection{\texorpdfstring{2.\+3 Omnibus\+Wallet — Python Package}{2.\+3 Omnibus\+Wallet — Python Package}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11350}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Ce face  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+wallet\+\_\+core.\+py  &213  &BIP-\/39 generate/\+validate, derive\+\_\+wallet, create\+\_\+wallet\+\_\+entry  &✅ REAL  \\
+wallet\+\_\+store.\+py  &211  &DPAPI wallets.\+dat, atomic write, save/\+list/\+delete  &✅ REAL  \\
+wallet\+\_\+manager.\+py  &493  &Tkinter standalone wallet manager  &✅ REAL  \\
+pq\+\_\+domain.\+py  &287  &4 domenii PQ, HKDF-\/\+SHA512, secp256k1 compressed pubkey  &✅ REAL  \\
+pq\+\_\+sign.\+py  &363  &3 backends:\+ WSL liboqs /\+ ctypes liboqs /\+ HMAC fallback  &⚠️ Backend C = STUB  \\
+balance\+\_\+fetcher.\+py  &613  &19 blockchain-\/uri:\+ BTC/\+\+ETH/\+\+SOL/\+\+LTC/\+... + OMNI RPC 8332  &✅ REAL  \\
+send\+\_\+transaction.\+py  &419  &SHA256d tx hash, secp256k1 sign (3 backends), send OMNI  &✅ REAL  \\
+chains/\+omni.\+py  &159  &3 tipuri adresă OMNI:\+ ob1q/\+\+O/\+ob\+\_\+, Base58\+Check v=0x4F  &✅ REAL  \\
+chains/\+omni\+\_\+\texorpdfstring{$\ast$}{*}.py (5 fișiere)  &\texorpdfstring{$\sim$}{\string~}115 fiecare  &ML-\/\+KEM/\+\+ML-\/\+DSA/\+\+Falcon-\/512/\+\+SLH-\/\+DSA/\+\+Falcon-\/\+Light per domeniu  &✅ REAL  \\
+chains/\+btc.\+py ... egld.\+py  &\texorpdfstring{$\sim$}{\string~}26-\/40  &BIP44/\+84 derivare per blockchain  &✅ REAL (19 chain-\/uri)  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11351}{}\doxysubsection{\texorpdfstring{2.\+4 Omni\+Bus-\/\+Block\+Chain\+Core — Zig Core}{2.\+4 Omni\+Bus-\/\+Block\+Chain\+Core — Zig Core}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11351}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Ce face  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+core/\+main.\+zig  &128  &Entry:\+ vault reader, blockchain init, wallet, RPC thread, mining  &✅ REAL  \\
+core/\+blockchain.\+zig  &175  &Chain Array\+List, mempool, mining PoW, calculate\+Block\+Hash SHA256  &⚠️ validate\+Transaction = STUB  \\
+core/\+block.\+zig  &56  &Block struct, hash, add\+Transaction  &✅ REAL  \\
+core/\+transaction.\+zig  &238  &TX struct, sign/\+verify ECDSA, SHA256d hash, VALID\+\_\+\+PREFIXES  &✅ REAL  \\
+core/\+secp256k1.\+zig  &142  &Zig stdlib ECDSA:\+ privkey→pubkey, hash160, sign/\+verify  &✅ REAL  \\
+core/\+ripemd160.\+zig  &193  &RIPEMD-\/160 complet pur Zig, 80 runde, testat standard vectors  &✅ REAL  \\
+core/\+crypto.\+zig  &156  &SHA256d, HMAC-\/\+SHA512  &⚠️ ripemd160 = SHA256 trunc, AES = XOR  \\
+core/\+bip32\+\_\+wallet.\+zig  &323  &PBKDF2-\/\+HMAC-\/\+SHA512, BIP-\/32 real, 5 domenii PQ  &✅ REAL  \\
+core/\+wallet.\+zig  &353  &from\+Mnemonic(), adrese PQ, create\+Transaction()  &✅ REAL  \\
+core/\+pq\+\_\+crypto.\+zig  &241  &liboqs FFI:\+ ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768  &✅ REAL  \\
+core/\+rpc\+\_\+server.\+zig  &344  &HTTP JSON-\/\+RPC 2.\+0, ws2\+\_\+32.\+recv, 6 metode, sendtransaction real  &✅ REAL  \\
+core/\+vault\+\_\+reader.\+zig  &94  &Named Pipe 0x4A → env var → dev mnemonic  &✅ REAL  \\
+core/\+cli.\+zig  &176  &Argumente CLI:\+ mode/\+node-\/id/\+host/\+port/\+hashrate  &✅ REAL  \\
+core/\+node\+\_\+launcher.\+zig  &274  &Node\+Launcher seed/\+miner, ready\+For\+Mining, start\+Mining  &✅ REAL  \\
+core/\+network.\+zig  &284  &P2\+PNetwork struct, peer management  &⚠️ broadcast = print only  \\
+core/\+bootstrap.\+zig  &290  &Bootstrap\+Node, peer register/\+list, stale cleanup 60s  &✅ REAL  \\
+core/\+mining\+\_\+pool.\+zig  &215  &Miner shares, reward proporțional, inactive cleanup 300s  &✅ REAL  \\
+core/\+blockchain\+\_\+v2.\+zig  &438  &Sub-\/blocks 0.\+1s, 7 shards, prune, binary encode  &✅ REAL  \\
+core/\+sub\+\_\+block.\+zig  &166  &Sub\+Block struct, Sub\+Block\+Pool max 10  &✅ REAL  \\
+core/\+compact\+\_\+transaction.\+zig  &222  &161 bytes/\+\+TX (63\% reducere vs 432B)  &✅ REAL  \\
+core/\+light\+\_\+client.\+zig  &470  &Block\+Header 200B, SPV, Bloom\+Filter, fast\+Sync  &✅ REAL (SPV simplificat)  \\
+core/\+light\+\_\+miner.\+zig  &346  &Light\+Miner hashrate, Miner\+Pool genesis 3 mineri min  &✅ REAL  \\
+core/\+miner\+\_\+genesis.\+zig  &249  &21M OMNI total supply, Miner\+Wallet, Genesis\+Allocation  &✅ REAL  \\
+core/\+binary\+\_\+codec.\+zig  &259  &Varint encoding, Binary\+Encoder/\+\+Decoder  &✅ REAL  \\
+core/\+shard\+\_\+config.\+zig  &191  &7 shards, sub\+\_\+id \% 7, Shard\+Validator  &✅ REAL  \\
+core/\+prune\+\_\+config.\+zig  &227  &max 10000 blocks, Prune\+Strategy, keep\+\_\+days 30  &✅ REAL  \\
+core/\+archive\+\_\+manager.\+zig  &224  &Archive blocks 75\% compresie simulată  &⚠️ Simulated  \\
+core/\+state\+\_\+trie.\+zig  &262  &Account\+State, State\+Trie Hash\+Map, calculate\+Root\+Hash  &✅ REAL  \\
+core/\+witness\+\_\+data.\+zig  &416  &Witness\+Data:\+ sig\+\_\+type PQ, Witness\+Pool + Archive  &✅ REAL  \\
+core/\+storage.\+zig  &335  &Key\+Value\+Store in-\/memory:\+ Block\+Store, Tx\+Index, Addr\+Index  &⚠️ IN-\/\+MEMORY ONLY  \\
+core/\+database.\+zig  &265  &Database unified layer, Persistent\+Blockchain  &⚠️ STUB (no disk)  \\
+core/\+key\+\_\+encryption.\+zig  &242  &Key\+Manager password-\/based  &⚠️ XOR encryption, 16-\/word list  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11352}{}\doxysubsection{\texorpdfstring{2.\+5 Mining Pool + Frontend}{2.\+5 Mining Pool + Frontend}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11352}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Ce face  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+rpc-\/server.\+js  &682  &Node.\+js pool:\+ dynamic miners, 2s blocks, balances.\+json, 18 RPC methods  &✅ REAL  \\
+miner-\/client.\+js  &136  &Miner:\+ registerminer + keepalive 5s  &✅ REAL  \\
+create-\/wallet.\+js  &225  &BIP-\/39 mnemonic, PBKDF2, ob\+\_\+omni\+\_\+ addresses  &⚠️ Wordlist incomplet  \\
+frontend/\+src/\+\+App.\+tsx  &545  &SPA 5 pagini:\+ dashboard/\+miners/\+distribution/\+blocks/\+network  &✅ REAL  \\
+frontend/\+src/\+api/\+rpc-\/client.\+ts  &196  &Omni\+Bus\+Rpc\+Client JSON-\/\+RPC 2.\+0 wrapper  &✅ REAL  \\
+frontend/\+src/\+pages/\+\+Genesis\+Countdown.\+tsx  &403  &Genesis countdown, miner cards, status polling  &⚠️ Launch = alert  \\
+frontend/\+src/\+components/\+\+Stats.\+tsx  &200  &Blocks/\+mempool/\+balance, 3s polling  &✅ REAL  \\
+frontend/\+src/\+components/\+\+Block\+Explorer.\+tsx  &251  &Block list + detail modal, 4s polling  &✅ REAL  \\
+frontend/\+src/\+components/\+\+Wallet.\+tsx  &220  &Balance + 5 PQ addresses  &⚠️ Adrese hardcoded demo  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11354}{}\doxysection{\texorpdfstring{3. ANALIZA DE LA 0 LA 100 — FAZE COMPLETE}{3. ANALIZA DE LA 0 LA 100 — FAZE COMPLETE}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11354}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11355}{}\doxysubsection{\texorpdfstring{FAZA 0 → FAZA 1:\+ Infrastructura de bază (100\%)}{FAZA 0 → FAZA 1:\+ Infrastructura de bază (100\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11355}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item Fereastră desktop C++ cu Raylib + Dear Im\+Gui
+\item Structura modulară (mod\+\_\+\texorpdfstring{$\ast$}{*}.cpp)
+\item Prețuri live 3 exchange-\/uri via Win\+INet
+\item Build system Min\+GW + Makefile
+\item Ring buffer log thread-\/safe
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ✅ Complet și funcțional
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11357}{}\doxysubsection{\texorpdfstring{FAZA 1 → FAZA 2:\+ Blockchain Core (95\%)}{FAZA 1 → FAZA 2:\+ Blockchain Core (95\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11357}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item Block struct + SHA256 PoW mining cu difficulty 4
+\item Transaction struct cu sign/\+verify secp256k1 ECDSA real
+\item Mempool Array\+List
+\item Genesis block automat
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily validate\+Transaction()} în {\ttfamily blockchain.\+zig} nu verifică semnătura (TODO în cod)
+\item Storage = in-\/memory, nu persistă la restart
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ✅ 95\% — funcțional, signing real, validare semnătură în blockchain lipsește
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11359}{}\doxysubsection{\texorpdfstring{FAZA 2 → FAZA 3:\+ Crypto Real (90\%)}{FAZA 2 → FAZA 3:\+ Crypto Real (90\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11359}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily secp256k1.\+zig} — ECDSA complet via Zig stdlib, zero dependențe externe
+\item {\ttfamily ripemd160.\+zig} — 193 linii, 80 runde, testat cu standard vectors
+\item {\ttfamily bip32\+\_\+wallet.\+zig} — PBKDF2-\/\+HMAC-\/\+SHA512 real, BIP-\/32 HD cu hardened keys
+\item {\ttfamily pq\+\_\+crypto.\+zig} — ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768 via liboqs
+\end{DoxyItemize}
+
+{\bfseries{Ce este STUB:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily crypto.\+zig} ripemd160:\+ SHA256 trunchiat (nu folosit în producție — {\ttfamily secp256k1.\+zig} apelează direct {\ttfamily ripemd160.\+zig})
+\item {\ttfamily crypto.\+zig} AES:\+ XOR (nu e folosit în producție — placeholder)
+\item {\ttfamily key\+\_\+encryption.\+zig}:\+ XOR + wordlist de 16 cuvinte
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ✅ 90\% — crypto important este real; stub-\/urile din crypto.\+zig sunt bypassed
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11361}{}\doxysubsection{\texorpdfstring{FAZA 3 → FAZA 4:\+ Wallet HD (95\%)}{FAZA 3 → FAZA 4:\+ Wallet HD (95\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11361}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily wallet.\+zig}:\+ derivare completă BIP-\/32, 5 adrese PQ, {\ttfamily create\+Transaction()} cu signing
+\item {\ttfamily bip32\+\_\+wallet.\+zig}:\+ HMAC-\/\+SHA512 pentru master key + child key derivation hardened
+\item {\ttfamily Omnibus\+Wallet} Python:\+ BIP-\/39/\+44/\+84 real via {\ttfamily bip\+\_\+utils}, 19 blockchain-\/uri
+\item {\ttfamily pq\+\_\+domain.\+py}:\+ HKDF-\/\+SHA512 deterministic, 5 domenii non-\/transferabile
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily create\+Transaction()} nu deduce balanța (nu verifică dacă ai fonduri)
+\item {\ttfamily Wallet.\+tsx} din frontend afișează adrese hardcoded, nu derivate real
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ✅ 95\% — derivare real, signing real, verificare sold lipsește
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11363}{}\doxysubsection{\texorpdfstring{FAZA 4 → FAZA 5:\+ RPC Server + Mining Pool (95\%)}{FAZA 4 → FAZA 5:\+ RPC Server + Mining Pool (95\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11363}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily rpc\+\_\+server.\+zig}:\+ HTTP JSON-\/\+RPC 2.\+0, {\ttfamily ws2\+\_\+32.\+recv} direct (soluție pentru bug WINSOCK Windows), 6 metode, {\ttfamily sendtransaction} real
+\item {\ttfamily rpc-\/server.\+js}:\+ 18 metode RPC, dynamic miner registration, keepalive 30s, {\ttfamily balances.\+json} persistent
+\item {\ttfamily miner-\/client.\+js}:\+ registerminer + keepalive funcțional
+\item React frontend:\+ 5 pagini, polling real, dark UI
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily gettransactions} per adresă (history TX nu există în nod Zig)
+\item Frontend {\ttfamily Wallet.\+tsx} nu derivă adrese din RPC
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ✅ 95\% — pool complet funcțional, nod Zig funcțional
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11365}{}\doxysubsection{\texorpdfstring{FAZA 5 → FAZA 6:\+ Super\+Vault (90\%)}{FAZA 5 → FAZA 6:\+ Super\+Vault (90\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11365}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily vault\+\_\+core\+\_\+windows.\+cpp}:\+ DPAPI Crypt\+Protect\+Data/\+\+Unprotect, format binar v4
+\item {\ttfamily vault\+\_\+service.\+cpp}:\+ Named Pipe daemon, refuză GET\+\_\+\+SECRET (securitate)
+\item {\ttfamily vault\+\_\+reader.\+zig}:\+ citire mnemonic prin Named Pipe în nod Zig
+\item {\ttfamily mod\+\_\+wallet.\+cpp}:\+ Win\+HTTP direct la RPC (eliminat Python subprocess)
+\item {\ttfamily vault\+\_\+manager.\+py}:\+ 2130 linii Tkinter, 4 tab-\/uri complete
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily vault\+\_\+client.\+cpp} și {\ttfamily vault\+\_\+manager\+\_\+gui.\+cpp} = opcode mai vechi (v1/\+v2, nu v4)
+\item Linux support (libsodium) = TODO
+\item Windows Hello biometric = TODO
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ✅ 90\% — Windows complet funcțional, cross-\/platform lipsește
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11367}{}\doxysubsection{\texorpdfstring{FAZA 6 → FAZA 7:\+ Scalare Storage (85\%)}{FAZA 6 → FAZA 7:\+ Scalare Storage (85\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11367}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily blockchain\+\_\+v2.\+zig}:\+ sub-\/blocks 0.\+1s, 7 shards, pruning, binary codec
+\item {\ttfamily compact\+\_\+transaction.\+zig}:\+ 161 bytes/\+\+TX (63\% reducere)
+\item {\ttfamily state\+\_\+trie.\+zig}:\+ Account\+State cu merkle root SHA256
+\item {\ttfamily light\+\_\+client.\+zig}:\+ Block\+Header 200B, SPV simplificat, Bloom\+Filter
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily archive\+\_\+manager.\+zig}:\+ compresie simulată, fără I/\+O real pe disc
+\item {\ttfamily storage.\+zig}:\+ in-\/memory, fără Rocks\+DB
+\item Cross-\/shard communication protocol
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ✅ 85\% — structuri reale, persistență reală lipsește
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11369}{}\doxysubsection{\texorpdfstring{FAZA 7 → FAZA 8:\+ Rețea P2P (40\%)}{FAZA 7 → FAZA 8:\+ Rețea P2P (40\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11369}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily network.\+zig}:\+ P2\+PNetwork struct, peer list, message types
+\item {\ttfamily bootstrap.\+zig}:\+ peer registration, stale cleanup
+\item {\ttfamily node\+\_\+launcher.\+zig}:\+ seed/\+miner mode, {\ttfamily start\+Seed\+Node()}, {\ttfamily start\+Miner\+Node()}
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily network.\+zig} {\ttfamily broadcast()}:\+ {\ttfamily std.\+debug.\+print} doar, fără TCP real
+\item Nu există TCP socket listener pentru peer connections
+\item Nu există block propagation between nodes
+\item Nu există consensus mechanism
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ⚠️ 40\% — framework există, transport real lipsește
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11371}{}\doxysubsection{\texorpdfstring{FAZA 8 → FAZA 9:\+ Trading Real (15\%)}{FAZA 8 → FAZA 9:\+ Trading Real (15\%)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11371}
+{\bfseries{Ce s-\/a construit:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily mod\+\_\+trade.\+cpp}:\+ UI complet cu modal confirmare
+\item {\ttfamily balance\+\_\+fetcher.\+py}:\+ 19 chain-\/uri balance real
+\item {\ttfamily send\+\_\+transaction.\+py}:\+ OMNI send real via RPC
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește:\+}}
+\begin{DoxyItemize}
+\item HMAC-\/\+SHA256/\+\+SHA512 signing pentru Kraken/\+\+LCX/\+\+Coinbase
+\item Order book integration
+\item Real POST cu autentificare exchange
+\end{DoxyItemize}
+
+{\bfseries{Concluzie:\+}} ⚠️ 15\% — UI gata, backend trading = 0
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11373}{}\doxysection{\texorpdfstring{4. CONFLICTE DOCUMENTARE IDENTIFICATE}{4. CONFLICTE DOCUMENTARE IDENTIFICATE}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11373}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Conflict  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier A  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier B  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Realitate  \\
+BIP32 "{}\+XOR placeholder"{}  &README-\/\+WALLET-\/\+TO-\/\+BLOCKCHAIN.\+md  &\doxylink{_p_h_a_s_e__2___s_u_m_m_a_r_y_8md}{PHASE\+\_\+2\+\_\+\+SUMMARY.\+md} (✅ COMPLETE)  &bip32\+\_\+wallet.\+zig = HMAC-\/\+SHA512 REAL; README-\/\+WALLET referă versiunea veche WSL  \\
+AES encryption  &key\+\_\+encryption.\+zig (XOR)  &\doxylink{_p_h_a_s_e__2___s_u_m_m_a_r_y_8md}{PHASE\+\_\+2\+\_\+\+SUMMARY.\+md} (✅ AES-\/256)  &XOR în cod, AES în doc — CONFLICT real  \\
+RIPEMD-\/160  &crypto.\+zig (SHA256 trunc)  &ripemd160.\+zig (real)  &ripemd160.\+zig există și e real, dar crypto.\+zig are propria versiune falsă  \\
+Storage persistent  &\doxylink{_p_h_a_s_e__3___s_u_m_m_a_r_y_8md}{PHASE\+\_\+3\+\_\+\+SUMMARY.\+md} (✅)  &database.\+zig (TODO)  &Rocks\+DB = nu există, in-\/memory only — CONFLICT  \\
+Miner launch frontend  &\doxylink{_p_h_a_s_e__4___s_u_m_m_a_r_y_8md}{PHASE\+\_\+4\+\_\+\+SUMMARY.\+md} (✅)  &Genesis\+Countdown.\+tsx  &Butoanele "{}\+Launch Miners"{} sunt \doxylink{namespacealert}{alert()} — CONFLICT  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11375}{}\doxysection{\texorpdfstring{5. SCOREBOARD FINAL — DE LA 0 LA 100}{5. SCOREBOARD FINAL — DE LA 0 LA 100}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11375}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{COMPONENT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ REAL\ \ \ \ STUB\ \ \ \ SCORE}
+\DoxyCodeLine{─────────────────────────────────────────────────────}
+\DoxyCodeLine{Crypto\ Core\ (secp256k1,\ BIP32)\ \ \ ████████████\ \ \ \ 95\%}
+\DoxyCodeLine{PQ\ Crypto\ (liboqs)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ████████████\ \ \ \ 95\%}
+\DoxyCodeLine{Blockchain\ (blocks,\ PoW)\ \ \ \ \ \ \ \ \ ███████████\ \ \ \ \ 90\%}
+\DoxyCodeLine{Transaction\ signing\ \ \ \ \ \ \ \ \ \ \ \ \ \ ████████████\ \ \ \ 95\%}
+\DoxyCodeLine{RPC\ Server\ (Zig)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ████████████\ \ \ \ 90\%}
+\DoxyCodeLine{Mining\ Pool\ (Node.js)\ \ \ \ \ \ \ \ \ \ \ \ ████████████\ \ \ \ 95\%}
+\DoxyCodeLine{SuperVault\ (Windows)\ \ \ \ \ \ \ \ \ \ \ \ \ ████████████\ \ \ \ 90\%}
+\DoxyCodeLine{Wallet\ Python\ (19\ chains)\ \ \ \ \ \ \ \ ███████████\ \ \ \ \ 90\%}
+\DoxyCodeLine{React\ Frontend\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ██████████\ \ \ \ \ \ 85\%}
+\DoxyCodeLine{Storage\ /\ Persistence\ \ \ \ \ \ \ \ \ \ \ \ ████\ \ \ \ \ \ \ \ \ \ \ \ 30\%}
+\DoxyCodeLine{P2P\ Network\ /\ TCP\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ████\ \ \ \ \ \ \ \ \ \ \ \ 35\%}
+\DoxyCodeLine{Trading\ Execution\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ██\ \ \ \ \ \ \ \ \ \ \ \ \ \ 15\%}
+\DoxyCodeLine{Linux\ /\ Cross-\/Platform\ \ \ \ \ \ \ \ \ \ \ ███\ \ \ \ \ \ \ \ \ \ \ \ \ 25\%}
+\DoxyCodeLine{─────────────────────────────────────────────────────}
+\DoxyCodeLine{MEDIA\ GLOBALĂ:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 75\%}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11377}{}\doxysection{\texorpdfstring{6. STUB-\/\+URI COMPLETE — LISTA FINALĂ}{6. STUB-\/\+URI COMPLETE — LISTA FINALĂ}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11377}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Problema  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prioritate  \\
+{\ttfamily blockchain.\+zig}  &validate\+Transaction  &Nu verifică semnătura  &🔴 CRITIC  \\
+{\ttfamily crypto.\+zig}  &ripemd160  &SHA256 trunchiat (bypass:\+ secp256k1.\+zig OK)  &🟡 MEDIE  \\
+{\ttfamily crypto.\+zig}  &encrypt\+AES256/\+decrypt\+AES256  &XOR în loc de AES  &🟡 MEDIE  \\
+{\ttfamily key\+\_\+encryption.\+zig}  &encrypt\+Private\+Key  &XOR + wordlist 16 cuvinte  &🟡 MEDIE  \\
+{\ttfamily database.\+zig}  &load\+From\+Disk/\+save\+To\+Disk  &TODO, fără implementare  &🔴 CRITIC  \\
+{\ttfamily network.\+zig}  &broadcast  &print() doar  &🔴 CRITIC  \\
+{\ttfamily archive\+\_\+manager.\+zig}  &archive\+Blocks  &Compresie simulată  &🟢 LOW  \\
+{\ttfamily mod\+\_\+trade.\+cpp}  &Do\+Order  &Log only, no API call  &🔴 CRITIC (trading)  \\
+{\ttfamily pq\+\_\+sign.\+py}  &Backend C  &HMAC fallback, nu PQ real  &🟡 MEDIE  \\
+{\ttfamily create-\/wallet.\+js}  &wordlist  &16 cuvinte + placeholders  &🟡 MEDIE  \\
+{\ttfamily Wallet.\+tsx}  &addresses  &Hardcoded demo  &🟡 MEDIE  \\
+{\ttfamily vault\+\_\+client.\+cpp}  &protocol  &Opcode v1/\+v2, nu v4  &🟡 MEDIE  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11379}{}\doxysection{\texorpdfstring{7. ROADMAP PRIORITAR (CE URMEAZĂ)}{7. ROADMAP PRIORITAR (CE URMEAZĂ)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11379}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11380}{}\doxysubsection{\texorpdfstring{Prioritate 1 — CRITIC (blochează producția)}{Prioritate 1 — CRITIC (blochează producția)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11380}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily blockchain.\+zig} → {\ttfamily validate\+Transaction()}:\+ verifică semnătura secp256k1
+\item {\ttfamily database.\+zig} → Rocks\+DB sau SQLite pentru persistență reală
+\item {\ttfamily network.\+zig} → TCP socket real pentru P2P (std.\+net)
+\item {\ttfamily rpc\+\_\+server.\+zig} → {\ttfamily gettransactions} endpoint (TX history per adresă)
+\end{DoxyEnumerate}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11381}{}\doxysubsection{\texorpdfstring{Prioritate 2 — IMPORTANT}{Prioritate 2 — IMPORTANT}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11381}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily mod\+\_\+trade.\+cpp} → HMAC-\/\+SHA256 Kraken + LCX signing real
+\item {\ttfamily vault\+\_\+client.\+cpp} → update la opcodes v4
+\item {\ttfamily key\+\_\+encryption.\+zig} → AES-\/256 real (std.\+crypto.\+aes)
+\item {\ttfamily Wallet.\+tsx} → adrese derivate din RPC (nu hardcoded)
+\end{DoxyEnumerate}\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11382}{}\doxysubsection{\texorpdfstring{Prioritate 3 — VIITOR}{Prioritate 3 — VIITOR}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11382}
+
+\begin{DoxyEnumerate}
+\item Linux vault (libsodium în loc de DPAPI)
+\item Phase 5:\+ Agent trading automat
+\item Ethereum bridge (USDC Sepolia)
+\item Web\+Socket real-\/time
+\item Cross-\/shard protocol
+\item Mobile light client (\texorpdfstring{$<$}{<} 1 GB)
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11384}{}\doxysection{\texorpdfstring{8. PUNCTE FORTE — CE E EXCEPȚ\+IONAL}{8. PUNCTE FORTE — CE E EXCEPȚ\+IONAL}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___a_c_a_d_e_m_i_c___r_e_p_o_r_t_autotoc_md11384}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{secp256k1 pur Zig}} — zero dependențe externe, Bitcoin-\/compatible, testat
+\item {\bfseries{RIPEMD-\/160 pur Zig}} — 193 linii, testat cu standard vectors Bitcoin
+\item {\bfseries{liboqs pe Windows native}} — ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA compilat Min\+GW
+\item {\bfseries{5 domenii PQ consistente}} — aceleași coin types (777-\/781) în Zig, Python și C++
+\item {\bfseries{Win\+HTTP direct în C++}} — eliminat Python subprocess complet din mod\+\_\+wallet
+\item {\bfseries{ws2\+\_\+32.\+recv direct}} — soluție corectă pentru bug WINSOCK pe Windows (Read\+File nu merge pe socket)
+\item {\bfseries{vault\+\_\+reader.\+zig fallback chain}} — Named Pipe → env var → dev default
+\item {\bfseries{rpc-\/server.\+js robust}} — 18 metode, dynamic miners, balances.\+json, keepalive
+\item {\bfseries{Omnibus\+Wallet 19 chain-\/uri}} — BTC/\+\+ETH/\+\+SOL/\+\+ADA/\+\+DOT/\+... derivate real via bip\+\_\+utils
+\item {\bfseries{vault\+\_\+manager.\+py 2130 linii}} — GUI complet, 4 tab-\/uri, TX history, PQ domains
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+
+
+{\itshape Raport generat prin audit complet al \texorpdfstring{$\sim$}{\string~}8,500 linii de cod sursă.} 

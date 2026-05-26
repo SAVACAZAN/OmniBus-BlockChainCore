@@ -1,0 +1,136 @@
+\doxysection{frontend/\+node\+\_\+modules/\+internmap Directory Reference}
+\hypertarget{dir_1c0a96580cb3aff47a5bcc706db47197}{}\label{dir_1c0a96580cb3aff47a5bcc706db47197}\index{frontend/node\_modules/internmap Directory Reference@{frontend/node\_modules/internmap Directory Reference}}
+Directory dependency graph for internmap:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_1c0a96580cb3aff47a5bcc706db47197_autotoc_md7107}{}\doxysubsection{\texorpdfstring{Intern\+Map}{Intern\+Map}}\label{dir_1c0a96580cb3aff47a5bcc706db47197_autotoc_md7107}
+\texorpdfstring{$\ast$}{*}\+For live examples, see \href{https://observablehq.com/@mbostock/internmap}{\texttt{https:\+/\+/\+observablehq.\+com/\+@mbostock/\+internmap}}.\texorpdfstring{$\ast$}{*}
+
+If you use dates as keys in a Java\+Script Map (or as values in a Set), you may be surprised that it won’t work as you expect.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{dateMap\ =\ new\ Map([}
+\DoxyCodeLine{\ \ [new\ Date(Date.UTC(2001,\ 0,\ 1)),\ "{}red"{}],}
+\DoxyCodeLine{\ \ [new\ Date(Date.UTC(2001,\ 0,\ 1)),\ "{}green"{}]\ //\ distinct\ key!}
+\DoxyCodeLine{])}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{dateMap.get(new\ Date(Date.UTC(2001,\ 0,\ 1)))\ //\ undefined!}
+
+\end{DoxyCode}
+
+
+That’s because Map uses the \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness}{\texttt{Same\+Value\+Zero algorithm}} to determine key equality:\+ for two dates to be considered the same, they must be the same instance (the same object), not just the same moment in time. This is true of the equality operator, too.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ const\ date1\ =\ new\ Date(Date.UTC(2001,\ 0,\ 1));}
+\DoxyCodeLine{\ \ const\ date2\ =\ new\ Date(Date.UTC(2001,\ 0,\ 1));}
+\DoxyCodeLine{\ \ return\ date1\ ===\ date2;\ //\ false!}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+You can avoid this issue by using primitive values such as numbers or strings as keys instead. But it’s tedious and easy to forget to coerce types. (You’ll also need to do the inverse type conversion when pulling keys out of the map, say when using {\itshape map}.keys or {\itshape map}.entries, or when iterating over the map. The inverse above is new Date({\itshape key}). Also, if you forget to coerce your key to a number when using {\itshape map}.get, it’s easy not to notice because the map won’t throw an error; it’ll simply return undefined.)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{numberMap\ =\ new\ Map([[978307200000,\ "{}red"{}]])}
+\DoxyCodeLine{numberMap.get(978307200000)\ //\ "{}red"{}}
+\DoxyCodeLine{numberMap.get(new\ Date(978307200000))\ //\ undefined;\ oops!}
+
+\end{DoxyCode}
+
+
+Wouldn’t it be easier if Map and Set “just worked” with dates? Or with any object that supports \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/valueOf}{\texttt{{\itshape object}.value\+Of}}?
+
+Enter {\bfseries{Intern\+Map}}. \href{https://en.wikipedia.org/wiki/String_interning}{\texttt{{\itshape Interning}}} refers to storing only one copy of each distinct key. An Intern\+Map considers two Date instances representing the same moment to be equal, storing only the first instance.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{map\ =\ new\ InternMap([}
+\DoxyCodeLine{\ \ [new\ Date(Date.UTC(2001,\ 0,\ 1)),\ "{}red"{}],}
+\DoxyCodeLine{\ \ [new\ Date(Date.UTC(2001,\ 0,\ 1)),\ "{}green"{}]\ //\ replaces\ previous\ entry}
+\DoxyCodeLine{])}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{map.get(new\ Date(Date.UTC(2001,\ 0,\ 1)))\ //\ "{}green"{}}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[...map.keys()]\ //\ [2001-\/01-\/01]}
+
+\end{DoxyCode}
+
+
+Intern\+Map extends Map, so you can simply drop it in whenever you’d prefer this behavior to the Same\+Value\+Zero algorithm. Because Intern\+Map calls {\itshape object}.value\+Of only for non-\/primitive keys, note that you can pass primitive keys, too.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{map.get(978307200000)\ //\ "{}green"{};\ this\ works\ too!}
+
+\end{DoxyCode}
+
+
+Intern\+Map keeps only the first distinct key according to its associated primitive value. Avoid adding keys to the map with inconsistent types.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{map2\ =\ new\ InternMap([}
+\DoxyCodeLine{\ \ [978307200000,\ "{}red"{}],\ //\ danger!}
+\DoxyCodeLine{\ \ [new\ Date(Date.UTC(2001,\ 0,\ 1)),\ "{}blue"{}]}
+\DoxyCodeLine{])}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{map2.get(new\ Date(Date.UTC(2001,\ 0,\ 1)))\ //\ "{}blue"{};\ this\ still\ works…}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[...map2.keys()]\ //\ [978307200000];\ but\ the\ key\ isn’t\ a\ Date}
+
+\end{DoxyCode}
+
+
+While Intern\+Map uses {\itshape object}.value\+Of by default to compute the intern key, you can pass a key function as a second argument to the constructor to change the behavior. For example, if you use JSON.\+stringify, you can use arrays as compound keys (assuming that the array elements can be serialized to JSON).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{map3\ =\ new\ InternMap([}
+\DoxyCodeLine{\ \ [["{}foo"{},\ "{}bar"{}],\ 1],}
+\DoxyCodeLine{\ \ [["{}foo"{},\ "{}baz"{}],\ 2],}
+\DoxyCodeLine{\ \ [["{}goo"{},\ "{}bee"{}],\ 3]}
+\DoxyCodeLine{],\ JSON.stringify)}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{map3.get(["{}foo"{},\ "{}baz"{}])\ //\ 2}
+
+\end{DoxyCode}
+
+
+There’s an {\bfseries{Intern\+Set}} class, too.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{set\ =\ new\ InternSet([}
+\DoxyCodeLine{\ \ new\ Date(Date.UTC(2000,\ 0,\ 1)),}
+\DoxyCodeLine{\ \ new\ Date(Date.UTC(2001,\ 0,\ 1)),}
+\DoxyCodeLine{\ \ new\ Date(Date.UTC(2001,\ 0,\ 1))}
+\DoxyCodeLine{])}
+
+\end{DoxyCode}
+ 

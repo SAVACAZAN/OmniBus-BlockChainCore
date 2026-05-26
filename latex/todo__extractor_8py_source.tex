@@ -1,0 +1,351 @@
+\doxysection{todo\+\_\+extractor.\+py}
+\hypertarget{todo__extractor_8py_source}{}\label{todo__extractor_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/agentscripts/todo\_extractor.py@{archived-\/4-\/eterniti/tools-\/python/agentscripts/todo\_extractor.py}}
+\doxymbox{\hyperlink{todo__extractor_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00001}\doxymbox{\hyperlink{namespacetodo__extractor}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ -\/\ TODO\ Extractor}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00004}00004\ \textcolor{stringliteral}{====================================}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00005}00005\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00006}00006\ \textcolor{stringliteral}{Extrage\ toate\ TODO-\/urile,\ FIXME-\/urile\ și\ BUG-\/urile\ din\ cod.}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00007}00007\ \textcolor{stringliteral}{Grupate\ după\ fișier\ și\ prioritate.\ Ideal\ pentru\ tracking\ taskuri.}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00008}00008\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00009}00009\ \textcolor{stringliteral}{Utilizare:}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ \ \ python\ todo\_extractor.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Afișează\ toate\ TODO-\/urile}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ python\ todo\_extractor.py\ -\/-\/high\ \ \ \ \ \ \ \#\ Doar\ prioritate\ înaltă}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ python\ todo\_extractor.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Output\ JSON}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ python\ todo\_extractor.py\ -\/-\/count\ \ \ \ \ \ \#\ Doar\ numărătoare}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00014}00014\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00015}00015\ \textcolor{stringliteral}{Autor:\ OmniBus\ AI\ Collective}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00016}00016\ \textcolor{stringliteral}{Versiune:\ 1.0.0}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00017}00017\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00021}00021\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00022}00022\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00023}00023\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00024}00024\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ asdict}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00025}00025\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ List,\ Dict,\ Optional,\ Tuple}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00026}00026\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00029}00029\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00030}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item}{00030}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item}{TodoItem}}:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00031}00031\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Reprezintă\ un\ item\ TODO/FIXME/BUG."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00032}00032\ \ \ \ \ file:\ str}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00033}00033\ \ \ \ \ line:\ int}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00034}00034\ \ \ \ \ type:\ str\ \ \textcolor{comment}{\#\ TODO,\ FIXME,\ BUG,\ HACK,\ XXX,\ NOTE}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00035}00035\ \ \ \ \ priority:\ str\ \ \textcolor{comment}{\#\ high,\ medium,\ low}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00036}00036\ \ \ \ \ text:\ str}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00037}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item_a96ee679b8dc6962f912bc4bfbc5eeaae}{00037}}\ \ \ \ \ author:\ Optional[str]\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00038}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item_a923df9bde05c55c3671c72581b8dfba1}{00038}}\ \ \ \ \ context:\ str\ =\ \textcolor{stringliteral}{"{}"{}}\ \ \textcolor{comment}{\#\ Linia\ de\ cod\ unde\ apare}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00041}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor}{00041}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor}{TodoExtractor}}:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00042}00042\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Extrage\ TODO-\/uri\ din\ fișierele\ Zig."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00043}00043\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00044}00044\ \ \ \ \ \textcolor{comment}{\#\ Pattern-\/uri\ pentru\ detectare}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00045}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a962ea493bfb27b8af04042c5a1bf8cb2}{00045}}\ \ \ \ \ TODO\_PATTERN\ =\ re.compile(}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'//\(\backslash\)s*(TODO|FIXME|BUG|HACK|XXX|NOTE)[\(\backslash\)s:]*\(\backslash\)(?(?P<prio>HIGH|LOW|MEDIUM)?\(\backslash\))?[:\(\backslash\)s-\/]*\(\backslash\)s*(?P<text>.*)'},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ re.IGNORECASE}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00048}00048\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00049}00049\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00050}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_ab012958a1a9a2b3185da52035dac17a6}{00050}}\ \ \ \ \ AUTHOR\_PATTERN\ =\ re.compile(}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'@(\(\backslash\)w+)'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00052}00052\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00053}00053\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00054}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_ad6b17b81e844212a69023a6c21981ee4}{00054}}\ \ \ \ \ PRIORITY\_KEYWORDS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'high'}:\ [\textcolor{stringliteral}{'high'},\ \textcolor{stringliteral}{'critical'},\ \textcolor{stringliteral}{'urgent'},\ \textcolor{stringliteral}{'important'},\ \textcolor{stringliteral}{'security'}],}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'medium'}:\ [\textcolor{stringliteral}{'medium'},\ \textcolor{stringliteral}{'normal'},\ \textcolor{stringliteral}{'should'}],}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'low'}:\ [\textcolor{stringliteral}{'low'},\ \textcolor{stringliteral}{'minor'},\ \textcolor{stringliteral}{'optional'},\ \textcolor{stringliteral}{'nice'}],}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00058}00058\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00059}00059\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00060}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a21614bdcdfb2e04f6846b987af35e447}{00060}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a21614bdcdfb2e04f6846b987af35e447}{\_\_init\_\_}}(self,\ project\_root:\ Path):}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00061}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_aeedd20d88e640c6839ca60bc3cc05c35}{00061}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_aeedd20d88e640c6839ca60bc3cc05c35}{project\_root}}\ =\ project\_root}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00062}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{00062}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{todos}}:\ List[TodoItem]\ =\ []}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00064}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a4bdc7676bbea773cafe9089d06fb1cf7}{00064}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a4bdc7676bbea773cafe9089d06fb1cf7}{determine\_priority}}(self,\ text:\ str,\ explicit:\ Optional[str])\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Determină\ prioritatea\ bazată\ pe\ text\ și\ marker\ explicit."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ text\_lower\ =\ text.lower()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Dacă\ e\ explicit\ marcat}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ explicit:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ explicit\_lower\ =\ explicit.lower()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ explicit\_lower\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{'high'},\ \textcolor{stringliteral}{'critical'}]:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{'high'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ explicit\_lower\ ==\ \textcolor{stringliteral}{'low'}:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{'low'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{'medium'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Verifică\ cuvinte\ cheie}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ prio,\ keywords\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_ad6b17b81e844212a69023a6c21981ee4}{PRIORITY\_KEYWORDS}}.items():}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ keyword\ \textcolor{keywordflow}{in}\ keywords:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ keyword\ \textcolor{keywordflow}{in}\ text\_lower:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ prio}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Default\ bazat\ pe\ tip}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{'high'}\ \ \textcolor{comment}{\#\ FIXME/BUG\ =\ high\ by\ default}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00085}00085\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00086}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a96f3396992909ed5ecba27d0930c288d}{00086}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a96f3396992909ed5ecba27d0930c288d}{extract\_author}}(self,\ text:\ str)\ -\/>\ Tuple[str,\ str]:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Extrage\ autorul\ din\ text\ (@username)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ match\ =\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_ab012958a1a9a2b3185da52035dac17a6}{AUTHOR\_PATTERN}}.search(text)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ match:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ author\ =\ match.group(1)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ text\_clean\ =\ text.replace(f\textcolor{stringliteral}{'@\{author\}'},\ \textcolor{stringliteral}{''}).strip()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ author,\ text\_clean}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None},\ text}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00094}00094\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00095}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a0f882b8b2aa284f1af0edeeaa7b555b6}{00095}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a0f882b8b2aa284f1af0edeeaa7b555b6}{scan\_file}}(self,\ filepath:\ Path)\ -\/>\ List[TodoItem]:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scanează\ un\ singur\ fișier\ pentru\ TODO-\/uri."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ items\ =\ []}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{'r'},\ encoding=\textcolor{stringliteral}{'utf-\/8'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lines\ =\ f.readlines()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ items}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ rel\_path\ =\ str(filepath.relative\_to(self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_aeedd20d88e640c6839ca60bc3cc05c35}{project\_root}}))}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\_num,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ match\ =\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a962ea493bfb27b8af04042c5a1bf8cb2}{TODO\_PATTERN}}.search(line)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ match:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ todo\_type\ =\ match.group(1).upper()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ explicit\_prio\ =\ match.group(\textcolor{stringliteral}{'prio'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ text\ =\ match.group(\textcolor{stringliteral}{'text'}).strip()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Skip\ dacă\ e\ gol}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ text:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Extrage\ autor}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ author,\ text\_clean\ =\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a96f3396992909ed5ecba27d0930c288d}{extract\_author}}(text)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Determină\ prioritatea}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ priority\ =\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a4bdc7676bbea773cafe9089d06fb1cf7}{determine\_priority}}(text\_clean,\ explicit\_prio)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Pentru\ TODO\ normal,\ prioritatea\ default\ e\ medium}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ todo\_type\ ==\ \textcolor{stringliteral}{'TODO'}\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ explicit\_prio:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ priority\ =\ \textcolor{stringliteral}{'medium'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Context\ (codul\ de\ pe\ linia\ respectivă)}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ context\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ items.append(\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item}{TodoItem}}(}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ file=rel\_path,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ line=line\_num,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ type=todo\_type,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ priority=priority,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ text=text\_clean,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ author=author,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ context=context}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ items}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00142}00142\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00143}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a58c10fccf5a581cf0de3554218d3b4c9}{00143}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a58c10fccf5a581cf0de3554218d3b4c9}{scan\_project}}(self)\ -\/>\ List[TodoItem]:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scanează\ întregul\ proiect."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ zig\_files\ =\ list(self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_aeedd20d88e640c6839ca60bc3cc05c35}{project\_root}}.rglob(\textcolor{stringliteral}{'*.zig'}))}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Filtrează\ fișierele\ relevante}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ zig\_files\ =\ [}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ zig\_files\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ any(part.startswith(\textcolor{stringliteral}{'.'})\ \textcolor{keywordflow}{or}\ part\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{'zig-\/out'},\ \textcolor{stringliteral}{'.zig-\/cache'}]}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ part\ \textcolor{keywordflow}{in}\ f.parts)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ filepath\ \textcolor{keywordflow}{in}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ items\ =\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a0f882b8b2aa284f1af0edeeaa7b555b6}{scan\_file}}(filepath)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{todos}}.extend(items)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Sortează\ după\ prioritate\ și\ fișier}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ priority\_order\ =\ \{\textcolor{stringliteral}{'high'}:\ 0,\ \textcolor{stringliteral}{'medium'}:\ 1,\ \textcolor{stringliteral}{'low'}:\ 2\}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{todos}}.sort(key=\textcolor{keyword}{lambda}\ t:\ (priority\_order.get(t.priority,\ 1),\ t.file,\ t.line))}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{todos}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00163}00163\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00164}\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a8364b741c3e5668912c28ce2a7a5a0e3}{00164}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a8364b741c3e5668912c28ce2a7a5a0e3}{get\_stats}}(self)\ -\/>\ Dict:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Returnează\ statistici\ despre\ TODO-\/uri."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ stats\ =\ \{}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'total'}:\ len(self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{todos}}),}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'by\_type'}:\ defaultdict(int),}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'by\_priority'}:\ defaultdict(int),}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'by\_file'}:\ defaultdict(int),}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ todo\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{todos}}:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{'by\_type'}][todo.type]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{'by\_priority'}][todo.priority]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{'by\_file'}][todo.file]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ dict(stats)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00181}\doxymbox{\hyperlink{namespacetodo__extractor_a32cf332f39c85d5aed5596f2da349150}{00181}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetodo__extractor_a32cf332f39c85d5aed5596f2da349150}{print\_todos}}(todos:\ List[TodoItem],\ filter\_priority:\ Optional[str]\ =\ \textcolor{keywordtype}{None}):}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00182}00182\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Afișează\ TODO-\/urile\ într-\/un\ format\ uman-\/citibil."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00183}00183\ \ \ \ \ GREEN\ =\ \textcolor{stringliteral}{'\(\backslash\)033[92m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00184}00184\ \ \ \ \ YELLOW\ =\ \textcolor{stringliteral}{'\(\backslash\)033[93m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00185}00185\ \ \ \ \ RED\ =\ \textcolor{stringliteral}{'\(\backslash\)033[91m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00186}00186\ \ \ \ \ BLUE\ =\ \textcolor{stringliteral}{'\(\backslash\)033[94m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00187}00187\ \ \ \ \ RESET\ =\ \textcolor{stringliteral}{'\(\backslash\)033[0m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00188}00188\ \ \ \ \ BOLD\ =\ \textcolor{stringliteral}{'\(\backslash\)033[1m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00189}00189\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00190}00190\ \ \ \ \ \textcolor{keywordflow}{if}\ filter\_priority:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ todos\ =\ [t\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ todos\ \textcolor{keywordflow}{if}\ t.priority\ ==\ filter\_priority]}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00192}00192\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00193}00193\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ todos:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{GREEN\}Nu\ s-\/au\ găsit\ TODO-\/uri\ conform\ filtrului.\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00196}00196\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00197}00197\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}╔══════════════════════════════════════════════════════════════╗\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00198}00198\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}║\ \ \ \ \ \ \ \ \ \ \ \ \ \ OmniBus\ Blockchain\ -\/\ TODO\ Extractor\ \ \ \ \ \ \ \ \ \ \ \ \ ║\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00199}00199\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}╚══════════════════════════════════════════════════════════════╝\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00200}00200\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00201}00201\ \ \ \ \ \textcolor{comment}{\#\ Grupează\ după\ prioritate}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00202}00202\ \ \ \ \ by\_priority\ =\ defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00203}00203\ \ \ \ \ \textcolor{keywordflow}{for}\ todo\ \textcolor{keywordflow}{in}\ todos:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ by\_priority[todo.priority].append(todo)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00205}00205\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00206}00206\ \ \ \ \ priority\_colors\ =\ \{}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'high'}:\ RED,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'medium'}:\ YELLOW,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'low'}:\ BLUE,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00210}00210\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00211}00211\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{for}\ priority\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{'high'},\ \textcolor{stringliteral}{'medium'},\ \textcolor{stringliteral}{'low'}]:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ priority\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ by\_priority:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ color\ =\ priority\_colors.get(priority,\ RESET)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ items\ =\ by\_priority[priority]}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{color\}\{BOLD\}[\{priority.upper()\}]\ (\{len(items)\}\ itemi)\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Grupează\ după\ fișier}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ by\_file\ =\ defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ item\ \textcolor{keywordflow}{in}\ items:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ by\_file[item.file].append(item)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ filepath,\ file\_items\ \textcolor{keywordflow}{in}\ sorted(by\_file.items()):}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{BOLD\}\{filepath\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ item\ \textcolor{keywordflow}{in}\ file\_items:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ type\_indicator\ =\ \{}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'FIXME'}:\ f\textcolor{stringliteral}{"{}\{RED\}⚠\{RESET\}"{}},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'BUG'}:\ f\textcolor{stringliteral}{"{}\{RED\}🐛\{RESET\}"{}},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'TODO'}:\ f\textcolor{stringliteral}{"{}\{YELLOW\}□\{RESET\}"{}},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'HACK'}:\ f\textcolor{stringliteral}{"{}\{BLUE\}🔧\{RESET\}"{}},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'XXX'}:\ f\textcolor{stringliteral}{"{}\{YELLOW\}⚡\{RESET\}"{}},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'NOTE'}:\ f\textcolor{stringliteral}{"{}\{GREEN\}📝\{RESET\}"{}},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}.get(item.type,\ \textcolor{stringliteral}{"{}•"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ author\_str\ =\ f\textcolor{stringliteral}{"{}\ @\{item.author\}"{}}\ \textcolor{keywordflow}{if}\ item.author\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \{type\_indicator\}\ Line\ \{item.line:4\}:\{author\_str\}\ \{item.text\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00241}00241\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00242}00242\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00243}00243\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00245}\doxymbox{\hyperlink{namespacetodo__extractor_a2b41664a0ec49ce19bcb1c9cb4a77052}{00245}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetodo__extractor_a2b41664a0ec49ce19bcb1c9cb4a77052}{print\_stats}}(stats:\ Dict):}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00246}00246\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Afișează\ statistici."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00247}00247\ \ \ \ \ GREEN\ =\ \textcolor{stringliteral}{'\(\backslash\)033[92m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00248}00248\ \ \ \ \ YELLOW\ =\ \textcolor{stringliteral}{'\(\backslash\)033[93m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00249}00249\ \ \ \ \ RED\ =\ \textcolor{stringliteral}{'\(\backslash\)033[91m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00250}00250\ \ \ \ \ RESET\ =\ \textcolor{stringliteral}{'\(\backslash\)033[0m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00251}00251\ \ \ \ \ BOLD\ =\ \textcolor{stringliteral}{'\(\backslash\)033[1m'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00252}00252\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00253}00253\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Statistici:\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00254}00254\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Total\ TODO-\/uri:\ \{BOLD\}\{stats['total']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00255}00255\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00256}00256\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \ \ \{BOLD\}După\ tip:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00257}00257\ \ \ \ \ \textcolor{keywordflow}{for}\ todo\_type,\ count\ \textcolor{keywordflow}{in}\ sorted(stats[\textcolor{stringliteral}{'by\_type'}].items()):}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ color\ =\ \{\textcolor{stringliteral}{'FIXME'}:\ RED,\ \textcolor{stringliteral}{'BUG'}:\ RED,\ \textcolor{stringliteral}{'TODO'}:\ YELLOW\}.get(todo\_type,\ RESET)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \{color\}\{todo\_type:8\}\{RESET\}:\ \{count\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00260}00260\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00261}00261\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \ \ \{BOLD\}După\ prioritate:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00262}00262\ \ \ \ \ \textcolor{keywordflow}{for}\ prio,\ count\ \textcolor{keywordflow}{in}\ [(\textcolor{stringliteral}{'high'},\ stats[\textcolor{stringliteral}{'by\_priority'}].get(\textcolor{stringliteral}{'high'},\ 0)),}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{'medium'},\ stats[\textcolor{stringliteral}{'by\_priority'}].get(\textcolor{stringliteral}{'medium'},\ 0)),}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{'low'},\ stats[\textcolor{stringliteral}{'by\_priority'}].get(\textcolor{stringliteral}{'low'},\ 0))]:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ color\ =\ \{\textcolor{stringliteral}{'high'}:\ RED,\ \textcolor{stringliteral}{'medium'}:\ YELLOW,\ \textcolor{stringliteral}{'low'}:\ \textcolor{stringliteral}{''}\}.get(prio,\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \{color\}\{prio:8\}\{RESET\}:\ \{count\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00267}00267\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00268}00268\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \ \ \{BOLD\}Top\ 5\ fișiere\ cu\ cele\ mai\ multe\ TODO-\/uri:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00269}00269\ \ \ \ \ sorted\_files\ =\ sorted(stats[\textcolor{stringliteral}{'by\_file'}].items(),\ key=\textcolor{keyword}{lambda}\ x:\ x[1],\ reverse=\textcolor{keyword}{True})[:5]}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00270}00270\ \ \ \ \ \textcolor{keywordflow}{for}\ filepath,\ count\ \textcolor{keywordflow}{in}\ sorted\_files:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \{filepath\}:\ \{count\}"{}})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00272}00272\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00273}00273\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00276}\doxymbox{\hyperlink{namespacetodo__extractor_a51af30a60f9f02777c6396b8247e356f}{00276}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetodo__extractor_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00277}00277\ \ \ \ \ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00278}00278\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00279}00279\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{'Extrage\ TODO-\/uri\ din\ codul\ OmniBus'},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ epilog=\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00283}00283\ \textcolor{stringliteral}{Exemple:}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00284}00284\ \textcolor{stringliteral}{\ \ python\ todo\_extractor.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Toate\ TODO-\/urile}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00285}00285\ \textcolor{stringliteral}{\ \ python\ todo\_extractor.py\ -\/-\/high\ \ \ \ \ \ \ \#\ Doar\ HIGH\ priority}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00286}00286\ \textcolor{stringliteral}{\ \ python\ todo\_extractor.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Output\ JSON}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00287}00287\ \textcolor{stringliteral}{\ \ python\ todo\_extractor.py\ -\/-\/count\ \ \ \ \ \ \#\ Doar\ statistici}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00288}00288\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00289}00289\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00290}00290\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/high'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ TODO-\/uri\ cu\ prioritate\ HIGH'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00292}00292\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/medium'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ TODO-\/uri\ cu\ prioritate\ MEDIUM'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00294}00294\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/low'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ TODO-\/uri\ cu\ prioritate\ LOW'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00296}00296\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/json'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Output\ în\ format\ JSON'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00298}00298\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/count'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ statistici,\ nu\ lista\ completă'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00300}00300\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/type'},\ choices=[\textcolor{stringliteral}{'TODO'},\ \textcolor{stringliteral}{'FIXME'},\ \textcolor{stringliteral}{'BUG'},\ \textcolor{stringliteral}{'HACK'},\ \textcolor{stringliteral}{'XXX'},\ \textcolor{stringliteral}{'NOTE'}],}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Filtrează\ după\ tip'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00302}00302\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00303}00303\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00304}00304\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00305}00305\ \ \ \ \ \textcolor{comment}{\#\ Find\ project\ root}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00306}00306\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).parent}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00307}00307\ \ \ \ \ project\_root\ =\ script\_dir.parent.parent}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00308}00308\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00309}00309\ \ \ \ \ \textcolor{comment}{\#\ Extract}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00310}00310\ \ \ \ \ extractor\ =\ \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor}{TodoExtractor}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00311}00311\ \ \ \ \ todos\ =\ extractor.scan\_project()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00312}00312\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00313}00313\ \ \ \ \ \textcolor{comment}{\#\ Filter}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00314}00314\ \ \ \ \ \textcolor{keywordflow}{if}\ args.type:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ todos\ =\ [t\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ todos\ \textcolor{keywordflow}{if}\ t.type\ ==\ args.type]}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00316}00316\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00317}00317\ \ \ \ \ \textcolor{comment}{\#\ Determine\ priority\ filter}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00318}00318\ \ \ \ \ priority\_filter\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00319}00319\ \ \ \ \ \textcolor{keywordflow}{if}\ args.high:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ priority\_filter\ =\ \textcolor{stringliteral}{'high'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00321}00321\ \ \ \ \ \textcolor{keywordflow}{elif}\ args.medium:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ priority\_filter\ =\ \textcolor{stringliteral}{'medium'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00323}00323\ \ \ \ \ \textcolor{keywordflow}{elif}\ args.low:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ priority\_filter\ =\ \textcolor{stringliteral}{'low'}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00325}00325\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00326}00326\ \ \ \ \ \textcolor{comment}{\#\ Output}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00327}00327\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ data\ =\ \{}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'todos'}:\ [asdict(t)\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ todos],}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00330}00330\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'stats'}:\ extractor.get\_stats()}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00331}00331\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ print(json.dumps(data,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00333}00333\ \ \ \ \ \textcolor{keywordflow}{elif}\ args.count:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetodo__extractor_a2b41664a0ec49ce19bcb1c9cb4a77052}{print\_stats}}(extractor.get\_stats())}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00335}00335\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00336}00336\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetodo__extractor_a32cf332f39c85d5aed5596f2da349150}{print\_todos}}(todos,\ priority\_filter)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00337}00337\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetodo__extractor_a2b41664a0ec49ce19bcb1c9cb4a77052}{print\_stats}}(extractor.get\_stats())}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00338}00338\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00339}00339\ \ \ \ \ \textcolor{comment}{\#\ Exit\ code\ based\ on\ high\ priority\ todos}}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00340}00340\ \ \ \ \ high\_count\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ todos\ \textcolor{keywordflow}{if}\ t.priority\ ==\ \textcolor{stringliteral}{'high'})}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00341}00341\ \ \ \ \ sys.exit(1\ \textcolor{keywordflow}{if}\ high\_count\ >\ 10\ \textcolor{keywordflow}{else}\ 0)}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00343}00343\ }
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00344}00344\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{'\_\_main\_\_'}:}
+\DoxyCodeLine{\Hypertarget{todo__extractor_8py_source_l00345}00345\ \ \ \ \ \doxymbox{\hyperlink{namespacetodo__extractor_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

@@ -1,0 +1,60 @@
+\doxysection{tools/\+\+EXPLOITS/\+rop-\/gadget-\/scanner.py File Reference}
+\hypertarget{rop-gadget-scanner_8py}{}\label{rop-gadget-scanner_8py}\index{tools/EXPLOITS/rop-\/gadget-\/scanner.py@{tools/EXPLOITS/rop-\/gadget-\/scanner.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner}{rop-\/gadget-\/scanner.\+Gadget\+Scanner}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacerop-gadget-scanner}{rop-\/gadget-\/scanner}}
+\item 
+namespace \doxymbox{\hyperlink{namespacerop}{rop}}
+\begin{DoxyCompactList}\small\item\em -\/gadget-\/scanner \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{rop-\/gadget-\/scanner.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacerop-gadget-scanner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{rop-\/gadget-\/scanner.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacerop-gadget-scanner_abf994b8269849d29e07697ea8a840f74}{rop-\/gadget-\/scanner.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacerop-gadget-scanner_adf0e2aa4d06b5ca38e44721821eca783}{rop-\/gadget-\/scanner.\+log\+\_\+warn}} (str msg)
+\item 
+int \doxymbox{\hyperlink{namespacerop-gadget-scanner_a7431cb90017e54fe695b23d4190db046}{rop-\/gadget-\/scanner.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacerop-gadget-scanner_ab0e06b1b4c1b67743a48b4c5d8a315a3}{rop-\/gadget-\/scanner.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerop-gadget-scanner_a9be81b9ae183d7644bd28a5c8dcd9cc2}{rop-\/gadget-\/scanner.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerop-gadget-scanner_a0436fa15a87b80c67f9f05180ada899f}{rop-\/gadget-\/scanner.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerop-gadget-scanner_a04bd645fa514d10b0791e2703b131712}{rop-\/gadget-\/scanner.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerop-gadget-scanner_aa761fca7172952adb98de2f262e1c96d}{rop-\/gadget-\/scanner.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacerop-gadget-scanner_a7b5c7002196dd02973c50a77b596d765}{rop-\/gadget-\/scanner.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+\doxymbox{\hyperlink{namespacerop-gadget-scanner_aa8ffc130239727e2713c94d6cd098721}{rop-\/gadget-\/scanner.\+SCRIPT\+\_\+\+DIR}} = os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+))
+\item 
+\doxymbox{\hyperlink{namespacerop-gadget-scanner_af3b7f1de1887be35870fdd6e33028cb9}{rop-\/gadget-\/scanner.\+DEFAULT\+\_\+\+BINARY}} = os.\+path.\+normpath(os.\+path.\+join(\doxymbox{\hyperlink{namespacerop-gadget-scanner_aa8ffc130239727e2713c94d6cd098721}{SCRIPT\+\_\+\+DIR}}, "{}.."{}, "{}.."{}, "{}zig-\/out"{}, "{}bin"{}, "{}omnibus-\/node.\+exe"{}))
+\item 
+int \doxymbox{\hyperlink{namespacerop-gadget-scanner_aa8cd254952a74d6a84f3509db4704455}{rop-\/gadget-\/scanner.\+RET\+\_\+\+BYTE}} = 0x\+C3
+\item 
+int \doxymbox{\hyperlink{namespacerop-gadget-scanner_ab4c48170820618ae414ccb8256d54109}{rop-\/gadget-\/scanner.\+RETF\+\_\+\+BYTE}} = 0x\+CB
+\item 
+\doxymbox{\hyperlink{namespacerop-gadget-scanner_ad9dcf7470fe7aaeb3bb2cbc5575411bf}{rop-\/gadget-\/scanner.\+SYSCALL\+\_\+\+BYTES}} = bytes(\+[0x0F, 0x05]\+)
+\item 
+\doxymbox{\hyperlink{namespacerop-gadget-scanner_ad067c9839e96d8863d876f62445803a4}{rop-\/gadget-\/scanner.\+INT80\+\_\+\+BYTES}} = bytes(\+[0x\+CD, 0x80]\+)
+\item 
+dict \doxymbox{\hyperlink{namespacerop-gadget-scanner_aab55622ae0a722ada881ffc134002fc8}{rop-\/gadget-\/scanner.\+POP\+\_\+\+OPCODES}}
+\item 
+int \doxymbox{\hyperlink{namespacerop-gadget-scanner_afc2d5a6c44f0f9a6f84831d8cc94ee11}{rop-\/gadget-\/scanner.\+REX\+\_\+W}} = 0x41
+\item 
+dict \doxymbox{\hyperlink{namespacerop-gadget-scanner_a32edaa67ac4cbdc777f5df8e2efd1c1c}{rop-\/gadget-\/scanner.\+POP\+\_\+\+R8\+\_\+\+R15}}
+\end{DoxyCompactItemize}

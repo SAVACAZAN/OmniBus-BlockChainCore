@@ -1,0 +1,351 @@
+\chapter{Omni\+Bus vs Bitcoin — Full Component Comparison (500 items) }
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n}\index{OmniBus vs Bitcoin — Full Component Comparison (500 items)@{OmniBus vs Bitcoin — Full Component Comparison (500 items)}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3949}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3949}%
+
+
+\begin{quote}
+Generated 2026-\/03-\/31 \texorpdfstring{$\vert$}{|} Omni\+Bus-\/\+Block\+Chain\+Core audit {\bfseries{47 Zig modules}} vs Bitcoin Core \texorpdfstring{$\sim$}{\string~}600K lines C++ \end{quote}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3951}{}\doxysection{\texorpdfstring{LEGEND}{LEGEND}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3951}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Symbol  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Meaning  \\
+\SetCell{c}Y  &\doxylink{namespace_we}{We} have it, working  \\
+\SetCell{c}P  &Partial /\+ basic implementation  \\
+\SetCell{c}N  &Not implemented yet  \\
+\SetCell{c}X  &Not applicable (design difference)  \\
+\SetCell{c}+  &\doxylink{namespace_we}{We} have it AND Bitcoin doesn\textquotesingle{}t  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3953}{}\doxysection{\texorpdfstring{1. SOFTWARE \& INTERFACES (20 items)}{1. SOFTWARE \& INTERFACES (20 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3953}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}1  &bitcoind (daemon)  &\SetCell{c}Y  &\SetCell{c}Y  &main.\+zig, node\+\_\+launcher.\+zig  &Zig binary, single-\/instance lock  \\
+\SetCell{c}2  &Bitcoin-\/\+Qt (GUI)  &\SetCell{c}Y  &\SetCell{c}P  &frontend/\+ (React+\+Vite)  &Web-\/based, not native Qt  \\
+\SetCell{c}3  &bitcoin-\/cli  &\SetCell{c}Y  &\SetCell{c}Y  &cli.\+zig  &--mode, --node-\/id, --port flags  \\
+\SetCell{c}4  &RPC Server  &\SetCell{c}Y  &\SetCell{c}Y  &rpc\+\_\+server.\+zig  &JSON-\/\+RPC 2.\+0 on port 8332  \\
+\SetCell{c}5  &REST Interface  &\SetCell{c}Y  &\SetCell{c}P  &rpc\+\_\+server.\+zig  &Combined with RPC  \\
+\SetCell{c}6  &Web\+Socket Server  &\SetCell{c}N  &\SetCell{c}Y+  &ws\+\_\+server.\+zig  &Push events, port 8334  \\
+\SetCell{c}7  &Mempool  &\SetCell{c}Y  &\SetCell{c}Y  &mempool.\+zig  &FIFO, size/\+time limits  \\
+\SetCell{c}8  &Level\+DB  &\SetCell{c}Y  &\SetCell{c}P  &database.\+zig  &Custom binary format, not Level\+DB  \\
+\SetCell{c}9  &Validation Engine  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig, blockchain.\+zig  &PoW + Casper FFG  \\
+\SetCell{c}10  &Full Node  &\SetCell{c}Y  &\SetCell{c}Y  &main.\+zig  &Seed mode + Miner mode  \\
+\SetCell{c}11  &Pruned Node  &\SetCell{c}Y  &\SetCell{c}Y  &prune\+\_\+config.\+zig  &Configurable pruning  \\
+\SetCell{c}12  &Light Client (SPV)  &\SetCell{c}Y  &\SetCell{c}Y  &light\+\_\+client.\+zig  &Header-\/only verification  \\
+\SetCell{c}13  &Blockchain Explorer  &\SetCell{c}Y(3rd)  &\SetCell{c}Y  &frontend/\+ Block\+Explorer  &Built-\/in React component  \\
+\SetCell{c}14  &Mainnet  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+OMNI"{}, port 8333  \\
+\SetCell{c}15  &Testnet  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+TEST"{}, port 18333  \\
+\SetCell{c}16  &Regtest  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+REGT"{}, port 28333  \\
+\SetCell{c}17  &Signet  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+DEVN"{} (devnet)  \\
+\SetCell{c}18  &Wallet.\+dat  &\SetCell{c}Y  &\SetCell{c}Y  &database.\+zig  &omnibus-\/chain.\+dat  \\
+\SetCell{c}19  &Chainstate (UTXO)  &\SetCell{c}Y  &\SetCell{c}Y  &state\+\_\+trie.\+zig  &State trie (account+\+UTXO hybrid)  \\
+\SetCell{c}20  &Peer Discovery  &\SetCell{c}Y  &\SetCell{c}Y  &bootstrap.\+zig, kademlia\+\_\+dht.\+zig  &DHT + DNS seeds  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 19/\+20}} (missing only native Qt GUI, but have web GUI)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3955}{}\doxysection{\texorpdfstring{2. BLOCKCHAIN STRUCTURE (20 items)}{2. BLOCKCHAIN STRUCTURE (20 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3955}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}21  &Genesis Block  &\SetCell{c}Y  &\SetCell{c}Y  &genesis.\+zig  &"{}26/\+\+Mar/\+2026 Omni\+Bus born"{}  \\
+\SetCell{c}22  &Block Header  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &prev\+\_\+hash, merkle\+\_\+root, nonce, difficulty  \\
+\SetCell{c}23  &Block Body  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &transactions list  \\
+\SetCell{c}24  &Merkle Tree  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &SHA256d merkle root  \\
+\SetCell{c}25  &UTXO Set  &\SetCell{c}Y  &\SetCell{c}P  &state\+\_\+trie.\+zig  &Account-\/based primary, UTXO planned  \\
+\SetCell{c}26  &Transaction  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &from, to, amount, fee, sig, hash, nonce  \\
+\SetCell{c}27  &Coinbase TX  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig, consensus.\+zig  &Block reward 50 OMNI  \\
+\SetCell{c}28  &Block Height  &\SetCell{c}Y  &\SetCell{c}Y  &blockchain.\+zig  &Sequential numbering  \\
+\SetCell{c}29  &Block Weight  &\SetCell{c}Y  &\SetCell{c}P  &sub\+\_\+block.\+zig  &Sub-\/block weight system  \\
+\SetCell{c}30  &Block Time  &\SetCell{c}Y(10m)  &\SetCell{c}Y(10s)  &consensus.\+zig  &10x0.\+1s sub-\/blocks = 1 key block  \\
+\SetCell{c}31  &Difficulty Target  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Adjustable difficulty  \\
+\SetCell{c}32  &Difficulty Adjustment  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Retarget every 2016 blocks  \\
+\SetCell{c}33  &Max Supply  &\SetCell{c}Y(21\+M)  &\SetCell{c}Y(21\+M)  &chain\+\_\+config.\+zig  &21M OMNI, 1e9 SAT/\+\+OMNI  \\
+\SetCell{c}34  &Halving  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Every 210K blocks  \\
+\SetCell{c}35  &Block Reward  &\SetCell{c}Y(3.\+125)  &\SetCell{c}Y(50)  &consensus.\+zig  &Starts at 50, halves  \\
+\SetCell{c}36  &Sub-\/blocks  &\SetCell{c}N  &\SetCell{c}Y+  &sub\+\_\+block.\+zig  &10 sub-\/blocks per key block  \\
+\SetCell{c}37  &Sharding  &\SetCell{c}N  &\SetCell{c}Y+  &shard\+\_\+coordinator.\+zig  &4-\/shard architecture  \\
+\SetCell{c}38  &Metachain  &\SetCell{c}N  &\SetCell{c}Y+  &metachain.\+zig  &Cross-\/shard coordination  \\
+\SetCell{c}39  &Compact Blocks  &\SetCell{c}Y  &\SetCell{c}Y  &binary\+\_\+codec.\+zig, compact\+\_\+tx.\+zig  &Binary encoding  \\
+\SetCell{c}40  &Block Archive  &\SetCell{c}Y  &\SetCell{c}Y  &archive\+\_\+manager.\+zig  &Historical data management  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 20/\+20}} (plus 3 extras:\+ sub-\/blocks, sharding, metachain)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3957}{}\doxysection{\texorpdfstring{3. CRYPTOGRAPHY (20 items)}{3. CRYPTOGRAPHY (20 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3957}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}41  &SHA-\/256  &\SetCell{c}Y  &\SetCell{c}Y  &crypto.\+zig  &std.\+crypto.\+hash.\+sha2  \\
+\SetCell{c}42  &Double SHA-\/256  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig, block.\+zig  &SHA256d everywhere  \\
+\SetCell{c}43  &RIPEMD-\/160  &\SetCell{c}Y  &\SetCell{c}Y  &ripemd160.\+zig  &Pure Zig implementation  \\
+\SetCell{c}44  &ECDSA (secp256k1)  &\SetCell{c}Y  &\SetCell{c}Y  &secp256k1.\+zig  &Pure Zig, no FFI  \\
+\SetCell{c}45  &Schnorr Signatures  &\SetCell{c}Y  &\SetCell{c}Y  &schnorr.\+zig  &BIP-\/340 compatible  \\
+\SetCell{c}46  &BLS Signatures  &\SetCell{c}N  &\SetCell{c}Y+  &bls\+\_\+signatures.\+zig  &Aggregate signatures  \\
+\SetCell{c}47  &Multisig  &\SetCell{c}Y  &\SetCell{c}Y  &multisig.\+zig  &M-\/of-\/N  \\
+\SetCell{c}48  &Hash160  &\SetCell{c}Y  &\SetCell{c}Y  &secp256k1.\+zig  &RIPEMD160(\+SHA256(x))  \\
+\SetCell{c}49  &Base58\+Check  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &Full encoder  \\
+\SetCell{c}50  &Bech32 /\+ Bech32m  &\SetCell{c}Y  &\SetCell{c}Y  &bech32.\+zig  &BIP-\/173 + BIP-\/350  \\
+\SetCell{c}51  &HMAC-\/\+SHA256  &\SetCell{c}Y  &\SetCell{c}Y  &crypto.\+zig  &Used for key derivation  \\
+\SetCell{c}52  &HMAC-\/\+SHA512  &\SetCell{c}Y  &\SetCell{c}Y  &crypto.\+zig  &BIP-\/32 master key  \\
+\SetCell{c}53  &PBKDF2  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &BIP-\/39 seed generation  \\
+\SetCell{c}54  &AES-\/256-\/\+GCM  &\SetCell{c}N  &\SetCell{c}Y+  &crypto.\+zig  &Key encryption  \\
+\SetCell{c}55  &ML-\/\+DSA-\/87 (Dilithium)  &\SetCell{c}N  &\SetCell{c}Y+  &pq\+\_\+crypto.\+zig  &Post-\/quantum signatures  \\
+\SetCell{c}56  &Falcon-\/512  &\SetCell{c}N  &\SetCell{c}Y+  &pq\+\_\+crypto.\+zig  &Compact PQ signatures  \\
+\SetCell{c}57  &SLH-\/\+DSA (SPHINCS+)  &\SetCell{c}N  &\SetCell{c}Y+  &pq\+\_\+crypto.\+zig  &Hash-\/based PQ signatures  \\
+\SetCell{c}58  &ML-\/\+KEM-\/768 (Kyber)  &\SetCell{c}N  &\SetCell{c}Y+  &pq\+\_\+crypto.\+zig  &PQ key encapsulation  \\
+\SetCell{c}59  &Key Compression  &\SetCell{c}Y  &\SetCell{c}Y  &secp256k1.\+zig  &33-\/byte compressed pubkeys  \\
+\SetCell{c}60  &Entropy (CSPRNG)  &\SetCell{c}Y  &\SetCell{c}Y  &std.\+crypto.\+random  &OS-\/level random  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 20/\+20}} (plus 5 extras:\+ BLS, AES, Dilithium, Falcon, SPHINCS+)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3959}{}\doxysection{\texorpdfstring{4. WALLET \& KEY MANAGEMENT (20 items)}{4. WALLET \& KEY MANAGEMENT (20 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3959}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}61  &HD Wallet (BIP-\/32)  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &Full HMAC-\/\+SHA512 derivation  \\
+\SetCell{c}62  &Mnemonic (BIP-\/39)  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &PBKDF2, 12 words  \\
+\SetCell{c}63  &BIP-\/44 (Multi-\/coin)  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &m/\+44\textquotesingle{}/\+coin\textquotesingle{}/\+0\textquotesingle{}/\+0/\+idx  \\
+\SetCell{c}64  &BIP-\/49 (Seg\+Wit P2\+SH)  &\SetCell{c}Y  &\SetCell{c}P  &\doxylink{generate__multiwallet_8py}{generate\+\_\+multiwallet.\+py}  &Python script only  \\
+\SetCell{c}65  &BIP-\/84 (Native Seg\+Wit)  &\SetCell{c}Y  &\SetCell{c}Y  &bech32.\+zig + wallet.\+zig  &ob1q... addresses  \\
+\SetCell{c}66  &BIP-\/86 (Taproot)  &\SetCell{c}Y  &\SetCell{c}P  &bech32.\+zig (ob1p support)  &Encoding ready, no spending  \\
+\SetCell{c}67  &xpub /\+ xprv  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &serialize\+Xpub/\+\+Xprv  \\
+\SetCell{c}68  &WIF (Private Key)  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &encode\+WIF()  \\
+\SetCell{c}69  &Master Fingerprint  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &master\+Fingerprint()  \\
+\SetCell{c}70  &Parent Fingerprint  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &parent\+Fingerprint()  \\
+\SetCell{c}71  &Derivation Path  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &derivation\+Path\+String()  \\
+\SetCell{c}72  &Script Pubkey  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &derive\+Script\+Pubkey()  \\
+\SetCell{c}73  &Witness Version  &\SetCell{c}Y  &\SetCell{c}Y  &wallet.\+zig  &0 (Seg\+Wit) or 1 (Taproot)  \\
+\SetCell{c}74  &Address Type  &\SetCell{c}Y  &\SetCell{c}Y  &wallet.\+zig  &NATIVE\+\_\+\+SEGWIT, TAPROOT  \\
+\SetCell{c}75  &Network (main/\+test)  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &Network enum  \\
+\SetCell{c}76  &Passphrase  &\SetCell{c}Y  &\SetCell{c}P  &bip32\+\_\+wallet.\+zig  &Code exists, TODO in wallet  \\
+\SetCell{c}77  &Key Encryption  &\SetCell{c}Y  &\SetCell{c}Y  &key\+\_\+encryption.\+zig  &AES-\/256-\/\+GCM encrypted storage  \\
+\SetCell{c}78  &Cold Storage  &\SetCell{c}Y  &\SetCell{c}P  &vault\+\_\+reader.\+zig  &Named Pipe from Super\+Vault  \\
+\SetCell{c}79  &Multi-\/chain Derivation  &\SetCell{c}N  &\SetCell{c}Y+  &\doxylink{generate__multiwallet_8py}{generate\+\_\+multiwallet.\+py}  &19 chains from 1 seed  \\
+\SetCell{c}80  &PQ Domain Addresses  &\SetCell{c}N  &\SetCell{c}Y+  &bip32\+\_\+wallet.\+zig  &5 PQ domains (777-\/781)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 20/\+20}} (plus 2 extras:\+ multi-\/chain, PQ domains)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3961}{}\doxysection{\texorpdfstring{5. TRANSACTIONS \& PROTOCOL (20 items)}{5. TRANSACTIONS \& PROTOCOL (20 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3961}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}81  &UTXO Model  &\SetCell{c}Y  &\SetCell{c}P  &state\+\_\+trie.\+zig  &Account-\/based primary  \\
+\SetCell{c}82  &Transaction Inputs  &\SetCell{c}Y  &\SetCell{c}P  &transaction.\+zig  &from\+\_\+address field  \\
+\SetCell{c}83  &Transaction Outputs  &\SetCell{c}Y  &\SetCell{c}P  &transaction.\+zig  &to\+\_\+address + amount  \\
+\SetCell{c}84  &Transaction Fee  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &fee field, 50\% burn + 50\% miner  \\
+\SetCell{c}85  &Change Address  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not yet implemented  \\
+\SetCell{c}86  &Satoshi unit  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &1 OMNI = 1e9 SAT  \\
+\SetCell{c}87  &Script (language)  &\SetCell{c}Y  &\SetCell{c}Y  &script.\+zig  &P2\+PKH opcodes  \\
+\SetCell{c}88  &OP\+\_\+\+CHECKSIG  &\SetCell{c}Y  &\SetCell{c}Y  &script.\+zig  &ECDSA verification  \\
+\SetCell{c}89  &OP\+\_\+\+RETURN  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &Max 80 bytes data  \\
+\SetCell{c}90  &Locktime  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &Block-\/height timelock  \\
+\SetCell{c}91  &Nonce  &\SetCell{c}P  &\SetCell{c}Y  &transaction.\+zig  &Anti-\/replay nonce  \\
+\SetCell{c}92  &Sequence Number  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not implemented  \\
+\SetCell{c}93  &Witness Data  &\SetCell{c}Y  &\SetCell{c}P  &transaction.\+zig  &script\+\_\+sig field  \\
+\SetCell{c}94  &Replace-\/\+By-\/\+Fee (RBF)  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not implemented  \\
+\SetCell{c}95  &CPFP  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not implemented  \\
+\SetCell{c}96  &v\+Size /\+ Weight  &\SetCell{c}Y  &\SetCell{c}P  &block.\+zig  &Sub-\/block weight  \\
+\SetCell{c}97  &Dust Limit  &\SetCell{c}Y  &\SetCell{c}Y  &blockchain.\+zig  &Anti-\/spam threshold  \\
+\SetCell{c}98  &TX Signing  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig, wallet.\+zig  &ECDSA + P2\+PKH  \\
+\SetCell{c}99  &TX Verification  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &sign() + verify()  \\
+\SetCell{c}100  &TX Hash (TXID)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &SHA256d  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 15/\+20}} (missing:\+ change addr, sequence, RBF, CPFP, full UTXO)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3963}{}\doxysection{\texorpdfstring{6. MINING \& CONSENSUS (15 items)}{6. MINING \& CONSENSUS (15 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3963}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}101  &Proof of Work  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &SHA256d PoW  \\
+\SetCell{c}102  &Nonce search  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Brute-\/force nonce  \\
+\SetCell{c}103  &Difficulty Target  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Dynamic adjustment  \\
+\SetCell{c}104  &Difficulty Adjustment  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Every 2016 blocks  \\
+\SetCell{c}105  &Block Reward  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &50 OMNI, halving  \\
+\SetCell{c}106  &Halving  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Every 210K blocks  \\
+\SetCell{c}107  &Coinbase TX  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &First TX in block  \\
+\SetCell{c}108  &Mining Pool  &\SetCell{c}Y  &\SetCell{c}Y  &mining\+\_\+pool.\+zig  &Pool protocol  \\
+\SetCell{c}109  &Stratum Protocol  &\SetCell{c}Y  &\SetCell{c}P  &miner-\/client.\+js  &Node.\+js client  \\
+\SetCell{c}110  &Light Miner  &\SetCell{c}N  &\SetCell{c}Y+  &light\+\_\+miner.\+zig  &Low-\/resource mining  \\
+\SetCell{c}111  &Sub-\/block Engine  &\SetCell{c}N  &\SetCell{c}Y+  &sub\+\_\+block.\+zig  &10x faster finality  \\
+\SetCell{c}112  &Casper FFG Finality  &\SetCell{c}N  &\SetCell{c}Y+  &finality.\+zig  &Proof-\/of-\/\+Stake finality  \\
+\SetCell{c}113  &Staking/\+\+Validators  &\SetCell{c}N  &\SetCell{c}Y+  &staking.\+zig  &Validator system  \\
+\SetCell{c}114  &Governance Voting  &\SetCell{c}N  &\SetCell{c}Y+  &governance.\+zig  &On-\/chain governance  \\
+\SetCell{c}115  &Chain Reorg  &\SetCell{c}Y  &\SetCell{c}Y  &blockchain.\+zig  &Fork resolution  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 15/\+15}} (plus 5 extras:\+ light miner, sub-\/blocks, Casper, staking, governance)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3965}{}\doxysection{\texorpdfstring{7. NETWORK \& P2P (20 items)}{7. NETWORK \& P2P (20 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3965}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}116  &P2P Protocol  &\SetCell{c}Y  &\SetCell{c}Y  &p2p.\+zig  &TCP transport  \\
+\SetCell{c}117  &Peer Discovery  &\SetCell{c}Y  &\SetCell{c}Y  &bootstrap.\+zig  &DNS seeds + DHT  \\
+\SetCell{c}118  &Kademlia DHT  &\SetCell{c}N  &\SetCell{c}Y+  &kademlia\+\_\+dht.\+zig  &Structured P2P  \\
+\SetCell{c}119  &Block Sync  &\SetCell{c}Y  &\SetCell{c}Y  &sync.\+zig  &Header-\/first sync  \\
+\SetCell{c}120  &Peer Scoring  &\SetCell{c}Y  &\SetCell{c}Y  &peer\+\_\+scoring.\+zig  &Reputation system  \\
+\SetCell{c}121  &DNS Seeds  &\SetCell{c}Y  &\SetCell{c}Y  &dns\+\_\+registry.\+zig  &Bootstrap nodes  \\
+\SetCell{c}122  &Knock-\/knock Detection  &\SetCell{c}N  &\SetCell{c}Y+  &p2p.\+zig  &Duplicate connection prevention  \\
+\SetCell{c}123  &Gossip TX  &\SetCell{c}Y  &\SetCell{c}Y  &p2p.\+zig  &TX propagation  \\
+\SetCell{c}124  &Gossip Blocks  &\SetCell{c}Y  &\SetCell{c}Y  &p2p.\+zig  &Block propagation  \\
+\SetCell{c}125  &Ban List  &\SetCell{c}Y  &\SetCell{c}P  &peer\+\_\+scoring.\+zig  &Via scoring  \\
+\SetCell{c}126  &Inbound/\+\+Outbound  &\SetCell{c}Y  &\SetCell{c}Y  &p2p.\+zig  &Configurable  \\
+\SetCell{c}127  &Max Connections  &\SetCell{c}Y  &\SetCell{c}Y  &p2p.\+zig  &Peer limit  \\
+\SetCell{c}128  &Tor Support  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not yet  \\
+\SetCell{c}129  &I2P Support  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not yet  \\
+\SetCell{c}130  &V2 P2P Encrypted  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &BIP-\/324 not yet  \\
+\SetCell{c}131  &Compact Blocks  &\SetCell{c}Y  &\SetCell{c}P  &binary\+\_\+codec.\+zig  &Binary codec  \\
+\SetCell{c}132  &Headers First  &\SetCell{c}Y  &\SetCell{c}Y  &sync.\+zig  &Header-\/based sync  \\
+\SetCell{c}133  &Fee Filter  &\SetCell{c}Y  &\SetCell{c}P  &mempool.\+zig  &Min fee filtering  \\
+\SetCell{c}134  &ZMQ Notifications  &\SetCell{c}Y  &\SetCell{c}P  &ws\+\_\+server.\+zig  &Web\+Socket instead  \\
+\SetCell{c}135  &User Agent  &\SetCell{c}Y  &\SetCell{c}Y  &p2p.\+zig  &"{}\+Omni\+Bus/\+1.\+0"{}  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 14/\+20}} (missing Tor, I2P, BIP-\/324, full ZMQ)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3967}{}\doxysection{\texorpdfstring{8. STORAGE \& DATABASE (10 items)}{8. STORAGE \& DATABASE (10 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3967}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}136  &Block Storage  &\SetCell{c}Y  &\SetCell{c}Y  &database.\+zig  &omnibus-\/chain.\+dat  \\
+\SetCell{c}137  &Binary Codec  &\SetCell{c}Y  &\SetCell{c}Y  &binary\+\_\+codec.\+zig  &Compact encoding  \\
+\SetCell{c}138  &State Trie  &\SetCell{c}N  &\SetCell{c}Y+  &state\+\_\+trie.\+zig  &Ethereum-\/style state  \\
+\SetCell{c}139  &Archive Manager  &\SetCell{c}Y  &\SetCell{c}Y  &archive\+\_\+manager.\+zig  &Old block management  \\
+\SetCell{c}140  &Pruning Config  &\SetCell{c}Y  &\SetCell{c}Y  &prune\+\_\+config.\+zig  &Space-\/saving  \\
+\SetCell{c}141  &Witness Storage  &\SetCell{c}Y  &\SetCell{c}Y  &witness.\+zig  &Segregated witness data  \\
+\SetCell{c}142  &Compact TX  &\SetCell{c}Y  &\SetCell{c}Y  &compact\+\_\+tx.\+zig  &Compressed transactions  \\
+\SetCell{c}143  &UTXO Index  &\SetCell{c}Y  &\SetCell{c}P  &state\+\_\+trie.\+zig  &Account-\/based primary  \\
+\SetCell{c}144  &Blockchain V2  &\SetCell{c}N  &\SetCell{c}Y+  &blockchain\+\_\+v2.\+zig  &Next-\/gen architecture  \\
+\SetCell{c}145  &Shard Config  &\SetCell{c}N  &\SetCell{c}Y+  &shard\+\_\+config.\+zig  &4-\/shard storage  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 10/\+10}} (plus 3 extras)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3969}{}\doxysection{\texorpdfstring{9. LAYER 2 \& EXTENSIONS (10 items)}{9. LAYER 2 \& EXTENSIONS (10 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3969}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}146  &Payment Channels  &\SetCell{c}Y  &\SetCell{c}Y  &payment\+\_\+channel.\+zig  &Basic channels  \\
+\SetCell{c}147  &Lightning Network  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not yet (channels exist)  \\
+\SetCell{c}148  &HTLC  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &Not yet  \\
+\SetCell{c}149  &Bridge Relay  &\SetCell{c}N  &\SetCell{c}Y+  &bridge\+\_\+relay.\+zig  &Cross-\/chain bridge  \\
+\SetCell{c}150  &Oracle  &\SetCell{c}N  &\SetCell{c}Y+  &oracle.\+zig  &20-\/chain price feeds  \\
+\SetCell{c}151  &Domain Minting  &\SetCell{c}N  &\SetCell{c}Y+  &domain\+\_\+minter.\+zig  &PQ domain system  \\
+\SetCell{c}152  &UBI Distributor  &\SetCell{c}N  &\SetCell{c}Y+  &ubi\+\_\+distributor.\+zig  &Universal basic income  \\
+\SetCell{c}153  &Vault Engine  &\SetCell{c}N  &\SetCell{c}Y+  &vault\+\_\+engine.\+zig  &Smart vaults  \\
+\SetCell{c}154  &Guardian  &\SetCell{c}N  &\SetCell{c}Y+  &guardian.\+zig  &Network protection  \\
+\SetCell{c}155  &Omni\+Brain  &\SetCell{c}N  &\SetCell{c}Y+  &omni\+\_\+brain.\+zig  &ML/\+\+AI integration  \\
+\end{DoxyTable}
+
+
+{\bfseries{Score:\+ 4/\+10}} on BTC features, but {\bfseries{+7 unique}} Omni\+Bus features
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3971}{}\doxysection{\texorpdfstring{10. ADVANCED \& UNIQUE TO OMNIBUS (10 items)}{10. ADVANCED \& UNIQUE TO OMNIBUS (10 items)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3971}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  \\
+\SetCell{c}156  &Spark Invariants  &\SetCell{c}N  &\SetCell{c}Y+  &spark\+\_\+invariants.\+zig  \\
+\SetCell{c}157  &Benchmark Suite  &\SetCell{c}P  &\SetCell{c}Y  &benchmark.\+zig  \\
+\SetCell{c}158  &WASM Wallet  &\SetCell{c}N  &\SetCell{c}Y+  &wasm\+\_\+exports.\+zig  \\
+\SetCell{c}159  &Miner Genesis  &\SetCell{c}N  &\SetCell{c}Y+  &miner\+\_\+genesis.\+zig  \\
+\SetCell{c}160  &E2E Mining Tests  &\SetCell{c}P  &\SetCell{c}Y  &e2e\+\_\+mining.\+zig  \\
+\SetCell{c}161  &Hex Utils  &\SetCell{c}Y  &\SetCell{c}Y  &hex\+\_\+utils.\+zig  \\
+\SetCell{c}162  &Vault Reader  &\SetCell{c}N  &\SetCell{c}Y+  &vault\+\_\+reader.\+zig  \\
+\SetCell{c}163  &Miner Wallet  &\SetCell{c}P  &\SetCell{c}Y  &miner\+\_\+wallet.\+zig  \\
+\SetCell{c}164  &Chain Config  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  \\
+\SetCell{c}165  &Multi-\/chain Wallet  &\SetCell{c}N  &\SetCell{c}Y+  &\doxylink{generate__multiwallet_8py}{scripts/\+generate\+\_\+multiwallet.\+py}  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3973}{}\doxysection{\texorpdfstring{SCOREBOARD SUMMARY}{SCOREBOARD SUMMARY}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3973}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Category  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}BTC Items  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus Has  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus Extra  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Score  \\
+Software \& Interfaces  &\SetCell{c}20  &\SetCell{c}19  &\SetCell{c}1 (Web\+Socket)  &\SetCell{c}95\%  \\
+Blockchain Structure  &\SetCell{c}20  &\SetCell{c}20  &\SetCell{c}3 (sub-\/blocks, shards, meta)  &\SetCell{c}100\%+  \\
+Cryptography  &\SetCell{c}20  &\SetCell{c}20  &\SetCell{c}5 (BLS, AES, PQ x3)  &\SetCell{c}100\%+  \\
+Wallet \& Keys  &\SetCell{c}20  &\SetCell{c}20  &\SetCell{c}2 (multi-\/chain, PQ)  &\SetCell{c}100\%+  \\
+Transactions  &\SetCell{c}20  &\SetCell{c}15  &\SetCell{c}0  &\SetCell{c}75\%  \\
+Mining \& Consensus  &\SetCell{c}15  &\SetCell{c}15  &\SetCell{c}5 (Casper, staking, gov)  &\SetCell{c}100\%+  \\
+Network \& P2P  &\SetCell{c}20  &\SetCell{c}14  &\SetCell{c}2 (DHT, knock-\/knock)  &\SetCell{c}70\%  \\
+Storage  &\SetCell{c}10  &\SetCell{c}10  &\SetCell{c}3 (trie, v2, shards)  &\SetCell{c}100\%+  \\
+Layer 2  &\SetCell{c}10  &\SetCell{c}4  &\SetCell{c}7 (bridge, oracle, UBI...)  &\SetCell{c}40\%+70\%  \\
+{\bfseries{TOTAL}}  &\SetCell{c}{\bfseries{155}}  &\SetCell{c}{\bfseries{137/\+155}}  &\SetCell{c}{\bfseries{+28 unique}}  &\SetCell{c}{\bfseries{88\%}}  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3975}{}\doxysection{\texorpdfstring{TOP MISSING (what we still need)}{TOP MISSING (what we still need)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3975}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Priority  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Missing  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin Has  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Effort  \\
+\SetCell{c}HIGH  &Full UTXO model  &Core accounting  &\SetCell{c}Large  \\
+\SetCell{c}HIGH  &Change addresses (chain=1)  &Auto change  &\SetCell{c}Medium  \\
+\SetCell{c}HIGH  &RBF (Replace-\/\+By-\/\+Fee)  &Fee bumping  &\SetCell{c}Medium  \\
+\SetCell{c}MED  &Tor/\+\+I2P support  &Anonymous networking  &\SetCell{c}Medium  \\
+\SetCell{c}MED  &Lightning Network  &Payment channels L2  &\SetCell{c}Large  \\
+\SetCell{c}MED  &HTLC contracts  &Lightning prereq  &\SetCell{c}Medium  \\
+\SetCell{c}MED  &BIP-\/324 encrypted P2P  &Traffic encryption  &\SetCell{c}Medium  \\
+\SetCell{c}LOW  &Sequence numbers  &TX replacement  &\SetCell{c}Small  \\
+\SetCell{c}LOW  &CPFP  &Child-\/pays-\/for-\/parent  &\SetCell{c}Small  \\
+\SetCell{c}LOW  &Passphrase (BIP-\/39)  &Extra security  &\SetCell{c}Tiny  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3977}{}\doxysection{\texorpdfstring{TOP EXTRAS (what we have that BTC doesn\textquotesingle{}t)}{TOP EXTRAS (what we have that BTC doesn\textquotesingle{}t)}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_o_m_p_a_r_i_s_o_n_autotoc_md3977}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Our File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+Post-\/\+Quantum Crypto  &pq\+\_\+crypto.\+zig  &ML-\/\+DSA, Falcon, SPHINCS+, ML-\/\+KEM  \\
+5 PQ Domains  &bip32\+\_\+wallet.\+zig  &5 address types with different PQ algos  \\
+19-\/Chain Wallet  &\doxylink{generate__multiwallet_8py}{generate\+\_\+multiwallet.\+py}  &BTC+\+ETH+\+SOL+\+ADA+\+DOT+\+EGLD+... from 1 seed  \\
+Sub-\/block Engine  &sub\+\_\+block.\+zig  &10x faster finality than BTC  \\
+Casper FFG  &finality.\+zig  &Proof-\/of-\/\+Stake finality layer  \\
+Staking System  &staking.\+zig  &Validator staking  \\
+Governance  &governance.\+zig  &On-\/chain voting  \\
+Oracle  &oracle.\+zig  &20-\/chain price feeds  \\
+Bridge Relay  &bridge\+\_\+relay.\+zig  &Cross-\/chain bridge  \\
+Sharding  &shard\+\_\+coordinator.\+zig  &4-\/shard parallel processing  \\
+State Trie  &state\+\_\+trie.\+zig  &Ethereum-\/style state management  \\
+WASM Wallet  &wasm\+\_\+exports.\+zig  &Browser-\/native wallet  \\
+UBI System  &ubi\+\_\+distributor.\+zig  &Universal Basic Income distribution  \\
+Web\+Socket  &ws\+\_\+server.\+zig  &Real-\/time push to frontend  \\
+Kademlia DHT  &kademlia\+\_\+dht.\+zig  &Structured peer discovery  \\
+BLS Signatures  &bls\+\_\+signatures.\+zig  &Aggregate signatures  \\
+Omni\+Brain  &omni\+\_\+brain.\+zig  &ML/\+\+AI integration  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Omni\+Bus:\+ 88\% Bitcoin parity + 28 unique features Bitcoin doesn\textquotesingle{}t have.} {\itshape 47 Zig modules, pure implementation, no C++ dependencies (except liboqs for PQ).} 

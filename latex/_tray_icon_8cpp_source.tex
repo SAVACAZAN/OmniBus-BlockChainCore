@@ -1,0 +1,75 @@
+\doxysection{Tray\+Icon.\+cpp}
+\hypertarget{_tray_icon_8cpp_source}{}\label{_tray_icon_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/windows/TrayIcon.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/windows/TrayIcon.cpp}}
+\doxymbox{\hyperlink{_tray_icon_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_tray_icon_8h}{windows/TrayIcon.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_settings_8h}{core/Settings.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_node_service_8h}{core/NodeService.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QApplication>}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QStyle>}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00008}00008\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00010}\doxymbox{\hyperlink{classomni_1_1_tray_icon_a3872b5043878c2e1b179971201431b47}{00010}}\ \doxymbox{\hyperlink{classomni_1_1_tray_icon_a3872b5043878c2e1b179971201431b47}{TrayIcon::TrayIcon}}(QWidget*\ mainWindow,\ QObject*\ parent)}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00011}00011\ \ \ \ \ :\ QSystemTrayIcon(parent)}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00012}00012\ \ \ \ \ ,\ m\_mainWindow(mainWindow)}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00013}00013\ \{}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00014}00014\ \ \ \ \ \textcolor{comment}{//\ Use\ application-\/default\ icon\ (can\ be\ replaced\ with\ custom\ .ico)}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00015}00015\ \ \ \ \ setIcon(QApplication::style()-\/>standardIcon(QStyle::SP\_ComputerIcon));}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00016}00016\ \ \ \ \ setToolTip(\textcolor{stringliteral}{"{}OmniBus-\/Qt"{}});}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00018}00018\ \ \ \ \ \textcolor{comment}{//\ Context\ menu}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00019}00019\ \ \ \ \ m\_menu\ =\ \textcolor{keyword}{new}\ QMenu;}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00020}00020\ \ \ \ \ \textcolor{keyword}{auto}*\ showAction\ =\ m\_menu-\/>addAction(\textcolor{stringliteral}{"{}Show\ OmniBus-\/Qt"{}});}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00021}00021\ \ \ \ \ m\_menu-\/>addSeparator();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00022}00022\ \ \ \ \ \textcolor{keyword}{auto}*\ quitAction\ =\ m\_menu-\/>addAction(\textcolor{stringliteral}{"{}Quit"{}});}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00024}00024\ \ \ \ \ setContextMenu(m\_menu);}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00026}00026\ \ \ \ \ connect(showAction,\ \&QAction::triggered,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00027}00027\ \ \ \ \ \ \ \ \ m\_mainWindow-\/>show();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00028}00028\ \ \ \ \ \ \ \ \ m\_mainWindow-\/>raise();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00029}00029\ \ \ \ \ \ \ \ \ m\_mainWindow-\/>activateWindow();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00030}00030\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00032}00032\ \ \ \ \ connect(quitAction,\ \&QAction::triggered,\ qApp,\ \&QApplication::quit);}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00034}00034\ \ \ \ \ connect(\textcolor{keyword}{this},\ \&QSystemTrayIcon::activated,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}](ActivationReason\ reason)\ \{}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (reason\ ==\ DoubleClick)\ \{}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00036}00036\ \ \ \ \ \ \ \ \ \ \ \ \ m\_mainWindow-\/>show();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ \ \ \ \ m\_mainWindow-\/>raise();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ m\_mainWindow-\/>activateWindow();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00039}00039\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00040}00040\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00042}00042\ \ \ \ \ \textcolor{comment}{//\ Connect\ to\ NodeService\ signals}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00043}00043\ \ \ \ \ \textcolor{keyword}{auto}\&\ svc\ =\ \doxymbox{\hyperlink{classomni_1_1_node_service_a1c90711658b40d4fe21ac86ba1d159fd}{NodeService::instance}}();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00044}00044\ \ \ \ \ connect(\&svc,\ \&\doxymbox{\hyperlink{classomni_1_1_node_service_a99cee222630294c7c7a0b1e9ba6b15e5}{NodeService::newBlockReceived}},\ \textcolor{keyword}{this},\ \&\doxymbox{\hyperlink{classomni_1_1_tray_icon_a98942794591502e83b38e83e23ea2ee9}{TrayIcon::onNewBlock}});}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00045}00045\ \ \ \ \ connect(\&svc,\ \&\doxymbox{\hyperlink{classomni_1_1_node_service_a819e15725fbaa76d92e2c3c340cfca82}{NodeService::newTxReceived}},\ \textcolor{keyword}{this},\ \&\doxymbox{\hyperlink{classomni_1_1_tray_icon_a36a8b0bf31b89446905c29aad8043bfe}{TrayIcon::onNewTx}});}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00047}00047\ \ \ \ \ show();}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00048}00048\ \}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00050}\doxymbox{\hyperlink{classomni_1_1_tray_icon_a98942794591502e83b38e83e23ea2ee9}{00050}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_tray_icon_a98942794591502e83b38e83e23ea2ee9}{TrayIcon::onNewBlock}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\&\ \doxymbox{\hyperlink{namespaceblock}{block}})\ \{}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00051}00051\ \ \ \ \ \textcolor{keywordflow}{if}\ (!\doxymbox{\hyperlink{classomni_1_1_settings_a2067640ae1b069a3a46355c8b72b971c}{Settings::instance}}().notifyNewBlock())\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00053}00053\ \ \ \ \ showMessage(\textcolor{stringliteral}{"{}New\ Block\ Mined"{}},}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00054}00054\ \ \ \ \ \ \ \ \ QString(\textcolor{stringliteral}{"{}Block\ \#\%1\ —\ Reward:\ \%2\ OMNI"{}})}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ .arg(\doxymbox{\hyperlink{namespaceblock}{block}}.height)}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ .arg(\doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(\doxymbox{\hyperlink{namespaceblock}{block}}.rewardSAT)),}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00057}00057\ \ \ \ \ \ \ \ \ QSystemTrayIcon::Information,\ 3000);}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00058}00058\ \}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00060}\doxymbox{\hyperlink{classomni_1_1_tray_icon_a36a8b0bf31b89446905c29aad8043bfe}{00060}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_tray_icon_a36a8b0bf31b89446905c29aad8043bfe}{TrayIcon::onNewTx}}(\textcolor{keyword}{const}\ QString\&\ txid,\ \textcolor{keyword}{const}\ QString\&\ from,\ qint64\ amountSat)\ \{}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{if}\ (!\doxymbox{\hyperlink{classomni_1_1_settings_a2067640ae1b069a3a46355c8b72b971c}{Settings::instance}}().notifyIncomingTx())\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00063}00063\ \ \ \ \ showMessage(\textcolor{stringliteral}{"{}Incoming\ Transaction"{}},}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00064}00064\ \ \ \ \ \ \ \ \ QString(\textcolor{stringliteral}{"{}Received\ \%1\ OMNI\(\backslash\)nFrom:\ \%2"{}})}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ .arg(\doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(amountSat),\ from.left(20)\ +\ \textcolor{stringliteral}{"{}..."{}}),}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00066}00066\ \ \ \ \ \ \ \ \ QSystemTrayIcon::Information,\ 3000);}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00067}00067\ \}}
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{_tray_icon_8cpp_source_l00069}00069\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

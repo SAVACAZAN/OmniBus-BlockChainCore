@@ -1,0 +1,25 @@
+\doxysection{buffer Namespace Reference}
+\hypertarget{namespacebuffer}{}\label{namespacebuffer}\index{buffer@{buffer}}
+
+
+-\/overflow-\/tester  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/overflow-\/tester 
+
+\begin{DoxyVerb}buffer-overflow-tester.py — OmniBus BlockChainCore Buffer Overflow Tester
+
+Send crafted/malformed inputs to the JSON-RPC port (8332) to test for:
+  - Oversized method names (10,000 chars)
+  - 1MB parameter strings
+  - Deeply nested JSON (500 levels)
+  - Binary/non-UTF8 data in string fields
+  - Integer overflow values (2^64, 2^128, 2^256)
+  - Negative block numbers and amounts
+
+After each test, pings the node with getblockcount to verify it survived.
+\end{DoxyVerb}
+ 

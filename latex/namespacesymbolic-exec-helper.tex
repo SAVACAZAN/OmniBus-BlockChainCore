@@ -1,0 +1,224 @@
+\doxysection{symbolic-\/exec-\/helper Namespace Reference}
+\hypertarget{namespacesymbolic-exec-helper}{}\label{namespacesymbolic-exec-helper}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+list \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a9551731fab8bdc01c2fe8d558a45166d}{scan\+\_\+unchecked\+\_\+arithmetic}} (str filepath, list lines)
+\item 
+list \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a0fa40cba7adbff4b38618116fd8ebdf7}{scan\+\_\+array\+\_\+bounds}} (str filepath, list lines)
+\item 
+list \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a79701abad4915526d80f39b62706fe65}{scan\+\_\+integer\+\_\+truncation}} (str filepath, list lines)
+\item 
+list \doxymbox{\hyperlink{namespacesymbolic-exec-helper_ae8ac8de92781110d16953436ed717716}{scan\+\_\+null\+\_\+dereference}} (str filepath, list lines)
+\item 
+list \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a434ab3287d64a00d2a79f4227a908b75}{scan\+\_\+crypto\+\_\+weaknesses}} (str filepath, list lines)
+\item 
+\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacesymbolic-exec-helper_ae4da3a2fb61b22ac5923cd0df54613d1}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesymbolic-exec-helper_ab78079862698e0086feeeb82506b0cf5}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a846c8a70a83fb53a20774861562247e6}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a32e4a736845e3a641754746404699a53}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a0f4cc33a8a9a3acc5252abe48547b25c}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a594b270ce7311c088f48405d13ff3ac2}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a5837f3992678c418ea31ccab40a2b0b7}{CORE\+\_\+\+DIR}} = "{}core"{}
+\item 
+int \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a8e4760902ab1615e9618e4d4cf03731f}{RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespacesymbolic-exec-helper_aef6ade7dca8ccc0042965e0391f8804c}{SHARDS}} = 4
+\item 
+int \doxymbox{\hyperlink{namespacesymbolic-exec-helper_ab07044aa7a9d62583490ffc3fb2f9b0b}{SUB\+\_\+\+BLOCKS}} = 10
+\end{DoxyCompactItemize}
+
+
+\label{namespacesymbolic-exec-helper_doc-func-members}
+\Hypertarget{namespacesymbolic-exec-helper_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacesymbolic-exec-helper_a51af30a60f9f02777c6396b8247e356f}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!main@{main}}
+\index{main@{main}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00264}{264}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacesymbolic-exec-helper_a0fa40cba7adbff4b38618116fd8ebdf7}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!scan\_array\_bounds@{scan\_array\_bounds}}
+\index{scan\_array\_bounds@{scan\_array\_bounds}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{scan\_array\_bounds()}{scan\_array\_bounds()}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a0fa40cba7adbff4b38618116fd8ebdf7} 
+ list scan\+\_\+array\+\_\+bounds (\begin{DoxyParamCaption}\item[{str}]{filepath}{, }\item[{list}]{lines}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find array/slice indexing without apparent bounds checks.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00108}{108}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a434ab3287d64a00d2a79f4227a908b75}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!scan\_crypto\_weaknesses@{scan\_crypto\_weaknesses}}
+\index{scan\_crypto\_weaknesses@{scan\_crypto\_weaknesses}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{scan\_crypto\_weaknesses()}{scan\_crypto\_weaknesses()}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a434ab3287d64a00d2a79f4227a908b75} 
+ list scan\+\_\+crypto\+\_\+weaknesses (\begin{DoxyParamCaption}\item[{str}]{filepath}{, }\item[{list}]{lines}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Crypto-specific: look for hardcoded keys, weak RNG, timing-unsafe compares.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00227}{227}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a79701abad4915526d80f39b62706fe65}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!scan\_integer\_truncation@{scan\_integer\_truncation}}
+\index{scan\_integer\_truncation@{scan\_integer\_truncation}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{scan\_integer\_truncation()}{scan\_integer\_truncation()}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a79701abad4915526d80f39b62706fe65} 
+ list scan\+\_\+integer\+\_\+truncation (\begin{DoxyParamCaption}\item[{str}]{filepath}{, }\item[{list}]{lines}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find potential integer truncation: casting wider to narrower type.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00149}{149}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_ae8ac8de92781110d16953436ed717716}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!scan\_null\_dereference@{scan\_null\_dereference}}
+\index{scan\_null\_dereference@{scan\_null\_dereference}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{scan\_null\_dereference()}{scan\_null\_dereference()}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_ae8ac8de92781110d16953436ed717716} 
+ list scan\+\_\+null\+\_\+dereference (\begin{DoxyParamCaption}\item[{str}]{filepath}{, }\item[{list}]{lines}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find optional unwrap (.?) without null check.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00196}{196}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a9551731fab8bdc01c2fe8d558a45166d}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!scan\_unchecked\_arithmetic@{scan\_unchecked\_arithmetic}}
+\index{scan\_unchecked\_arithmetic@{scan\_unchecked\_arithmetic}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{scan\_unchecked\_arithmetic()}{scan\_unchecked\_arithmetic()}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a9551731fab8bdc01c2fe8d558a45166d} 
+ list scan\+\_\+unchecked\+\_\+arithmetic (\begin{DoxyParamCaption}\item[{str}]{filepath}{, }\item[{list}]{lines}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find arithmetic operations that might overflow without @addWithOverflow.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+
+
+\label{namespacesymbolic-exec-helper_doc-var-members}
+\Hypertarget{namespacesymbolic-exec-helper_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacesymbolic-exec-helper_a0f4cc33a8a9a3acc5252abe48547b25c}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a0f4cc33a8a9a3acc5252abe48547b25c} 
+str \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a5837f3992678c418ea31ccab40a2b0b7}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!CORE\_DIR@{CORE\_DIR}}
+\index{CORE\_DIR@{CORE\_DIR}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{CORE\_DIR}{CORE\_DIR}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a5837f3992678c418ea31ccab40a2b0b7} 
+str \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+CORE\+\_\+\+DIR = "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a32e4a736845e3a641754746404699a53}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a32e4a736845e3a641754746404699a53} 
+str \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_ab78079862698e0086feeeb82506b0cf5}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_ab78079862698e0086feeeb82506b0cf5} 
+str \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_ae4da3a2fb61b22ac5923cd0df54613d1}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!RED@{RED}}
+\index{RED@{RED}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_ae4da3a2fb61b22ac5923cd0df54613d1} 
+str \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a594b270ce7311c088f48405d13ff3ac2}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!RESET@{RESET}}
+\index{RESET@{RESET}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a594b270ce7311c088f48405d13ff3ac2} 
+str \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a8e4760902ab1615e9618e4d4cf03731f}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!RPC\_PORT@{RPC\_PORT}}
+\index{RPC\_PORT@{RPC\_PORT}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{RPC\_PORT}{RPC\_PORT}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a8e4760902ab1615e9618e4d4cf03731f} 
+int \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+RPC\+\_\+\+PORT = 8332}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_aef6ade7dca8ccc0042965e0391f8804c}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!SHARDS@{SHARDS}}
+\index{SHARDS@{SHARDS}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{SHARDS}{SHARDS}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_aef6ade7dca8ccc0042965e0391f8804c} 
+int \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+SHARDS = 4}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_ab07044aa7a9d62583490ffc3fb2f9b0b}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!SUB\_BLOCKS@{SUB\_BLOCKS}}
+\index{SUB\_BLOCKS@{SUB\_BLOCKS}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{SUB\_BLOCKS}{SUB\_BLOCKS}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_ab07044aa7a9d62583490ffc3fb2f9b0b} 
+int \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+SUB\+\_\+\+BLOCKS = 10}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+
+\Hypertarget{namespacesymbolic-exec-helper_a846c8a70a83fb53a20774861562247e6}\index{symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!symbolic-\/exec-\/helper@{symbolic-\/exec-\/helper}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacesymbolic-exec-helper_a846c8a70a83fb53a20774861562247e6} 
+str \doxymbox{\hyperlink{namespacesymbolic}{symbolic}}-\/exec-\/helper.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{symbolic-exec-helper_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{symbolic-exec-helper_8py_source}{symbolic-\/exec-\/helper.\+py}}.
+

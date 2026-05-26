@@ -1,0 +1,54 @@
+\doxysection{archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\+Vault\+Storage.h File Reference}
+\hypertarget{_vault_storage_8h}{}\label{_vault_storage_8h}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/VaultStorage.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/VaultStorage.h}}
+{\ttfamily \+\#include $<$QString$>$}\newline
+{\ttfamily \+\#include $<$QVector$>$}\newline
+{\ttfamily \+\#include $<$QByte\+Array$>$}\newline
+{\ttfamily \+\#include $<$cstdint$>$}\newline
+Include dependency graph for Vault\+Storage.\+h:\+
+% FIG 0
+This graph shows which files directly or indirectly include this file:\+
+% FIG 1
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{omni::\+\+Vault\+Key\+Entry}}
+\item 
+class \doxymbox{\hyperlink{classomni_1_1_vault_storage}{omni::\+\+Vault\+Storage}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceomni}{omni}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{omni::\+\+Vault\+Exchange}} \{ \newline
+\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a331a6fe17b554349b9f5f7d008615dfd}{omni::\+\+VAULT\+\_\+\+LCX}} = 0
+, \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a3f5911fce70910db7893ab6400ab0aa2}{omni::\+\+VAULT\+\_\+\+KRAKEN}} = 1
+, \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a682a84c8a4b8b5fcc2e32a7bd2d03fc9}{omni::\+\+VAULT\+\_\+\+COINBASE}} = 2
+, \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a1c74b532493dd6c7f821957bffcaf657}{omni::\+\+VAULT\+\_\+\+EXCHANGE\+\_\+\+COUNT}} = 3
+, \newline
+\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a331a6fe17b554349b9f5f7d008615dfd}{omni::\+\+VAULT\+\_\+\+LCX}} = 0
+, \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a3f5911fce70910db7893ab6400ab0aa2}{omni::\+\+VAULT\+\_\+\+KRAKEN}} = 1
+, \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a682a84c8a4b8b5fcc2e32a7bd2d03fc9}{omni::\+\+VAULT\+\_\+\+COINBASE}} = 2
+, \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a1c74b532493dd6c7f821957bffcaf657}{omni::\+\+VAULT\+\_\+\+EXCHANGE\+\_\+\+COUNT}} = 3
+ \}
+\item 
+enum \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{omni::\+\+Vault\+Key\+Status}} :\+ uint8\+\_\+t \{ \newline
+\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{omni::\+\+KEY\+\_\+\+STATUS\+\_\+\+FREE}} = 0
+, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fab9f163851a60ec20d410a259f83ad018}{omni::\+\+KEY\+\_\+\+STATUS\+\_\+\+PAID}} = 1
+, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0c17a6316b813e95935f454e95af985f}{omni::\+\+KEY\+\_\+\+STATUS\+\_\+\+NOTPAID}} = 2
+, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{omni::\+\+KEY\+\_\+\+STATUS\+\_\+\+FREE}} = 0
+, \newline
+\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fab9f163851a60ec20d410a259f83ad018}{omni::\+\+KEY\+\_\+\+STATUS\+\_\+\+PAID}} = 1
+, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0c17a6316b813e95935f454e95af985f}{omni::\+\+KEY\+\_\+\+STATUS\+\_\+\+NOTPAID}} = 2
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+constexpr uint32\+\_\+t \doxymbox{\hyperlink{namespaceomni_ae187891f2a7871f7d8e26d3c89f1563b}{omni::\+\+VAULT\+\_\+\+MAGIC}} = 0x4\+F4\+D4\+E56
+\item 
+constexpr uint32\+\_\+t \doxymbox{\hyperlink{namespaceomni_a95a3199ca4c23fc2cbeb8ec5893c13fd}{omni::\+\+VAULT\+\_\+\+VERSION}} = 4
+\end{DoxyCompactItemize}

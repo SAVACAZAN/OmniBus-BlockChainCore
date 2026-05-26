@@ -92,6 +92,8 @@ pub fn call(
     if (std.mem.indexOf(u8, body, "\"error\"") != null and
         std.mem.indexOf(u8, body, "\"result\"") == null)
     {
+        const max = @min(body.len, 300);
+        std.debug.print("[evm_rpc] {s} -> error: {s}\n", .{ method, body[0..max] });
         allocator.free(body);
         return RpcError.RpcReturnedError;
     }

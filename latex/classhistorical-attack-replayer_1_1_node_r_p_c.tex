@@ -1,0 +1,225 @@
+\doxysection{historical-\/attack-\/replayer.Node\+RPC Class Reference}
+\hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c}{}\label{classhistorical-attack-replayer_1_1_node_r_p_c}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_ae14c8b4738ce4b75b9dcf549a7338793}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str host, int port, int timeout=10)
+\item 
+dict \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}} (self, str method, list\texorpdfstring{$\vert$}{|}dict\texorpdfstring{$\vert$}{|}None params=None)
+\item 
+bool \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a840d65ea7a175af36d8d303e1af22784}{is\+\_\+alive}} (self)
+\item 
+int\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8327a4c35e9ebc8a2268ddbadf72c323}{get\+\_\+block\+\_\+count}} (self)
+\item 
+dict\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a435d4e48c14f8d5723839715ebf231ca}{get\+\_\+block}} (self, int height)
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a4c2892fe955fbf3a12af205231ee3ba2}{get\+\_\+block\+\_\+hash}} (self, int height)
+\item 
+dict \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a253a501dc681150353a5f6ddc20845f3}{submit\+\_\+block}} (self, dict block\+\_\+data)
+\item 
+dict \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a9aca04a6cc750078f4b9f914f5131d88}{send\+\_\+raw\+\_\+transaction}} (self, str tx\+\_\+data)
+\item 
+dict\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a1e5ce64d88ea17705dd19a989c2934f0}{get\+\_\+mempool\+\_\+info}} (self)
+\item 
+dict\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_ac969d1d0e851489e68e0841b0217753e}{get\+\_\+network\+\_\+info}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a29a6ffa2b71616ba8778abfe065a6445}{host}} = host
+\item 
+\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_af0a3d88b7f91ee651a1f503ff04af0d9}{port}} = port
+\item 
+\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a9566033c6cd9c4af4a42bc0764159ce3}{timeout}} = timeout
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a6c6d3489f9aa0445f69e2f7fc910f0b9}{\+\_\+id}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}JSON-RPC client for OmniBus BlockChainCore node (port 8332).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+
+
+\label{classhistorical-attack-replayer_1_1_node_r_p_c_doc-constructors}
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_ae14c8b4738ce4b75b9dcf549a7338793}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_ae14c8b4738ce4b75b9dcf549a7338793} 
+\doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int }]{timeout}{ = {\ttfamily 10}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+
+
+\label{classhistorical-attack-replayer_1_1_node_r_p_c_doc-func-members}
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!call@{call}}
+\index{call@{call}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{call()}{call()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2} 
+ dict \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+call (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{method}{, }\item[{list \texorpdfstring{$\vert$}{|} dict \texorpdfstring{$\vert$}{|} None }]{params}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a435d4e48c14f8d5723839715ebf231ca}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!get\_block@{get\_block}}
+\index{get\_block@{get\_block}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{get\_block()}{get\_block()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a435d4e48c14f8d5723839715ebf231ca} 
+ dict \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+get\+\_\+block (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int}]{height}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00090}{90}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a8327a4c35e9ebc8a2268ddbadf72c323}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!get\_block\_count@{get\_block\_count}}
+\index{get\_block\_count@{get\_block\_count}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{get\_block\_count()}{get\_block\_count()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a8327a4c35e9ebc8a2268ddbadf72c323} 
+ int \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+get\+\_\+block\+\_\+count (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00086}{86}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a4c2892fe955fbf3a12af205231ee3ba2}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!get\_block\_hash@{get\_block\_hash}}
+\index{get\_block\_hash@{get\_block\_hash}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{get\_block\_hash()}{get\_block\_hash()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a4c2892fe955fbf3a12af205231ee3ba2} 
+ str \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+get\+\_\+block\+\_\+hash (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int}]{height}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00094}{94}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a1e5ce64d88ea17705dd19a989c2934f0}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!get\_mempool\_info@{get\_mempool\_info}}
+\index{get\_mempool\_info@{get\_mempool\_info}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{get\_mempool\_info()}{get\_mempool\_info()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a1e5ce64d88ea17705dd19a989c2934f0} 
+ dict \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+get\+\_\+mempool\+\_\+info (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00104}{104}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_ac969d1d0e851489e68e0841b0217753e}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!get\_network\_info@{get\_network\_info}}
+\index{get\_network\_info@{get\_network\_info}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{get\_network\_info()}{get\_network\_info()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_ac969d1d0e851489e68e0841b0217753e} 
+ dict \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+get\+\_\+network\+\_\+info (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00108}{108}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a840d65ea7a175af36d8d303e1af22784}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!is\_alive@{is\_alive}}
+\index{is\_alive@{is\_alive}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{is\_alive()}{is\_alive()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a840d65ea7a175af36d8d303e1af22784} 
+ bool \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+is\+\_\+alive (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00082}{82}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a9aca04a6cc750078f4b9f914f5131d88}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!send\_raw\_transaction@{send\_raw\_transaction}}
+\index{send\_raw\_transaction@{send\_raw\_transaction}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{send\_raw\_transaction()}{send\_raw\_transaction()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a9aca04a6cc750078f4b9f914f5131d88} 
+ dict \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+send\+\_\+raw\+\_\+transaction (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{tx\+\_\+data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00101}{101}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a253a501dc681150353a5f6ddc20845f3}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!submit\_block@{submit\_block}}
+\index{submit\_block@{submit\_block}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{submit\_block()}{submit\_block()}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a253a501dc681150353a5f6ddc20845f3} 
+ dict \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+submit\+\_\+block (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{dict}]{block\+\_\+data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00098}{98}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+
+
+\label{classhistorical-attack-replayer_1_1_node_r_p_c_doc-variable-members}
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a6c6d3489f9aa0445f69e2f7fc910f0b9}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!\_id@{\_id}}
+\index{\_id@{\_id}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{\_id}{\_id}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a6c6d3489f9aa0445f69e2f7fc910f0b9} 
+int \doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+\_\+id = 0\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00058}{58}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a29a6ffa2b71616ba8778abfe065a6445}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!host@{host}}
+\index{host@{host}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{host}{host}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a29a6ffa2b71616ba8778abfe065a6445} 
+\doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+host = host}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_af0a3d88b7f91ee651a1f503ff04af0d9}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!port@{port}}
+\index{port@{port}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{port}{port}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_af0a3d88b7f91ee651a1f503ff04af0d9} 
+\doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+port = port}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+\Hypertarget{classhistorical-attack-replayer_1_1_node_r_p_c_a9566033c6cd9c4af4a42bc0764159ce3}\index{historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}!timeout@{timeout}}
+\index{timeout@{timeout}!historical-\/attack-\/replayer.NodeRPC@{historical-\/attack-\/replayer.NodeRPC}}
+\doxysubsubsection{\texorpdfstring{timeout}{timeout}}
+{\footnotesize\ttfamily \label{classhistorical-attack-replayer_1_1_node_r_p_c_a9566033c6cd9c4af4a42bc0764159ce3} 
+\doxymbox{\hyperlink{namespacehistorical}{historical}}-\/attack-\/replayer.\+Node\+RPC.\+timeout = timeout}
+
+
+
+Definition at line \doxymbox{\hyperlink{historical-attack-replayer_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{historical-attack-replayer_8py_source}{historical-\/attack-\/replayer.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+EXPLOITS/\+\doxymbox{\hyperlink{historical-attack-replayer_8py}{historical-\/attack-\/replayer.\+py}}\end{DoxyCompactItemize}

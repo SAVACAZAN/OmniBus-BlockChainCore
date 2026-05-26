@@ -1,0 +1,122 @@
+\doxysection{Mining\+Tab.\+cpp}
+\hypertarget{_mining_tab_8cpp_source}{}\label{_mining_tab_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/MiningTab.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/MiningTab.cpp}}
+\doxymbox{\hyperlink{_mining_tab_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_mining_tab_8h}{widgets/MiningTab.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_miner_table_model_8h}{models/MinerTableModel.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_node_service_8h}{core/NodeService.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QGridLayout>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <QFrame>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <QHeaderView>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <QJsonArray>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <QTimer>}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00014}00014\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00016}\doxymbox{\hyperlink{classomni_1_1_mining_tab_a90b4b89fb20c99f6f2eacac0a65925bc}{00016}}\ \doxymbox{\hyperlink{classomni_1_1_mining_tab_a90b4b89fb20c99f6f2eacac0a65925bc}{MiningTab::MiningTab}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00017}00017\ \ \ \ \ :\ QWidget(parent)}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00018}00018\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00019}00019\ \ \ \ \ m\_minerModel\ =\ \textcolor{keyword}{new}\ \doxymbox{\hyperlink{classomni_1_1_miner_table_model}{MinerTableModel}}(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00020}00020\ \ \ \ \ setupUi();}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00021}00021\ \ \ \ \ refreshData();}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00023}00023\ \ \ \ \ \textcolor{comment}{//\ Refresh\ every\ 30s}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00024}00024\ \ \ \ \ \textcolor{keyword}{auto}*\ timer\ =\ \textcolor{keyword}{new}\ QTimer(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00025}00025\ \ \ \ \ connect(timer,\ \&QTimer::timeout,\ \textcolor{keyword}{this},\ \&MiningTab::refreshData);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00026}00026\ \ \ \ \ timer-\/>start(30000);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00028}00028\ \ \ \ \ connect(\&\doxymbox{\hyperlink{classomni_1_1_node_service_a1c90711658b40d4fe21ac86ba1d159fd}{NodeService::instance}}(),\ \&\doxymbox{\hyperlink{classomni_1_1_node_service_a99cee222630294c7c7a0b1e9ba6b15e5}{NodeService::newBlockReceived}},\ \textcolor{keyword}{this},\ \&MiningTab::refreshData);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00029}00029\ \}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00031}00031\ \textcolor{keywordtype}{void}\ MiningTab::setupUi()\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00032}00032\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00033}00033\ \ \ \ \ layout-\/>setContentsMargins(16,\ 16,\ 16,\ 16);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00034}00034\ \ \ \ \ layout-\/>setSpacing(12);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00036}00036\ \ \ \ \ \textcolor{keyword}{auto}*\ title\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Mining\ \&\ Pool\ Stats"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00037}00037\ \ \ \ \ title-\/>setObjectName(\textcolor{stringliteral}{"{}sectionTitle"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00038}00038\ \ \ \ \ layout-\/>addWidget(title);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00040}00040\ \ \ \ \ \textcolor{comment}{//\ Stats\ cards\ row}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00041}00041\ \ \ \ \ \textcolor{keyword}{auto}*\ cardsLayout\ =\ \textcolor{keyword}{new}\ QHBoxLayout;}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00043}00043\ \ \ \ \ \textcolor{keyword}{auto}\ makeCard\ =\ [](\textcolor{keyword}{const}\ QString\&\ label,\ QLabel*\&\ valueLabel)\ -\/>\ QFrame*\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}*\ card\ =\ \textcolor{keyword}{new}\ QFrame;}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00045}00045\ \ \ \ \ \ \ \ \ card-\/>setObjectName(\textcolor{stringliteral}{"{}card"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}*\ lay\ =\ \textcolor{keyword}{new}\ QVBoxLayout(card);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}*\ lbl\ =\ \textcolor{keyword}{new}\ QLabel(label);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00048}00048\ \ \ \ \ \ \ \ \ lbl-\/>setObjectName(\textcolor{stringliteral}{"{}dimLabel"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00049}00049\ \ \ \ \ \ \ \ \ valueLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}-\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00050}00050\ \ \ \ \ \ \ \ \ valueLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}font-\/size:\ 20px;\ font-\/weight:\ bold;\ color:\ \#4a90d9;"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00051}00051\ \ \ \ \ \ \ \ \ lay-\/>addWidget(lbl);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00052}00052\ \ \ \ \ \ \ \ \ lay-\/>addWidget(valueLabel);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ card;}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00054}00054\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00056}00056\ \ \ \ \ cardsLayout-\/>addWidget(makeCard(\textcolor{stringliteral}{"{}Active\ Miners"{}},\ m\_totalMinersLabel));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00057}00057\ \ \ \ \ cardsLayout-\/>addWidget(makeCard(\textcolor{stringliteral}{"{}Block\ Reward"{}},\ m\_blockRewardLabel));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00058}00058\ \ \ \ \ cardsLayout-\/>addWidget(makeCard(\textcolor{stringliteral}{"{}Your\ Blocks"{}},\ m\_yourBlocksLabel));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00059}00059\ \ \ \ \ cardsLayout-\/>addWidget(makeCard(\textcolor{stringliteral}{"{}Pool\ Hash"{}},\ m\_poolHashLabel));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00060}00060\ \ \ \ \ layout-\/>addLayout(cardsLayout);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00062}00062\ \ \ \ \ \textcolor{comment}{//\ Miner\ table}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00063}00063\ \ \ \ \ \textcolor{keyword}{auto}*\ tableTitle\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Miner\ Leaderboard"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00064}00064\ \ \ \ \ tableTitle-\/>setObjectName(\textcolor{stringliteral}{"{}sectionTitle"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00065}00065\ \ \ \ \ layout-\/>addWidget(tableTitle);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00067}00067\ \ \ \ \ m\_minerTable\ =\ \textcolor{keyword}{new}\ QTableView;}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00068}00068\ \ \ \ \ m\_minerTable-\/>setModel(m\_minerModel);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00069}00069\ \ \ \ \ m\_minerTable-\/>setAlternatingRowColors(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00070}00070\ \ \ \ \ m\_minerTable-\/>setSelectionBehavior(QAbstractItemView::SelectRows);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00071}00071\ \ \ \ \ m\_minerTable-\/>setSortingEnabled(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00072}00072\ \ \ \ \ m\_minerTable-\/>horizontalHeader()-\/>setStretchLastSection(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00073}00073\ \ \ \ \ m\_minerTable-\/>verticalHeader()-\/>hide();}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00074}00074\ \ \ \ \ m\_minerTable-\/>setEditTriggers(QAbstractItemView::NoEditTriggers);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00075}00075\ \ \ \ \ layout-\/>addWidget(m\_minerTable);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00077}00077\ \ \ \ \ \textcolor{comment}{//\ Refresh\ button}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00078}00078\ \ \ \ \ \textcolor{keyword}{auto}*\ refreshBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Refresh"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00079}00079\ \ \ \ \ refreshBtn-\/>setObjectName(\textcolor{stringliteral}{"{}secondaryButton"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00080}00080\ \ \ \ \ refreshBtn-\/>setFixedWidth(120);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00081}00081\ \ \ \ \ connect(refreshBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&MiningTab::refreshData);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00082}00082\ \ \ \ \ layout-\/>addWidget(refreshBtn,\ 0,\ Qt::AlignRight);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00083}00083\ \}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00085}00085\ \textcolor{keywordtype}{void}\ MiningTab::refreshData()\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00086}00086\ \ \ \ \ \textcolor{keyword}{auto}*\ \doxymbox{\hyperlink{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e}{rpc}}\ =\ \doxymbox{\hyperlink{classomni_1_1_node_service_a1c90711658b40d4fe21ac86ba1d159fd}{NodeService::instance}}().\doxymbox{\hyperlink{classomni_1_1_node_service_ac4d59a120a7a793e5b5f120e38ae38e8}{rpc}}();}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00088}00088\ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e}{rpc}}-\/>getMinerStats([\textcolor{keyword}{this}](\textcolor{keyword}{const}\ QJsonValue\&\ result,\ \textcolor{keyword}{const}\ QString\&\ err)\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (err.isEmpty()\ \&\&\ result.isObject())\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ QJsonArray\ miners\ =\ result.toObject()[\textcolor{stringliteral}{"{}miners"{}}].toArray();}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ QList<MinerInfo>\ list;}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ m\ :\ miners)}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ list.append(\doxymbox{\hyperlink{structomni_1_1_miner_info_ab9b0d1a793e11d3c353529035e82f0a4}{MinerInfo::fromJson}}(m.toObject()));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ m\_minerModel-\/>setMiners(list);}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ m\_totalMinersLabel-\/>setText(QString::number(list.size()));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00096}00096\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00097}00097\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00099}00099\ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e}{rpc}}-\/>getPoolStats([\textcolor{keyword}{this}](\textcolor{keyword}{const}\ QJsonValue\&\ result,\ \textcolor{keyword}{const}\ QString\&\ err)\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (err.isEmpty()\ \&\&\ result.isObject())\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ obj\ =\ result.toObject();}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ m\_poolHashLabel-\/>setText(obj[\textcolor{stringliteral}{"{}hashRate"{}}].toString(\textcolor{stringliteral}{"{}-\/-\/"{}}));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00103}00103\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00104}00104\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00106}00106\ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e}{rpc}}-\/>getMinerInfo([\textcolor{keyword}{this}](\textcolor{keyword}{const}\ QJsonValue\&\ result,\ \textcolor{keyword}{const}\ QString\&\ err)\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (err.isEmpty()\ \&\&\ result.isObject())\ \{}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ obj\ =\ result.toObject();}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ m\_yourBlocksLabel-\/>setText(QString::number(obj[\textcolor{stringliteral}{"{}blocksMined"{}}].toInt()));}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ m\_blockRewardLabel-\/>setText(\doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}qint64\textcolor{keyword}{>}(obj[\textcolor{stringliteral}{"{}blockRewardSAT"{}}].toDouble()))\ +\ \textcolor{stringliteral}{"{}\ OMNI"{}});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00112}00112\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00113}00113\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00114}00114\ \}}
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{_mining_tab_8cpp_source_l00116}00116\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

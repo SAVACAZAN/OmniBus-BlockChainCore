@@ -1,0 +1,538 @@
+\chapter{Module:\+ {\ttfamily mempool} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool}{}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool}\index{Module: $<$tt$>$mempool$<$/tt$>$@{Module: $<$tt$>$mempool$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1948}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1948}%
+
+
+\begin{quote}
+Transaction memory pool — FIFO queue with size/\+time limits, fee-\/based priority, duplicate detection, replace-\/by-\/nonce, and mineable TX selection. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+mempool.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 766 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 18 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 21
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1950}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1950}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1951}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1951}
+
+\begin{DoxyItemize}
+\item \`{}\+Mempool\+Entry\`{}{\ttfamily Mempool\+Entry}
+\end{DoxyItemize}— Intrare in mempool — TX + metadata
+\begin{DoxyItemize}
+\item \`{}\+Mempool\`{}{\ttfamily Mempool}
+\end{DoxyItemize}— Mempool FIFO — First In First Out, anti-\/\+MEV Modulul e independent de blockchain....\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1952}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1952}
+
+\begin{DoxyItemize}
+\item 8 constants defined8 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1953}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1953}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add()\`{}{\ttfamily add()}
+\end{DoxyItemize}— Adauga o TX in mempool (FIFO — la coada) Returneaza eroare daca e plin...
+\begin{DoxyItemize}
+\item \`{}get\+Mineable()\`{}{\ttfamily get\+Mineable()}
+\end{DoxyItemize}— Returns up to N mineable TXs (locktime \texorpdfstring{$<$}{<}= current\+\_\+height), FIFO order....
+\begin{DoxyItemize}
+\item \`{}popN()\`{}{\ttfamily pop\+N()}
+\end{DoxyItemize}— Scoate primele N TX-\/uri din mempool (FIFO — din fata) Folosit de miner...
+\begin{DoxyItemize}
+\item \`{}get\+By\+Fee()\`{}{\ttfamily get\+By\+Fee()}
+\end{DoxyItemize}— Returns up to N entries sorted by fee descending (highest fee first). ...
+\begin{DoxyItemize}
+\item \`{}median\+Fee()\`{}{\ttfamily median\+Fee()}
+\end{DoxyItemize}— Returns the median fee from current mempool entries, or TX\+\_\+\+MIN\+\_\+\+FEE\+\_\+\+SAT...
+\begin{DoxyItemize}
+\item \`{}remove\+Confirmed()\`{}{\ttfamily remove\+Confirmed()}
+\end{DoxyItemize}— Sterge toate TX-\/urile confirmate (dupa minarea unui bloc)
+\begin{DoxyItemize}
+\item \`{}size()\`{}{\ttfamily size()}
+\end{DoxyItemize}— Numarul de TX in asteptare
+\begin{DoxyItemize}
+\item \`{}bytes()\`{}{\ttfamily bytes()}
+\end{DoxyItemize}— Bytes totali ocupati
+\begin{DoxyItemize}
+\item \`{}is\+Empty()\`{}{\ttfamily is\+Empty()}
+\end{DoxyItemize}— Verifica daca mempool-\/ul e gol
+\begin{DoxyItemize}
+\item \`{}evict\+Old()\`{}{\ttfamily evict\+Old()}
+\end{DoxyItemize}— Elimina TX-\/urile mai vechi de {\ttfamily max\+\_\+age\+\_\+sec} secunde (anti-\/bloat)
+\begin{DoxyItemize}
+\item \`{}evict\+Expired()\`{}{\ttfamily evict\+Expired()}
+\end{DoxyItemize}— Elimina TX-\/urile expirate (default:\+ 14 zile, ca Bitcoin Core) Fonduril...
+\begin{DoxyItemize}
+\item \`{}estimate\+Memory\+Usage()\`{}{\ttfamily estimate\+Memory\+Usage()}
+\end{DoxyItemize}— Estimare totala memorie folosita (pentru MAX\+\_\+\+MEMPOOL\+\_\+\+MEMORY check)
+\begin{DoxyItemize}
+\item \`{}maintenance()\`{}{\ttfamily maintenance()}
+\end{DoxyItemize}— Cleanup complet:\+ expira vechi + verifica memorie
+\begin{DoxyItemize}
+\item \`{}get\+Pending\+Count()\`{}{\ttfamily get\+Pending\+Count()}
+\end{DoxyItemize}— Returns the number of pending TXs from a given sender address. Used to...
+\begin{DoxyItemize}
+\item \`{}replace\+By\+Nonce()\`{}{\ttfamily replace\+By\+Nonce()}
+\end{DoxyItemize}— Replace-\/by-\/nonce:\+ if a TX with the same sender+nonce already exists in...
+\begin{DoxyItemize}
+\item \`{}print\+Stats()\`{}{\ttfamily print\+Stats()}
+\end{DoxyItemize}— Performs the print stats operation on the mempool module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1955}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1955}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1956}{}\doxysubsection{\texorpdfstring{{\ttfamily Mempool\+Entry}}{{\ttfamily Mempool\+Entry}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1956}
+Intrare in mempool — TX + metadata
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily Transaction}  &Tx  \\
+{\ttfamily received\+\_\+at}  &{\ttfamily i64}  &Received\+\_\+at  \\
+{\ttfamily fee\+\_\+sat}  &{\ttfamily u64}  &Fee\+\_\+sat  \\
+{\ttfamily size\+\_\+bytes}  &{\ttfamily usize}  &Size\+\_\+bytes  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 25}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1958}{}\doxysubsection{\texorpdfstring{{\ttfamily Mempool}}{{\ttfamily Mempool}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1958}
+Mempool FIFO — First In First Out, anti-\/\+MEV Modulul e independent de blockchain.\+zig — nu il modifica
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily entries}  &{\ttfamily array\+\_\+list.\+Managed(\+Mempool\+Entry)}  &Entries  \\
+{\ttfamily tx\+\_\+hashes}  &{\ttfamily std.\+String\+Hash\+Map(void)}  &Tx\+\_\+hashes  \\
+{\ttfamily total\+\_\+bytes}  &{\ttfamily usize}  &Total\+\_\+bytes  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily pending\+\_\+count}  &{\ttfamily std.\+String\+Hash\+Map(u64)}  &Pending\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 34}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1960}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1960}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+TX}  &{\ttfamily usize = 10\+\_\+000}  &M e m p o o l\+\_\+ m a x\+\_\+ t x  \\
+{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+BYTES}  &{\ttfamily usize = 1\+\_\+048\+\_\+576}  &M e m p o o l\+\_\+ m a x\+\_\+ b y t e s  \\
+{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+MEMORY}  &{\ttfamily usize = 314\+\_\+572\+\_\+800}  &M e m p o o l\+\_\+ m a x\+\_\+ m e m o r y  \\
+{\ttfamily TX\+\_\+\+MAX\+\_\+\+BYTES}  &{\ttfamily usize = 512}  &T x\+\_\+ m a x\+\_\+ b y t e s  \\
+{\ttfamily TX\+\_\+\+MIN\+\_\+\+FEE\+\_\+\+SAT}  &{\ttfamily u64 = 1}  &T x\+\_\+ m i n\+\_\+ f e e\+\_\+ s a t  \\
+{\ttfamily MEMPOOL\+\_\+\+EXPIRY\+\_\+\+SEC}  &{\ttfamily i64 = 14 \texorpdfstring{$\ast$}{*} 24 \texorpdfstring{$\ast$}{*} 3600}  &M e m p o o l\+\_\+ e x p i r y\+\_\+ s e c  \\
+{\ttfamily Mempool\+Error}  &{\ttfamily error\{}  &Mempool error  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1962}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1962}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1963}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1963}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ Mempool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Mempool}
+
+{\itshape Defined at line 44}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1965}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1965}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *Mempool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1967}{}\doxysubsection{\texorpdfstring{{\ttfamily add()}}{{\ttfamily add()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1967}
+Adauga o TX in mempool (FIFO — la coada) Returneaza eroare daca e plina, invalida, duplicata sau fee prea mic
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ add(self:\ *Mempool,\ tx:\ Transaction)\ MempoolError!void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Mempool\+Error!void}
+
+{\itshape Defined at line 62}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1969}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Mineable()}}{{\ttfamily get\+Mineable()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1969}
+Returns up to N mineable TXs (locktime \texorpdfstring{$<$}{<}= current\+\_\+height), FIFO order. Locked TXs remain in the mempool until their locktime is reached. Caller must free returned slice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMineable(self:\ *Mempool,\ n:\ usize,\ current\_height:\ u64,\ allocator:\ std.mem.Allocator)\ ![]Transaction\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+{\ttfamily n}  &{\ttfamily usize}  &N  \\
+{\ttfamily current\+\_\+height}  &{\ttfamily u64}  &Current\+\_\+height  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+Transaction}
+
+{\itshape Defined at line 117}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1971}{}\doxysubsection{\texorpdfstring{{\ttfamily pop\+N()}}{{\ttfamily pop\+N()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1971}
+Scoate primele N TX-\/uri din mempool (FIFO — din fata) Folosit de miner la construirea unui bloc
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ popN(self:\ *Mempool,\ n:\ usize,\ allocator:\ std.mem.Allocator)\ ![]Transaction\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+{\ttfamily n}  &{\ttfamily usize}  &N  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+Transaction}
+
+{\itshape Defined at line 179}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1973}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+By\+Fee()}}{{\ttfamily get\+By\+Fee()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1973}
+Returns up to N entries sorted by fee descending (highest fee first). FIFO order is used as tiebreaker when fees are equal. Caller must free returned slice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getByFee(self:\ *const\ Mempool,\ n:\ usize,\ allocator:\ std.mem.Allocator)\ ![]MempoolEntry\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+{\ttfamily n}  &{\ttfamily usize}  &N  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+Mempool\+Entry}
+
+{\itshape Defined at line 206}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1975}{}\doxysubsection{\texorpdfstring{{\ttfamily median\+Fee()}}{{\ttfamily median\+Fee()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1975}
+Returns the median fee from current mempool entries, or TX\+\_\+\+MIN\+\_\+\+FEE\+\_\+\+SAT if empty. Used by the estimatefee RPC method.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ medianFee(self:\ *const\ Mempool)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 236}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1977}{}\doxysubsection{\texorpdfstring{{\ttfamily remove\+Confirmed()}}{{\ttfamily remove\+Confirmed()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1977}
+Sterge toate TX-\/urile confirmate (dupa minarea unui bloc)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ removeConfirmed(self:\ *Mempool,\ confirmed:\ []const\ Transaction)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+{\ttfamily confirmed}  &{\ttfamily \+[]\+const Transaction}  &Confirmed  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 264}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1979}{}\doxysubsection{\texorpdfstring{{\ttfamily size()}}{{\ttfamily size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1979}
+Numarul de TX in asteptare
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ size(self:\ *const\ Mempool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 301}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1981}{}\doxysubsection{\texorpdfstring{{\ttfamily bytes()}}{{\ttfamily bytes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1981}
+Bytes totali ocupati
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ bytes(self:\ *const\ Mempool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 306}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1983}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Empty()}}{{\ttfamily is\+Empty()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1983}
+Verifica daca mempool-\/ul e gol
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isEmpty(self:\ *const\ Mempool)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 311}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1985}{}\doxysubsection{\texorpdfstring{{\ttfamily evict\+Old()}}{{\ttfamily evict\+Old()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1985}
+Elimina TX-\/urile mai vechi de {\ttfamily max\+\_\+age\+\_\+sec} secunde (anti-\/bloat)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ evictOld(self:\ *Mempool,\ max\_age\_sec:\ i64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+{\ttfamily max\+\_\+age\+\_\+sec}  &{\ttfamily i64}  &Max\+\_\+age\+\_\+sec  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 316}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1987}{}\doxysubsection{\texorpdfstring{{\ttfamily evict\+Expired()}}{{\ttfamily evict\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1987}
+Elimina TX-\/urile expirate (default:\+ 14 zile, ca Bitcoin Core) Fondurile NU se pierd — TX nu a fost niciodata scrisa in blockchain Portofelul va debloca soldul dupa expirare
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ evictExpired(self:\ *Mempool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 345}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1989}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+Memory\+Usage()}}{{\ttfamily estimate\+Memory\+Usage()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1989}
+Estimare totala memorie folosita (pentru MAX\+\_\+\+MEMPOOL\+\_\+\+MEMORY check)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateMemoryUsage(self:\ *const\ Mempool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 352}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1991}{}\doxysubsection{\texorpdfstring{{\ttfamily maintenance()}}{{\ttfamily maintenance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1991}
+Cleanup complet:\+ expira vechi + verifica memorie
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ maintenance(self:\ *Mempool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 358}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1993}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Pending\+Count()}}{{\ttfamily get\+Pending\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1993}
+Returns the number of pending TXs from a given sender address. Used to compute the next available nonce:\+ chain\+\_\+nonce + get\+Pending\+Count(addr)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPendingCount(self:\ *const\ Mempool,\ address:\ []const\ u8)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 390}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1995}{}\doxysubsection{\texorpdfstring{{\ttfamily replace\+By\+Nonce()}}{{\ttfamily replace\+By\+Nonce()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1995}
+Replace-\/by-\/nonce:\+ if a TX with the same sender+nonce already exists in mempool, replace it (useful for fee bumping or TX cancellation). Returns true if replacement happened, false if no existing TX with that nonce.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ replaceByNonce(self:\ *Mempool,\ tx:\ Transaction)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mempool}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 397}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1997}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Stats()}}{{\ttfamily print\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mempool_autotoc_md1997}
+Performs the print stats operation on the mempool module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStats(self:\ *const\ Mempool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mempool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 428}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,171 @@
+\doxysection{omni::\+Peer\+Table\+Model Class Reference}
+\hypertarget{classomni_1_1_peer_table_model}{}\label{classomni_1_1_peer_table_model}\index{omni::PeerTableModel@{omni::PeerTableModel}}
+
+
+{\ttfamily \+\#include $<$Peer\+Table\+Model.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Peer\+Table\+Model:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Peer\+Table\+Model:\+
+% FIG 1
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17}{Column}} \{ \newline
+\doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a09da19135d97632d88421c9c63d747e6}{Col\+Id}}
+, \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a1e81bee68dc8ccfee6dac696d5c3c96b}{Col\+Host}}
+, \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a0c7d8675518a45abe358cbf5e55db49f}{Col\+Port}}
+, \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a92094904634f3480cc7b8a4ac396e0c5}{Col\+Alive}}
+, \newline
+\doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17abf3bd2d7aa9bf0a82df40f32d1ae92b9}{Col\+Count}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_peer_table_model_a66549e22124730b549f42abb7455034d}{Peer\+Table\+Model}} (QObject \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_peer_table_model_ac914d8710422252afbb1d74d331937f8}{row\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_peer_table_model_a92d4e4dfa0d56360db069297968e7b86}{column\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_peer_table_model_a60e96f66ed18956c6110ea3511184d4e}{data}} (const QModel\+Index \&index, int role=Qt::\+\+Display\+Role) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_peer_table_model_ac63e8efdd60b4dc48a50535dd39527de}{header\+Data}} (int section, Qt::\+\+Orientation orientation, int role=Qt::\+\+Display\+Role) const override
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_peer_table_model_aec151f4c548c4c2ff05e5af2c6b95be4}{set\+Peers}} (const QList$<$ \doxymbox{\hyperlink{structomni_1_1_peer_info}{Peer\+Info}} $>$ \&peers)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8h_source_l00009}{9}} of file \doxymbox{\hyperlink{_peer_table_model_8h_source}{Peer\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_peer_table_model_doc-enum-members}
+\Hypertarget{classomni_1_1_peer_table_model_doc-enum-members}
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17}\index{omni::PeerTableModel@{omni::PeerTableModel}!Column@{Column}}
+\index{Column@{Column}!omni::PeerTableModel@{omni::PeerTableModel}}
+\doxysubsubsection{\texorpdfstring{Column}{Column}}
+{\footnotesize\ttfamily \label{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17} 
+enum \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17}{omni::\+\+Peer\+Table\+Model::\+\+Column}}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColId@{ColId}!omni::PeerTableModel@{omni::PeerTableModel}}
+\index{omni::PeerTableModel@{omni::PeerTableModel}!ColId@{ColId}}
+}\Hypertarget{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a09da19135d97632d88421c9c63d747e6}\label{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a09da19135d97632d88421c9c63d747e6} 
+Col\+Id&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColHost@{ColHost}!omni::PeerTableModel@{omni::PeerTableModel}}
+\index{omni::PeerTableModel@{omni::PeerTableModel}!ColHost@{ColHost}}
+}\Hypertarget{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a1e81bee68dc8ccfee6dac696d5c3c96b}\label{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a1e81bee68dc8ccfee6dac696d5c3c96b} 
+Col\+Host&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColPort@{ColPort}!omni::PeerTableModel@{omni::PeerTableModel}}
+\index{omni::PeerTableModel@{omni::PeerTableModel}!ColPort@{ColPort}}
+}\Hypertarget{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a0c7d8675518a45abe358cbf5e55db49f}\label{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a0c7d8675518a45abe358cbf5e55db49f} 
+Col\+Port&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColAlive@{ColAlive}!omni::PeerTableModel@{omni::PeerTableModel}}
+\index{omni::PeerTableModel@{omni::PeerTableModel}!ColAlive@{ColAlive}}
+}\Hypertarget{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a92094904634f3480cc7b8a4ac396e0c5}\label{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a92094904634f3480cc7b8a4ac396e0c5} 
+Col\+Alive&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColCount@{ColCount}!omni::PeerTableModel@{omni::PeerTableModel}}
+\index{omni::PeerTableModel@{omni::PeerTableModel}!ColCount@{ColCount}}
+}\Hypertarget{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17abf3bd2d7aa9bf0a82df40f32d1ae92b9}\label{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17abf3bd2d7aa9bf0a82df40f32d1ae92b9} 
+Col\+Count&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8h_source_l00012}{12}} of file \doxymbox{\hyperlink{_peer_table_model_8h_source}{Peer\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_peer_table_model_doc-constructors}
+\Hypertarget{classomni_1_1_peer_table_model_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_peer_table_model_a66549e22124730b549f42abb7455034d}\index{omni::PeerTableModel@{omni::PeerTableModel}!PeerTableModel@{PeerTableModel}}
+\index{PeerTableModel@{PeerTableModel}!omni::PeerTableModel@{omni::PeerTableModel}}
+\doxysubsubsection{\texorpdfstring{PeerTableModel()}{PeerTableModel()}}
+{\footnotesize\ttfamily \label{classomni_1_1_peer_table_model_a66549e22124730b549f42abb7455034d} 
+omni::\+\+Peer\+Table\+Model::\+\+Peer\+Table\+Model (\begin{DoxyParamCaption}\item[{QObject \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8cpp_source_l00007}{7}} of file \doxymbox{\hyperlink{_peer_table_model_8cpp_source}{Peer\+Table\+Model.\+cpp}}.
+
+
+
+\label{classomni_1_1_peer_table_model_doc-func-members}
+\Hypertarget{classomni_1_1_peer_table_model_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_peer_table_model_a92d4e4dfa0d56360db069297968e7b86}\index{omni::PeerTableModel@{omni::PeerTableModel}!columnCount@{columnCount}}
+\index{columnCount@{columnCount}!omni::PeerTableModel@{omni::PeerTableModel}}
+\doxysubsubsection{\texorpdfstring{columnCount()}{columnCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_peer_table_model_a92d4e4dfa0d56360db069297968e7b86} 
+int omni::\+\+Peer\+Table\+Model::\+column\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8cpp_source_l00016}{16}} of file \doxymbox{\hyperlink{_peer_table_model_8cpp_source}{Peer\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_peer_table_model_a60e96f66ed18956c6110ea3511184d4e}\index{omni::PeerTableModel@{omni::PeerTableModel}!data@{data}}
+\index{data@{data}!omni::PeerTableModel@{omni::PeerTableModel}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}}
+{\footnotesize\ttfamily \label{classomni_1_1_peer_table_model_a60e96f66ed18956c6110ea3511184d4e} 
+QVariant omni::\+\+Peer\+Table\+Model::\+data (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{index}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8cpp_source_l00020}{20}} of file \doxymbox{\hyperlink{_peer_table_model_8cpp_source}{Peer\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_peer_table_model_ac63e8efdd60b4dc48a50535dd39527de}\index{omni::PeerTableModel@{omni::PeerTableModel}!headerData@{headerData}}
+\index{headerData@{headerData}!omni::PeerTableModel@{omni::PeerTableModel}}
+\doxysubsubsection{\texorpdfstring{headerData()}{headerData()}}
+{\footnotesize\ttfamily \label{classomni_1_1_peer_table_model_ac63e8efdd60b4dc48a50535dd39527de} 
+QVariant omni::\+\+Peer\+Table\+Model::\+header\+Data (\begin{DoxyParamCaption}\item[{int}]{section}{, }\item[{Qt::\+\+Orientation}]{orientation}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8cpp_source_l00054}{54}} of file \doxymbox{\hyperlink{_peer_table_model_8cpp_source}{Peer\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_peer_table_model_ac914d8710422252afbb1d74d331937f8}\index{omni::PeerTableModel@{omni::PeerTableModel}!rowCount@{rowCount}}
+\index{rowCount@{rowCount}!omni::PeerTableModel@{omni::PeerTableModel}}
+\doxysubsubsection{\texorpdfstring{rowCount()}{rowCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_peer_table_model_ac914d8710422252afbb1d74d331937f8} 
+int omni::\+\+Peer\+Table\+Model::\+row\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8cpp_source_l00012}{12}} of file \doxymbox{\hyperlink{_peer_table_model_8cpp_source}{Peer\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_peer_table_model_aec151f4c548c4c2ff05e5af2c6b95be4}\index{omni::PeerTableModel@{omni::PeerTableModel}!setPeers@{setPeers}}
+\index{setPeers@{setPeers}!omni::PeerTableModel@{omni::PeerTableModel}}
+\doxysubsubsection{\texorpdfstring{setPeers()}{setPeers()}}
+{\footnotesize\ttfamily \label{classomni_1_1_peer_table_model_aec151f4c548c4c2ff05e5af2c6b95be4} 
+void omni::\+\+Peer\+Table\+Model::\+set\+Peers (\begin{DoxyParamCaption}\item[{const QList$<$ \doxymbox{\hyperlink{structomni_1_1_peer_info}{Peer\+Info}} $>$ \&}]{peers}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_peer_table_model_8cpp_source_l00067}{67}} of file \doxymbox{\hyperlink{_peer_table_model_8cpp_source}{Peer\+Table\+Model.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_peer_table_model_8h}{Peer\+Table\+Model.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_peer_table_model_8cpp}{Peer\+Table\+Model.\+cpp}}\end{DoxyCompactItemize}

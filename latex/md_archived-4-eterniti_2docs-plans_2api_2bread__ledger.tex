@@ -1,0 +1,305 @@
+\chapter{Module:\+ {\ttfamily bread\+\_\+ledger} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger}{}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger}\index{Module: $<$tt$>$bread\_ledger$<$/tt$>$@{Module: $<$tt$>$bread\_ledger$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1173}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1173}%
+
+
+\begin{quote}
+Physical redemption system — Bread\+Voucher QR ledger, 1 OMNI = 1 bread worldwide, voucher tracking. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+bread\+\_\+ledger.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 368 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 7 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 11
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1175}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1175}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1176}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1176}
+
+\begin{DoxyItemize}
+\item \`{}\+Bread\+Voucher\`{}{\ttfamily Bread\+Voucher}
+\end{DoxyItemize}— Voucher de paine — emis cand user-\/ul initiaza redemption
+\begin{DoxyItemize}
+\item \`{}\+Bread\+Merchant\`{}{\ttfamily Bread\+Merchant}
+\end{DoxyItemize}— Merchant inregistrat — accepta voucher-\/e de paine
+\begin{DoxyItemize}
+\item \`{}\+Bread\+Delivery\`{}{\ttfamily Bread\+Delivery}
+\end{DoxyItemize}— Proof-\/of-\/\+Bread:\+ dovada on-\/chain ca painea a fost livrata
+\begin{DoxyItemize}
+\item \`{}\+Bread\+Ledger\`{}{\ttfamily Bread\+Ledger}
+\end{DoxyItemize}— Data structure for bread ledger. Fields include:\+ allocator, vouchers, merchants,...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1177}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1177}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1178}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1178}
+
+\begin{DoxyItemize}
+\item \`{}is\+Expired()\`{}{\ttfamily is\+Expired()}
+\end{DoxyItemize}— Checks whether the expired condition is true.
+\begin{DoxyItemize}
+\item \`{}country\+Code()\`{}{\ttfamily country\+Code()}
+\end{DoxyItemize}— Returns the count of ry code.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}find\+Voucher()\`{}{\ttfamily find\+Voucher()}
+\end{DoxyItemize}— Searches for voucher matching the given criteria.
+\begin{DoxyItemize}
+\item \`{}pending\+Count()\`{}{\ttfamily pending\+Count()}
+\end{DoxyItemize}— Performs the pending count operation on the bread\+\_\+ledger module.
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the bread\+\_\+ledger module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1180}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1180}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1181}{}\doxysubsection{\texorpdfstring{{\ttfamily Bread\+Voucher}}{{\ttfamily Bread\+Voucher}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1181}
+Voucher de paine — emis cand user-\/ul initiaza redemption
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily voucher\+\_\+id}  &{\ttfamily u64}  &Voucher\+\_\+id  \\
+{\ttfamily owner}  &{\ttfamily \+[32]\+u8}  &Owner  \\
+{\ttfamily merchant}  &{\ttfamily \+[32]\+u8}  &Merchant  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+{\ttfamily bread\+\_\+count}  &{\ttfamily u64}  &Bread\+\_\+count  \\
+{\ttfamily issued\+\_\+block}  &{\ttfamily u64}  &Issued\+\_\+block  \\
+{\ttfamily redeemed\+\_\+block}  &{\ttfamily u64}  &Redeemed\+\_\+block  \\
+{\ttfamily status}  &{\ttfamily Bread\+Voucher\+Status}  &Status  \\
+{\ttfamily qr\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Qr\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 33}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1183}{}\doxysubsection{\texorpdfstring{{\ttfamily Bread\+Merchant}}{{\ttfamily Bread\+Merchant}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1183}
+Merchant inregistrat — accepta voucher-\/e de paine
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily merchant\+\_\+addr}  &{\ttfamily \+[32]\+u8}  &Merchant\+\_\+addr  \\
+{\ttfamily name}  &{\ttfamily \+[64]\+u8}  &Name  \\
+{\ttfamily name\+\_\+len}  &{\ttfamily u8}  &Name\+\_\+len  \\
+{\ttfamily country}  &{\ttfamily \+[3]\+u8}  &Country  \\
+{\ttfamily registered\+\_\+block}  &{\ttfamily u64}  &Registered\+\_\+block  \\
+{\ttfamily total\+\_\+redeemed\+\_\+sat}  &{\ttfamily u64}  &Total\+\_\+redeemed\+\_\+sat  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 52}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1185}{}\doxysubsection{\texorpdfstring{{\ttfamily Bread\+Delivery}}{{\ttfamily Bread\+Delivery}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1185}
+Proof-\/of-\/\+Bread:\+ dovada on-\/chain ca painea a fost livrata
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily voucher\+\_\+id}  &{\ttfamily u64}  &Voucher\+\_\+id  \\
+{\ttfamily merchant\+\_\+addr}  &{\ttfamily \+[32]\+u8}  &Merchant\+\_\+addr  \\
+{\ttfamily proof\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Proof\+\_\+hash  \\
+{\ttfamily delivery\+\_\+block}  &{\ttfamily u64}  &Delivery\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 67}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1187}{}\doxysubsection{\texorpdfstring{{\ttfamily Bread\+Ledger}}{{\ttfamily Bread\+Ledger}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1187}
+Data structure for bread ledger. Fields include:\+ allocator, vouchers, merchants, deliveries, next\+\_\+voucher\+\_\+id.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily vouchers}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Bread\+Voucher)}  &Vouchers  \\
+{\ttfamily merchants}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Bread\+Merchant)}  &Merchants  \\
+{\ttfamily deliveries}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Bread\+Delivery)}  &Deliveries  \\
+{\ttfamily next\+\_\+voucher\+\_\+id}  &{\ttfamily u64}  &Next\+\_\+voucher\+\_\+id  \\
+{\ttfamily total\+\_\+redeemed\+\_\+sat}  &{\ttfamily u64}  &Total\+\_\+redeemed\+\_\+sat  \\
+{\ttfamily total\+\_\+bread\+\_\+issued}  &{\ttfamily u64}  &Total\+\_\+bread\+\_\+issued  \\
+{\ttfamily merchant\+\_\+addr}  &{\ttfamily \+[32]\+u8}  &Merchant\+\_\+addr  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily country}  &{\ttfamily \+[3]\+u8}  &Country  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 77}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1189}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1189}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily BREAD\+\_\+\+PRICE\+\_\+\+SAT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000}  &B r e a d\+\_\+ p r i c e\+\_\+ s a t  \\
+{\ttfamily VOUCHER\+\_\+\+EXPIRY\+\_\+\+BLOCKS}  &{\ttfamily u64 = 30 \texorpdfstring{$\ast$}{*} 86\+\_\+400}  &V o u c h e r\+\_\+ e x p i r y\+\_\+ b l o c k s  \\
+{\ttfamily Bread\+Voucher\+Status}  &{\ttfamily enum(u8) \{}  &Bread voucher status  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1191}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1191}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1192}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Expired()}}{{\ttfamily is\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1192}
+Checks whether the expired condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isExpired(self:\ *const\ BreadVoucher,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bread\+Voucher}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1194}{}\doxysubsection{\texorpdfstring{{\ttfamily country\+Code()}}{{\ttfamily country\+Code()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1194}
+Returns the count of ry code.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ countryCode(self:\ *const\ BreadMerchant)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bread\+Merchant}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 61}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1196}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1196}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ BreadLedger\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bread\+Ledger}
+
+{\itshape Defined at line 90}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1198}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1198}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *BreadLedger)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bread\+Ledger}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 102}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1200}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Voucher()}}{{\ttfamily find\+Voucher()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1200}
+Searches for voucher matching the given criteria.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findVoucher(self:\ *BreadLedger,\ voucher\_id:\ u64)\ !*BreadVoucher\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bread\+Ledger}  &The instance  \\
+{\ttfamily voucher\+\_\+id}  &{\ttfamily u64}  &Voucher\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\texorpdfstring{$\ast$}{*}\+Bread\+Voucher}
+
+{\itshape Defined at line 228}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1202}{}\doxysubsection{\texorpdfstring{{\ttfamily pending\+Count()}}{{\ttfamily pending\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1202}
+Performs the pending count operation on the bread\+\_\+ledger module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pendingCount(self:\ *const\ BreadLedger)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bread\+Ledger}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 235}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1204}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bread__ledger_autotoc_md1204}
+Performs the print status operation on the bread\+\_\+ledger module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ BreadLedger)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bread\+Ledger}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 243}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

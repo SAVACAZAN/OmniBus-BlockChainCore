@@ -1,0 +1,311 @@
+\chapter{Module:\+ {\ttfamily script} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script}{}\label{md_archived-4-eterniti_2docs-plans_2api_2script}\index{Module: $<$tt$>$script$<$/tt$>$@{Module: $<$tt$>$script$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2863}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2863}%
+
+
+\begin{quote}
+Transaction scripting engine — Bitcoin-\/style script opcodes, P2\+PKH/\+\+P2\+SH script evaluation, programmable spending conditions. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+script.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 736 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 10 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 23
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2865}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2865}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2866}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2866}
+
+\begin{DoxyItemize}
+\item \`{}\+Script\+VM\`{}{\ttfamily Script\+VM}
+\end{DoxyItemize}— Data structure for script v m. Fields include:\+ stack, stack\+\_\+sizes, sp.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2867}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2867}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2868}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2868}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \doxylink{dir_45fe0d301f9bc4ed8d4d226a3da2225c_push}{\`{}push()\`{}}{\ttfamily push()}
+\end{DoxyItemize}— Push data onto the stack
+\begin{DoxyItemize}
+\item \`{}pop()\`{}{\ttfamily pop()}
+\end{DoxyItemize}— Pop top item from stack, returns a slice into internal buffer
+\begin{DoxyItemize}
+\item \`{}peek()\`{}{\ttfamily peek()}
+\end{DoxyItemize}— Peek at top item without removing
+\begin{DoxyItemize}
+\item \`{}execute()\`{}{\ttfamily execute()}
+\end{DoxyItemize}— Execute a script (byte array of opcodes + data pushes) Returns true if...
+\begin{DoxyItemize}
+\item \`{}create\+P2\+PKH()\`{}{\ttfamily create\+P2\+PKH()}
+\end{DoxyItemize}— Create standard P2\+PKH locking script:\+ OP\+\_\+\+DUP OP\+\_\+\+HASH160 \texorpdfstring{$<$}{<}20-\/byte pubke...
+\begin{DoxyItemize}
+\item \`{}create\+P2\+PKHUnlock()\`{}{\ttfamily create\+P2\+PKHUnlock()}
+\end{DoxyItemize}— Create P2\+PKH unlocking script:\+ \texorpdfstring{$<$}{<}64-\/byte sig\texorpdfstring{$>$}{>} \texorpdfstring{$<$}{<}33-\/byte pubkey\texorpdfstring{$>$}{>} Layout:\+ ...
+\begin{DoxyItemize}
+\item \`{}create\+P2\+SH()\`{}{\ttfamily create\+P2\+SH()}
+\end{DoxyItemize}— Create P2\+SH locking script:\+ OP\+\_\+\+HASH160 \texorpdfstring{$<$}{<}20-\/byte script\+\_\+hash\texorpdfstring{$>$}{>} OP\+\_\+\+EQUAL
+\begin{DoxyItemize}
+\item \`{}create\+Op\+Return()\`{}{\ttfamily create\+Op\+Return()}
+\end{DoxyItemize}— Create OP\+\_\+\+RETURN data carrier script
+\begin{DoxyItemize}
+\item \`{}validate\+Scripts()\`{}{\ttfamily validate\+Scripts()}
+\end{DoxyItemize}— Validate P2\+PKH:\+ run unlock\+\_\+script then lock\+\_\+script on the same VM. Ret...
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2870}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2870}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2871}{}\doxysubsection{\texorpdfstring{{\ttfamily Script\+VM}}{{\ttfamily Script\+VM}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2871}
+Data structure for script v m. Fields include:\+ stack, stack\+\_\+sizes, sp.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily stack}  &{\ttfamily \+[256]\+\+[80]\+u8}  &Stack  \\
+{\ttfamily stack\+\_\+sizes}  &{\ttfamily \+[256]\+u8}  &Stack\+\_\+sizes  \\
+{\ttfamily sp}  &{\ttfamily u8}  &Sp  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2873}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2873}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Op\+Code}  &{\ttfamily enum(u8) \{}  &Op code  \\
+{\ttfamily Script\+Error}  &{\ttfamily error\{}  &Script error  \\
+{\ttfamily MAX\+\_\+\+MULTISIG\+\_\+\+SCRIPT\+\_\+\+LEN}  &{\ttfamily usize = 3 + 20 \texorpdfstring{$\ast$}{*} 34}  &M a x\+\_\+ m u l t i s i g\+\_\+ s c r i p t\+\_\+ l e n  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2875}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2875}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2876}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2876}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ ScriptVM\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Script\+VM}
+
+{\itshape Defined at line 59}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2878}{}\doxysubsection{\texorpdfstring{{\ttfamily push()}}{{\ttfamily push()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2878}
+Push data onto the stack
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ push(self:\ *ScriptVM,\ data:\ []const\ u8)\ ScriptError!void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Script\+VM}  &The instance  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Script\+Error!void}
+
+{\itshape Defined at line 68}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2880}{}\doxysubsection{\texorpdfstring{{\ttfamily pop()}}{{\ttfamily pop()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2880}
+Pop top item from stack, returns a slice into internal buffer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pop(self:\ *ScriptVM)\ ScriptError!struct\ \{\ data:\ [80]u8,\ len:\ u8\ \}\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Script\+VM}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Script\+Error!struct}
+
+{\itshape Defined at line 89}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2882}{}\doxysubsection{\texorpdfstring{{\ttfamily peek()}}{{\ttfamily peek()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2882}
+Peek at top item without removing
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ peek(self:\ *ScriptVM)\ ScriptError!struct\ \{\ data:\ [80]u8,\ len:\ u8\ \}\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Script\+VM}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Script\+Error!struct}
+
+{\itshape Defined at line 99}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2884}{}\doxysubsection{\texorpdfstring{{\ttfamily execute()}}{{\ttfamily execute()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2884}
+Execute a script (byte array of opcodes + data pushes) Returns true if script succeeds (stack top is truthy or stack is empty for vacuously-\/valid scripts)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ execute(self:\ *ScriptVM,\ script:\ []const\ u8,\ tx\_hash:\ [32]u8,\ current\_height:\ u64)\ ScriptError!bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Script\+VM}  &The instance  \\
+{\ttfamily script}  &{\ttfamily \+[]\+const u8}  &Script  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily current\+\_\+height}  &{\ttfamily u64}  &Current\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Script\+Error!bool}
+
+{\itshape Defined at line 128}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2886}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+P2\+PKH()}}{{\ttfamily create\+P2\+PKH()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2886}
+Create standard P2\+PKH locking script:\+ OP\+\_\+\+DUP OP\+\_\+\+HASH160 \texorpdfstring{$<$}{<}20-\/byte pubkey\+\_\+hash\texorpdfstring{$>$}{>} OP\+\_\+\+EQUALVERIFY OP\+\_\+\+CHECKSIG
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createP2PKH(pubkey\_hash:\ [20]u8)\ [25]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily pubkey\+\_\+hash}  &{\ttfamily \+[20]\+u8}  &Pubkey\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[25]\+u8}
+
+{\itshape Defined at line 333}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2888}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+P2\+PKHUnlock()}}{{\ttfamily create\+P2\+PKHUnlock()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2888}
+Create P2\+PKH unlocking script:\+ \texorpdfstring{$<$}{<}64-\/byte sig\texorpdfstring{$>$}{>} \texorpdfstring{$<$}{<}33-\/byte pubkey\texorpdfstring{$>$}{>} Layout:\+ \+[push 64]\+ \+[sig...]\+ \+[push 33]\+ \+[pubkey...]\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createP2PKHUnlock(signature:\ [64]u8,\ pubkey:\ [33]u8)\ [99]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily signature}  &{\ttfamily \+[64]\+u8}  &Signature  \\
+{\ttfamily pubkey}  &{\ttfamily \+[33]\+u8}  &Pubkey  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[99]\+u8}
+
+{\itshape Defined at line 346}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2890}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+P2\+SH()}}{{\ttfamily create\+P2\+SH()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2890}
+Create P2\+SH locking script:\+ OP\+\_\+\+HASH160 \texorpdfstring{$<$}{<}20-\/byte script\+\_\+hash\texorpdfstring{$>$}{>} OP\+\_\+\+EQUAL
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createP2SH(script\_hash:\ [20]u8)\ [23]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily script\+\_\+hash}  &{\ttfamily \+[20]\+u8}  &Script\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[23]\+u8}
+
+{\itshape Defined at line 356}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2892}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+Op\+Return()}}{{\ttfamily create\+Op\+Return()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2892}
+Create OP\+\_\+\+RETURN data carrier script
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createOpReturn(data:\ []const\ u8)\ ScriptError![82]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Script\+Error!\+[82]\+u8}
+
+{\itshape Defined at line 366}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2894}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Scripts()}}{{\ttfamily validate\+Scripts()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2script_autotoc_md2894}
+Validate P2\+PKH:\+ run unlock\+\_\+script then lock\+\_\+script on the same VM. Returns true if the combined execution leaves a truthy value on stack.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validateScripts(unlock:\ []const\ u8,\ lock:\ []const\ u8,\ tx\_hash:\ [32]u8,\ height:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily unlock}  &{\ttfamily \+[]\+const u8}  &Unlock  \\
+{\ttfamily lock}  &{\ttfamily \+[]\+const u8}  &Lock  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 429}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

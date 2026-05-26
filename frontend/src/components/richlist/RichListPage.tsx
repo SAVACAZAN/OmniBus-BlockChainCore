@@ -69,6 +69,7 @@ export function RichListPage() {
   const [limit, setLimit] = useState(100);
   const [error, setError] = useState<string | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const [filter, setFilter] = useState("");
 
   if (selectedAddress) {
     return (
@@ -149,8 +150,18 @@ export function RichListPage() {
         </div>
       )}
 
-      {/* Limit selector */}
-      <div className="flex items-center gap-2 mb-4">
+      {/* Filter + limit selector */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <input
+          type="text"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter by address…"
+          className="flex-1 min-w-[180px] bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue transition-colors"
+        />
+        {filter && (
+          <button onClick={() => setFilter("")} className="text-xs text-mempool-text-dim hover:text-mempool-text">✕</button>
+        )}
         <span className="text-xs text-mempool-text-dim">Show:</span>
         {[50, 100, 250, 500].map((n) => (
           <button
@@ -167,7 +178,9 @@ export function RichListPage() {
         ))}
         {list && (
           <span className="ml-auto text-xs text-mempool-text-dim">
-            showing {list.shown} of {list.total}
+            {filter
+              ? `${list.entries.filter((e) => e.address.includes(filter)).length} matched`
+              : `showing ${list.shown} of ${list.total}`}
           </span>
         )}
       </div>
@@ -202,7 +215,7 @@ export function RichListPage() {
               </tr>
             </thead>
             <tbody>
-              {list.entries.map((e) => {
+              {(filter ? list.entries.filter((e) => e.address.includes(filter)) : list.entries).map((e) => {
                 const sharePct = list.totalSupply > 0
                   ? ((e.balance / list.totalSupply) * 100).toFixed(2)
                   : "0.00";

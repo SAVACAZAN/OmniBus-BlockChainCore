@@ -1,0 +1,3 @@
+const pda = sol.address.findProgramAddress(seeds, program_id);
+const pda_address = pda.address;
+const bump_seed = pda.bump_seed;

@@ -1,0 +1,216 @@
+\chapter{Module:\+ {\ttfamily block} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block}{}\label{md_archived-4-eterniti_2docs-plans_2api_2block}\index{Module: $<$tt$>$block$<$/tt$>$@{Module: $<$tt$>$block$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md878}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md878}%
+
+
+\begin{quote}
+Block data structure — defines a block\textquotesingle{}s fields (index, timestamp, transactions, hash, nonce, merkle root, difficulty), provides hash calculation and validation. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+block.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 464 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 6 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 15
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md880}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md880}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md881}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md881}
+
+\begin{DoxyItemize}
+\item \doxylink{namespaceblock}{\`{}\+Block\`{}}{\ttfamily Block}
+\end{DoxyItemize}— Represents a single block in the blockchain — contains transactions, hash, nonce...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md882}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md882}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md883}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md883}
+
+\begin{DoxyItemize}
+\item \`{}calculate\+Merkle\+Root()\`{}{\ttfamily calculate\+Merkle\+Root()}
+\end{DoxyItemize}— Calculeaza Merkle Root din toate TX hashes (binary Merkle tree, ca Bit...
+\begin{DoxyItemize}
+\item \`{}calculate\+Hash()\`{}{\ttfamily calculate\+Hash()}
+\end{DoxyItemize}— Calculates the hash from the current state.
+\begin{DoxyItemize}
+\item \`{}validate\+Transactions()\`{}{\ttfamily validate\+Transactions()}
+\end{DoxyItemize}— Validates the transactions. Returns true if valid, false otherwise.
+\begin{DoxyItemize}
+\item \`{}get\+Transaction\+Count()\`{}{\ttfamily get\+Transaction\+Count()}
+\end{DoxyItemize}— Returns the current transaction count.
+\begin{DoxyItemize}
+\item \`{}add\+Transaction()\`{}{\ttfamily add\+Transaction()}
+\end{DoxyItemize}— Adds a new transaction to the collection.
+\begin{DoxyItemize}
+\item \`{}generate\+Merkle\+Proof()\`{}{\ttfamily generate\+Merkle\+Proof()}
+\end{DoxyItemize}— Generate a Merkle inclusion proof for a transaction at the given index...
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md885}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md885}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md886}{}\doxysubsection{\texorpdfstring{{\ttfamily Block}}{{\ttfamily Block}}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md886}
+Represents a single block in the blockchain — contains transactions, hash, nonce, and links to previous block.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily transactions}  &{\ttfamily array\+\_\+list.\+Managed(\+Transaction)}  &Transactions  \\
+{\ttfamily previous\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Previous\+\_\+hash  \\
+{\ttfamily nonce}  &{\ttfamily u64}  &Nonce  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 16}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md888}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md888}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+{\ttfamily Merkle\+Proof}  &{\ttfamily light\+\_\+client\+\_\+mod.\+Merkle\+Proof}  &Merkle proof  \\
+{\ttfamily MAX\+\_\+\+BLOCK\+\_\+\+SIZE}  &{\ttfamily usize = 1\+\_\+048\+\_\+576}  &M a x\+\_\+ b l o c k\+\_\+ s i z e  \\
+{\ttfamily MAX\+\_\+\+BLOCK\+\_\+\+TX}  &{\ttfamily usize = 4\+\_\+096}  &M a x\+\_\+ b l o c k\+\_\+ t x  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md890}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md890}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md891}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Merkle\+Root()}}{{\ttfamily calculate\+Merkle\+Root()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md891}
+Calculeaza Merkle Root din toate TX hashes (binary Merkle tree, ca Bitcoin)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateMerkleRoot(self:\ *const\ Block)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 34}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md893}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Hash()}}{{\ttfamily calculate\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md893}
+Calculates the hash from the current state.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateHash(self:\ *const\ Block)\ ![32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[32]\+u8}
+
+{\itshape Defined at line 62}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md895}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Transactions()}}{{\ttfamily validate\+Transactions()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md895}
+Validates the transactions. Returns true if valid, false otherwise.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validateTransactions(self:\ *const\ Block)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 82}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md897}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Transaction\+Count()}}{{\ttfamily get\+Transaction\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md897}
+Returns the current transaction count.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTransactionCount(self:\ *const\ Block)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 91}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md899}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Transaction()}}{{\ttfamily add\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md899}
+Adds a new transaction to the collection.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addTransaction(self:\ *Block,\ tx:\ Transaction)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Block}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 95}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md901}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Merkle\+Proof()}}{{\ttfamily generate\+Merkle\+Proof()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2block_autotoc_md901}
+Generate a Merkle inclusion proof for a transaction at the given index. Returns null if tx\+\_\+index is out of range or there are no transactions. The proof allows a light client to verify the TX is in this block using only the block header\textquotesingle{}s merkle\+\_\+root (SPV verification).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateMerkleProof(self:\ *const\ Block,\ tx\_index:\ usize)\ ?MerkleProof\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &The instance  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily usize}  &Tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Merkle\+Proof}
+
+{\itshape Defined at line 103}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

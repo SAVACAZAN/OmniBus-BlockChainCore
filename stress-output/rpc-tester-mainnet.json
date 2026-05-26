@@ -1,0 +1,521 @@
+{
+  "rpc_url": "https://omnibusblockchain.cc:8443/api-mainnet",
+  "totals": {
+    "PASS": 40,
+    "FAIL": 39,
+    "SKIP": 6
+  },
+  "results": [
+    {
+      "group": "Core",
+      "method": "getblockchaininfo",
+      "status": "PASS",
+      "detail": "{\"blocks\": 30335, \"difficulty\": 4, \"chain\": \"omnibus-mainnet\", \"mempool_size\": 0"
+    },
+    {
+      "group": "Core",
+      "method": "getblockcount",
+      "status": "PASS",
+      "detail": "30335"
+    },
+    {
+      "group": "Core",
+      "method": "getbestblockhash",
+      "status": "PASS",
+      "detail": "\"00004d7f50b914f18e06264cb8fb356d0500cdd9f90d020d43a5ec752699087b\""
+    },
+    {
+      "group": "Core",
+      "method": "getblock",
+      "status": "PASS",
+      "detail": "{\"hash\": \"0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d80\", \"he"
+    },
+    {
+      "group": "Core",
+      "method": "getrawmempool",
+      "status": "SKIP",
+      "detail": "not implemented: Method not found"
+    },
+    {
+      "group": "Core",
+      "method": "getmempoolinfo",
+      "status": "PASS",
+      "detail": "{\"size\": 0, \"bytes\": 0}"
+    },
+    {
+      "group": "Core",
+      "method": "getpeerinfo",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "group": "Core",
+      "method": "getnetworkinfo",
+      "status": "PASS",
+      "detail": "{\"chain\": \"omnibus-mainnet\", \"version\": \"1.0.0\", \"blockHeight\": 30336, \"blockRew"
+    },
+    {
+      "group": "Core",
+      "method": "getnonce",
+      "status": "PASS",
+      "detail": "{\"address\": \"ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0\", \"nonce\": 0, \"chainNonc"
+    },
+    {
+      "group": "Core",
+      "method": "getbalance",
+      "status": "PASS",
+      "detail": "{\"address\": \"ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0\", \"balance\": 0, \"balance"
+    },
+    {
+      "group": "Core",
+      "method": "getrichlist",
+      "status": "PASS",
+      "detail": "{\"entries\": [{\"rank\": 1, \"address\": \"ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl\""
+    },
+    {
+      "group": "Core",
+      "method": "listunspent",
+      "status": "PASS",
+      "detail": "{\"address\": \"ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0\", \"utxos\": [], \"total\": "
+    },
+    {
+      "group": "Stake",
+      "method": "getstake",
+      "status": "FAIL",
+      "detail": "Missing: address"
+    },
+    {
+      "group": "Stake",
+      "method": "getstakers",
+      "status": "PASS",
+      "detail": "{\"stakers\": [{\"address\": \"ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl\", \"amount_s"
+    },
+    {
+      "group": "Stake",
+      "method": "getvalidators",
+      "status": "PASS",
+      "detail": "{\"count\": 1, \"validators\": [{\"address\": \"ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqx"
+    },
+    {
+      "group": "Stake",
+      "method": "getvalidatorsv2",
+      "status": "PASS",
+      "detail": "{\"total_validators\": 0, \"active_count\": 0, \"slashed_count\": 0, \"current_slot_lea"
+    },
+    {
+      "group": "Stake",
+      "method": "validator_heartbeat",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Stake",
+      "method": "getslashevents",
+      "status": "PASS",
+      "detail": "{\"events\": []}"
+    },
+    {
+      "group": "Stake",
+      "method": "become_validator",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Stake",
+      "method": "stake",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Stake",
+      "method": "unstake",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Agents",
+      "method": "getagents",
+      "status": "PASS",
+      "detail": "{\"agents\": []}"
+    },
+    {
+      "group": "Agents",
+      "method": "agent_list",
+      "status": "PASS",
+      "detail": "{\"count\": 0, \"agents\": []}"
+    },
+    {
+      "group": "Agents",
+      "method": "getagent",
+      "status": "PASS",
+      "detail": "null"
+    },
+    {
+      "group": "Agents",
+      "method": "agent_register",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Agents",
+      "method": "agent_unregister",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Agents",
+      "method": "agent_edit",
+      "status": "PASS",
+      "detail": "{\"status\": \"ok\"}"
+    },
+    {
+      "group": "Agents",
+      "method": "agent_follow",
+      "status": "PASS",
+      "detail": "{\"status\": \"ok\"}"
+    },
+    {
+      "group": "Reputation",
+      "method": "getreputation",
+      "status": "PASS",
+      "detail": "{\"address\": \"ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0\", \"cups\": {\"love\": \"0.00"
+    },
+    {
+      "group": "Reputation",
+      "method": "getreputationtop",
+      "status": "PASS",
+      "detail": "{\"count\": 1, \"total\": 1, \"entries\": [{\"rank\": 1, \"address\": \"ob1qw6zhsqg29aht23f"
+    },
+    {
+      "group": "Names",
+      "method": "resolvename",
+      "status": "PASS",
+      "detail": "{\"name\": \"savacazan\", \"tld\": \"omnibus\", \"fullLabel\": \"savacazan.omnibus\", \"addre"
+    },
+    {
+      "group": "Names",
+      "method": "reverseresolvename",
+      "status": "PASS",
+      "detail": "{\"address\": \"ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0\", \"name\": null, \"found\":"
+    },
+    {
+      "group": "Names",
+      "method": "registername",
+      "status": "FAIL",
+      "detail": "signature and publicKey required (signed mode)"
+    },
+    {
+      "group": "Names",
+      "method": "transfername",
+      "status": "FAIL",
+      "detail": "Name not found"
+    },
+    {
+      "group": "Names",
+      "method": "renewname",
+      "status": "FAIL",
+      "detail": "Name not found"
+    },
+    {
+      "group": "Names",
+      "method": "ns_listTlds",
+      "status": "PASS",
+      "detail": "[{\"tld\": \"omnibus\", \"fee_sat\": 5000000000, \"fee_omni\": \"5\", \"category\": \"persona"
+    },
+    {
+      "group": "Names",
+      "method": "ns_getensfee",
+      "status": "SKIP",
+      "detail": "not implemented: Method not found"
+    },
+    {
+      "group": "Names",
+      "method": "ns_yearTiers",
+      "status": "PASS",
+      "detail": "[{\"years\": 1, \"multiplier\": 1.0, \"per_year_pct\": 100}, {\"years\": 2, \"multiplier\""
+    },
+    {
+      "group": "Names",
+      "method": "ns_stats",
+      "status": "PASS",
+      "detail": "{\"total_active\": 0, \"total_expired\": 0, \"by_category\": {\"personal\": 0, \"bank\": 0"
+    },
+    {
+      "group": "Names",
+      "method": "ns_getNamesByCategory",
+      "status": "SKIP",
+      "detail": "not implemented: Method not found"
+    },
+    {
+      "group": "Names",
+      "method": "ns_expiringSoon",
+      "status": "FAIL",
+      "detail": "Missing param: address"
+    },
+    {
+      "group": "Notarize",
+      "method": "notarizedoc",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Notarize",
+      "method": "verifynotarize",
+      "status": "FAIL",
+      "detail": "Missing: doc_hash"
+    },
+    {
+      "group": "Notarize",
+      "method": "revokenotarize",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Notarize",
+      "method": "getnotarizations",
+      "status": "FAIL",
+      "detail": "Missing: address"
+    },
+    {
+      "group": "Subscriptions",
+      "method": "sub_create",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Subscriptions",
+      "method": "sub_cancel",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Subscriptions",
+      "method": "getsubscriptions",
+      "status": "FAIL",
+      "detail": "transport: non-json"
+    },
+    {
+      "group": "Escrow",
+      "method": "escrow_create",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Escrow",
+      "method": "escrow_release",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Escrow",
+      "method": "escrow_refund",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Escrow",
+      "method": "escrow_dispute",
+      "status": "FAIL",
+      "detail": "Missing: from"
+    },
+    {
+      "group": "Escrow",
+      "method": "getescrow",
+      "status": "PASS",
+      "detail": "null"
+    },
+    {
+      "group": "Escrow",
+      "method": "getescrows",
+      "status": "FAIL",
+      "detail": "transport: non-json"
+    },
+    {
+      "group": "Channels",
+      "method": "openchannel",
+      "status": "FAIL",
+      "detail": "party_b must be 66-char hex"
+    },
+    {
+      "group": "Channels",
+      "method": "channelpay",
+      "status": "FAIL",
+      "detail": "Missing channel_id"
+    },
+    {
+      "group": "Channels",
+      "method": "closechannel",
+      "status": "FAIL",
+      "detail": "Missing channel_id"
+    },
+    {
+      "group": "Channels",
+      "method": "getchannels",
+      "status": "PASS",
+      "detail": "{\"summary\": {\"total_channels\": 0, \"open\": 0, \"closing\": 0, \"settled\": 0, \"disput"
+    },
+    {
+      "group": "Multisig",
+      "method": "createmultisig",
+      "status": "FAIL",
+      "detail": "Invalid M (threshold): must be 1-16"
+    },
+    {
+      "group": "Multisig",
+      "method": "sendmultisig",
+      "status": "FAIL",
+      "detail": "Missing param: multisig_address"
+    },
+    {
+      "group": "Oracle",
+      "method": "omnibus_getexchangefeed",
+      "status": "PASS",
+      "detail": "{\"prices\": [{\"exchange\": \"Coinbase\", \"pair\": \"BTC/USD\", \"bidMicroUsd\": 808858000"
+    },
+    {
+      "group": "Oracle",
+      "method": "omnibus_getallprices",
+      "status": "PASS",
+      "detail": "{\"prices\": [{\"exchange\": \"Kraken\", \"pair\": \"USDC/EUR\", \"bidMicroUsd\": 848900, \"a"
+    },
+    {
+      "group": "Oracle",
+      "method": "omnibus_getarbitrage",
+      "status": "PASS",
+      "detail": "{\"opportunities\": [{\"pair\": \"LCX/USD\", \"buyAt\": \"Kraken\", \"buyAskMicroUsd\": 3773"
+    },
+    {
+      "group": "Oracle",
+      "method": "omnibus_getoracleprices",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "group": "Oracle",
+      "method": "omnibus_getoraclepolicy",
+      "status": "PASS",
+      "detail": "{\"warn_pct\": 2.0, \"reject_pct\": 5.0, \"fillgap_pct\": 10.0, \"enabled\": true}"
+    },
+    {
+      "group": "Grid",
+      "method": "grid_create",
+      "status": "PASS",
+      "detail": "{\"grid_id\": 1, \"pair_id\": 0, \"levels_generated\": 10, \"buy_orders\": 5, \"sell_orde"
+    },
+    {
+      "group": "Grid",
+      "method": "grid_cancel",
+      "status": "FAIL",
+      "detail": "Missing owner"
+    },
+    {
+      "group": "Grid",
+      "method": "grid_list",
+      "status": "PASS",
+      "detail": "[{\"grid_id\": 1, \"pair_id\": 0, \"owner\": \"ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9z"
+    },
+    {
+      "group": "Grid",
+      "method": "grid_status",
+      "status": "FAIL",
+      "detail": "Grid not found"
+    },
+    {
+      "group": "Exchange",
+      "method": "exchange_listPairs",
+      "status": "PASS",
+      "detail": "[{\"id\": 0, \"base\": \"OMNI\", \"quote\": \"USDC\", \"label\": \"OMNI/USDC\"}, {\"id\": 1, \"ba"
+    },
+    {
+      "group": "Exchange",
+      "method": "exchange_pairInfo",
+      "status": "PASS",
+      "detail": "{\"pair_id\": 0, \"base\": \"OMNI\", \"quote\": \"USDC\", \"maker_chains\": [{\"chain\": \"Omni"
+    },
+    {
+      "group": "Exchange",
+      "method": "exchange_listOrders",
+      "status": "SKIP",
+      "detail": "not implemented: Method not found"
+    },
+    {
+      "group": "Exchange",
+      "method": "exchange_getUserOrders",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "group": "Exchange",
+      "method": "exchange_getRecentTrades",
+      "status": "SKIP",
+      "detail": "not implemented: Method not found"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "htlc_init",
+      "status": "FAIL",
+      "detail": "missing receiver"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "htlc_claim",
+      "status": "FAIL",
+      "detail": "missing htlc_id"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "htlc_refund",
+      "status": "FAIL",
+      "detail": "missing htlc_id"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "bridge_lock",
+      "status": "FAIL",
+      "detail": "Missing param: amount_sat"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "bridge_settle",
+      "status": "FAIL",
+      "detail": "Missing param: nonce"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "swap_open",
+      "status": "FAIL",
+      "detail": "Missing param: order_id"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "swap_lockMaker",
+      "status": "FAIL",
+      "detail": "Missing param: swap_id"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "swap_lockTaker",
+      "status": "FAIL",
+      "detail": "Missing param: swap_id"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "swap_proveSettle",
+      "status": "FAIL",
+      "detail": "Missing param: swap_id"
+    },
+    {
+      "group": "HTLC/Bridge",
+      "method": "swap_refund",
+      "status": "SKIP",
+      "detail": "not implemented: Method not found"
+    },
+    {
+      "group": "Errors",
+      "method": "nonexistent_method_xxx",
+      "status": "PASS",
+      "detail": "ok"
+    }
+  ],
+  "reachable": true
+}

@@ -1,0 +1,287 @@
+\chapter{Prompt for Kimi — Switch Omni\+Bus L1 from RAM-\/cached balances to UTXO source-\/of-\/truth }
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o}{}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o}\index{Prompt for Kimi — Switch OmniBus L1 from RAM-\/cached balances to UTXO source-\/of-\/truth@{Prompt for Kimi — Switch OmniBus L1 from RAM-\/cached balances to UTXO source-\/of-\/truth}}
+\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md66}%
+\Hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md66}%
+
+
+Copy everything below the {\ttfamily -\/-\/-\/} line into Kimi (or any external LLM) verbatim. Paste back the resulting Zig diff here for review.
+
+\DoxyHorRuler{0}
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md68}{}\doxysection{\texorpdfstring{ROLE}{ROLE}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md68}
+You are a senior Zig systems engineer reviewing and patching an L1 blockchain codebase written in Zig 0.\+15.\+2. The chain is called {\bfseries{Omni\+Bus}}. Your task is to convert balance reads from a RAM cache ({\ttfamily bc.\+balances}, a {\ttfamily String\+Hash\+Map}) to be sourced from the existing on-\/chain UTXO set ({\ttfamily bc.\+utxo\+\_\+set}), in two distinct phases.
+
+You will produce two patch series:\+
+
+{\bfseries{Phase B (immediate, low-\/risk):\+}} keep {\ttfamily bc.\+balances} as a hot cache but make every external balance read go through the UTXO set. RAM cache becomes a write-\/only mirror, never read by RPC /\+ P2P /\+ wallet code. Add an audit assertion that compares the two paths in debug builds and logs divergence in release builds.
+
+{\bfseries{Phase C (later, full Bitcoin model):\+}} delete {\ttfamily bc.\+balances} entirely. All balance and nonce data lives in chainstate. Aligned with the Bitcoin-\/style storage refactor spec already in the repo at {\ttfamily \doxylink{_a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_8md}{ARCH\+\_\+\+BITCOIN\+\_\+\+STORAGE.\+md}}.
+
+This document covers Phase B + Phase C. Implement Phase B fully now; Phase C as a design + migration strategy only.\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md69}{}\doxysection{\texorpdfstring{EXISTING CODE (relevant snippets)}{EXISTING CODE (relevant snippets)}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md69}
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md70}{}\doxysubsection{\texorpdfstring{{\ttfamily core/\+blockchain.\+zig} (excerpts)}{{\ttfamily core/\+blockchain.\+zig} (excerpts)}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md70}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Blockchain\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ chain:\ array\_list.Managed(Block),}
+\DoxyCodeLine{\ \ \ \ mempool:\ array\_list.Managed(Transaction),}
+\DoxyCodeLine{\ \ \ \ difficulty:\ u32,}
+\DoxyCodeLine{\ \ \ \ cumulative\_work:\ u128\ =\ 0,}
+\DoxyCodeLine{\ \ \ \ validator\_set:\ std.array\_list.Managed(Validator),}
+\DoxyCodeLine{\ \ \ \ allocator:\ std.mem.Allocator,}
+\DoxyCodeLine{\ \ \ \ ///\ Balantele\ adreselor\ (in-\/memory,\ sincronizat\ cu\ database)}
+\DoxyCodeLine{\ \ \ \ balances:\ std.StringHashMap(u64),}
+\DoxyCodeLine{\ \ \ \ ///\ Nonce\ tracking\ per\ adresa}
+\DoxyCodeLine{\ \ \ \ nonces:\ std.StringHashMap(u64),}
+\DoxyCodeLine{\ \ \ \ ///\ Public\ key\ registry:\ address\ →\ compressed\ pubkey\ hex}
+\DoxyCodeLine{\ \ \ \ pubkey\_registry:\ std.StringHashMap([]const\ u8),}
+\DoxyCodeLine{\ \ \ \ ///\ TX\ hash\ →\ block\ height}
+\DoxyCodeLine{\ \ \ \ tx\_block\_height:\ std.StringHashMap(u64),}
+\DoxyCodeLine{\ \ \ \ ///\ Address\ TX\ index\ for\ getaddresshistory}
+\DoxyCodeLine{\ \ \ \ address\_tx\_index:\ std.StringHashMap(std.ArrayList([]const\ u8)),}
+\DoxyCodeLine{\ \ \ \ ///\ UTXO\ set\ —\ tracks\ all\ unspent\ transaction\ outputs\ (Bitcoin-\/compatible)}
+\DoxyCodeLine{\ \ \ \ utxo\_set:\ utxo\_mod.UTXOSet,}
+\DoxyCodeLine{\ \ \ \ mutex:\ std.Thread.Mutex\ =\ .\{\},}
+\DoxyCodeLine{\ \ \ \ persistent\_db:\ ?*@import("{}database.zig"{}).PersistentBlockchain\ =\ null,}
+\DoxyCodeLine{\ \ \ \ db\_path:\ []const\ u8\ =\ "{}omnibus-\/chain.dat"{},}
+\DoxyCodeLine{\ \ \ \ //\ ...\ oracle\ prices,\ bridge\ state,\ etc.\ omitted}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getAddressBalance(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ self.balances.get(address)\ orelse\ 0;\ \ \ \ \ \ \ \ \ \ //\ ←\ RAM-\/only\ read}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ ///\ Apply\ a\ validated\ block\ to\ the\ chain.}
+\DoxyCodeLine{\ \ \ \ ///\ Caller\ must\ hold\ mutex.}
+\DoxyCodeLine{\ \ \ \ fn\ applyBlock(self:\ *Blockchain,\ block:\ Block)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ var\ total\_fees:\ u64\ =\ 0;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ for\ (block.transactions.items)\ |tx|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.debitBalanceLocked(tx.from\_address,\ tx.amount\ +\ tx.fee)\ catch\ \{\};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.creditBalanceLocked(tx.to\_address,\ tx.amount)\ catch\ \{\};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ total\_fees\ +=\ tx.fee;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ const\ current\_nonce\ =\ self.nonces.get(tx.from\_address)\ orelse\ 0;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.nonces.put(tx.from\_address,\ current\_nonce\ +\ 1)\ catch\ \{\};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.tx\_block\_height.put(tx.hash,\ @intCast(block.index))\ catch\ \{\};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.indexAddressTx(tx.from\_address,\ tx.hash);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.indexAddressTx(tx.to\_address,\ tx.hash);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ fees\_burned\ =\ total\_fees\ *\ FEE\_BURN\_PCT\ /\ 100;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ fees\_to\_miner\ =\ total\_fees\ -\/\ fees\_burned;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (block.miner\_address.len\ >\ 0\ and\ (block.reward\_sat\ >\ 0\ or\ fees\_to\_miner\ >\ 0))\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.creditBalanceLocked(block.miner\_address,\ block.reward\_sat\ +\ fees\_to\_miner)\ catch\ \{\};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ try\ self.chain.append(block);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ ...\ cumulative\_work,\ retarget,\ etc.}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md71}{}\doxysubsection{\texorpdfstring{{\ttfamily core/\+utxo.\+zig} (excerpts — already implemented, currently}{{\ttfamily core/\+utxo.\+zig} (excerpts — already implemented, currently}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md71}
+maintained but underused)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ UTXO\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ tx\_hash:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ output\_index:\ u32,}
+\DoxyCodeLine{\ \ \ \ address:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ amount:\ u64,}
+\DoxyCodeLine{\ \ \ \ block\_height:\ u64,}
+\DoxyCodeLine{\ \ \ \ script\_pubkey:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ is\_coinbase:\ bool,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isMature(self:\ *const\ UTXO,\ current\_height:\ u64)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (!self.is\_coinbase)\ return\ true;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ current\_height\ >=\ self.block\_height\ +\ 100;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ UTXOSet\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ utxos:\ std.StringHashMap(UTXO),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ outpoint\ →\ UTXO}
+\DoxyCodeLine{\ \ \ \ address\_index:\ std.StringHashMap(std.ArrayList([]const\ u8)),\ \ //\ addr\ →\ outpoints}
+\DoxyCodeLine{\ \ \ \ allocator:\ std.mem.Allocator,}
+\DoxyCodeLine{\ \ \ \ count:\ u64,}
+\DoxyCodeLine{\ \ \ \ total\_value:\ u64,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ addUTXO(self:\ *UTXOSet,\ tx\_hash:\ []const\ u8,\ output\_index:\ u32,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ address:\ []const\ u8,\ amount:\ u64,\ block\_height:\ u64,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ script\_pubkey:\ []const\ u8,\ is\_coinbase:\ bool)\ !void\ \{\ ...\ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ spendUTXO(self:\ *UTXOSet,\ tx\_hash:\ []const\ u8,\ output\_index:\ u32)\ !UTXO\ \{\ ...\ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getBalance(self:\ *const\ UTXOSet,\ address:\ []const\ u8)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ outpoints\ =\ self.getUTXOsForAddress(address);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ var\ total:\ u64\ =\ 0;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ for\ (outpoints)\ |outpoint|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ if\ (self.utxos.get(outpoint))\ |utxo|\ total\ +=\ utxo.amount;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ total;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ //\ selectUTXOs,\ hasUTXO,\ getUTXO\ etc.\ all\ present}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md72}{}\doxysubsection{\texorpdfstring{Where UTXO is currently populated (line numbers approximate)}{Where UTXO is currently populated (line numbers approximate)}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md72}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ core/blockchain.zig,\ in\ applyBlock\ or\ a\ helper\ called\ by\ applyBlock:}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Regular\ TX\ outputs:}
+\DoxyCodeLine{self.utxo\_set.addUTXO(tx.hash,\ @intCast(tx\_idx),\ tx.to\_address,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tx.amount,\ @intCast(index),\ "{}"{},\ false);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Coinbase\ /\ block\ reward\ (one\ virtual\ output\ per\ block):}
+\DoxyCodeLine{self.utxo\_set.addUTXO(block.hash,\ 0,\ miner\_address,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reward\ +\ fees\_to\_miner,\ @intCast(index),\ "{}"{},\ true);}
+
+\end{DoxyCode}
+
+
+So the UTXO set already mirrors every confirmed credit. What\textquotesingle{}s missing:\+
+
+
+\begin{DoxyEnumerate}
+\item UTXOs from inputs are {\bfseries{not}} spent — {\ttfamily spend\+UTXO} is implemented but never called from {\ttfamily apply\+Block}. Instead {\ttfamily bc.\+balances} is debited directly. UTXOSet therefore only grows; balances drift from the UTXO sum after the first transfer.
+\item {\ttfamily get\+Address\+Balance} reads {\ttfamily bc.\+balances} rather than {\ttfamily utxo\+\_\+set.\+get\+Balance}.
+\item No audit /\+ divergence detector exists.
+\end{DoxyEnumerate}\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md73}{}\doxysection{\texorpdfstring{THE BUG WE\textquotesingle{}RE FIXING}{THE BUG WE\textquotesingle{}RE FIXING}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md73}
+{\ttfamily bc.\+balances} has no contract that ties it to chain state. Anything that writes to it directly (without going through {\ttfamily apply\+Block} → proper TX handling) creates a phantom balance that vanishes on the next replay-\/from-\/scratch.
+
+\doxylink{namespace_we}{We} just lost 51 of 54 testnet faucet recipient balances at restart because the faucet RPC writes {\ttfamily bc.\+balances} directly without emitting a chain TX. Replay rebuilt only what was on chain → faucet grants gone. (See {\ttfamily \doxylink{_a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_8md}{ARCH\+\_\+\+BITCOIN\+\_\+\+STORAGE.\+md}} for the full incident write-\/up.)
+
+The narrow fix in this prompt is {\bfseries{not}} to make faucet emit TXs (that\textquotesingle{}s a separate RPC change). It\textquotesingle{}s to make sure that when a phantom write happens again, the rich list, RPC, and wallet UI {\bfseries{see only what\textquotesingle{}s actually on chain}} — i.\+e. UTXO sums, not the divergent RAM cache.\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md74}{}\doxysection{\texorpdfstring{OMNIBUS-\/\+SPECIFIC CONSTRAINTS}{OMNIBUS-\/\+SPECIFIC CONSTRAINTS}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md74}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{No external dependencies.}} Everything stays pure Zig + std. {\ttfamily liboqs} is the only C dep already present (PQ crypto, irrelevant here). No Level\+DB, no Rocks\+DB, no JSON parser pulls.
+\item {\bfseries{Account model on-\/chain wire format.}} Block transactions today have one {\ttfamily from\+\_\+address} → one {\ttfamily to\+\_\+address} + amount + fee. They don\textquotesingle{}t yet carry vin/\+vout vectors. Phase B keeps this; Phase C designs the migration.
+\item {\bfseries{Mining loop holds {\ttfamily bc.\+mutex}}} during {\ttfamily apply\+Block}. UTXO writes inside {\ttfamily apply\+Block} are already serialised by that mutex; reads from RPC handlers that take {\ttfamily bc.\+mutex} for snapshot are also safe. Don\textquotesingle{}t introduce a second mutex in UTXOSet.
+\item {\bfseries{Coinbase maturity = 100 blocks.}} Mature-\/balance vs total-\/balance becomes a real distinction in Phase B. The existing {\ttfamily get\+Address\+Balance} returns the total; the new path should return total too for compatibility, but expose a separate {\ttfamily get\+Mature\+Balance(addr, current\+\_\+height)} for callers that care.
+\item {\bfseries{Tests}} live as {\ttfamily test "{}name"{} \{ ... \}} blocks in each {\ttfamily core/\+\texorpdfstring{$\ast$}{*}.zig}. {\ttfamily zig build test} and {\ttfamily zig build test-\/chain} are the relevant targets. Keep tests inline.
+\item {\bfseries{Zig 0.\+15.\+2 specifics:\+}} {\ttfamily std.\+array\+\_\+list.\+Managed(\+T)} is the right list type in this codebase. {\ttfamily std.\+String\+Hash\+Map} is the right map. Use {\ttfamily .empty} for empty {\ttfamily Array\+List}, {\ttfamily init(allocator)} for Hash\+Maps.
+\item {\bfseries{Mutex semantics:\+}} {\ttfamily bc.\+mutex.\+lock(); defer bc.\+mutex.\+unlock();} pattern. Public methods that need the lock take it; internal {\ttfamily \texorpdfstring{$\ast$}{*}\+Locked} variants assume the caller holds it.
+\end{DoxyEnumerate}\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md75}{}\doxysection{\texorpdfstring{PHASE B — DELIVERABLE}{PHASE B — DELIVERABLE}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md75}
+A single patch series with these changes:\+\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md76}{}\doxysubsection{\texorpdfstring{B.\+1 — Make {\ttfamily apply\+Block} spend the inputs}{B.\+1 — Make {\ttfamily apply\+Block} spend the inputs}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md76}
+In {\ttfamily apply\+Block}, before crediting {\ttfamily tx.\+to\+\_\+address}, locate the input UTXOs for {\ttfamily tx.\+from\+\_\+address} covering {\ttfamily tx.\+amount + tx.\+fee} and spend them. Today balances are debited but UTXOs aren\textquotesingle{}t.
+
+The current TX wire format doesn\textquotesingle{}t carry explicit vin pointers, so use {\ttfamily select\+UTXOs(from\+\_\+address, total\+\_\+needed, height, allocator)} to pick the inputs greedily, then call {\ttfamily spend\+UTXO} on each picked outpoint. If the total selected exceeds the spend, the coin-\/selection implicit "{}change output"{} goes back to {\ttfamily from\+\_\+address} — record it as a synthetic UTXO with {\ttfamily tx\+\_\+hash = tx.\+hash} and {\ttfamily output\+\_\+index = 1} (while the real {\ttfamily to\+\_\+address} UTXO is at {\ttfamily output\+\_\+index = 0}).
+
+This keeps the on-\/chain semantics unchanged but makes the UTXO set exactly track the truth. Coinbase is already correctly handled.\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md77}{}\doxysubsection{\texorpdfstring{B.\+2 — Switch {\ttfamily get\+Address\+Balance} to UTXO source}{B.\+2 — Switch {\ttfamily get\+Address\+Balance} to UTXO source}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md77}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddressBalance(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ return\ self.utxo\_set.getBalance(address);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Add a sibling that exposes the mature-\/only view:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMatureBalance(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ const\ current\_height\ =\ if\ (self.chain.items.len\ ==\ 0)\ 0}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ @as(u64,\ @intCast(self.chain.items.len\ -\/\ 1));}
+\DoxyCodeLine{\ \ \ \ const\ outpoints\ =\ self.utxo\_set.getUTXOsForAddress(address);}
+\DoxyCodeLine{\ \ \ \ var\ total:\ u64\ =\ 0;}
+\DoxyCodeLine{\ \ \ \ for\ (outpoints)\ |op|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (self.utxo\_set.utxos.get(op))\ |utxo|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ if\ (utxo.isMature(current\_height))\ total\ +=\ utxo.amount;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ return\ total;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\ttfamily bc.\+balances} stays in place as a hot cache, written by {\ttfamily apply\+Block} exactly as before, but {\bfseries{no caller reads it from outside {\ttfamily apply\+Block}}}. Audit grep should turn up zero non-\/replay reads after this patch.\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md78}{}\doxysubsection{\texorpdfstring{B.\+3 — Audit assertion}{B.\+3 — Audit assertion}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md78}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{///\ Walk\ every\ address\ in\ bc.balances\ and\ compare\ against\ utxo\_set.getBalance.}
+\DoxyCodeLine{///\ Returns\ the\ number\ of\ addresses\ where\ the\ two\ paths\ disagree.\ In\ a}
+\DoxyCodeLine{///\ healthy\ chain\ this\ is\ always\ 0.\ Used\ by\ tests\ +\ an\ optional\ periodic}
+\DoxyCodeLine{///\ debug\ print\ from\ the\ mining\ loop.}
+\DoxyCodeLine{pub\ fn\ auditBalanceConsistency(self:\ *const\ Blockchain)\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ addresses\_checked:\ usize,}
+\DoxyCodeLine{\ \ \ \ divergences:\ usize,}
+\DoxyCodeLine{\}\ \{}
+\DoxyCodeLine{\ \ \ \ var\ checked:\ usize\ =\ 0;}
+\DoxyCodeLine{\ \ \ \ var\ diverged:\ usize\ =\ 0;}
+\DoxyCodeLine{\ \ \ \ var\ it\ =\ self.balances.iterator();}
+\DoxyCodeLine{\ \ \ \ while\ (it.next())\ |kv|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ checked\ +=\ 1;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ ram\ =\ kv.value\_ptr.*;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ utxo\ =\ self.utxo\_set.getBalance(kv.key\_ptr.*);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (ram\ !=\ utxo)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ diverged\ +=\ 1;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std.debug.print(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}[AUDIT-\/DIVERGE]\ addr=\{s\}\ ram=\{d\}\ utxo=\{d\}\(\backslash\)n"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .\{\ kv.key\_ptr.*,\ ram,\ utxo\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ return\ .\{\ .addresses\_checked\ =\ checked,\ .divergences\ =\ diverged\ \};}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Hook this into the existing stabilizer tick (in {\ttfamily main.\+zig}\textquotesingle{}s mining loop) so it runs once per minute. If {\ttfamily divergences \texorpdfstring{$>$}{>} 0}, emit a single ALERT line.\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md79}{}\doxysubsection{\texorpdfstring{B.\+4 — Tests}{B.\+4 — Tests}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md79}
+Add to {\ttfamily core/\+blockchain.\+zig} (inline test blocks):\+
+
+
+\begin{DoxyItemize}
+\item "{}apply\+Block spends sender UTXOs and creates recipient UTXO"{}:\+ Build a chain with a coinbase to A, then a TX A→B for half; assert {\ttfamily utxo\+\_\+set.\+count == 2} (B\textquotesingle{}s output + A\textquotesingle{}s change), {\ttfamily get\+Address\+Balance(\+A)} == half via UTXO, {\ttfamily get\+Address\+Balance(\+B)} == half via UTXO.
+\item "{}audit\+Balance\+Consistency returns 0 divergences after normal     apply\+Block"{}:\+ same chain as above, assert {\ttfamily audit\+Balance\+Consistency} finds zero divergences.
+\item "{}audit\+Balance\+Consistency catches phantom RAM credit"{}:\+ manually call {\ttfamily bc.\+balances.\+put(addr, 999)} outside apply\+Block; assert audit returns {\ttfamily divergences == 1} and the printed line names that address.
+\item "{}get\+Mature\+Balance excludes immature coinbase"{}:\+ coinbase to A at height 5; before height 105, mature balance of A is 0; at height ≥ 105, mature balance == coinbase reward.
+\end{DoxyItemize}\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md80}{}\doxysubsection{\texorpdfstring{B.\+5 — RPC propagation}{B.\+5 — RPC propagation}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md80}
+{\ttfamily getrichlist} and {\ttfamily getaddressbalance} should already work after B.\+2 (they call {\ttfamily bc.\+get\+Address\+Balance}). Spot-\/check {\ttfamily core/\+rpc\+\_\+server.\+zig} for any direct read of {\ttfamily ctx.\+bc.\+balances} and replace with the helper. If nothing reads it directly, leave the file alone.\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md81}{}\doxysection{\texorpdfstring{PHASE C — DESIGN ONLY}{PHASE C — DESIGN ONLY}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md81}
+Specify (don\textquotesingle{}t implement) the migration plan:\+
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Wire format change:\+}} transactions gain explicit {\ttfamily inputs:\+ \+[]\+Outpoint} and {\ttfamily outputs:\+ \+[]\+Tx\+Output}. Sender\textquotesingle{}s wallet picks UTXOs ahead of signing, includes them in the TX, signs the whole thing. The {\ttfamily from\+\_\+address} field becomes derivable rather than carried separately (every input\textquotesingle{}s address must agree, otherwise the TX is malformed).
+\item {\bfseries{bc.\+balances removal:\+}} every write callsite either (a) becomes a {\ttfamily apply\+Block} path that goes through utxo\+\_\+set, or (b) becomes an explicit "{}this is not consensus state"{} tag for any diagnostic counter we want to keep.
+\item {\bfseries{Persistence:\+}} chainstate KV (per {\ttfamily \doxylink{_a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_8md}{ARCH\+\_\+\+BITCOIN\+\_\+\+STORAGE.\+md}}) holds the UTXO set on disk. Restart = open chainstate → instant balance for any address, no replay needed for balance queries. Replay still used for {\ttfamily -\/reindex} and integrity checks.
+\item {\bfseries{Backwards compat:\+}} old block format readable indefinitely; migration emits new-\/format equivalents on upgrade and stores both for one release cycle.
+\item {\bfseries{Wallet impact:\+}} Bitcoin-\/style coin selection becomes mandatory in the signing flow. Light clients and the franchise Python client need a UTXO query method (already have {\ttfamily get\+UTXOs\+For\+Address} in utxo.\+zig — just expose via RPC).
+\end{DoxyEnumerate}
+
+Provide:\+
+
+
+\begin{DoxyItemize}
+\item A list of every callsite in the current codebase that writes {\ttfamily bc.\+balances} directly (use grep on {\ttfamily balances.\+put}, {\ttfamily balances.\+get\+Or\+Put}, {\ttfamily credit\+Balance\+Locked}, {\ttfamily debit\+Balance\+Locked}). For each, classify:\+ keep /\+ move-\/to-\/apply\+Block /\+ delete.
+\item A migration sequence with rollback notes for each step.
+\item Estimated LoC + effort per phase.
+\end{DoxyItemize}\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md82}{}\doxysection{\texorpdfstring{DELIVERABLES (what you give back)}{DELIVERABLES (what you give back)}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md82}
+For Phase B:\+
+
+
+\begin{DoxyItemize}
+\item One {\ttfamily core/\+blockchain.\+zig} patch (use unified diff format).
+\item One {\ttfamily core/\+rpc\+\_\+server.\+zig} patch if any direct read of {\ttfamily ctx.\+bc.\+balances} exists; otherwise note "{}no change required"{}.
+\item One {\ttfamily core/\+main.\+zig} patch hooking {\ttfamily audit\+Balance\+Consistency} into the stabilizer tick (every 60 s), single line ALERT on divergence.
+\item All four inline tests added to {\ttfamily core/\+blockchain.\+zig}.
+\item A short note (≤ 200 words) confirming you grepped for non-\/replay reads of {\ttfamily bc.\+balances} and either patched them or that none exist.
+\end{DoxyItemize}
+
+For Phase C:\+
+
+
+\begin{DoxyItemize}
+\item The callsite classification table.
+\item The migration sequence + rollback notes.
+\item LoC + effort estimate.
+\item {\bfseries{No code.}} Design only.
+\end{DoxyItemize}\hypertarget{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md83}{}\doxysection{\texorpdfstring{GROUND RULES}{GROUND RULES}}\label{md__k_i_m_i___p_r_o_m_p_t___u_t_x_o_autotoc_md83}
+
+\begin{DoxyItemize}
+\item Don\textquotesingle{}t refactor unrelated code. Keep the diff minimal.
+\item Don\textquotesingle{}t introduce new dependencies.
+\item Don\textquotesingle{}t change wire formats in Phase B.
+\item Don\textquotesingle{}t drop tests; expand them.
+\item Don\textquotesingle{}t paper over {\ttfamily divergences \texorpdfstring{$>$}{>} 0} — surface it loudly.
+\item Don\textquotesingle{}t loosen the mutex; all UTXO mutation continues to require {\ttfamily bc.\+mutex} held.
+\end{DoxyItemize}
+
+If anything in this prompt is ambiguous, state your assumption inline in the patch comments and move on. Don\textquotesingle{}t ask clarifying questions back; produce the diff. 

@@ -1,0 +1,39 @@
+{
+  "mainnet": {
+    "getagents": {
+      "samples": 100,
+      "p50": 52,
+      "p95": 66,
+      "last": null
+    },
+    "agents_detailed": [],
+    "pending_decisions": {
+      "samples": 50,
+      "p50": 52,
+      "last": null
+    }
+  },
+  "testnet": {
+    "getagents": {
+      "samples": 100,
+      "p50": 66,
+      "p95": 123,
+      "last": {
+        "agents": []
+      }
+    },
+    "agents_detailed": [],
+    "agent_list_legacy": {
+      "count": 0,
+      "agents": []
+    },
+    "pending_decisions": {
+      "samples": 50,
+      "p50": 65,
+      "last": {
+        "count": 0,
+        "decisions": []
+      }
+    }
+  }
+}

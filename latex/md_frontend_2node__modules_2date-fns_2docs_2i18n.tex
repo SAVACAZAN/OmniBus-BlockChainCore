@@ -1,0 +1,96 @@
+\chapter{Internationalization }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n}{}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n}\index{Internationalization@{Internationalization}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6338}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6338}%
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6339}{}\doxysection{\texorpdfstring{Table of Contents}{Table of Contents}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6339}
+
+\begin{DoxyItemize}
+\item UsageUsage
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item Adding New LanguageAdding New Language
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6340}{}\doxysection{\texorpdfstring{Usage}{Usage}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6340}
+There are just a few functions that support I18n:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://date-fns.org/docs/format}{\texttt{{\ttfamily format}}}
+\item \href{https://date-fns.org/docs/formatDistance}{\texttt{{\ttfamily format\+Distance}}}
+\item \href{https://date-fns.org/docs/formatDistanceStrict}{\texttt{{\ttfamily format\+Distance\+Strict}}}
+\item \href{https://date-fns.org/docs/formatRelative}{\texttt{{\ttfamily format\+Relative}}}
+\end{DoxyItemize}
+
+To use a locale, you need to require it and then pass as an option to a function:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ formatDistance\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{//\ Require\ Esperanto\ locale}
+\DoxyCodeLine{import\ \{\ eo\ \}\ from\ 'date-\/fns/locale'}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ result\ =\ formatDistance(}
+\DoxyCodeLine{\ \ new\ Date(2016,\ 7,\ 1),}
+\DoxyCodeLine{\ \ new\ Date(2015,\ 0,\ 1),}
+\DoxyCodeLine{\ \ \{locale:\ eo\}\ //\ Pass\ the\ locale\ as\ an\ option}
+\DoxyCodeLine{)}
+\DoxyCodeLine{//=>\ 'pli\ ol\ 1\ jaro'}
+
+\end{DoxyCode}
+
+
+It might seem complicated to require and pass locales as options, but unlike Moment.\+js which bloats your build with all the locales by default date-\/fns forces developer to manually require locales when needed. To make API simple, we encourage you to write tiny wrappers and use those instead of original functions:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ app/\_lib/format.js}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{\ format\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{import\ \{\ enGB,\ eo,\ ru\ \}\ from\ 'date-\/fns/locale'}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ locales\ =\ \{enGB,\ eo,\ ru\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ by\ providing\ a\ default\ string\ of\ 'PP'\ or\ any\ of\ its\ variants\ for\ \`{}formatStr`}
+\DoxyCodeLine{//\ it\ will\ format\ dates\ in\ whichever\ way\ is\ appropriate\ to\ the\ locale}
+\DoxyCodeLine{export\ default\ function\ (date,\ formatStr\ =\ 'PP')\ \{}
+\DoxyCodeLine{\ \ return\ format(date,\ formatStr,\ \{}
+\DoxyCodeLine{\ \ \ \ locale:\ locales[window.\_\_localeId\_\_]\ //\ or\ global.\_\_localeId\_\_}
+\DoxyCodeLine{\ \ \})}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Later:}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ format\ from\ 'app/\_lib/format'}
+\DoxyCodeLine{}
+\DoxyCodeLine{window.\_\_localeId\_\_\ =\ 'enGB'}
+\DoxyCodeLine{format(friday13,\ 'EEEE\ d')}
+\DoxyCodeLine{//=>\ 'Friday\ 13'}
+\DoxyCodeLine{}
+\DoxyCodeLine{window.\_\_localeId\_\_\ =\ 'eo'}
+\DoxyCodeLine{format(friday13,\ 'EEEE\ d')}
+\DoxyCodeLine{//=>\ 'vendredo\ 13'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ If\ the\ format\ string\ is\ omitted,\ it\ will\ take\ the\ default\ for\ the\ locale.}
+\DoxyCodeLine{window.\_\_localeId\_\_\ =\ 'enGB'}
+\DoxyCodeLine{format(friday13)}
+\DoxyCodeLine{//=>\ Jul\ 13,\ 2019}
+\DoxyCodeLine{}
+\DoxyCodeLine{window.\_\_localeId\_\_\ =\ 'eo'}
+\DoxyCodeLine{format(friday13)}
+\DoxyCodeLine{//=>\ 2019-\/jul-\/13}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6341}{}\doxysection{\texorpdfstring{Adding New Language}{Adding New Language}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_autotoc_md6341}
+At the moment there is no definitive guide, so if you feel brave enough, use this quick guide:\+
+
+
+\begin{DoxyItemize}
+\item First of all, \href{https://github.com/date-fns/date-fns/issues/new?title=XXX\%20language\%20support}{\texttt{create an issue}} so you won\textquotesingle{}t overlap with others.
+\item A detailed explanation of how to \href{https://github.com/date-fns/date-fns/blob/master/docs/i18nContributionGuide.md\#adding-a-new-locale}{\texttt{add a new locale}}.
+\item Use \href{https://github.com/date-fns/date-fns/tree/master/src/locale/en-US}{\texttt{English locale}} as the basis and then incrementally adjust the tests and the code.
+\item Directions on \href{https://github.com/date-fns/date-fns/blob/master/docs/i18nContributionGuide.md\#creating-a-locale-with-the-same-language-as-another-locale}{\texttt{adding a locale with the same language as another locale}}.
+\item If you have questions or need guidance, leave a comment in the issue.
+\end{DoxyItemize}
+
+Thank you for your support! 

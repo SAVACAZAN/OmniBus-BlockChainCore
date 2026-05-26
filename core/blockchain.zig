@@ -447,14 +447,17 @@ pub const Blockchain = struct {
         var chain = array_list.Managed(Block).init(allocator);
         const mempool = array_list.Managed(Transaction).init(allocator);
 
-        // Create genesis block
+        // Create genesis block. The hash here is a placeholder for tests that
+        // call Blockchain.init() directly; production paths go through
+        // genesis.zig:buildBlockchain which immediately overwrites chain[0]
+        // with the chain-specific canonical genesis from ChainConfig.
         const genesis = Block{
             .index = 0,
             .timestamp = 1743000000,
             .transactions = array_list.Managed(Transaction).init(allocator),
             .previous_hash = "0000000000000000000000000000000000000000000000000000000000000000",
             .nonce = 0,
-            .hash = "genesis_hash_omnibus_v1",
+            .hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         };
 
         try chain.append(genesis);
@@ -634,9 +637,14 @@ pub const Blockchain = struct {
     pub fn getMatureBalance(self: *const Blockchain, address: []const u8) u64 {
         const current_height = if (self.chain.items.len == 0) 0
                               else @as(u64, @intCast(self.chain.items.len - 1));
-        const outpoints = self.utxo_set.getUTXOsForAddress(address);
+        // Hold UTXO read-lock for the whole walk — otherwise the slice returned
+        // by getUTXOsForAddress could be invalidated by a concurrent addUTXO.
+        const lk = @constCast(&self.utxo_set.lock);
+        lk.lockShared();
+        defer lk.unlockShared();
+        const list = self.utxo_set.address_index.get(address) orelse return 0;
         var total: u64 = 0;
-        for (outpoints) |op| {
+        for (list.items) |op| {
             if (self.utxo_set.utxos.get(op)) |utxo| {
                 if (utxo.isMature(current_height)) total += utxo.amount;
             }
@@ -4214,7 +4222,7 @@ test "Blockchain.validateBlock — wrong merkle root rejected" {
         .index = 1,
         .timestamp = 1743000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         .merkle_root = [_]u8{0xFF} ** 32, // Wrong merkle root (should be all zeros for empty TX list)
@@ -4236,7 +4244,7 @@ test "Blockchain.validateBlock — future timestamp rejected" {
         .index = 1,
         .timestamp = now + 10000, // More than 2 hours in the future
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         .merkle_root = [_]u8{0} ** 32,
@@ -4277,7 +4285,7 @@ test "Blockchain.validateBlock — hash not meeting difficulty rejected" {
         .index = 1,
         .timestamp = 1743000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         .merkle_root = [_]u8{0} ** 32,
@@ -4299,7 +4307,7 @@ test "Blockchain.validateBlock — inflated reward rejected" {
         .index = 1,
         .timestamp = 1743000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         .merkle_root = [_]u8{0} ** 32,
@@ -4320,7 +4328,7 @@ test "Blockchain.validateBlock — valid block passes all checks" {
         .index = 1,
         .timestamp = 1743000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         .merkle_root = [_]u8{0} ** 32, // Correct for empty TX list
@@ -4340,7 +4348,7 @@ test "Blockchain.addExternalBlock — invalid block returns error" {
         .index = 1,
         .timestamp = 1743000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "0000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         .merkle_root = [_]u8{0xFF} ** 32,
@@ -4366,7 +4374,7 @@ test "Blockchain.addExternalBlock — valid block appended and miner credited" {
         .index = 1,
         .timestamp = 1743000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = hash_str,
         .merkle_root = [_]u8{0} ** 32,
@@ -4509,7 +4517,7 @@ test "Blockchain.reorg — longer chain accepted" {
     bc.difficulty = 1;
 
     // Add block 1 to our chain
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
+    const block1 = try makeTestBlock(testing.allocator, 1, "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     try bc.addExternalBlock(block1);
     try testing.expectEqual(@as(u32, 2), bc.getBlockCount());
 
@@ -4543,7 +4551,7 @@ test "Blockchain.reorg — shorter chain rejected" {
     bc.difficulty = 1;
 
     // Add 2 blocks to our chain
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
+    const block1 = try makeTestBlock(testing.allocator, 1, "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     try bc.addExternalBlock(block1);
 
     const block2 = try makeTestBlock(testing.allocator, 2, block1.hash, "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
@@ -4577,7 +4585,7 @@ test "Blockchain.reorg — depth > MAX_REORG_DEPTH rejected" {
     bc.difficulty = 1;
 
     // Build a chain of MAX_REORG_DEPTH + 2 blocks (genesis + 101 blocks)
-    var prev_hash: []const u8 = "genesis_hash_omnibus_v1";
+    var prev_hash: []const u8 = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982";
     for (1..MAX_REORG_DEPTH + 2) |i| {
         const blk = try makeTestBlock(testing.allocator, @intCast(i), prev_hash, "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
         try bc.addExternalBlock(blk);
@@ -4635,7 +4643,7 @@ test "Blockchain.processOrphans — orphan connected when parent arrives" {
     bc.difficulty = 1;
 
     // Create block 1 and block 2, but send block 2 first (orphan)
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
+    const block1 = try makeTestBlock(testing.allocator, 1, "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     const block2 = try makeTestBlock(testing.allocator, 2, block1.hash, "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
 
     // Send block 2 first — parent unknown, goes to orphan pool
@@ -4658,7 +4666,7 @@ test "Blockchain.findForkPoint — common ancestor found" {
     bc.difficulty = 1;
 
     // Add block 1
-    const block1 = try makeTestBlock(testing.allocator, 1, "genesis_hash_omnibus_v1", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
+    const block1 = try makeTestBlock(testing.allocator, 1, "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982", "ob1qfsflcfe5y0hxdk746q87f03kvdr6pyxy324k6w");
     try bc.addExternalBlock(block1);
 
     // Other chain shares genesis + block1, then diverges
@@ -5001,7 +5009,7 @@ test "applyBlock spends sender UTXOs and creates recipient UTXO" {
         .index = 1,
         .timestamp = 1700000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "block_01_hash_________________________________",
         .miner_address = "ob1qminer",
@@ -5042,7 +5050,7 @@ test "auditBalanceConsistency returns 0 divergences after normal applyBlock" {
     var block = Block{
         .index = 1, .timestamp = 1700000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1", .nonce = 0,
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982", .nonce = 0,
         .hash = "block_audit_01__________________________________",
         .miner_address = "ob1qminer", .reward_sat = BLOCK_REWARD_SAT,
     };
@@ -5145,7 +5153,7 @@ test "v2 wire: TX spends listed inputs, leaves untouched UTXOs alone" {
         .index = 1,
         .timestamp = 1700000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "v2_block_01_____________________________________",
         .miner_address = "ob1qminerv2",
@@ -5193,7 +5201,7 @@ test "v2 wire: TX with explicit outputs[] creates each as a UTXO" {
         .index = 1,
         .timestamp = 1700000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "v2_block_multiout_______________________________",
         .miner_address = "ob1qminerv2",
@@ -5455,7 +5463,7 @@ test "applyBlock auto-executes a passed proposal at the next block" {
         .index = 5,
         .timestamp = 1700000000,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "block_gov_autoexec______________________________",
         .miner_address = "ob1qminergov",
@@ -5484,7 +5492,7 @@ test "applyBlock credits accumulated exchange fees to miner alongside reward" {
         .index = 1,
         .timestamp = 1700000000,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "block_fees_to_miner____________________________1",
         .miner_address = "ob1qminerfees",
@@ -5527,7 +5535,7 @@ test "applyBlock: per-TX fees + N*F miner credit (block_reward + N*fee)" {
     var block = Block{
         .index = 1, .timestamp = 1700000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1", .nonce = 0,
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982", .nonce = 0,
         .hash = "block_NF_to_miner______________________________1",
         .miner_address = "ob1qminerNF", .reward_sat = BLOCK_REWARD_SAT,
     };
@@ -5592,7 +5600,7 @@ test "HTLC roundtrip: A locks → B claims with preimage → balances flip" {
         .index = 1,
         .timestamp = 1700000001,
         .transactions = array_list.Managed(Transaction).init(testing.allocator),
-        .previous_hash = "genesis_hash_omnibus_v1",
+        .previous_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         .nonce = 0,
         .hash = "htlc_block_1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     };

@@ -1,0 +1,54 @@
+\doxysection{generate Namespace Reference}
+\hypertarget{namespacegenerate}{}\label{namespacegenerate}\index{generate@{generate}}
+
+
+-\/rpc-\/client  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/rpc-\/client 
+
+-\/test-\/report
+
+-\/rpc-\/method
+
+-\/synthetic-\/chain
+
+-\/agent
+
+\begin{DoxyVerb}OmniBus Blockchain Core — TypeScript RPC Client Generator
+
+Reads core/rpc_server.zig, extracts all JSON-RPC method names from
+std.mem.eql(u8, method, "...") patterns, and generates a TypeScript
+RPC client class with a typed method for each. Output to stdout.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Claude Agent Generator
+
+Generates a .claude/agents/<name>.md file from a template with
+proper YAML frontmatter. Takes --name, --model, --description args.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Synthetic Chain Generator
+
+Generates synthetic blockchain data for ML model testing.
+Outputs JSONL file with blocks and transactions.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — RPC Method Generator
+
+Generates a Zig handler stub in rpc_server.zig from method name + params.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Test Report Generator
+
+Parses zig test / zig build output and generates an HTML report.
+Usage: zig build test-crypto 2>&1 | python3 generate-test-report.py --output report.html
+\end{DoxyVerb}
+ 

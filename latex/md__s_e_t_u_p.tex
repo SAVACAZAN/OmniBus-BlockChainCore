@@ -1,0 +1,409 @@
+\chapter{Omni\+Bus Block\+Chain Core -\/ Setup \& Getting Started }
+\hypertarget{md__s_e_t_u_p}{}\label{md__s_e_t_u_p}\index{OmniBus BlockChain Core -\/ Setup \& Getting Started@{OmniBus BlockChain Core -\/ Setup \& Getting Started}}
+\label{md__s_e_t_u_p_autotoc_md117}%
+\Hypertarget{md__s_e_t_u_p_autotoc_md117}%
+
+
+{\bfseries{Created:\+}} 2026-\/03-\/18 {\bfseries{Status:\+}} 🚀 Phase 1 Ready to Build
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md119}{}\doxysection{\texorpdfstring{What Was Created}{What Was Created}}\label{md__s_e_t_u_p_autotoc_md119}
+A complete {\bfseries{cross-\/platform blockchain system}} in Zig + Type\+Script with:\+\hypertarget{md__s_e_t_u_p_autotoc_md120}{}\doxysubsection{\texorpdfstring{✅ Core Components (Zig Backend)}{✅ Core Components (Zig Backend)}}\label{md__s_e_t_u_p_autotoc_md120}
+
+\begin{DoxyItemize}
+\item {\bfseries{blockchain.\+zig}} -\/ Consensus engine, block validation, chain management
+\item {\bfseries{block.\+zig}} -\/ Block structure, mining, validation
+\item {\bfseries{transaction.\+zig}} -\/ TX structure, validation with PQ address support
+\item {\bfseries{wallet.\+zig}} -\/ 5 post-\/quantum address pairs per client (ob1q, ob\+\_\+k1\+\_\+, ob\+\_\+f5\+\_\+, ob\+\_\+d5\+\_\+, ob\+\_\+s3\+\_\+)
+\item {\bfseries{rpc\+\_\+server.\+zig}} -\/ JSON-\/\+RPC 2.\+0 HTTP/\+\+Web\+Socket endpoint
+\item {\bfseries{agent\+\_\+manager.\+zig}} -\/ Multi-\/client trading agent coordinator
+\item {\bfseries{main.\+zig}} -\/ Entry point with mining loop
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md121}{}\doxysubsection{\texorpdfstring{✅ Frontend (Type\+Script/\+\+React)}{✅ Frontend (Type\+Script/\+\+React)}}\label{md__s_e_t_u_p_autotoc_md121}
+
+\begin{DoxyItemize}
+\item {\bfseries{package.\+json}} -\/ npm dependencies (React, Vite, Tailwind\+CSS)
+\item {\bfseries{index.\+html}} -\/ Entry page
+\item Directory structure ready for:\+ Block\+Explorer, Wallet UI, Transaction Explorer
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md122}{}\doxysubsection{\texorpdfstring{✅ Build \& Test}{✅ Build \& Test}}\label{md__s_e_t_u_p_autotoc_md122}
+
+\begin{DoxyItemize}
+\item {\bfseries{Makefile}} -\/ 15+ build targets (build, run, test, clean)
+\item {\bfseries{build.\+zig}} -\/ Zig build configuration
+\item {\bfseries{blockchain\+\_\+test.\+zig}} -\/ Unit tests
+\item {\bfseries{\doxylink{_c_l_a_u_d_e_8md}{CLAUDE.\+md}}} -\/ 300+ line development guide
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md123}{}\doxysubsection{\texorpdfstring{✅ Configuration}{✅ Configuration}}\label{md__s_e_t_u_p_autotoc_md123}
+
+\begin{DoxyItemize}
+\item {\bfseries{.gitignore}} -\/ Proper exclusions
+\item {\bfseries{\doxylink{_r_e_a_d_m_e_8md}{README.\+md}}} -\/ Project overview
+\item {\bfseries{\doxylink{_s_e_t_u_p_8md}{SETUP.\+md}}} -\/ This file
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md125}{}\doxysection{\texorpdfstring{Quick Start (5 Minutes)}{Quick Start (5 Minutes)}}\label{md__s_e_t_u_p_autotoc_md125}
+\hypertarget{md__s_e_t_u_p_autotoc_md126}{}\doxysubsection{\texorpdfstring{1. Verify Prerequisites}{1. Verify Prerequisites}}\label{md__s_e_t_u_p_autotoc_md126}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ Zig\ version}
+\DoxyCodeLine{zig\ version\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Should\ be\ 0.15.2+}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ Node/npm}
+\DoxyCodeLine{node\ -\/-\/version\ \ \ \ \ \ \ \ \ \ \#\ Should\ be\ 18+}
+\DoxyCodeLine{npm\ -\/-\/version}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md127}{}\doxysubsection{\texorpdfstring{2. Navigate to Project}{2. Navigate to Project}}\label{md__s_e_t_u_p_autotoc_md127}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ /home/kiss/OmniBus-\/BlockChainCore}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md128}{}\doxysubsection{\texorpdfstring{3. View Help}{3. View Help}}\label{md__s_e_t_u_p_autotoc_md128}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Shows\ all\ 15+\ build\ targets}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md129}{}\doxysubsection{\texorpdfstring{4. Build Everything}{4. Build Everything}}\label{md__s_e_t_u_p_autotoc_md129}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ build\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Compile\ all\ Zig\ components}
+
+\end{DoxyCode}
+
+
+Expected output:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Building\ OmniBus\ Blockchain\ Node...}
+\DoxyCodeLine{Building\ RPC\ Server...}
+\DoxyCodeLine{Building\ Agent\ System...}
+\DoxyCodeLine{✅\ All\ Zig\ components\ built\ successfully}
+\DoxyCodeLine{\ \ omnibus-\/node\ (5.2M)}
+\DoxyCodeLine{\ \ omnibus-\/rpc\ (4.8M)}
+\DoxyCodeLine{\ \ omnibus-\/agent\ (4.1M)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md131}{}\doxysection{\texorpdfstring{Run the System}{Run the System}}\label{md__s_e_t_u_p_autotoc_md131}
+\hypertarget{md__s_e_t_u_p_autotoc_md132}{}\doxysubsection{\texorpdfstring{Terminal 1:\+ Start Blockchain (Mining)}{Terminal 1:\+ Start Blockchain (Mining)}}\label{md__s_e_t_u_p_autotoc_md132}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ run-\/node}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Expected\ output:}
+\DoxyCodeLine{\#\ ===\ OmniBus\ Blockchain\ Node\ ===}
+\DoxyCodeLine{\#\ Version:\ 1.0.0-\/dev}
+\DoxyCodeLine{\#\ Language:\ Zig\ 0.15.2}
+\DoxyCodeLine{\#\ Platform:\ Cross-\/Platform\ (Windows\ +\ Linux)}
+\DoxyCodeLine{\#}
+\DoxyCodeLine{\#\ [INIT]\ Blockchain\ initialized}
+\DoxyCodeLine{\#\ \ \ -\/\ Genesis\ block\ created}
+\DoxyCodeLine{\#\ \ \ -\/\ Difficulty:\ 4}
+\DoxyCodeLine{\#\ \ \ -\/\ Chain\ length:\ 1}
+\DoxyCodeLine{\#}
+\DoxyCodeLine{\#\ [WALLET]\ Wallet\ initialized}
+\DoxyCodeLine{\#\ \ \ -\/\ Address:\ ob1q1q2w3e4r5t6y7u8i9o0p}
+\DoxyCodeLine{\#\ \ \ -\/\ Balance:\ 50000000000\ SAT}
+\DoxyCodeLine{\#}
+\DoxyCodeLine{\#\ [LOOP]\ Starting\ mining\ loop...}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md133}{}\doxysubsection{\texorpdfstring{Terminal 2:\+ Start RPC Server}{Terminal 2:\+ Start RPC Server}}\label{md__s_e_t_u_p_autotoc_md133}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ run-\/rpc}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Expected\ output:}
+\DoxyCodeLine{\#\ ===\ OmniBus\ RPC\ Server\ ===}
+\DoxyCodeLine{\#\ Listening\ on:\ http://localhost:8332}
+\DoxyCodeLine{\#\ WebSocket:\ ws://localhost:8333}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md134}{}\doxysubsection{\texorpdfstring{Terminal 3:\+ Start Frontend}{Terminal 3:\+ Start Frontend}}\label{md__s_e_t_u_p_autotoc_md134}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ run-\/frontend}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Expected\ output:}
+\DoxyCodeLine{\#\ VITE\ v4.3.0\ \ ready\ in\ 123\ ms}
+\DoxyCodeLine{\#\ ➜\ \ Local:\ \ \ http://localhost:5173/}
+\DoxyCodeLine{\#\ ➜\ \ Press\ q\ +\ enter\ to\ stop}
+
+\end{DoxyCode}
+
+
+{\bfseries{Visit:\+}} \href{http://localhost:5173}{\texttt{http:\+/\+/\+localhost:\+5173}}
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md136}{}\doxysection{\texorpdfstring{Test the System}{Test the System}}\label{md__s_e_t_u_p_autotoc_md136}
+\hypertarget{md__s_e_t_u_p_autotoc_md137}{}\doxysubsection{\texorpdfstring{Run Unit Tests}{Run Unit Tests}}\label{md__s_e_t_u_p_autotoc_md137}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ test}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Expected\ output:}
+\DoxyCodeLine{\#\ Running\ Zig\ tests...}
+\DoxyCodeLine{\#\ blockchain\_test.zig:}
+\DoxyCodeLine{\#\ \ \ ✓\ blockchain\ initialization}
+\DoxyCodeLine{\#\ \ \ ✓\ block\ mining}
+\DoxyCodeLine{\#\ \ \ ✓\ wallet\ initialization}
+\DoxyCodeLine{\#\ \ \ ✓\ wallet\ addresses\ (5\ PQ\ domains)}
+\DoxyCodeLine{\#\ \ \ ✓\ transaction\ validation}
+\DoxyCodeLine{\#\ \ \ ✓\ invalid\ transaction\ (zero\ amount)}
+\DoxyCodeLine{\#\ \ \ ✓\ invalid\ transaction\ (invalid\ address)}
+\DoxyCodeLine{\#\ ✅\ Tests\ passed}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md138}{}\doxysubsection{\texorpdfstring{Test RPC Endpoints (via curl)}{Test RPC Endpoints (via curl)}}\label{md__s_e_t_u_p_autotoc_md138}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Get\ block\ count}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://localhost:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getblockcount"{},"{}params"{}:[],"{}id"{}:1\}'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Get\ latest\ block}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://localhost:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getlatestblock"{},"{}params"{}:[],"{}id"{}:1\}'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Get\ wallet\ balance}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://localhost:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getbalance"{},"{}params"{}:[],"{}id"{}:1\}'}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md140}{}\doxysection{\texorpdfstring{Project Structure}{Project Structure}}\label{md__s_e_t_u_p_autotoc_md140}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmniBus-\/BlockChainCore/}
+\DoxyCodeLine{├──\ core/}
+\DoxyCodeLine{│\ \ \ ├──\ main.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Start\ here\ (mining\ loop)}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain.zig\ \ \ \ \ \ \ \ \ \ \ ←\ Core\ logic}
+\DoxyCodeLine{│\ \ \ ├──\ block.zig}
+\DoxyCodeLine{│\ \ \ ├──\ transaction.zig}
+\DoxyCodeLine{│\ \ \ ├──\ wallet.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ 5\ PQ\ addresses}
+\DoxyCodeLine{│\ \ \ ├──\ rpc\_server.zig\ \ \ \ \ \ \ \ \ \ \ ←\ JSON-\/RPC\ endpoint}
+\DoxyCodeLine{│\ \ \ └──\ crypto.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ TODO\ (Phase\ 2)}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ agent/}
+\DoxyCodeLine{│\ \ \ ├──\ agent\_manager.zig\ \ \ \ \ \ \ \ ←\ Multi-\/client\ coordinator}
+\DoxyCodeLine{│\ \ \ └──\ trading\_agent.zig\ \ \ \ \ \ \ \ ←\ TODO\ (Phase\ 5)}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ frontend/}
+\DoxyCodeLine{│\ \ \ ├──\ src/}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ pages/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ TODO\ (Phase\ 4)}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ components/\ \ \ \ \ \ \ \ \ \ ←\ TODO\ (Phase\ 4)}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ api/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ RPC\ client\ wrapper\ (TODO)}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ main.tsx\ \ \ \ \ \ \ \ \ \ \ \ \ ←\ TODO}
+\DoxyCodeLine{│\ \ \ ├──\ index.html}
+\DoxyCodeLine{│\ \ \ └──\ package.json}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ test/}
+\DoxyCodeLine{│\ \ \ └──\ blockchain\_test.zig\ \ \ \ \ \ ←\ Unit\ tests}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ build.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Zig\ build\ config}
+\DoxyCodeLine{├──\ Makefile\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ 15+\ targets}
+\DoxyCodeLine{├──\ CLAUDE.md\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Dev\ guide\ (300+\ lines)}
+\DoxyCodeLine{└──\ README.md}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md142}{}\doxysection{\texorpdfstring{What to Do Next}{What to Do Next}}\label{md__s_e_t_u_p_autotoc_md142}
+\hypertarget{md__s_e_t_u_p_autotoc_md143}{}\doxysubsection{\texorpdfstring{Phase 1 Tasks (Current Week)}{Phase 1 Tasks (Current Week)}}\label{md__s_e_t_u_p_autotoc_md143}
+
+\begin{DoxyEnumerate}
+\item ✅ Create project structure
+\item ✅ Build all components
+\item {\bfseries{Next:\+}} Run blockchain + verify mining works
+\item {\bfseries{Then:\+}} Run RPC server and test endpoints
+\item {\bfseries{Then:\+}} Verify wallet generates 5 OMNI addresses
+\item {\bfseries{Finally:\+}} Run frontend (basic skeleton)
+\end{DoxyEnumerate}\hypertarget{md__s_e_t_u_p_autotoc_md144}{}\doxysubsection{\texorpdfstring{Phase 2 Tasks (Week 2)}{Phase 2 Tasks (Week 2)}}\label{md__s_e_t_u_p_autotoc_md144}
+
+\begin{DoxyItemize}
+\item Implement real HD wallet (BIP-\/32/\+39)
+\item Add cryptographic signing (Dilithium-\/5, Kyber-\/768)
+\item Encrypt private keys
+\item Test key derivation for all 5 domains
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md145}{}\doxysubsection{\texorpdfstring{Phase 3 Tasks (Week 3)}{Phase 3 Tasks (Week 3)}}\label{md__s_e_t_u_p_autotoc_md145}
+
+\begin{DoxyItemize}
+\item Add Rocks\+DB persistence
+\item Implement block storage
+\item Add transaction indexing
+\item Implement node-\/to-\/node sync
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md146}{}\doxysubsection{\texorpdfstring{Phase 4 Tasks (Week 4)}{Phase 4 Tasks (Week 4)}}\label{md__s_e_t_u_p_autotoc_md146}
+
+\begin{DoxyItemize}
+\item Build React explorer UI
+\item Build web wallet interface
+\item Add real-\/time Web\+Socket updates
+\item Style with Tailwind\+CSS
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md147}{}\doxysubsection{\texorpdfstring{Phase 5 Tasks (Week 5)}{Phase 5 Tasks (Week 5)}}\label{md__s_e_t_u_p_autotoc_md147}
+
+\begin{DoxyItemize}
+\item Complete agent\+\_\+manager.\+zig
+\item Add trading strategy framework
+\item Integrate with Omni\+Bus bare-\/metal system
+\item Test multi-\/client coordination
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md149}{}\doxysection{\texorpdfstring{Files to Focus On}{Files to Focus On}}\label{md__s_e_t_u_p_autotoc_md149}
+{\bfseries{To Build \& Run (Already Complete):\+}}
+\begin{DoxyItemize}
+\item ✅ core/\+main.\+zig
+\item ✅ core/\+blockchain.\+zig
+\item ✅ core/\+wallet.\+zig
+\item ✅ core/\+rpc\+\_\+server.\+zig
+\item ✅ agent/\+agent\+\_\+manager.\+zig
+\end{DoxyItemize}
+
+{\bfseries{To Implement Next (Phase 2):\+}}
+\begin{DoxyItemize}
+\item ⏳ core/\+crypto.\+zig -\/ SHA256, signing algorithms
+\item ⏳ core/\+mempool.\+zig -\/ TX pool optimizations
+\end{DoxyItemize}
+
+{\bfseries{To Enhance (Phase 3+):\+}}
+\begin{DoxyItemize}
+\item ⏳ Rocks\+DB integration
+\item ⏳ Node-\/to-\/node P2P protocol
+\item ⏳ Full JSON-\/\+RPC 2.\+0 spec
+\item ⏳ Frontend React components
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md151}{}\doxysection{\texorpdfstring{Blockchain Parameters (Reference)}{Blockchain Parameters (Reference)}}\label{md__s_e_t_u_p_autotoc_md151}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  \\
+Block Time  &10 seconds  \\
+Block Size  &1 MB  \\
+Difficulty  &Dynamic (starts:\+ 4 leading zeros)  \\
+Supply  &21 million OMNI  \\
+Block Reward  &50 OMNI (halving every 210k blocks)  \\
+SAT per OMNI  &100,000,000  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md153}{}\doxysection{\texorpdfstring{RPC Methods (Phase 1)}{RPC Methods (Phase 1)}}\label{md__s_e_t_u_p_autotoc_md153}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Method  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Purpose  \\
+{\ttfamily getblockcount}  &Total blocks mined  \\
+{\ttfamily getblock}  &Get specific block by index  \\
+{\ttfamily getlatestblock}  &Get newest block  \\
+{\ttfamily getbalance}  &Wallet balance in SAT  \\
+{\ttfamily sendtransaction}  &Submit transaction  \\
+{\ttfamily gettransaction}  &Get TX by ID  \\
+{\ttfamily getmempoolsize}  &Pending transactions count  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md155}{}\doxysection{\texorpdfstring{Git Setup}{Git Setup}}\label{md__s_e_t_u_p_autotoc_md155}
+\hypertarget{md__s_e_t_u_p_autotoc_md156}{}\doxysubsection{\texorpdfstring{Initialize Repository}{Initialize Repository}}\label{md__s_e_t_u_p_autotoc_md156}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ /home/kiss/OmniBus-\/BlockChainCore}
+\DoxyCodeLine{git\ init}
+\DoxyCodeLine{git\ add\ -\/A}
+\DoxyCodeLine{git\ commit\ -\/m\ "{}Phase\ 73:\ OmniBus\ BlockChain\ Core\ -\/\ Initial\ Project\ Structure}
+\DoxyCodeLine{}
+\DoxyCodeLine{Core\ blockchain\ engine\ in\ Zig\ with:}
+\DoxyCodeLine{-\/\ Proof-\/of-\/Work\ consensus\ (10s\ blocks)}
+\DoxyCodeLine{-\/\ 5\ post-\/quantum\ address\ domains\ per\ wallet}
+\DoxyCodeLine{-\/\ JSON-\/RPC\ 2.0\ server}
+\DoxyCodeLine{-\/\ Multi-\/client\ agent\ system}
+\DoxyCodeLine{}
+\DoxyCodeLine{Frontend\ structure\ ready\ for\ Phase\ 4.}
+\DoxyCodeLine{}
+\DoxyCodeLine{Co-\/Authored-\/By:\ OmniBus\ AI\ v1.stable\ <learn@omnibus.ai>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Google\ Gemini\ <gemini-\/cli-\/agent@google.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ DeepSeek\ AI\ <noreply@deepseek.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Haiku\ (Code)\ <claude-\/code@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Haiku\ <haiku-\/4.5@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Sonnet\ <sonnet-\/4.5@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Opus\ <opus-\/4.5@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Perplexity\ AI\ <support@perplexity.ai>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Ollama\ <hello@ollama.com>"{}}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md157}{}\doxysubsection{\texorpdfstring{Push to Git\+Hub}{Push to Git\+Hub}}\label{md__s_e_t_u_p_autotoc_md157}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ remote\ add\ origin\ https://github.com/yourusername/OmniBus-\/BlockChainCore.git}
+\DoxyCodeLine{git\ branch\ -\/M\ main}
+\DoxyCodeLine{git\ push\ -\/u\ origin\ main}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md159}{}\doxysection{\texorpdfstring{Troubleshooting}{Troubleshooting}}\label{md__s_e_t_u_p_autotoc_md159}
+\hypertarget{md__s_e_t_u_p_autotoc_md160}{}\doxysubsection{\texorpdfstring{"{}\+Command not found:\+ zig"{}}{"{}\+Command not found:\+ zig"{}}}\label{md__s_e_t_u_p_autotoc_md160}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Install\ Zig\ from:\ https://ziglang.org/download}
+\DoxyCodeLine{\#\ Or\ use\ package\ manager:}
+\DoxyCodeLine{\#\ macOS:\ brew\ install\ zig}
+\DoxyCodeLine{\#\ Linux:\ apt\ install\ zig\ (if\ available)}
+\DoxyCodeLine{\#\ Windows:\ Download\ from\ ziglang.org}
+
+\end{DoxyCode}
+\hypertarget{md__s_e_t_u_p_autotoc_md161}{}\doxysubsection{\texorpdfstring{"{}\+Build fails with linking error"{}}{"{}\+Build fails with linking error"{}}}\label{md__s_e_t_u_p_autotoc_md161}
+
+\begin{DoxyItemize}
+\item Ensure Zig 0.\+15.\+2+ installed
+\item Clean build:\+ {\ttfamily make clean \&\& make build-\/core}
+\item Check file paths in build.\+zig
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md162}{}\doxysubsection{\texorpdfstring{"{}\+RPC server won\textquotesingle{}t start"{}}{"{}\+RPC server won\textquotesingle{}t start"{}}}\label{md__s_e_t_u_p_autotoc_md162}
+
+\begin{DoxyItemize}
+\item Port 8332 already in use:\+ {\ttfamily lsof -\/i :\+8332}
+\item Kill other process:\+ {\ttfamily pkill -\/f omnibus-\/rpc}
+\item Try different port:\+ Edit rpc\+\_\+server.\+zig
+\end{DoxyItemize}\hypertarget{md__s_e_t_u_p_autotoc_md163}{}\doxysubsection{\texorpdfstring{"{}\+Frontend won\textquotesingle{}t load"{}}{"{}\+Frontend won\textquotesingle{}t load"{}}}\label{md__s_e_t_u_p_autotoc_md163}
+
+\begin{DoxyItemize}
+\item Ensure Node.\+js 18+ installed
+\item Clear npm cache:\+ {\ttfamily npm cache clean -\/-\/force}
+\item Reinstall:\+ {\ttfamily cd frontend \&\& rm -\/rf node\+\_\+modules \&\& npm install}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__s_e_t_u_p_autotoc_md165}{}\doxysection{\texorpdfstring{Resources}{Resources}}\label{md__s_e_t_u_p_autotoc_md165}
+
+\begin{DoxyItemize}
+\item {\bfseries{Zig Docs:\+}} \href{https://ziglang.org/documentation/master/}{\texttt{https:\+/\+/\+ziglang.\+org/\+documentation/\+master/\+}}
+\item {\bfseries{Bitcoin Mining:\+}} \href{https://en.bitcoin.it/wiki/Proof_of_work}{\texttt{https:\+/\+/\+en.\+bitcoin.\+it/\+wiki/\+\+Proof\+\_\+of\+\_\+work}}
+\item {\bfseries{BIP-\/32 Wallets:\+}} \href{https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki}{\texttt{https:\+/\+/\+github.\+com/\+bitcoin/\+bips/\+blob/\+master/\+bip-\/0032.\+mediawiki}}
+\item {\bfseries{JSON-\/\+RPC 2.\+0:\+}} \href{https://www.jsonrpc.org/specification}{\texttt{https:\+/\+/\+www.\+jsonrpc.\+org/\+specification}}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Ready to build?}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ /home/kiss/OmniBus-\/BlockChainCore}
+\DoxyCodeLine{make\ help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ See\ all\ options}
+\DoxyCodeLine{make\ build\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Compile\ everything}
+\DoxyCodeLine{make\ run-\/node\ \ \ \ \ \ \ \ \ \ \ \#\ Start\ mining!}
+
+\end{DoxyCode}
+
+
+🚀 {\bfseries{Phase 1 Complete -\/ Ready for Execution!}} 

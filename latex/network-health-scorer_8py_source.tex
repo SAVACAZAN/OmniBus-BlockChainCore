@@ -1,0 +1,76 @@
+\doxysection{network-\/health-\/scorer.py}
+\hypertarget{network-health-scorer_8py_source}{}\label{network-health-scorer_8py_source}\index{tools/AI/network-\/health-\/scorer.py@{tools/AI/network-\/health-\/scorer.py}}
+\doxymbox{\hyperlink{network-health-scorer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00001}\doxymbox{\hyperlink{namespacenetwork-health-scorer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00002}\doxymbox{\hyperlink{namespacenetwork}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Network\ Health\ Scorer}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00005}00005\ \textcolor{stringliteral}{Scoring\ model:\ peer\ count,\ block\ propagation\ time,\ mempool\ size\ -\/>\ health\ score\ 0-\/100.}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00006}00006\ \textcolor{stringliteral}{Outputs:\ health-\/score.json}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00011}00011\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00012}00012\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00014}\doxymbox{\hyperlink{namespacenetwork-health-scorer_a8e0c12b499da2281555f3cd922fbe71c}{00014}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00015}\doxymbox{\hyperlink{namespacenetwork-health-scorer_a202d502df581e7c2d7b780a22f575333}{00015}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00016}\doxymbox{\hyperlink{namespacenetwork-health-scorer_a0054f3671d657391eb90f842997147d9}{00016}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00017}\doxymbox{\hyperlink{namespacenetwork-health-scorer_abc7af8af56f4d2cdfbc26010726107d1}{00017}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00020}\doxymbox{\hyperlink{namespacenetwork-health-scorer_acd59877dca2a9957888013a6f06aab6d}{00020}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-health-scorer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00021}00021\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00024}\doxymbox{\hyperlink{namespacenetwork-health-scorer_a3451e34cbf80cc04ba7aa698acd2c626}{00024}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-health-scorer_a3451e34cbf80cc04ba7aa698acd2c626}{compute\_health}}(peer\_count:\ int,\ propagation\_ms:\ float,\ mempool\_size:\ int)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00025}00025\ \ \ \ \ \textcolor{comment}{\#\ Peer\ score:\ 0\ peers\ =\ 0,\ 8+\ peers\ =\ 40}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00026}00026\ \ \ \ \ peer\_score\ =\ min(40,\ peer\_count\ *\ 5)}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00028}00028\ \ \ \ \ \textcolor{comment}{\#\ Propagation\ score:\ <100ms\ =\ 30,\ >1000ms\ =\ 0}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00029}00029\ \ \ \ \ prop\_score\ =\ max(0,\ 30\ -\/\ int((max(0,\ propagation\_ms\ -\/\ 100))\ /\ 30))}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00031}00031\ \ \ \ \ \textcolor{comment}{\#\ Mempool\ score:\ 0\ txs\ =\ 0,\ 1000+\ txs\ =\ 30}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00032}00032\ \ \ \ \ mempool\_score\ =\ min(30,\ mempool\_size\ //\ 33)}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00034}00034\ \ \ \ \ total\ =\ peer\_score\ +\ prop\_score\ +\ mempool\_score}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00035}00035\ \ \ \ \ status\ =\ \textcolor{stringliteral}{"{}HEALTHY"{}}\ \textcolor{keywordflow}{if}\ total\ >=\ 80\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}DEGRADED"{}}\ \textcolor{keywordflow}{if}\ total\ >=\ 50\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}CRITICAL"{}}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peer\_count"{}}:\ peer\_count,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}propagation\_ms"{}}:\ propagation\_ms,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mempool\_size"{}}:\ mempool\_size,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peer\_score"{}}:\ peer\_score,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}propagation\_score"{}}:\ prop\_score,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mempool\_score"{}}:\ mempool\_score,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_score"{}}:\ total,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}status"{}}:\ status,}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00045}00045\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00048}\doxymbox{\hyperlink{namespacenetwork-health-scorer_a7431cb90017e54fe695b23d4190db046}{00048}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-health-scorer_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00049}00049\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Score\ OmniBus\ network\ health"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00050}00050\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/peers"{}},\ type=int,\ default=8,\ help=\textcolor{stringliteral}{"{}Number\ of\ connected\ peers"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00051}00051\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/propagation-\/ms"{}},\ type=float,\ default=150,\ help=\textcolor{stringliteral}{"{}Block\ propagation\ time\ ms"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00052}00052\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/mempool"{}},\ type=int,\ default=1200,\ help=\textcolor{stringliteral}{"{}Mempool\ transaction\ count"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00053}00053\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}health-\/score.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00054}00054\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00056}00056\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-health-scorer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Network\ Health\ Scorer\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00057}00057\ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespacenetwork-health-scorer_a3451e34cbf80cc04ba7aa698acd2c626}{compute\_health}}(args.peers,\ args.propagation\_ms,\ args.mempool)}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00059}00059\ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}HEALTHY"{}}\ \textcolor{keywordflow}{else}\ YELLOW\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}DEGRADED"{}}\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00060}00060\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-health-scorer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color,\ f\textcolor{stringliteral}{"{}Score:\ \{report['total\_score']\}/100\ (\{report['status']\})"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00061}00061\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-health-scorer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}\ \ Peers:\ \{report['peer\_score']\}\ pts\ |\ Propagation:\ \{report['propagation\_score']\}\ pts\ |\ Mempool:\ \{report['mempool\_score']\}\ pts"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00063}00063\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00065}00065\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-health-scorer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nReport\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00069}00069\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{network-health-scorer_8py_source_l00070}00070\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacenetwork-health-scorer_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

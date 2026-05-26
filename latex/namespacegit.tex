@@ -1,0 +1,25 @@
+\doxysection{git Namespace Reference}
+\hypertarget{namespacegit}{}\label{namespacegit}\index{git@{git}}
+
+
+-\/zig-\/evolution  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/zig-\/evolution 
+
+\begin{DoxyVerb}git-zig-evolution.py
+
+Analyze the evolution of core/*.zig modules over git history.
+Computes:
+  - Lines of code (LOC) per module over time
+  - Commit/fix frequency per module (proxy for instability)
+  - Complexity score (branching + function count) per module over time
+  - Allocation divergence detection (introduction of allocator usage in
+    previously bare-metal modules)
+
+Outputs: evolution-report.json
+\end{DoxyVerb}
+ 

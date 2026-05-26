@@ -1,0 +1,72 @@
+\chapter{Contributing to Recharts }
+\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g}{}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g}\index{Contributing to Recharts@{Contributing to Recharts}}
+\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8570}%
+\Hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8570}%
+
+
+\doxylink{namespace_we}{We}\textquotesingle{}d love for you to contribute to our source code and to make Recharts even better than it is today! Here are the guidelines we\textquotesingle{}d like you to follow:\+
+
+
+\begin{DoxyItemize}
+\item Issues and BugsIssues and Bugs
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item TestingTesting
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Pull RequestsPull Requests
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Code GuideCode Guide
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item LicenseLicense
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8571}{}\doxysection{\texorpdfstring{Ongoing Initiatives}{Ongoing Initiatives}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8571}
+\doxylink{namespace_we}{We} use Github Discussion to organize our discussion along new initiatives and organize ourselves. Please do check the \href{https://github.com/recharts/recharts/discussions/categories/announcements}{\texttt{announcements}} section for an overview of recent initiatives.\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8572}{}\doxysection{\texorpdfstring{\label{_issues}%
+Issues and Bugs}{\label{_issues}%
+Issues and Bugs}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8572}
+\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8573}{}\doxysubsection{\texorpdfstring{Where to Find Known Issues}{Where to Find Known Issues}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8573}
+\doxylink{namespace_we}{We} will be using \href{https://github.com/recharts/recharts/issues}{\texttt{Git\+Hub Issues}} for our bugs and feature requests. \doxylink{namespace_we}{We} will keep a close eye on this and try to make it clear when we have an internal fix in progress. Before filing a new task, try to make sure your problem doesn\textquotesingle{}t already exist.\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8574}{}\doxysubsection{\texorpdfstring{Reporting New Issues}{Reporting New Issues}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8574}
+The best way to get your bug fixed is to provide a reduced test case. codesandbox provide a way to give live examples. You can fork our example in \href{http://recharts.org/}{\texttt{recharts.\+org}} to show your case.\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8575}{}\doxysection{\texorpdfstring{\label{_testing}%
+Testing}{\label{_testing}%
+Testing}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8575}
+\doxylink{namespace_we}{We} do cherish tests. They help us move swiftly, and release with confidence. In our repo, you will find three types of tests:\+ Unit tests, rendering tests with RTL, and user interaction tests in storybook. Wherever possible we prefer the simplest tests -\/ unit tests. Only where needed /\+ useful we would use RTL or storybook tests.\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8576}{}\doxysubsection{\texorpdfstring{Unit tests}{Unit tests}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8576}
+When implementing a new feature we would prefer to extract pure helper function for data processing. Such functions are found a few utils files. An example is {\ttfamily test/\+util/\+\+Shallow\+Equal.\+spec.\+ts}\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8577}{}\doxysubsection{\texorpdfstring{React Testing Library}{React Testing Library}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8577}
+Some behaviour must be tested upon rendering, such as interactions between components (Line, Tooltip), see {\ttfamily test/\+component/\+\+Tooltip.\+spec.\+tsx} for an example.\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8578}{}\doxysubsection{\texorpdfstring{Storybook Test Runner}{Storybook Test Runner}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8578}
+Storybook also has a great interface for adding tests. By default every story in storybook is a smoke test (rendering without error logs means the test passed). Additionally, it is possible to add actual tests as play functions with an assert to a story. This will often be easier than using React Testing Library, because the natural test debugging tool is Storybook itself. See for example {\ttfamily storybook/\+stories/\+\+Examples/\+cartesian/\+\+Reference\+Line/\+\+Reference\+Line\+If\+Overflow.\+stories.\+tsx}\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8579}{}\doxysubsection{\texorpdfstring{Performance tests}{Performance tests}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8579}
+Recharts uses (\href{https://callstack.github.io/reassure/}{\texttt{https:\+/\+/\+callstack.\+github.\+io/\+reassure/\+}})\+[Reassure]\+ to run performance tests. Here is how to use:\+
+
+
+\begin{DoxyEnumerate}
+\item Before making code changes, run {\ttfamily npm run test:\+perf:\+baseline}. This will generate baseline data. You only do this once for each change.
+\item Make your code changes now
+\item Run {\ttfamily npm \doxylink{namespacetest}{test}:\+perf}. Reassure will run tests again, compare with the baseline from step 1. and print results to the console. If you wish you can also review the results in a markdown file in path {\ttfamily ./\+reassure/\+output.md}.
+\item If you are satisfied with the performance impact then go ahead and commit! If you wish to make more changes go back to step 2.
+\end{DoxyEnumerate}
+
+Reassure will look for {\ttfamily \texorpdfstring{$\ast$}{*}.perf-\/test.\+tsx} files by default.
+
+Also be aware that the performance tests might take a long time to run; up to several minutes.\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8580}{}\doxysection{\texorpdfstring{\label{_pr}%
+Pull Requests}{\label{_pr}%
+Pull Requests}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8580}
+{\bfseries{Working on your first Pull Request?}} You can learn how from this {\itshape free} series \href{https://app.egghead.io/playlists/how-to-contribute-to-an-open-source-project-on-github}{\texttt{How to Contribute to an Open Source Project on Git\+Hub}}
+
+{\itshape Before} submitting a pull request, please make sure the following is done…
+
+
+\begin{DoxyItemize}
+\item Search \href{https://github.com/recharts/recharts/pulls}{\texttt{Git\+Hub}} for an open or closed Pull Request that relates to your submission. You don\textquotesingle{}t want to duplicate effort.
+\item Fork the repo and create your branch from {\ttfamily master}.
+\item If you have added functionality or changed existing functionality, be sure to add a test. Ideally a unit test for helper function, or a test that includes rendering with RTL.
+\item If you\textquotesingle{}ve changed APIs, make sure that the stories in Storybook are working as expected.
+\item Ensure the test suite passes ({\ttfamily npm run \doxylink{namespacetest}{test}}).
+\item Make sure your code lints ({\ttfamily npm run lint}) -\/ we\textquotesingle{}ve done our best to make sure these rules match our internal linting guidelines.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8581}{}\doxysection{\texorpdfstring{\label{_code}%
+Code Guide}{\label{_code}%
+Code Guide}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8581}
+Our linter will catch most styling issues that may exist in your code. You can check the status of your code styling by running:\+ {\ttfamily npm run lint}
+
+However, there are still some styles that the linter cannot pick up. If you are unsure about something, looking at \href{https://github.com/airbnb/javascript}{\texttt{Airbnb\textquotesingle{}s Style Guide}} will guide you in the right direction.\hypertarget{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8582}{}\doxysection{\texorpdfstring{\label{_license}%
+License}{\label{_license}%
+License}}\label{md_frontend_2node__modules_2recharts_2_c_o_n_t_r_i_b_u_t_i_n_g_autotoc_md8582}
+By contributing to Recharts, you agree that your contributions will be licensed under its MIT license. 

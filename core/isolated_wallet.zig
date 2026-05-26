@@ -33,8 +33,8 @@ pub const Scheme = enum(u8) {
     omni_ecdsa = 0,
     love_dilithium = 1,
     food_falcon = 2,
-    rent_slh_dsa = 3,
-    vacation_kem = 4,
+    rent_ml_dsa = 3,
+    vacation_slh_dsa = 4,
     // PQ-OMNI — transferable OMNI wallets protected by post-quantum sigs.
     // Added 2026-04-30. Same balance semantics as omni_ecdsa (transferable,
     // any address can send/receive OMNI), only the signature verification
@@ -64,8 +64,8 @@ pub const Scheme = enum(u8) {
             .omni_ecdsa => "ob1q",
             .love_dilithium => "ob_k1_",
             .food_falcon => "ob_f5_",
-            .rent_slh_dsa => "ob_d5_",
-            .vacation_kem => "ob_s3_",
+            .rent_ml_dsa => "ob_d5_",
+            .vacation_slh_dsa => "ob_s3_",
             // PQ-OMNI transferable (Phase 1 — verifica DOAR PQ signature):
             // prefixele dispar de underscore-ul de la inceput, sa nu se confunde
             // vizual cu cele 4 PQ soulbound (ob_k1_/ob_f5_/ob_d5_/ob_s3_).
@@ -96,8 +96,8 @@ pub const Scheme = enum(u8) {
         if (std.mem.startsWith(u8, addr, "ob1q")) return .omni_ecdsa;
         if (std.mem.startsWith(u8, addr, "ob_k1_")) return .love_dilithium;
         if (std.mem.startsWith(u8, addr, "ob_f5_")) return .food_falcon;
-        if (std.mem.startsWith(u8, addr, "ob_d5_")) return .rent_slh_dsa;
-        if (std.mem.startsWith(u8, addr, "ob_s3_")) return .vacation_kem;
+        if (std.mem.startsWith(u8, addr, "ob_d5_")) return .rent_ml_dsa;
+        if (std.mem.startsWith(u8, addr, "ob_s3_")) return .vacation_slh_dsa;
         // PQ-OMNI / Hybrid: fara underscore initial
         // Schema = pq_omni_* (Phase 1) DAR walletul poate semna ca hybrid (Phase 2).
         // Returnam pq_omni_* aici si chain-ul distinge schema reala din TX.scheme.
@@ -125,8 +125,8 @@ pub const Scheme = enum(u8) {
             .hybrid_q4 => true,
             .love_dilithium,
             .food_falcon,
-            .rent_slh_dsa,
-            .vacation_kem => false,
+            .rent_ml_dsa,
+            .vacation_slh_dsa => false,
         };
     }
 
@@ -203,11 +203,11 @@ pub const IsolatedWallet = struct {
         errdefer freeDomain(wallet.food, allocator);
 
         // RENT — SLH-DSA (SPHINCS+)
-        wallet.rent = try generateDomain(allocator, .rent_slh_dsa);
+        wallet.rent = try generateDomain(allocator, .rent_ml_dsa);
         errdefer freeDomain(wallet.rent, allocator);
 
         // VACATION — ML-KEM (Kyber) — doar encapsulation, nu signing
-        wallet.vacation = try generateDomain(allocator, .vacation_kem);
+        wallet.vacation = try generateDomain(allocator, .vacation_slh_dsa);
         errdefer freeDomain(wallet.vacation, allocator);
 
         return wallet;
@@ -231,9 +231,9 @@ pub const IsolatedWallet = struct {
         errdefer freeDomain(wallet.love, allocator);
         wallet.food = try restoreDomain(allocator, .food_falcon, food_mnemonic);
         errdefer freeDomain(wallet.food, allocator);
-        wallet.rent = try restoreDomain(allocator, .rent_slh_dsa, rent_mnemonic);
+        wallet.rent = try restoreDomain(allocator, .rent_ml_dsa, rent_mnemonic);
         errdefer freeDomain(wallet.rent, allocator);
-        wallet.vacation = try restoreDomain(allocator, .vacation_kem, vacation_mnemonic);
+        wallet.vacation = try restoreDomain(allocator, .vacation_slh_dsa, vacation_mnemonic);
         errdefer freeDomain(wallet.vacation, allocator);
 
         return wallet;
@@ -364,7 +364,7 @@ pub const IsolatedWallet = struct {
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
                 pq_sk = try allocator.dupe(u8, &kp.secret_key);
             },
-            .rent_slh_dsa => {
+            .rent_ml_dsa => {
                 var sk_seed: [32]u8 = undefined;
                 var sk_prf: [32]u8 = undefined;
                 var pk_seed: [32]u8 = undefined;
@@ -380,10 +380,10 @@ pub const IsolatedWallet = struct {
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
                 pq_sk = try allocator.dupe(u8, &kp.secret_key);
             },
-            .vacation_kem => {
+            .vacation_slh_dsa => {
                 // Soulbound vacation mirrors transferable obs3_ (Dilithium-5)
                 // — both use ML-DSA-87 signing for design consistency. The
-                // legacy enum name `vacation_kem` is kept for backwards
+                // legacy enum name `vacation_slh_dsa` is kept for backwards
                 // compatibility but no longer means ML-KEM. KEM remains
                 // available as a separate primitive in pq_crypto for
                 // encryption use cases that don't need an on-chain address.
@@ -395,10 +395,12 @@ pub const IsolatedWallet = struct {
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
                 pq_sk = try allocator.dupe(u8, &kp.secret_key);
             },
-            // PQ-OMNI — same primitives as the soulbound slots but at
-            // separate accounts. Mnemonic input here is already a per-domain
-            // seed (caller passes a hex string per BIP-44 account 5'..8').
-            // The derivation logic mirrors the matching reputation slot.
+            // PQ-OMNI transferable — same coin_type as the matching soulbound
+            // slot (778=LOVE/Q1, 779=FOOD/Q2, 780=RENT/Q3, 781=VACATION/Q4),
+            // but BIP-44 account=1 (soulbound uses account=0). Authoritative
+            // mapping lives in `omnibus-crypto-core/rust/src/pq_addresses.rs`.
+            // Mnemonic input here is the per-domain seed (caller derived it
+            // with the correct account already).
             .pq_omni_ml_dsa, .pq_omni_dilithium => {
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
@@ -583,12 +585,12 @@ pub fn verifySignature(scheme: Scheme, message: []const u8, signature: []const u
         .pq_omni_dilithium => verifyLoveSignature(message, signature, public_key),
         .pq_omni_falcon => verifyFoodSignature(message, signature, public_key),
         .pq_omni_slh_dsa => verifyRentSignature(message, signature, public_key),
-        .rent_slh_dsa => verifyRentSignature(message, signature, public_key),
-        // vacation_kem (legacy name) now uses ML-DSA-87 signing — same as
+        .rent_ml_dsa => verifyRentSignature(message, signature, public_key),
+        // vacation_slh_dsa (legacy name) now uses ML-DSA-87 signing — same as
         // its transferable mirror obs3_. Verification reuses verifyLoveSignature
         // (also ML-DSA-87). Old TXs signed with the previous KEM-only impl
         // are not on-chain (soulbound vacation had no balance/TX path).
-        .vacation_kem => verifyLoveSignature(message, signature, public_key),
+        .vacation_slh_dsa => verifyLoveSignature(message, signature, public_key),
         // Hybrid schemes folosesc verifyHybridSignature (2 pubkeys, sig combinata).
         // Daca cineva apeleaza verifySignature pe un scheme hybrid, returnam false —
         // single-pubkey API e insuficient pt defense-in-depth.
@@ -803,8 +805,8 @@ test "Scheme.fromAddress round-trip" {
     try testing.expectEqual(Scheme.omni_ecdsa, Scheme.fromAddress("ob1qxxx").?);
     try testing.expectEqual(Scheme.love_dilithium, Scheme.fromAddress("ob_k1_xxx").?);
     try testing.expectEqual(Scheme.food_falcon, Scheme.fromAddress("ob_f5_xxx").?);
-    try testing.expectEqual(Scheme.rent_slh_dsa, Scheme.fromAddress("ob_d5_xxx").?);
-    try testing.expectEqual(Scheme.vacation_kem, Scheme.fromAddress("ob_s3_xxx").?);
+    try testing.expectEqual(Scheme.rent_ml_dsa, Scheme.fromAddress("ob_d5_xxx").?);
+    try testing.expectEqual(Scheme.vacation_slh_dsa, Scheme.fromAddress("ob_s3_xxx").?);
     try testing.expectEqual(Scheme.hybrid_q1, Scheme.fromAddress("ob_h1_xxx").?);
     try testing.expectEqual(Scheme.hybrid_q2, Scheme.fromAddress("ob_h2_xxx").?);
     try testing.expectEqual(Scheme.hybrid_q3, Scheme.fromAddress("ob_h3_xxx").?);

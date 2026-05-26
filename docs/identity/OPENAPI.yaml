@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: OmniBus ID — RPC additions
+  version: 0.1.0
+servers:
+  - url: https://omnibusblockchain.cc:8443/api-mainnet
+  - url: https://omnibusblockchain.cc:8443/api-testnet
+paths:
+  /:
+    post:
+      summary: JSON-RPC dispatch (getdid, getobm, getmanifestroot, identity_forgetsalt)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [jsonrpc, id, method]
+              properties:
+                jsonrpc: { type: string, enum: ['2.0'] }
+                id: { type: integer }
+                method:
+                  type: string
+                  enum: [getdid, getobm, getmanifestroot, identity_forgetsalt]
+                params:
+                  type: array
+                  items: { type: string }
+      responses:
+        '200':
+          description: JSON-RPC response envelope
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jsonrpc: { type: string }
+                  id: { type: integer }
+                  result: { type: object }

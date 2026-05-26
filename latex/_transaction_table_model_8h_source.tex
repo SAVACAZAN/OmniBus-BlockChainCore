@@ -1,0 +1,35 @@
+\doxysection{Transaction\+Table\+Model.\+h}
+\hypertarget{_transaction_table_model_8h_source}{}\label{_transaction_table_model_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/models/TransactionTableModel.h@{archived-\/4-\/eterniti/gui-\/qt/src/models/TransactionTableModel.h}}
+\doxymbox{\hyperlink{_transaction_table_model_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QAbstractTableModel>}}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QList>}}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00007}00007\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00009}\doxymbox{\hyperlink{classomni_1_1_transaction_table_model}{00009}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_transaction_table_model_ad53d36ff57e5ceea7f67da62f52ec102}{TransactionTableModel}}\ :\ \textcolor{keyword}{public}\ QAbstractTableModel\ \{}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00010}00010\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00011}00011\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00012}\doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca717654a2b1fb860a6ceffc4f0ae73dd5}{00012}}\ \ \ \ \ \textcolor{keyword}{enum}\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dc}{Column}}\ \{\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcafd90a00bb7e59b49a05722cea09a0c5c}{ColDirection}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaa2dc2149eb48b0d1f3094381cbac4ec5}{ColTxId}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca70dda46252738d13da2802999a3d9d3a}{ColFrom}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaff02d67769be78f155aae811e58dc8c5}{ColTo}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca717654a2b1fb860a6ceffc4f0ae73dd5}{ColAmount}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca2e0ac75beca48344a30d68616ed2916f}{ColFee}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaba5d2997e47d1b608e8ce11ba96deab5}{ColConfirmations}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcab0068dc0e3e75fe748bea20b1e8173b7}{ColStatus}},\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca007006756123aa74681fd443f50080bc}{ColCount}}\ \};}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00014}00014\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_ad53d36ff57e5ceea7f67da62f52ec102}{TransactionTableModel}}(QObject*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00016}00016\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a0a28202b2d3664855863f98bcd52fc2f}{rowCount}}(\textcolor{keyword}{const}\ QModelIndex\&\ parent\ =\ \{\})\ \textcolor{keyword}{const}\ \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a3ffed436f3ebb0b340c87c4357f5ce54}{columnCount}}(\textcolor{keyword}{const}\ QModelIndex\&\ parent\ =\ \{\})\ \textcolor{keyword}{const}\ \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00018}00018\ \ \ \ \ QVariant\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a93b5de33471a8ec69df61baeaf133e55}{data}}(\textcolor{keyword}{const}\ QModelIndex\&\ index,\ \textcolor{keywordtype}{int}\ role\ =\ Qt::DisplayRole)\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00019}00019\ \ \ \ \ QVariant\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_ad23668aa9bfd55ed9f3488ab5fcdb216}{headerData}}(\textcolor{keywordtype}{int}\ section,\ Qt::Orientation\ orientation,\ \textcolor{keywordtype}{int}\ role\ =\ Qt::DisplayRole)\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a8e409c45595d5587e166ffa7bc8ca3c0}{setTransactions}}(\textcolor{keyword}{const}\ QList<TransactionData>\&\ txs);}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_af5688922676a19281ca270a40dbeafe9}{addTransaction}}(\textcolor{keyword}{const}\ TransactionData\&\ tx);}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00023}00023\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_ab3dc21427f4013cae4252361f5a9eae5}{clear}}();}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00025}00025\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00026}00026\ \ \ \ \ QList<TransactionData>\ m\_transactions;}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00027}00027\ \};}
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_transaction_table_model_8h_source_l00029}00029\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

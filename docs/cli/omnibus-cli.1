@@ -1,0 +1,251 @@
+.\" Manpage for omnibus-cli.
+.\" Source: core/cli_audit.zig
+.TH OMNIBUS-CLI 1 "2026-05-10" "OmniBus 0.3.0-dev" "User Commands"
+.SH NAME
+omnibus-cli \- OmniBus blockchain command-line audit client
+.SH SYNOPSIS
+.B omnibus-cli
+[\fIglobal-flags\fR] \fIsubcommand\fR [\fIargs\fR]
+.SH DESCRIPTION
+.B omnibus-cli
+is a pure-stdlib Zig binary that connects to a running
+.B omnibus-node
+via JSON-RPC HTTP (port 8332 mainnet, 18332 testnet, 28332 regtest) and
+prints balance breakdowns, stake activity, reputation snapshots, validator
+sets and per-day transaction reports \(em the same data the React
+.I DailyAuditPage
+shows, but without browser, WebSocket, or
+.I node_modules.
+.PP
+The binary is read-only: it never signs, broadcasts or mutates chain state.
+For signed flows (stake, swap, name register, agent register) use
+.B aweb3
+or send a signed payload via
+.BR curl (1).
+.SH GLOBAL FLAGS
+.TP
+.BI \-\-rpc " URL"
+Override RPC URL. Accepts
+.IR http://host[:port][/path]
+or
+.IR https://...
+(HTTPS routes through
+.BR curl (1)).
+Default
+.IR http://127.0.0.1:8332 .
+.TP
+.BI \-\-chain " NAME"
+Selects port:
+.B mainnet
+(8332),
+.B testnet
+(18332),
+.B regtest
+(28332). Default
+.BR mainnet .
+.TP
+.B \-\-remote
+Use
+.IR https://omnibusblockchain.cc:8443/api-{chain} .
+Requires
+.BR curl (1)
+in
+.BR PATH .
+.TP
+.BI \-\-token " BEARER"
+Sets
+.RI ` Authorization:\ Bearer\ <token>'
+header on all RPC requests.
+.TP
+.B \-\-json
+Emit raw JSON-RPC response (no pretty-print).
+.TP
+.B \-\-no-color
+Disable ANSI colors. Auto-disabled when stdout is not a TTY.
+.TP
+.BR \-h ", " \-\-help
+Print usage and exit.
+.SH SUBCOMMANDS
+.SS Chain inspection
+.TP
+.B health
+Print chain stats: height, tip hash, total supply, validator count, mempool
+size, peer count, current block reward, sync status. RPC:
+.IR getchainmetrics " + " getsyncstatus .
+.TP
+.B validators
+List all active validators with weight and entry block. RPC:
+.IR getvalidators .
+.TP
+.BI "stakers " "[limit=10]"
+Top stakers sorted by amount descending. RPC:
+.IR getstakers .
+.SS Wallet & balance
+.TP
+.BI "balance " "<addr>"
+Full balance breakdown: wallet total, staked subset, available, reputation
+tier, four cups (LOVE/FOOD/RENT/VACATION). RPC:
+.IR getbalance " + " getstake " + " getreputation .
+.TP
+.BI "history " "<addr> [filter]"
+Transaction history with kind filter
+.RB ( all | stake | sent | received | mined ).
+Capped at 200 rows. RPC:
+.IR getaddresshistory .
+.SS Stake & validators
+.TP
+.BI "stake " "<addr>"
+Current stake plus full activity log of stake/unstake transactions, ending
+with self-consistency check. RPC:
+.IR getstake " + " getaddresshistory .
+.SS Reputation
+.TP
+.BI "reputation " "<addr>"
+Reputation total (0..1,000,000), tier, four cups, lifetime metrics
+(first/last active block, total mined, violations). RPC:
+.IR getreputation .
+.SS Daily audit
+.TP
+.BI "daily " "<addr> [days=30]"
+Per-day TX bucket grouped by
+.IR block_height/86400
+(1s blocks). Same data as the React DailyAuditPage. RPC:
+.IR getaddresshistory .
+.SS Audit & verify
+.TP
+.BI "verify " "<addr>"
+Sanity check: chain
+.I getstake
+total vs sum of stake/unstake TXs from
+.IR getaddresshistory .
+Exit code 0 on match, 1 on mismatch.
+.SH ENDPOINT RESOLUTION ORDER
+.IP 1. 4
+.B \-\-remote
+sets URL to
+.IR https://omnibusblockchain.cc:8443/api-{chain} .
+.IP 2. 4
+.B \-\-rpc
+parses the URL.
+.IR https://
+schemes route through
+.BR curl (1).
+.IP 3. 4
+.B \-\-chain
+maps to
+.IR 127.0.0.1:{8332,18332,28332} .
+.IP 4. 4
+Default
+.IR 127.0.0.1:8332 .
+.SH ENVIRONMENT
+The binary itself reads no environment variables. Shell wrappers and the
+provided completions honour:
+.TP
+.B OMNIBUS_RPC_URL
+Default value for
+.BR \-\-rpc .
+.TP
+.B OMNIBUS_RPC_TOKEN
+Default value for
+.BR \-\-token .
+.TP
+.B OMNIBUS_CHAIN
+Default value for
+.BR \-\-chain .
+.TP
+.B NO_COLOR
+When set, completions/wrapper add
+.BR \-\-no-color .
+.SH FILES
+.TP
+.I ~/.omnibus/cli.conf
+Optional KEY=VALUE config consumed by shell wrappers.
+.TP
+.I ~/.omnibus/known_addresses
+One bech32 address per line. Used by bash/zsh/fish completion to suggest
+.IR <addr>
+arguments.
+.TP
+.I /usr/local/bin/omnibus-cli
+Default install location (cf.
+.IR scripts/install-cli.sh ).
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+RPC error, parse error, or sanity-check mismatch
+.RB ( verify ).
+.TP
+.B 2
+Usage error: unknown command, missing required address argument.
+.SH EXAMPLES
+.PP
+Local mainnet health check:
+.PP
+.RS
+.B omnibus-cli health
+.RE
+.PP
+Balance against the public testnet:
+.PP
+.RS
+.B omnibus-cli --remote --chain testnet balance ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0
+.RE
+.PP
+7-day breakdown as JSON, fed into jq:
+.PP
+.RS
+.B "omnibus-cli --json daily ob1q...zp0 7 | jq '.result.transactions[].kind' | sort | uniq -c"
+.RE
+.PP
+Sanity-check stake state and exit nonzero on mismatch:
+.PP
+.RS
+.B "omnibus-cli verify ob1q...zp0 || systemctl restart omnibus-node"
+.RE
+.SH DIAGNOSTICS
+On RPC failure
+.B omnibus-cli
+synthesizes a JSON-RPC error envelope so callers can keep one parse path. Common
+messages:
+.TP
+.I "Cannot reach RPC at http://HOST:PORT/PATH (...). Is omnibus-node running?"
+The TCP connect to the local node failed.
+.TP
+.I "curl spawn failed: ENOENT (is curl in PATH?)"
+The
+.B \-\-remote
+or
+.IR https://
+flags require
+.BR curl (1).
+.TP
+.I "Malformed RPC response (no body separator)"
+The peer returned an HTTP response without
+.IR "\\r\\n\\r\\n" .
+.SH RESERVED FOR FUTURE VERSIONS
+The following RPC categories are exposed by
+.B omnibus-node
+but do not yet have CLI wrappers; use
+.BR curl (1)
+with
+.IR API_REFERENCE.md
+for now: exchange/DEX, HTLC/swap, names (.omnibus, .arbitraje), agents,
+governance, escrow, channels, notarize, subscriptions, multisig, PQ
+attestation, mining ops, network admin.
+.SH SEE ALSO
+.BR omnibus-node (1),
+.BR jq (1),
+.BR curl (1),
+.IR docs/CLI_REFERENCE.md ,
+.IR docs/CLI_TUTORIAL.md ,
+.IR docs/CLI_COOKBOOK.md ,
+.IR API_REFERENCE.md .
+.SH AUTHORS
+OmniBus contributors. Source:
+.IR core/cli_audit.zig .
+.SH BUGS
+Report at
+.IR https://github.com/SAVACAZAN/OmniBus-BlockChainCore/issues .

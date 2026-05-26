@@ -1,0 +1,186 @@
+\doxysection{key-\/backup-\/tool Namespace Reference}
+\hypertarget{namespacekey-backup-tool}{}\label{namespacekey-backup-tool}\index{key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{cprint}} (str color, str msg)
+\item 
+bytes \doxymbox{\hyperlink{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b}{\+\_\+derive\+\_\+key}} (str password, bytes salt)
+\item 
+Dict\+[str, str]\+ \doxymbox{\hyperlink{namespacekey-backup-tool_a37e06e5e419198b00d86e278c16368cc}{encrypt}} (bytes plaintext, str password)
+\item 
+bytes \doxymbox{\hyperlink{namespacekey-backup-tool_a8c7a1d124b41a34e46ed3774bcb85475}{decrypt}} (Dict\+[str, str]\+ payload, str password)
+\item 
+bool \doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{backup}} (str key\+\_\+file, str password, str out\+\_\+file)
+\item 
+bool \doxymbox{\hyperlink{namespacekey-backup-tool_ad24fa3f87fbc5036c44f4dc9cf761a1c}{restore}} (str backup\+\_\+file, str password, str out\+\_\+file)
+\item 
+int \doxymbox{\hyperlink{namespacekey-backup-tool_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_a560e1b74b0e4121ee16ddc316209b4ec}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_ab31f078a33d3df0dec51299e8f051b41}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_a01be6317f6347575c8affa62396a44f3}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_a6b88811842c61b8f849e0b23b3ca55b3}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+bool \doxymbox{\hyperlink{namespacekey-backup-tool_ac97b4641df1202cecdf1352bcbf41560}{HAS\+\_\+\+CRYPTO}} = True
+\end{DoxyCompactItemize}
+
+
+\label{namespacekey-backup-tool_doc-func-members}
+\Hypertarget{namespacekey-backup-tool_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!\_derive\_key@{\_derive\_key}}
+\index{\_derive\_key@{\_derive\_key}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{\_derive\_key()}{\_derive\_key()}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b} 
+ bytes \+\_\+derive\+\_\+key (\begin{DoxyParamCaption}\item[{str}]{password}{, }\item[{bytes}]{salt}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!backup@{backup}}
+\index{backup@{backup}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{backup()}{backup()}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145} 
+ bool backup (\begin{DoxyParamCaption}\item[{str}]{key\+\_\+file}{, }\item[{str}]{password}{, }\item[{str}]{out\+\_\+file}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!cprint@{cprint}}
+\index{cprint@{cprint}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{cprint()}{cprint()}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d} 
+ None cprint (\begin{DoxyParamCaption}\item[{str}]{color}{, }\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacekey-backup-tool_a8c7a1d124b41a34e46ed3774bcb85475}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!decrypt@{decrypt}}
+\index{decrypt@{decrypt}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{decrypt()}{decrypt()}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_a8c7a1d124b41a34e46ed3774bcb85475} 
+ bytes decrypt (\begin{DoxyParamCaption}\item[{Dict\+[str, str]\+}]{payload}{, }\item[{str}]{password}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacekey-backup-tool_a37e06e5e419198b00d86e278c16368cc}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!encrypt@{encrypt}}
+\index{encrypt@{encrypt}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{encrypt()}{encrypt()}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_a37e06e5e419198b00d86e278c16368cc} 
+ Dict\+[str, str]\+ encrypt (\begin{DoxyParamCaption}\item[{bytes}]{plaintext}{, }\item[{str}]{password}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacekey-backup-tool_a7431cb90017e54fe695b23d4190db046}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!main@{main}}
+\index{main@{main}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00100}{100}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacekey-backup-tool_ad24fa3f87fbc5036c44f4dc9cf761a1c}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!restore@{restore}}
+\index{restore@{restore}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{restore()}{restore()}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_ad24fa3f87fbc5036c44f4dc9cf761a1c} 
+ bool restore (\begin{DoxyParamCaption}\item[{str}]{backup\+\_\+file}{, }\item[{str}]{password}{, }\item[{str}]{out\+\_\+file}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00090}{90}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+
+
+\label{namespacekey-backup-tool_doc-var-members}
+\Hypertarget{namespacekey-backup-tool_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacekey-backup-tool_a560e1b74b0e4121ee16ddc316209b4ec}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_a560e1b74b0e4121ee16ddc316209b4ec} 
+str \doxymbox{\hyperlink{namespacekey}{key}}-\/\doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{backup}}-\/tool.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00016}{16}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+\Hypertarget{namespacekey-backup-tool_ac97b4641df1202cecdf1352bcbf41560}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!HAS\_CRYPTO@{HAS\_CRYPTO}}
+\index{HAS\_CRYPTO@{HAS\_CRYPTO}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{HAS\_CRYPTO}{HAS\_CRYPTO}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_ac97b4641df1202cecdf1352bcbf41560} 
+bool HAS\+\_\+\+CRYPTO = True}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+\Hypertarget{namespacekey-backup-tool_ab31f078a33d3df0dec51299e8f051b41}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!RED@{RED}}
+\index{RED@{RED}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_ab31f078a33d3df0dec51299e8f051b41} 
+str \doxymbox{\hyperlink{namespacekey}{key}}-\/\doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{backup}}-\/tool.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00017}{17}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+\Hypertarget{namespacekey-backup-tool_a6b88811842c61b8f849e0b23b3ca55b3}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!RESET@{RESET}}
+\index{RESET@{RESET}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_a6b88811842c61b8f849e0b23b3ca55b3} 
+str \doxymbox{\hyperlink{namespacekey}{key}}-\/\doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{backup}}-\/tool.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00019}{19}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+
+\Hypertarget{namespacekey-backup-tool_a01be6317f6347575c8affa62396a44f3}\index{key-\/backup-\/tool@{key-\/backup-\/tool}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!key-\/backup-\/tool@{key-\/backup-\/tool}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacekey-backup-tool_a01be6317f6347575c8affa62396a44f3} 
+str \doxymbox{\hyperlink{namespacekey}{key}}-\/\doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{backup}}-\/tool.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{key-backup-tool_8py_source_l00018}{18}} of file \doxymbox{\hyperlink{key-backup-tool_8py_source}{key-\/backup-\/tool.\+py}}.
+

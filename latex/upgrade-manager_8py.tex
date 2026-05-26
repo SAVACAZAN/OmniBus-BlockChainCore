@@ -1,0 +1,63 @@
+\doxysection{tools/\+\+DEVOPS/\+upgrade-\/manager.py File Reference}
+\hypertarget{upgrade-manager_8py}{}\label{upgrade-manager_8py}\index{tools/DEVOPS/upgrade-\/manager.py@{tools/DEVOPS/upgrade-\/manager.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceupgrade-manager}{upgrade-\/manager}}
+\item 
+namespace \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}
+\begin{DoxyCompactList}\small\item\em -\/manager \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Path \doxymbox{\hyperlink{namespaceupgrade-manager_ac8e5f0a7730f8396cce2214741332182}{upgrade-\/manager.\+find\+\_\+project\+\_\+root}} ()
+\item 
+Path\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{upgrade-\/manager.\+find\+\_\+binary}} (Path project\+\_\+root)
+\item 
+dict \doxymbox{\hyperlink{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234}{upgrade-\/manager.\+get\+\_\+binary\+\_\+info}} (Path binary)
+\item 
+bool \doxymbox{\hyperlink{namespaceupgrade-manager_a22db53cb880e41e686955799ad2067c0}{upgrade-\/manager.\+backup\+\_\+files}} (Path project\+\_\+root, Path backup\+\_\+dir)
+\item 
+int\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespaceupgrade-manager_acc631af2a1d14379ebda4e618dc5e1d6}{upgrade-\/manager.\+stop\+\_\+node}} (Path project\+\_\+root)
+\item 
+bool \doxymbox{\hyperlink{namespaceupgrade-manager_ac338524c54c9ea6b986910db5c06914c}{upgrade-\/manager.\+rebuild}} (Path project\+\_\+root)
+\item 
+bool \doxymbox{\hyperlink{namespaceupgrade-manager_a030debd8a0bb80848c143f73fbcec848}{upgrade-\/manager.\+verify\+\_\+binary}} (Path project\+\_\+root)
+\item 
+\doxymbox{\hyperlink{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004}{upgrade-\/manager.\+rollback}} (Path project\+\_\+root, Path backup\+\_\+dir)
+\item 
+\doxymbox{\hyperlink{namespaceupgrade-manager_afb5f1d609191b31a07f9e33453673029}{upgrade-\/manager.\+restart\+\_\+node}} (Path project\+\_\+root, str mode="{}seed"{})
+\item 
+\doxymbox{\hyperlink{namespaceupgrade-manager_a51af30a60f9f02777c6396b8247e356f}{upgrade-\/manager.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{upgrade-\/manager.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a362da12483c395498ff597666d9c7b40}{upgrade-\/manager.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a6c365c291dc54557a5e7dbea2274fc9c}{upgrade-\/manager.\+DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296}{upgrade-\/manager.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef}{upgrade-\/manager.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e}{upgrade-\/manager.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c}{upgrade-\/manager.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a81aaa93fe635abeb23d09a072a8be1ce}{upgrade-\/manager.\+MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a2805a0715151f0eaf0138bf0cf47043e}{upgrade-\/manager.\+WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a602fd87ec2209a5009721fb894aa8fa9}{upgrade-\/manager.\+BG\+\_\+\+RED}} = "{}\textbackslash{}033\+[41m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a30ce1bab084bd9f5ddf43f90fedee2f8}{upgrade-\/manager.\+OK}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef}{GREEN}}\}\+[OK]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a1b8d28a734c20e1a8217c13cae51584a}{upgrade-\/manager.\+FAIL}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296}{RED}}\}\+[FAIL]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a4d6c7d9ee9fd876c08a7c401b5223311}{upgrade-\/manager.\+WARN}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e}{YELLOW}}\}\+[WARN]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a5a37a040f390fad011fabd91c6535a8e}{upgrade-\/manager.\+STEP}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c}{CYAN}}\}$>$$>$$>$\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\end{DoxyCompactItemize}

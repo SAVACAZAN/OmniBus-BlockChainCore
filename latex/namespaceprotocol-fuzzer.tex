@@ -1,0 +1,263 @@
+\doxysection{protocol-\/fuzzer Namespace Reference}
+\hypertarget{namespaceprotocol-fuzzer}{}\label{namespaceprotocol-fuzzer}\index{protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+bytes \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{make\+\_\+valid\+\_\+header}} (bytes command, int payload\+\_\+len)
+\item 
+bytes \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{make\+\_\+message}} (bytes command, bytes payload)
+\item 
+bytes \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}{random\+\_\+payload}} (int min\+\_\+size=0, int max\+\_\+size=4096)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{fuzz\+\_\+cases}} ()
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a3b9d2201b09914f48e77c4ea93dc905e}{send\+\_\+and\+\_\+probe}} (str host, int port, bytes data, float timeout=5.\+0)
+\item 
+bool \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a}{is\+\_\+node\+\_\+alive}} (str host, int port, float timeout=3.\+0)
+\item 
+int \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a555aeb3fb0ac3046f43adaff6346dfde}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a41fce64dd50dfcb2dad3155168458c90}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a4dfbb5d2d67f2ea2bf2308516d18e0db}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a5841981de5e5a8a010ff130d2047d6f2}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a01e2772fe8b4c0a45870ce605a0085cc}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_aef45d1c71b69fd7eb07cac09e600e1c8}{MAGIC}} = b"{}\textbackslash{}x4f\textbackslash{}x4d\textbackslash{}x4e\textbackslash{}x49"{}
+\item 
+list \doxymbox{\hyperlink{namespaceprotocol-fuzzer_af782472870ab06274879b57a5ba3b6a0}{COMMANDS}} = \+[b"{}version"{}, b"{}verack"{}, b"{}ping"{}, b"{}pong"{}, b"{}getblocks"{}, b"{}inv"{}, b"{}tx"{}, b"{}block"{}]\+
+\end{DoxyCompactItemize}
+
+
+\label{namespaceprotocol-fuzzer_doc-func-members}
+\Hypertarget{namespaceprotocol-fuzzer_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceprotocol-fuzzer_ae310059fa6ef4da9b187bac45a37374d}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!fuzz\_cases@{fuzz\_cases}}
+\index{fuzz\_cases@{fuzz\_cases}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{fuzz\_cases()}{fuzz\_cases()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_ae310059fa6ef4da9b187bac45a37374d} 
+ list\+[dict\+[str, Any]\+]\+ fuzz\+\_\+cases (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00077}{77}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!is\_node\_alive@{is\_node\_alive}}
+\index{is\_node\_alive@{is\_node\_alive}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{is\_node\_alive()}{is\_node\_alive()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a} 
+ bool is\+\_\+node\+\_\+alive (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{float }]{timeout}{ = {\ttfamily 3.0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00215}{215}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceprotocol-fuzzer_abf994b8269849d29e07697ea8a840f74}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceprotocol-fuzzer_a7431cb90017e54fe695b23d4190db046}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!main@{main}}
+\index{main@{main}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00226}{226}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!make\_message@{make\_message}}
+\index{make\_message@{make\_message}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{make\_message()}{make\_message()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2} 
+ bytes make\+\_\+message (\begin{DoxyParamCaption}\item[{bytes}]{command}{, }\item[{bytes}]{payload}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00065}{65}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!make\_valid\_header@{make\_valid\_header}}
+\index{make\_valid\_header@{make\_valid\_header}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{make\_valid\_header()}{make\_valid\_header()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc} 
+ bytes make\+\_\+valid\+\_\+header (\begin{DoxyParamCaption}\item[{bytes}]{command}{, }\item[{int}]{payload\+\_\+len}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Build a minimal valid P2P header.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00058}{58}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!random\_payload@{random\_payload}}
+\index{random\_payload@{random\_payload}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{random\_payload()}{random\_payload()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0} 
+ bytes random\+\_\+payload (\begin{DoxyParamCaption}\item[{int }]{min\+\_\+size}{ = {\ttfamily 0}, }\item[{int }]{max\+\_\+size}{ = {\ttfamily 4096}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespaceprotocol-fuzzer_a3b9d2201b09914f48e77c4ea93dc905e}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!send\_and\_probe@{send\_and\_probe}}
+\index{send\_and\_probe@{send\_and\_probe}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{send\_and\_probe()}{send\_and\_probe()}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a3b9d2201b09914f48e77c4ea93dc905e} 
+ dict\+[str, Any]\+ send\+\_\+and\+\_\+probe (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{bytes}]{data}{, }\item[{float }]{timeout}{ = {\ttfamily 5.0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00171}{171}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 13
+
+
+\label{namespaceprotocol-fuzzer_doc-var-members}
+\Hypertarget{namespaceprotocol-fuzzer_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceprotocol-fuzzer_af782472870ab06274879b57a5ba3b6a0}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!COMMANDS@{COMMANDS}}
+\index{COMMANDS@{COMMANDS}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{COMMANDS}{COMMANDS}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_af782472870ab06274879b57a5ba3b6a0} 
+list \doxymbox{\hyperlink{namespaceprotocol}{protocol}}-\/fuzzer.\+COMMANDS = \+[b"{}version"{}, b"{}verack"{}, b"{}ping"{}, b"{}pong"{}, b"{}getblocks"{}, b"{}inv"{}, b"{}tx"{}, b"{}block"{}]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+\Hypertarget{namespaceprotocol-fuzzer_a5841981de5e5a8a010ff130d2047d6f2}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a5841981de5e5a8a010ff130d2047d6f2} 
+str \doxymbox{\hyperlink{namespaceprotocol}{protocol}}-\/fuzzer.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+\Hypertarget{namespaceprotocol-fuzzer_a555aeb3fb0ac3046f43adaff6346dfde}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a555aeb3fb0ac3046f43adaff6346dfde} 
+str \doxymbox{\hyperlink{namespaceprotocol}{protocol}}-\/fuzzer.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+\Hypertarget{namespaceprotocol-fuzzer_aef45d1c71b69fd7eb07cac09e600e1c8}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!MAGIC@{MAGIC}}
+\index{MAGIC@{MAGIC}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{MAGIC}{MAGIC}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_aef45d1c71b69fd7eb07cac09e600e1c8} 
+str \doxymbox{\hyperlink{namespaceprotocol}{protocol}}-\/fuzzer.\+MAGIC = b"{}\textbackslash{}x4f\textbackslash{}x4d\textbackslash{}x4e\textbackslash{}x49"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+\Hypertarget{namespaceprotocol-fuzzer_a41fce64dd50dfcb2dad3155168458c90}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!RED@{RED}}
+\index{RED@{RED}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a41fce64dd50dfcb2dad3155168458c90} 
+str \doxymbox{\hyperlink{namespaceprotocol}{protocol}}-\/fuzzer.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+\Hypertarget{namespaceprotocol-fuzzer_a01e2772fe8b4c0a45870ce605a0085cc}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!RESET@{RESET}}
+\index{RESET@{RESET}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a01e2772fe8b4c0a45870ce605a0085cc} 
+str \doxymbox{\hyperlink{namespaceprotocol}{protocol}}-\/fuzzer.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+
+\Hypertarget{namespaceprotocol-fuzzer_a4dfbb5d2d67f2ea2bf2308516d18e0db}\index{protocol-\/fuzzer@{protocol-\/fuzzer}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!protocol-\/fuzzer@{protocol-\/fuzzer}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespaceprotocol-fuzzer_a4dfbb5d2d67f2ea2bf2308516d18e0db} 
+str \doxymbox{\hyperlink{namespaceprotocol}{protocol}}-\/fuzzer.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{protocol-fuzzer_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{protocol-fuzzer_8py_source}{protocol-\/fuzzer.\+py}}.
+

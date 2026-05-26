@@ -1,0 +1,111 @@
+\doxysection{Welcome\+Dialog.\+cpp}
+\hypertarget{_welcome_dialog_8cpp_source}{}\label{_welcome_dialog_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/WelcomeDialog.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/WelcomeDialog.cpp}}
+\doxymbox{\hyperlink{_welcome_dialog_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_welcome_dialog_8h}{dialogs/WelcomeDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QFrame>}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00008}00008\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00010}\doxymbox{\hyperlink{classomni_1_1_welcome_dialog_ab04a7ea82961846178303efe734987be}{00010}}\ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog_ab04a7ea82961846178303efe734987be}{WelcomeDialog::WelcomeDialog}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00011}00011\ \ \ \ \ :\ QDialog(parent)}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00012}00012\ \{}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00013}00013\ \ \ \ \ setWindowTitle(\textcolor{stringliteral}{"{}OmniBus\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00014}00014\ \ \ \ \ setMinimumSize(520,\ 480);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00015}00015\ \ \ \ \ setMaximumSize(520,\ 480);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00017}00017\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00018}00018\ \ \ \ \ layout-\/>setSpacing(16);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00019}00019\ \ \ \ \ layout-\/>setContentsMargins(40,\ 30,\ 40,\ 30);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00021}00021\ \ \ \ \ \textcolor{comment}{//\ Logo\ /\ Title}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00022}00022\ \ \ \ \ \textcolor{keyword}{auto}*\ titleLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}OmniBus"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00023}00023\ \ \ \ \ titleLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00024}00024\ \ \ \ \ titleLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}font-\/size:\ 32px;\ font-\/weight:\ bold;\ color:\ \#00b3a4;\ margin-\/bottom:\ 4px;"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00025}00025\ \ \ \ \ layout-\/>addWidget(titleLabel);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00027}00027\ \ \ \ \ \textcolor{keyword}{auto}*\ subtitleLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Post-\/Quantum\ Blockchain\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00028}00028\ \ \ \ \ subtitleLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00029}00029\ \ \ \ \ subtitleLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}font-\/size:\ 14px;\ color:\ \#8888aa;\ margin-\/bottom:\ 20px;"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00030}00030\ \ \ \ \ layout-\/>addWidget(subtitleLabel);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00032}00032\ \ \ \ \ \textcolor{comment}{//\ Separator}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00033}00033\ \ \ \ \ \textcolor{keyword}{auto}*\ sep\ =\ \textcolor{keyword}{new}\ QFrame;}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00034}00034\ \ \ \ \ sep-\/>setFrameShape(QFrame::HLine);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00035}00035\ \ \ \ \ sep-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#2a2d44;"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00036}00036\ \ \ \ \ layout-\/>addWidget(sep);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00038}00038\ \ \ \ \ layout-\/>addSpacing(10);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00040}00040\ \ \ \ \ \textcolor{comment}{//\ Create\ Wallet\ button}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00041}00041\ \ \ \ \ \textcolor{keyword}{auto}*\ createBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}\ \ Create\ New\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00042}00042\ \ \ \ \ createBtn-\/>setMinimumHeight(60);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00043}00043\ \ \ \ \ createBtn-\/>setStyleSheet(}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}QPushButton\ \{\ background:\ \#4a90d9;\ color:\ white;\ font-\/size:\ 16px;\ font-\/weight:\ bold;\ "{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}border-\/radius:\ 8px;\ text-\/align:\ left;\ padding-\/left:\ 20px;\ \}"{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}QPushButton:hover\ \{\ background:\ \#5aa0e9;\ \}"{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00047}00047\ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00048}00048\ \ \ \ \ layout-\/>addWidget(createBtn);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00050}00050\ \ \ \ \ \textcolor{keyword}{auto}*\ createDesc\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Generate\ a\ new\ mnemonic\ phrase\ and\ create\ a\ fresh\ wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00051}00051\ \ \ \ \ createDesc-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#6666aa;\ font-\/size:\ 11px;\ margin-\/left:\ 20px;\ margin-\/bottom:\ 8px;"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00052}00052\ \ \ \ \ layout-\/>addWidget(createDesc);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00054}00054\ \ \ \ \ \textcolor{comment}{//\ Import\ Wallet\ button}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00055}00055\ \ \ \ \ \textcolor{keyword}{auto}*\ importBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}\ \ Import\ Existing\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00056}00056\ \ \ \ \ importBtn-\/>setMinimumHeight(60);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00057}00057\ \ \ \ \ importBtn-\/>setStyleSheet(}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}QPushButton\ \{\ background:\ \#2a2d44;\ color:\ \#e0e0f0;\ font-\/size:\ 16px;\ font-\/weight:\ bold;\ "{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}border-\/radius:\ 8px;\ border:\ 1px\ solid\ \#4a90d9;\ text-\/align:\ left;\ padding-\/left:\ 20px;\ \}"{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}QPushButton:hover\ \{\ background:\ \#3a3d54;\ \}"{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00061}00061\ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00062}00062\ \ \ \ \ layout-\/>addWidget(importBtn);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00064}00064\ \ \ \ \ \textcolor{keyword}{auto}*\ importDesc\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Restore\ a\ wallet\ from\ a\ mnemonic\ phrase\ or\ backup\ file"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00065}00065\ \ \ \ \ importDesc-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#6666aa;\ font-\/size:\ 11px;\ margin-\/left:\ 20px;\ margin-\/bottom:\ 8px;"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00066}00066\ \ \ \ \ layout-\/>addWidget(importDesc);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00068}00068\ \ \ \ \ \textcolor{comment}{//\ Connect\ to\ Node\ button}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00069}00069\ \ \ \ \ \textcolor{keyword}{auto}*\ connectBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}\ \ Connect\ to\ Running\ Node"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00070}00070\ \ \ \ \ connectBtn-\/>setMinimumHeight(60);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00071}00071\ \ \ \ \ connectBtn-\/>setStyleSheet(}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}QPushButton\ \{\ background:\ \#1a1d2e;\ color:\ \#8888aa;\ font-\/size:\ 16px;\ "{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}border-\/radius:\ 8px;\ border:\ 1px\ solid\ \#3a3d54;\ text-\/align:\ left;\ padding-\/left:\ 20px;\ \}"{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}QPushButton:hover\ \{\ background:\ \#2a2d44;\ color:\ \#e0e0f0;\ \}"{}}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00075}00075\ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00076}00076\ \ \ \ \ layout-\/>addWidget(connectBtn);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00078}00078\ \ \ \ \ \textcolor{keyword}{auto}*\ connectDesc\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Use\ the\ wallet\ from\ an\ existing\ OmniBus\ node\ (spectator\ mode)"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00079}00079\ \ \ \ \ connectDesc-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#6666aa;\ font-\/size:\ 11px;\ margin-\/left:\ 20px;"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00080}00080\ \ \ \ \ layout-\/>addWidget(connectDesc);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00082}00082\ \ \ \ \ layout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00084}00084\ \ \ \ \ \textcolor{comment}{//\ Version}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00085}00085\ \ \ \ \ \textcolor{keyword}{auto}*\ versionLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}OmniBus-\/Qt\ v1.0.0"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00086}00086\ \ \ \ \ versionLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00087}00087\ \ \ \ \ versionLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#444466;\ font-\/size:\ 10px;"{}});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00088}00088\ \ \ \ \ layout-\/>addWidget(versionLabel);}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00090}00090\ \ \ \ \ \textcolor{comment}{//\ Connections}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00091}00091\ \ \ \ \ connect(createBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00092}00092\ \ \ \ \ \ \ \ \ m\_choice\ =\ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog_a6157a644252fb2e3d810d4cd4d5ee765a64f1694cc00dee55b83afc5ba69b2b41}{CreateWallet}};}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00093}00093\ \ \ \ \ \ \ \ \ accept();}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00094}00094\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00095}00095\ \ \ \ \ connect(importBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00096}00096\ \ \ \ \ \ \ \ \ m\_choice\ =\ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog_a6157a644252fb2e3d810d4cd4d5ee765a31fcd71059f48f7f8ec80ba1b14ccb77}{ImportWallet}};}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00097}00097\ \ \ \ \ \ \ \ \ accept();}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00098}00098\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00099}00099\ \ \ \ \ connect(connectBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00100}00100\ \ \ \ \ \ \ \ \ m\_choice\ =\ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog_a6157a644252fb2e3d810d4cd4d5ee765aaa9bcb66fc7947a6651fa0eadb92c659}{ConnectNode}};}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00101}00101\ \ \ \ \ \ \ \ \ accept();}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00102}00102\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00103}00103\ \}}
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{_welcome_dialog_8cpp_source_l00105}00105\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

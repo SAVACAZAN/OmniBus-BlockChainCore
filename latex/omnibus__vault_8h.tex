@@ -1,0 +1,326 @@
+\doxysection{archived-\/4-\/eterniti/\+gui-\/qt-\/ada-\/hybrid/\+ada-\/vault/\+omnibus\+\_\+vault.h File Reference}
+\hypertarget{omnibus__vault_8h}{}\label{omnibus__vault_8h}\index{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/ada-\/vault/omnibus\_vault.h@{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/ada-\/vault/omnibus\_vault.h}}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_ac03236f644d2057308102023876d97b2}{VAULT\+\_\+\+OK}}~0
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_aaf2e3ec845c0360e652e7f8384074b0b}{VAULT\+\_\+\+ERR}}~-\/1
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a091dc415f31cadb045c8d555310f4fe2}{VAULT\+\_\+\+NOT\+\_\+\+FOUND}}~-\/2
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a15db5197f05d8b7f5773d2a7b1128540}{VAULT\+\_\+\+LOCKED}}~-\/3
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a88c72218b890828478bb95b867419730}{VAULT\+\_\+\+FULL}}~-\/4
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a25f74ca150a873c6ca5b0cc7f404f901}{VAULT\+\_\+\+EX\+\_\+\+LCX}}~0
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a6fe13266f1d9b7970558af02bc281201}{VAULT\+\_\+\+EX\+\_\+\+KRAKEN}}~1
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_acd4dbfb09769aa68df0448421d7915b0}{VAULT\+\_\+\+EX\+\_\+\+COINBASE}}~2
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a7875e76070049bdac77686bbbbcf69a5}{VAULT\+\_\+\+EX\+\_\+\+COUNT}}~3
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a3577594d16fd384ccfbd77a6c0195434}{VAULT\+\_\+\+STATUS\+\_\+\+FREE}}~0
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a222659c31843ee0e8d089d3dadf127ee}{VAULT\+\_\+\+STATUS\+\_\+\+PAID}}~1
+\item 
+\+\#define \doxymbox{\hyperlink{omnibus__vault_8h_a6148c20fa24220f45e7c013a354983df}{VAULT\+\_\+\+STATUS\+\_\+\+NOT\+\_\+\+PAID}}~2
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{omnibus__vault_8h_af578d248dc8d05427695636e66a7f952}{vault\+\_\+lib\+\_\+init}} (void)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a4f30979987aad9606e5b626932539f2e}{vault\+\_\+init}} (void)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_aa8a0cf3ba9ccf2876ee5fce210668ef6}{vault\+\_\+lock}} (void)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a49d6c641e6575ee0b639eeccee977ace}{vault\+\_\+save}} (void)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a7ca6bacb9b2fbbd6e6b615fb0243119a}{vault\+\_\+is\+\_\+loaded}} (void)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a34d48940916fad4072cdcda28412463c}{vault\+\_\+add\+\_\+key}} (int exchange, const char \texorpdfstring{$\ast$}{*}name, const char \texorpdfstring{$\ast$}{*}api\+\_\+key, const char \texorpdfstring{$\ast$}{*}secret, int status)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a603559f83746a43b7f882fbafe6e0732}{vault\+\_\+delete\+\_\+key}} (int exchange, int slot)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_aef655795a1a79f8b9b3eff60e6d24a96}{vault\+\_\+update\+\_\+key}} (int exchange, int slot, const char \texorpdfstring{$\ast$}{*}name, const char \texorpdfstring{$\ast$}{*}api\+\_\+key, const char \texorpdfstring{$\ast$}{*}secret, int status)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a3ecbe8c55818329a19352bb9c0dbf733}{vault\+\_\+set\+\_\+status}} (int exchange, int slot, int status)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_ae26e3d0cc07c9f3baefd62d3452cdf31}{vault\+\_\+key\+\_\+count}} (int exchange)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a00f4825eabfc9df56a38368308efd451}{vault\+\_\+has\+\_\+keys}} (int exchange)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_af80d123eeebee248755d3aa5f47c6e6c}{vault\+\_\+get\+\_\+key}} (int exchange, int slot, char \texorpdfstring{$\ast$}{*}name\+\_\+buf, int name\+\_\+cap, char \texorpdfstring{$\ast$}{*}key\+\_\+buf, int key\+\_\+cap, int \texorpdfstring{$\ast$}{*}status\+\_\+out, int \texorpdfstring{$\ast$}{*}in\+\_\+use\+\_\+out)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_aa186e4f2d6ba9c49885d6631a9ad1bf3}{vault\+\_\+get\+\_\+secret}} (int exchange, int slot, char \texorpdfstring{$\ast$}{*}sec\+\_\+buf, int sec\+\_\+cap)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a057c400fc18011f7a688134452714595}{vault\+\_\+encrypt}} (const char \texorpdfstring{$\ast$}{*}plain, int plain\+\_\+len, char \texorpdfstring{$\ast$}{*}cipher, int cipher\+\_\+cap, int \texorpdfstring{$\ast$}{*}out\+\_\+len)
+\item 
+int \doxymbox{\hyperlink{omnibus__vault_8h_a2160efb806a366fe83bb1b68ae283ef7}{vault\+\_\+decrypt}} (const char \texorpdfstring{$\ast$}{*}cipher, int cipher\+\_\+len, char \texorpdfstring{$\ast$}{*}plain, int plain\+\_\+cap, int \texorpdfstring{$\ast$}{*}out\+\_\+len)
+\item 
+void \doxymbox{\hyperlink{omnibus__vault_8h_a1efbe8ac1a3ff6ae5e60979e6d2ec236}{vault\+\_\+wipe}} (char \texorpdfstring{$\ast$}{*}buf, int len)
+\item 
+const char \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{omnibus__vault_8h_acb170d46fc3f552db53fe9c16988d28e}{vault\+\_\+get\+\_\+path}} (void)
+\end{DoxyCompactItemize}
+
+
+\label{omnibus__vault_8h_doc-define-members}
+\Hypertarget{omnibus__vault_8h_doc-define-members}
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{omnibus__vault_8h_aaf2e3ec845c0360e652e7f8384074b0b}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_ERR@{VAULT\_ERR}}
+\index{VAULT\_ERR@{VAULT\_ERR}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_ERR}{VAULT\_ERR}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_aaf2e3ec845c0360e652e7f8384074b0b} 
+\+\#define VAULT\+\_\+\+ERR~-\/1}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00020}{20}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_acd4dbfb09769aa68df0448421d7915b0}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_EX\_COINBASE@{VAULT\_EX\_COINBASE}}
+\index{VAULT\_EX\_COINBASE@{VAULT\_EX\_COINBASE}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_EX\_COINBASE}{VAULT\_EX\_COINBASE}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_acd4dbfb09769aa68df0448421d7915b0} 
+\+\#define VAULT\+\_\+\+EX\+\_\+\+COINBASE~2}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00028}{28}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a7875e76070049bdac77686bbbbcf69a5}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_EX\_COUNT@{VAULT\_EX\_COUNT}}
+\index{VAULT\_EX\_COUNT@{VAULT\_EX\_COUNT}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_EX\_COUNT}{VAULT\_EX\_COUNT}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a7875e76070049bdac77686bbbbcf69a5} 
+\+\#define VAULT\+\_\+\+EX\+\_\+\+COUNT~3}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00029}{29}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a6fe13266f1d9b7970558af02bc281201}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_EX\_KRAKEN@{VAULT\_EX\_KRAKEN}}
+\index{VAULT\_EX\_KRAKEN@{VAULT\_EX\_KRAKEN}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_EX\_KRAKEN}{VAULT\_EX\_KRAKEN}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a6fe13266f1d9b7970558af02bc281201} 
+\+\#define VAULT\+\_\+\+EX\+\_\+\+KRAKEN~1}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00027}{27}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a25f74ca150a873c6ca5b0cc7f404f901}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_EX\_LCX@{VAULT\_EX\_LCX}}
+\index{VAULT\_EX\_LCX@{VAULT\_EX\_LCX}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_EX\_LCX}{VAULT\_EX\_LCX}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a25f74ca150a873c6ca5b0cc7f404f901} 
+\+\#define VAULT\+\_\+\+EX\+\_\+\+LCX~0}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00026}{26}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a88c72218b890828478bb95b867419730}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_FULL@{VAULT\_FULL}}
+\index{VAULT\_FULL@{VAULT\_FULL}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_FULL}{VAULT\_FULL}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a88c72218b890828478bb95b867419730} 
+\+\#define VAULT\+\_\+\+FULL~-\/4}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00023}{23}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a15db5197f05d8b7f5773d2a7b1128540}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_LOCKED@{VAULT\_LOCKED}}
+\index{VAULT\_LOCKED@{VAULT\_LOCKED}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_LOCKED}{VAULT\_LOCKED}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a15db5197f05d8b7f5773d2a7b1128540} 
+\+\#define VAULT\+\_\+\+LOCKED~-\/3}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00022}{22}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a091dc415f31cadb045c8d555310f4fe2}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_NOT\_FOUND@{VAULT\_NOT\_FOUND}}
+\index{VAULT\_NOT\_FOUND@{VAULT\_NOT\_FOUND}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_NOT\_FOUND}{VAULT\_NOT\_FOUND}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a091dc415f31cadb045c8d555310f4fe2} 
+\+\#define VAULT\+\_\+\+NOT\+\_\+\+FOUND~-\/2}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00021}{21}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_ac03236f644d2057308102023876d97b2}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_OK@{VAULT\_OK}}
+\index{VAULT\_OK@{VAULT\_OK}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_OK}{VAULT\_OK}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_ac03236f644d2057308102023876d97b2} 
+\+\#define VAULT\+\_\+\+OK~0}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00019}{19}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a3577594d16fd384ccfbd77a6c0195434}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_STATUS\_FREE@{VAULT\_STATUS\_FREE}}
+\index{VAULT\_STATUS\_FREE@{VAULT\_STATUS\_FREE}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_STATUS\_FREE}{VAULT\_STATUS\_FREE}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a3577594d16fd384ccfbd77a6c0195434} 
+\+\#define VAULT\+\_\+\+STATUS\+\_\+\+FREE~0}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00032}{32}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a6148c20fa24220f45e7c013a354983df}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_STATUS\_NOT\_PAID@{VAULT\_STATUS\_NOT\_PAID}}
+\index{VAULT\_STATUS\_NOT\_PAID@{VAULT\_STATUS\_NOT\_PAID}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_STATUS\_NOT\_PAID}{VAULT\_STATUS\_NOT\_PAID}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a6148c20fa24220f45e7c013a354983df} 
+\+\#define VAULT\+\_\+\+STATUS\+\_\+\+NOT\+\_\+\+PAID~2}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00034}{34}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+\Hypertarget{omnibus__vault_8h_a222659c31843ee0e8d089d3dadf127ee}\index{omnibus\_vault.h@{omnibus\_vault.h}!VAULT\_STATUS\_PAID@{VAULT\_STATUS\_PAID}}
+\index{VAULT\_STATUS\_PAID@{VAULT\_STATUS\_PAID}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{VAULT\_STATUS\_PAID}{VAULT\_STATUS\_PAID}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a222659c31843ee0e8d089d3dadf127ee} 
+\+\#define VAULT\+\_\+\+STATUS\+\_\+\+PAID~1}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__vault_8h_source_l00033}{33}} of file \doxymbox{\hyperlink{omnibus__vault_8h_source}{omnibus\+\_\+vault.\+h}}.
+
+
+
+\label{omnibus__vault_8h_doc-func-members}
+\Hypertarget{omnibus__vault_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{omnibus__vault_8h_a34d48940916fad4072cdcda28412463c}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_add\_key@{vault\_add\_key}}
+\index{vault\_add\_key@{vault\_add\_key}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_add\_key()}{vault\_add\_key()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a34d48940916fad4072cdcda28412463c} 
+int vault\+\_\+add\+\_\+key (\begin{DoxyParamCaption}\item[{int}]{exchange}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{name}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{api\+\_\+key}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{secret}{, }\item[{int}]{status}{}\end{DoxyParamCaption})}
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{omnibus__vault_8h_a2160efb806a366fe83bb1b68ae283ef7}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_decrypt@{vault\_decrypt}}
+\index{vault\_decrypt@{vault\_decrypt}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_decrypt()}{vault\_decrypt()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a2160efb806a366fe83bb1b68ae283ef7} 
+int vault\+\_\+decrypt (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{cipher}{, }\item[{int}]{cipher\+\_\+len}{, }\item[{char \texorpdfstring{$\ast$}{*}}]{plain}{, }\item[{int}]{plain\+\_\+cap}{, }\item[{int \texorpdfstring{$\ast$}{*}}]{out\+\_\+len}{}\end{DoxyParamCaption})}
+
+\Hypertarget{omnibus__vault_8h_a603559f83746a43b7f882fbafe6e0732}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_delete\_key@{vault\_delete\_key}}
+\index{vault\_delete\_key@{vault\_delete\_key}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_delete\_key()}{vault\_delete\_key()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a603559f83746a43b7f882fbafe6e0732} 
+int vault\+\_\+delete\+\_\+key (\begin{DoxyParamCaption}\item[{int}]{exchange}{, }\item[{int}]{slot}{}\end{DoxyParamCaption})}
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{omnibus__vault_8h_a057c400fc18011f7a688134452714595}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_encrypt@{vault\_encrypt}}
+\index{vault\_encrypt@{vault\_encrypt}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_encrypt()}{vault\_encrypt()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a057c400fc18011f7a688134452714595} 
+int vault\+\_\+encrypt (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{plain}{, }\item[{int}]{plain\+\_\+len}{, }\item[{char \texorpdfstring{$\ast$}{*}}]{cipher}{, }\item[{int}]{cipher\+\_\+cap}{, }\item[{int \texorpdfstring{$\ast$}{*}}]{out\+\_\+len}{}\end{DoxyParamCaption})}
+
+\Hypertarget{omnibus__vault_8h_af80d123eeebee248755d3aa5f47c6e6c}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_get\_key@{vault\_get\_key}}
+\index{vault\_get\_key@{vault\_get\_key}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_get\_key()}{vault\_get\_key()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_af80d123eeebee248755d3aa5f47c6e6c} 
+int vault\+\_\+get\+\_\+key (\begin{DoxyParamCaption}\item[{int}]{exchange}{, }\item[{int}]{slot}{, }\item[{char \texorpdfstring{$\ast$}{*}}]{name\+\_\+buf}{, }\item[{int}]{name\+\_\+cap}{, }\item[{char \texorpdfstring{$\ast$}{*}}]{key\+\_\+buf}{, }\item[{int}]{key\+\_\+cap}{, }\item[{int \texorpdfstring{$\ast$}{*}}]{status\+\_\+out}{, }\item[{int \texorpdfstring{$\ast$}{*}}]{in\+\_\+use\+\_\+out}{}\end{DoxyParamCaption})}
+
+Get key info. name\+\_\+buf/\+key\+\_\+buf are filled (null-\/terminated). API key is MASKED (first 6 + last 4 chars). Secret is NOT returned here (use vault\+\_\+get\+\_\+secret). Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{omnibus__vault_8h_acb170d46fc3f552db53fe9c16988d28e}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_get\_path@{vault\_get\_path}}
+\index{vault\_get\_path@{vault\_get\_path}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_get\_path()}{vault\_get\_path()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_acb170d46fc3f552db53fe9c16988d28e} 
+const char \texorpdfstring{$\ast$}{*} vault\+\_\+get\+\_\+path (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+Returns vault file path (static string, do NOT free). Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{omnibus__vault_8h_aa186e4f2d6ba9c49885d6631a9ad1bf3}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_get\_secret@{vault\_get\_secret}}
+\index{vault\_get\_secret@{vault\_get\_secret}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_get\_secret()}{vault\_get\_secret()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_aa186e4f2d6ba9c49885d6631a9ad1bf3} 
+int vault\+\_\+get\+\_\+secret (\begin{DoxyParamCaption}\item[{int}]{exchange}{, }\item[{int}]{slot}{, }\item[{char \texorpdfstring{$\ast$}{*}}]{sec\+\_\+buf}{, }\item[{int}]{sec\+\_\+cap}{}\end{DoxyParamCaption})}
+
+Get full API secret (caller must vault\+\_\+wipe after use). Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{omnibus__vault_8h_a00f4825eabfc9df56a38368308efd451}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_has\_keys@{vault\_has\_keys}}
+\index{vault\_has\_keys@{vault\_has\_keys}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_has\_keys()}{vault\_has\_keys()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a00f4825eabfc9df56a38368308efd451} 
+int vault\+\_\+has\+\_\+keys (\begin{DoxyParamCaption}\item[{int}]{exchange}{}\end{DoxyParamCaption})}
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{omnibus__vault_8h_a4f30979987aad9606e5b626932539f2e}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_init@{vault\_init}}
+\index{vault\_init@{vault\_init}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_init()}{vault\_init()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a4f30979987aad9606e5b626932539f2e} 
+int vault\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+Load vault from disk (or create empty). Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{omnibus__vault_8h_a7ca6bacb9b2fbbd6e6b615fb0243119a}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_is\_loaded@{vault\_is\_loaded}}
+\index{vault\_is\_loaded@{vault\_is\_loaded}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_is\_loaded()}{vault\_is\_loaded()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a7ca6bacb9b2fbbd6e6b615fb0243119a} 
+int vault\+\_\+is\+\_\+loaded (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+Returns 1 if vault is loaded/\+unlocked. Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{omnibus__vault_8h_ae26e3d0cc07c9f3baefd62d3452cdf31}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_key\_count@{vault\_key\_count}}
+\index{vault\_key\_count@{vault\_key\_count}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_key\_count()}{vault\_key\_count()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_ae26e3d0cc07c9f3baefd62d3452cdf31} 
+int vault\+\_\+key\+\_\+count (\begin{DoxyParamCaption}\item[{int}]{exchange}{}\end{DoxyParamCaption})}
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{omnibus__vault_8h_af578d248dc8d05427695636e66a7f952}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_lib\_init@{vault\_lib\_init}}
+\index{vault\_lib\_init@{vault\_lib\_init}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_lib\_init()}{vault\_lib\_init()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_af578d248dc8d05427695636e66a7f952} 
+void vault\+\_\+lib\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+Initialize Ada runtime + vault. Call once at startup. Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{omnibus__vault_8h_aa8a0cf3ba9ccf2876ee5fce210668ef6}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_lock@{vault\_lock}}
+\index{vault\_lock@{vault\_lock}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_lock()}{vault\_lock()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_aa8a0cf3ba9ccf2876ee5fce210668ef6} 
+int vault\+\_\+lock (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+Lock vault:\+ wipe all keys from memory. Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{omnibus__vault_8h_a49d6c641e6575ee0b639eeccee977ace}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_save@{vault\_save}}
+\index{vault\_save@{vault\_save}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_save()}{vault\_save()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a49d6c641e6575ee0b639eeccee977ace} 
+int vault\+\_\+save (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+Save vault to DPAPI-\/encrypted file. Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{omnibus__vault_8h_a3ecbe8c55818329a19352bb9c0dbf733}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_set\_status@{vault\_set\_status}}
+\index{vault\_set\_status@{vault\_set\_status}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_set\_status()}{vault\_set\_status()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a3ecbe8c55818329a19352bb9c0dbf733} 
+int vault\+\_\+set\+\_\+status (\begin{DoxyParamCaption}\item[{int}]{exchange}{, }\item[{int}]{slot}{, }\item[{int}]{status}{}\end{DoxyParamCaption})}
+
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{omnibus__vault_8h_aef655795a1a79f8b9b3eff60e6d24a96}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_update\_key@{vault\_update\_key}}
+\index{vault\_update\_key@{vault\_update\_key}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_update\_key()}{vault\_update\_key()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_aef655795a1a79f8b9b3eff60e6d24a96} 
+int vault\+\_\+update\+\_\+key (\begin{DoxyParamCaption}\item[{int}]{exchange}{, }\item[{int}]{slot}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{name}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{api\+\_\+key}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{secret}{, }\item[{int}]{status}{}\end{DoxyParamCaption})}
+
+\Hypertarget{omnibus__vault_8h_a1efbe8ac1a3ff6ae5e60979e6d2ec236}\index{omnibus\_vault.h@{omnibus\_vault.h}!vault\_wipe@{vault\_wipe}}
+\index{vault\_wipe@{vault\_wipe}!omnibus\_vault.h@{omnibus\_vault.h}}
+\doxysubsubsection{\texorpdfstring{vault\_wipe()}{vault\_wipe()}}
+{\footnotesize\ttfamily \label{omnibus__vault_8h_a1efbe8ac1a3ff6ae5e60979e6d2ec236} 
+void vault\+\_\+wipe (\begin{DoxyParamCaption}\item[{char \texorpdfstring{$\ast$}{*}}]{buf}{, }\item[{int}]{len}{}\end{DoxyParamCaption})}
+
+Overwrite buffer with zeros (guaranteed not optimized out). Here is the caller graph for this function:\+
+% FIG 13

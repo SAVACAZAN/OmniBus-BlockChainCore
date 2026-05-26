@@ -1,0 +1,370 @@
+\doxysection{report.\+py}
+\hypertarget{report_8py_source}{}\label{report_8py_source}\index{test\_results/stress/report.py@{test\_results/stress/report.py}}
+\doxymbox{\hyperlink{report_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00001}\doxymbox{\hyperlink{namespacereport}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00002}00002\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00003}00003\ \textcolor{comment}{\#\ report.py\ -\/\ Aggregate\ stress\ test\ CSVs\ into\ REPORT.md\ and\ REPORT.html}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00004}00004\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00005}00005\ \textcolor{comment}{\#\ Usage\ :\ python\ report.py\ -\/-\/date\ 2026-\/04-\/25}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00006}00006\ \textcolor{comment}{\#\ \ \ \ \ \ \ \ \ python\ report.py\ -\/-\/root\ .\ -\/-\/date\ 2026-\/04-\/25}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00007}00007\ \textcolor{comment}{\#\ Reads\ :\ All\ *.csv\ and\ *.log\ under\ <root>/<date>/}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00008}00008\ \textcolor{comment}{\#\ Writes:\ <root>/<date>/REPORT.md\ and\ <root>/<date>/REPORT.html}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00009}00009\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00010}00010\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00011}00011\ \textcolor{keyword}{import}\ csv}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00012}00012\ \textcolor{keyword}{import}\ datetime\ \textcolor{keyword}{as}\ dt}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00013}00013\ \textcolor{keyword}{import}\ glob}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00014}00014\ \textcolor{keyword}{import}\ html}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00015}00015\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00016}00016\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00017}00017\ \textcolor{keyword}{import}\ statistics}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00018}00018\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00019}00019\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00022}00022\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ helpers\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00024}\doxymbox{\hyperlink{namespacereport_a6888d39544a54638137c7df7322c49f0}{00024}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a6888d39544a54638137c7df7322c49f0}{parse\_iso}}(ts):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00025}00025\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ dt.datetime.fromisoformat(ts.replace(\textcolor{stringliteral}{'Z'},\ \textcolor{stringliteral}{'+00:00'}))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00027}00027\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00031}\doxymbox{\hyperlink{namespacereport_aa345f1ef52d6c6706acfa78b76b77591}{00031}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_aa345f1ef52d6c6706acfa78b76b77591}{safe\_float}}(x):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00032}00032\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ float(x)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00034}00034\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00038}\doxymbox{\hyperlink{namespacereport_a155410ade03a1fe27cc598d2427f21f3}{00038}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a155410ade03a1fe27cc598d2427f21f3}{safe\_int}}(x):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00039}00039\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ x\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{or}\ x\ ==\ \textcolor{stringliteral}{''}\ \textcolor{keywordflow}{or}\ x\ ==\ \textcolor{stringliteral}{'NA'}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ int(float(x))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00043}00043\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00047}\doxymbox{\hyperlink{namespacereport_aab14e1252747e47d8e98c774e4259ff9}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_aab14e1252747e47d8e98c774e4259ff9}{percentile}}(data,\ p):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00048}00048\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ data:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00050}00050\ \ \ \ \ s\ =\ sorted(data)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00051}00051\ \ \ \ \ k\ =\ (len(s)\ -\/\ 1)\ *\ (p\ /\ 100.0)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00052}00052\ \ \ \ \ f\ =\ int(k)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00053}00053\ \ \ \ \ c\ =\ min(f\ +\ 1,\ len(s)\ -\/\ 1)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{if}\ f\ ==\ c:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ s[f]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{return}\ s[f]\ +\ (s[c]\ -\/\ s[f])\ *\ (k\ -\/\ f)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00059}\doxymbox{\hyperlink{namespacereport_a59babcb447222fe030c1ac9e7ad6ba5a}{00059}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a59babcb447222fe030c1ac9e7ad6ba5a}{read\_csv}}(path):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00060}00060\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'r'},\ encoding=\textcolor{stringliteral}{'utf-\/8'},\ errors=\textcolor{stringliteral}{'replace'},\ newline=\textcolor{stringliteral}{''})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ rdr\ =\ csv.DictReader(f)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ list(rdr)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00065}00065\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ analyzers\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00067}\doxymbox{\hyperlink{namespacereport_abf6f144ebcf99e1ccd25bcbbf18a8b98}{00067}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_abf6f144ebcf99e1ccd25bcbbf18a8b98}{analyze\_rpc}}(rows):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00068}00068\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Aggregate\ latency\ by\ method\ +\ count\ statuses."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00069}00069\ \ \ \ \ by\_method\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00070}00070\ \ \ \ \ statuses\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ m\ =\ r.get(\textcolor{stringliteral}{'method'},\ \textcolor{stringliteral}{'?'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ st\ =\ r.get(\textcolor{stringliteral}{'status'},\ \textcolor{stringliteral}{'?'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ lat\ =\ \doxymbox{\hyperlink{namespacereport_aa345f1ef52d6c6706acfa78b76b77591}{safe\_float}}(r.get(\textcolor{stringliteral}{'latency\_ms'}))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ by\_method.setdefault(m,\ []).append(lat\ \textcolor{keywordflow}{if}\ lat\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{else}\ 0.0)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ statuses[st]\ =\ statuses.get(st,\ 0)\ +\ 1}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00077}00077\ \ \ \ \ summary\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00078}00078\ \ \ \ \ \textcolor{keywordflow}{for}\ m,\ lats\ \textcolor{keywordflow}{in}\ by\_method.items():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ lats:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ summary[m]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'count'}:\ \ len(lats),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'avg\_ms'}:\ statistics.fmean(lats),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'min\_ms'}:\ min(lats),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'max\_ms'}:\ max(lats),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'p95\_ms'}:\ \doxymbox{\hyperlink{namespacereport_aab14e1252747e47d8e98c774e4259ff9}{percentile}}(lats,\ 95),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'p99\_ms'}:\ \doxymbox{\hyperlink{namespacereport_aab14e1252747e47d8e98c774e4259ff9}{percentile}}(lats,\ 99),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{return}\ summary,\ statuses}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00092}\doxymbox{\hyperlink{namespacereport_a6ea4d65d171f192fbe6e7ed5a15c29c4}{00092}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a6ea4d65d171f192fbe6e7ed5a15c29c4}{analyze\_blocks}}(rows):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00093}00093\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Block\ production\ rate\ +\ stalls."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00094}00094\ \ \ \ \ heights,\ times\ =\ [],\ []}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00095}00095\ \ \ \ \ stalls\ =\ 0}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00096}00096\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ h\ =\ \doxymbox{\hyperlink{namespacereport_a155410ade03a1fe27cc598d2427f21f3}{safe\_int}}(r.get(\textcolor{stringliteral}{'height'}))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ t\ =\ \doxymbox{\hyperlink{namespacereport_a6888d39544a54638137c7df7322c49f0}{parse\_iso}}(r.get(\textcolor{stringliteral}{'timestamp'},\ \textcolor{stringliteral}{''}))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ h\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{and}\ t\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ heights.append(h)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ times.append(t)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ r.get(\textcolor{stringliteral}{'stalled'})\ ==\ \textcolor{stringliteral}{'1'}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ stalls\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{if}\ len(heights)\ <\ 2:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{'samples'}:\ len(heights),\ \textcolor{stringliteral}{'stall\_ticks'}:\ stalls\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00106}00106\ \ \ \ \ span\_sec\ =\ (times[-\/1]\ -\/\ times[0]).total\_seconds()}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00107}00107\ \ \ \ \ total\ =\ heights[-\/1]\ -\/\ heights[0]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00108}00108\ \ \ \ \ bps\ =\ total\ /\ span\_sec\ \textcolor{keywordflow}{if}\ span\_sec\ >\ 0\ \textcolor{keywordflow}{else}\ 0.0}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'samples'}:\ \ \ \ \ \ len(heights),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'first\_height'}:\ heights[0],}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'last\_height'}:\ \ heights[-\/1],}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'delta'}:\ \ \ \ \ \ \ \ total,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'duration\_min'}:\ span\_sec\ /\ 60.0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'blocks\_per\_min'}:\ bps\ *\ 60,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'blocks\_per\_hour'}:\ bps\ *\ 3600,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'stall\_ticks'}:\ \ stalls,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00118}00118\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00121}\doxymbox{\hyperlink{namespacereport_a2a7c3b3d02889edfec8055e61b7dc5d7}{00121}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a2a7c3b3d02889edfec8055e61b7dc5d7}{analyze\_metrics}}(rows):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00122}00122\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Memory\ growth\ across\ run\ =\ leak\ signal."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00123}00123\ \ \ \ \ rams,\ cpus,\ handles,\ threads,\ disks,\ times\ =\ [],\ [],\ [],\ [],\ [],\ []}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00124}00124\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ t\ =\ \doxymbox{\hyperlink{namespacereport_a6888d39544a54638137c7df7322c49f0}{parse\_iso}}(r.get(\textcolor{stringliteral}{'ts'},\ \textcolor{stringliteral}{''}))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ t\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ ram\ =\ \doxymbox{\hyperlink{namespacereport_aa345f1ef52d6c6706acfa78b76b77591}{safe\_float}}(r.get(\textcolor{stringliteral}{'ram\_mb'}))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ram\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{or}\ ram\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}\ \ \textcolor{comment}{\#\ node\ was\ down\ for\ this\ tick}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ rams.append(ram)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ times.append(t)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ :=\ \doxymbox{\hyperlink{namespacereport_aa345f1ef52d6c6706acfa78b76b77591}{safe\_float}}(r.get(\textcolor{stringliteral}{'cpu\_sec'})))\ \ \ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:\ cpus.append(v)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ :=\ \doxymbox{\hyperlink{namespacereport_a155410ade03a1fe27cc598d2427f21f3}{safe\_int}}(r.get(\textcolor{stringliteral}{'handles'})))\ \ \ \ \ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:\ handles.append(v)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ :=\ \doxymbox{\hyperlink{namespacereport_a155410ade03a1fe27cc598d2427f21f3}{safe\_int}}(r.get(\textcolor{stringliteral}{'threads'})))\ \ \ \ \ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:\ threads.append(v)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ :=\ \doxymbox{\hyperlink{namespacereport_aa345f1ef52d6c6706acfa78b76b77591}{safe\_float}}(r.get(\textcolor{stringliteral}{'disk\_mb'})))\ \ \ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:\ disks.append(v)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00137}00137\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ rams:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{'samples'}:\ 0\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00139}00139\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'samples'}:\ \ \ \ \ \ \ len(rams),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'ram\_first\_mb'}:\ \ rams[0],}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'ram\_last\_mb'}:\ \ \ rams[-\/1],}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'ram\_max\_mb'}:\ \ \ \ max(rams),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'ram\_growth\_mb'}:\ rams[-\/1]\ -\/\ rams[0],}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'cpu\_total\_sec'}:\ cpus[-\/1]\ \textcolor{keywordflow}{if}\ cpus\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'handles\_max'}:\ \ \ max(handles)\ \textcolor{keywordflow}{if}\ handles\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'threads\_max'}:\ \ \ max(threads)\ \textcolor{keywordflow}{if}\ threads\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'disk\_first\_mb'}:\ disks[0]\ \ \textcolor{keywordflow}{if}\ disks\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'disk\_last\_mb'}:\ \ disks[-\/1]\ \textcolor{keywordflow}{if}\ disks\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'duration\_min'}:\ \ (times[-\/1]\ -\/\ times[0]).total\_seconds()\ /\ 60.0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00151}00151\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00154}\doxymbox{\hyperlink{namespacereport_a2e3466fd395c5cf9823317ca772a9b31}{00154}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a2e3466fd395c5cf9823317ca772a9b31}{count\_crashes}}(crash\_log):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00155}00155\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.exists(crash\_log):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00157}00157\ \ \ \ \ \textcolor{keyword}{with}\ open(crash\_log,\ \textcolor{stringliteral}{'r'},\ encoding=\textcolor{stringliteral}{'utf-\/8'},\ errors=\textcolor{stringliteral}{'replace'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ sum(1\ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ f\ \textcolor{keywordflow}{if}\ line.startswith(\textcolor{stringliteral}{'=====\ CRASH'}))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00161}\doxymbox{\hyperlink{namespacereport_a57d1bd548b4b5c0e8b6dcb2e47c1a347}{00161}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a57d1bd548b4b5c0e8b6dcb2e47c1a347}{count\_kills}}(folder):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00162}00162\ \ \ \ \ total\ =\ 0}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00163}00163\ \ \ \ \ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ glob.glob(os.path.join(folder,\ \textcolor{stringliteral}{'kills\_*.log'})):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(p,\ \textcolor{stringliteral}{'r'},\ encoding=\textcolor{stringliteral}{'utf-\/8'},\ errors=\textcolor{stringliteral}{'replace'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ total\ +=\ sum(1\ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ f\ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'killed\ pid='}\ \textcolor{keywordflow}{in}\ line)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{return}\ total}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00169}\doxymbox{\hyperlink{namespacereport_af5ed80bff072d54c5e49dd6d088fe022}{00169}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_af5ed80bff072d54c5e49dd6d088fe022}{analyze\_mempool}}(rows):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00172}00172\ \ \ \ \ sizes\ =\ [v\ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ (\doxymbox{\hyperlink{namespacereport_a155410ade03a1fe27cc598d2427f21f3}{safe\_int}}(r.get(\textcolor{stringliteral}{'size'}))\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows)\ \textcolor{keywordflow}{if}\ v\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00173}00173\ \ \ \ \ bytes\_\ =\ [v\ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ (\doxymbox{\hyperlink{namespacereport_a155410ade03a1fe27cc598d2427f21f3}{safe\_int}}(r.get(\textcolor{stringliteral}{'bytes'}))\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows)\ \textcolor{keywordflow}{if}\ v\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00174}00174\ \ \ \ \ inj\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ s\ =\ r.get(\textcolor{stringliteral}{'inject\_status'},\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ inj[s]\ =\ inj.get(s,\ 0)\ +\ 1}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00178}00178\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'samples'}:\ \ \ len(rows),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'size\_max'}:\ \ max(sizes)\ \textcolor{keywordflow}{if}\ sizes\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'size\_avg'}:\ \ statistics.fmean(sizes)\ \textcolor{keywordflow}{if}\ sizes\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'bytes\_max'}:\ max(bytes\_)\ \textcolor{keywordflow}{if}\ bytes\_\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'inject\_breakdown'}:\ inj,}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00184}00184\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00187}\doxymbox{\hyperlink{namespacereport_a00c2cfe669a265c315226d8057337348}{00187}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a00c2cfe669a265c315226d8057337348}{analyze\_deploys}}(rows):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00188}00188\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00190}00190\ \ \ \ \ by\_status\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00191}00191\ \ \ \ \ by\_method\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00192}00192\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ s\ =\ r.get(\textcolor{stringliteral}{'status'},\ \textcolor{stringliteral}{'?'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ m\ =\ r.get(\textcolor{stringliteral}{'method'},\ \textcolor{stringliteral}{'?'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ by\_status[s]\ =\ by\_status.get(s,\ 0)\ +\ 1}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ by\_method[m]\ =\ by\_method.get(m,\ 0)\ +\ 1}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{'rows'}:\ len(rows),\ \textcolor{stringliteral}{'by\_status'}:\ by\_status,\ \textcolor{stringliteral}{'by\_method'}:\ by\_method\}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00200}00200\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ report\ formatting\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00202}\doxymbox{\hyperlink{namespacereport_a78c131795bd804df346ae9a60ed67e12}{00202}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a78c131795bd804df346ae9a60ed67e12}{md\_table}}(headers,\ rows):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00203}00203\ \ \ \ \ out\ =\ [\textcolor{stringliteral}{'|\ '}\ +\ \textcolor{stringliteral}{'\ |\ '}.join(headers)\ +\ \textcolor{stringliteral}{'\ |'},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'|\ '}\ +\ \textcolor{stringliteral}{'\ |\ '}.join(\textcolor{stringliteral}{'-\/-\/-\/'}\ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ headers)\ +\ \textcolor{stringliteral}{'\ |'}]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00205}00205\ \ \ \ \ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ out.append(\textcolor{stringliteral}{'|\ '}\ +\ \textcolor{stringliteral}{'\ |\ '}.join(str(c)\ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ r)\ +\ \textcolor{stringliteral}{'\ |'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00207}00207\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{'\(\backslash\)n'}.join(out)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00210}\doxymbox{\hyperlink{namespacereport_a3c08247f5fb6e978677dce4356232102}{00210}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a3c08247f5fb6e978677dce4356232102}{build\_report}}(folder):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00211}00211\ \ \ \ \ folder\ =\ Path(folder)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00212}00212\ \ \ \ \ parts\ =\ [f\textcolor{stringliteral}{"{}\#\ OmniBus\ Stress\ Test\ Report"{}},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}-\/\ Run\ folder:\ \`{}\{folder\}`"{}},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}-\/\ Generated:\ \ \{dt.datetime.now().isoformat(timespec='seconds')\}"{}},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}}]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00218}00218\ \ \ \ \ \textcolor{comment}{\#\ 1)\ crashes\ +\ kills}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00219}00219\ \ \ \ \ crashes\ =\ \doxymbox{\hyperlink{namespacereport_a2e3466fd395c5cf9823317ca772a9b31}{count\_crashes}}(folder\ /\ \textcolor{stringliteral}{'crashes.log'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00220}00220\ \ \ \ \ kills\ \ \ =\ \doxymbox{\hyperlink{namespacereport_a57d1bd548b4b5c0e8b6dcb2e47c1a347}{count\_kills}}(folder)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00221}00221\ \ \ \ \ recovery\_rate\ =\ \textcolor{stringliteral}{'N/A'}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00222}00222\ \ \ \ \ \textcolor{keywordflow}{if}\ kills\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ crashes\ counts\ every\ restart\ attempt;\ recovery\ rate\ \string~=\ crashes\_after\_kill\ /\ kills}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ recovery\_rate\ =\ f\textcolor{stringliteral}{"{}\{min(crashes,\ kills)\}/\{kills\}\ (\{(min(crashes,kills)/kills*100):.1f\}\%)"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00225}00225\ \ \ \ \ parts\ +=\ [\textcolor{stringliteral}{'\#\#\ Reliability'},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{''},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{'-\/\ Crashes\ recorded:\ **\{crashes\}**'},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{'-\/\ Chaos\ kills\ issued:\ **\{kills\}**'},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{'-\/\ Recovery\ (restart-\/after-\/kill):\ **\{recovery\_rate\}**'},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{''}]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00232}00232\ \ \ \ \ \textcolor{comment}{\#\ 2)\ RPC\ +\ EVM\ latencies}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00233}00233\ \ \ \ \ rpc\_csvs\ =\ sorted(glob.glob(str(folder\ /\ \textcolor{stringliteral}{'rpc\_stress\_*.csv'})))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00234}00234\ \ \ \ \ evm\_csvs\ =\ sorted(glob.glob(str(folder\ /\ \textcolor{stringliteral}{'evm\_stress\_*.csv'})))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00235}00235\ \ \ \ \ conc\_csv\ =\ sorted(glob.glob(str(folder\ /\ \textcolor{stringliteral}{'concurrent\_*.csv'})))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00237}00237\ \ \ \ \ \textcolor{keyword}{def\ }collate(csvs,\ label):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ all\_rows\ =\ []}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ csvs:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ all\_rows.extend(\doxymbox{\hyperlink{namespacereport_a59babcb447222fe030c1ac9e7ad6ba5a}{read\_csv}}(c))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ all\_rows:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{'\#\#\ \{label\}\(\backslash\)n\(\backslash\)n-\/\ No\ CSVs\ found.\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ summary,\ statuses\ =\ \doxymbox{\hyperlink{namespacereport_abf6f144ebcf99e1ccd25bcbbf18a8b98}{analyze\_rpc}}(all\_rows)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ rows\ =\ [(m,\ s[\textcolor{stringliteral}{'count'}],\ f\textcolor{stringliteral}{"{}\{s['avg\_ms']:.2f\}"{}},\ f\textcolor{stringliteral}{"{}\{s['p95\_ms']:.2f\}"{}},}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{s['p99\_ms']:.2f\}"{}},\ f\textcolor{stringliteral}{"{}\{s['max\_ms']:.2f\}"{}})\ \textcolor{keywordflow}{for}\ m,\ s\ \textcolor{keywordflow}{in}\ summary.items()]}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{'\#\#\ \{label\}\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ parts.append(\doxymbox{\hyperlink{namespacereport_a78c131795bd804df346ae9a60ed67e12}{md\_table}}([\textcolor{stringliteral}{'method'},\ \textcolor{stringliteral}{'calls'},\ \textcolor{stringliteral}{'avg\_ms'},\ \textcolor{stringliteral}{'p95\_ms'},\ \textcolor{stringliteral}{'p99\_ms'},\ \textcolor{stringliteral}{'max\_ms'}],\ rows))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{'Status\ breakdown:\ '}\ +\ \textcolor{stringliteral}{',\ '}.join(f\textcolor{stringliteral}{'\`{}\{k\}=\{v\}`'}\ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ statuses.items()))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00256}00256\ \ \ \ \ collate(rpc\_csvs,\ \textcolor{stringliteral}{'RPC\ Stress'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00257}00257\ \ \ \ \ collate(evm\_csvs,\ \textcolor{stringliteral}{'EVM\ Stress'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00258}00258\ \ \ \ \ collate(conc\_csv,\ \textcolor{stringliteral}{'Concurrent\ Clients'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00259}00259\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00260}00260\ \ \ \ \ \textcolor{comment}{\#\ 3)\ blocks}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00261}00261\ \ \ \ \ block\_csv\ =\ folder\ /\ \textcolor{stringliteral}{'block\_height.csv'}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00262}00262\ \ \ \ \ \textcolor{keywordflow}{if}\ block\_csv.exists():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacereport_a6ea4d65d171f192fbe6e7ed5a15c29c4}{analyze\_blocks}}(\doxymbox{\hyperlink{namespacereport_a59babcb447222fe030c1ac9e7ad6ba5a}{read\_csv}}(block\_csv))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{'\#\#\ Block\ Production'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ info.items():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{'-\/\ **\{k\}**:\ \{v\}'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00270}00270\ \ \ \ \ \textcolor{comment}{\#\ 4)\ metrics}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00271}00271\ \ \ \ \ metrics\_csv\ =\ folder\ /\ \textcolor{stringliteral}{'metrics.csv'}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00272}00272\ \ \ \ \ \textcolor{keywordflow}{if}\ metrics\_csv.exists():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacereport_a2a7c3b3d02889edfec8055e61b7dc5d7}{analyze\_metrics}}(\doxymbox{\hyperlink{namespacereport_a59babcb447222fe030c1ac9e7ad6ba5a}{read\_csv}}(metrics\_csv))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{'\#\#\ Process\ Metrics\ (leak\ detection)'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ info.get(\textcolor{stringliteral}{'samples'}):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ info.items():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{'-\/\ **\{k\}**:\ \{v\}'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ growth\ =\ info.get(\textcolor{stringliteral}{'ram\_growth\_mb'},\ 0)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ verdict\ =\ (\textcolor{stringliteral}{'LIKELY\ LEAK'}\ \textcolor{keywordflow}{if}\ growth\ >\ 100}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{'WATCH'}\ \ \ \ \textcolor{keywordflow}{if}\ growth\ >\ 25}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{'OK'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{'>\ Memory\ growth\ verdict:\ **\{verdict\}**\ (\{growth:+.1f\}\ MB\ over\ '}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{info.get('duration\_min',\ 0):.1f\}\ min)"{}})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{'-\/\ No\ node\ metric\ samples.\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00290}00290\ \ \ \ \ \textcolor{comment}{\#\ 5)\ mempool}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00291}00291\ \ \ \ \ mp\_csvs\ =\ sorted(glob.glob(str(folder\ /\ \textcolor{stringliteral}{'mempool\_*.csv'})))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00292}00292\ \ \ \ \ \textcolor{keywordflow}{if}\ mp\_csvs:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ rows\ =\ []}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00294}00294\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ mp\_csvs:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.extend(\doxymbox{\hyperlink{namespacereport_a59babcb447222fe030c1ac9e7ad6ba5a}{read\_csv}}(c))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacereport_af5ed80bff072d54c5e49dd6d088fe022}{analyze\_mempool}}(rows)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{'\#\#\ Mempool'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ info.items():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{'-\/\ **\{k\}**:\ \{v\}'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00305}00305\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00306}00306\ \ \ \ \ \textcolor{comment}{\#\ 6)\ deploys}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00307}00307\ \ \ \ \ dp\_csvs\ =\ sorted(glob.glob(str(folder\ /\ \textcolor{stringliteral}{'deploys\_*.csv'})))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00308}00308\ \ \ \ \ \textcolor{keywordflow}{if}\ dp\_csvs:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ rows\ =\ []}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ dp\_csvs:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.extend(\doxymbox{\hyperlink{namespacereport_a59babcb447222fe030c1ac9e7ad6ba5a}{read\_csv}}(c))}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacereport_a00c2cfe669a265c315226d8057337348}{analyze\_deploys}}(rows)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{'\#\#\ EVM\ Deploys'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ info.items():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{'-\/\ **\{k\}**:\ \{v\}'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ parts.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00322}00322\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{'\(\backslash\)n'}.join(parts)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00323}00323\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00325}\doxymbox{\hyperlink{namespacereport_ac848b6aadb58ffbda6e4710448bf571d}{00325}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_ac848b6aadb58ffbda6e4710448bf571d}{to\_html}}(md):}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00326}00326\ \ \ \ \ body\ =\ html.escape(md)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00327}00327\ \ \ \ \ body\ =\ re.sub(\textcolor{stringliteral}{r'\string^\#\ (.+)\$'},\ \ \textcolor{stringliteral}{r'<h1>\(\backslash\)1</h1>'},\ body,\ flags=re.M)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00328}00328\ \ \ \ \ body\ =\ re.sub(\textcolor{stringliteral}{r'\string^\#\#\ (.+)\$'},\ \textcolor{stringliteral}{r'<h2>\(\backslash\)1</h2>'},\ body,\ flags=re.M)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00329}00329\ \ \ \ \ body\ =\ re.sub(\textcolor{stringliteral}{r'\(\backslash\)*\(\backslash\)*(.+?)\(\backslash\)*\(\backslash\)*'},\ \textcolor{stringliteral}{r'<b>\(\backslash\)1</b>'},\ body)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00330}00330\ \ \ \ \ body\ =\ re.sub(\textcolor{stringliteral}{r'\`{}([\string^\`{}]+)`'},\ \textcolor{stringliteral}{r'<code>\(\backslash\)1</code>'},\ body)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00331}00331\ \ \ \ \ body\ =\ body.replace(\textcolor{stringliteral}{'\(\backslash\)n'},\ \textcolor{stringliteral}{'<br/>\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00332}00332\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{stringliteral}{"{}<!doctype\ html><html><head><meta\ charset='utf-\/8'>"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<title>OmniBus\ Stress\ Report</title>"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<style>body\{font-\/family:Segoe\ UI,Arial,sans-\/serif;max-\/width:980px;"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00335}00335\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}margin:24px\ auto;padding:0\ 16px;color:\#222\}h1\{color:\#0a4\}"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00336}00336\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}h2\{color:\#06c;border-\/bottom:1px\ solid\ \#ddd\}"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00337}00337\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}code\{background:\#f4f4f4;padding:1px\ 4px;border-\/radius:3px\}"{}}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00338}00338\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}</style></head><body>"{}}\ +\ body\ +\ \textcolor{stringliteral}{"{}</body></html>"{}})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00339}00339\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00340}00340\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00341}\doxymbox{\hyperlink{namespacereport_a51af30a60f9f02777c6396b8247e356f}{00341}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereport_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00342}00342\ \ \ \ \ ap\ =\ argparse.ArgumentParser()}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00343}00343\ \ \ \ \ ap.add\_argument(\textcolor{stringliteral}{'-\/-\/root'},\ default=os.path.dirname(os.path.abspath(\_\_file\_\_)),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Stress\ test\ root\ (default:\ script\ dir)'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00345}00345\ \ \ \ \ ap.add\_argument(\textcolor{stringliteral}{'-\/-\/date'},\ default=dt.date.today().isoformat(),}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Run\ date\ subfolder\ (default:\ today)'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00347}00347\ \ \ \ \ args\ =\ ap.parse\_args()}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00349}00349\ \ \ \ \ folder\ =\ Path(args.root)\ /\ args.date}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00350}00350\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ folder.exists():}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{'ERROR:\ \{folder\}\ does\ not\ exist'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ sys.exit(2)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00353}00353\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00354}00354\ \ \ \ \ md\ =\ \doxymbox{\hyperlink{namespacereport_a3c08247f5fb6e978677dce4356232102}{build\_report}}(folder)}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00355}00355\ \ \ \ \ md\_path\ \ \ =\ folder\ /\ \textcolor{stringliteral}{'REPORT.md'}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00356}00356\ \ \ \ \ html\_path\ =\ folder\ /\ \textcolor{stringliteral}{'REPORT.html'}}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00357}00357\ \ \ \ \ md\_path.write\_text(md,\ encoding=\textcolor{stringliteral}{'utf-\/8'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00358}00358\ \ \ \ \ html\_path.write\_text(\doxymbox{\hyperlink{namespacereport_ac848b6aadb58ffbda6e4710448bf571d}{to\_html}}(md),\ encoding=\textcolor{stringliteral}{'utf-\/8'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00359}00359\ \ \ \ \ print(f\textcolor{stringliteral}{'Wrote\ \{md\_path\}'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00360}00360\ \ \ \ \ print(f\textcolor{stringliteral}{'Wrote\ \{html\_path\}'})}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00361}00361\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00362}00362\ }
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00363}00363\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{'\_\_main\_\_'}:}
+\DoxyCodeLine{\Hypertarget{report_8py_source_l00364}00364\ \ \ \ \ \doxymbox{\hyperlink{namespacereport_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

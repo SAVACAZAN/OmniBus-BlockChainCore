@@ -1,0 +1,2 @@
+var estimator = btc_fee.FeeEstimator.init(allocator, null);
+const estimates = try estimator.estimateFees();

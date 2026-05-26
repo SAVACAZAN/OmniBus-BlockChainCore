@@ -1,0 +1,408 @@
+\doxysection{tx-\/stress-\/sim2.py}
+\hypertarget{tx-stress-sim2_8py_source}{}\label{tx-stress-sim2_8py_source}\doxymbox{\hyperlink{tx-stress-sim2_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00001}\doxymbox{\hyperlink{namespacetx-stress-sim2}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00003}00003\ \textcolor{stringliteral}{tx-\/stress-\/sim2.py\ —\ Long-\/running\ TX\ simulation\ for\ OmniBus\ testnet.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00005}00005\ \textcolor{stringliteral}{Run\ for\ 1h,\ 24h,\ or\ custom\ duration,\ generating\ a\ steady\ stream\ of\ transactions}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00006}00006\ \textcolor{stringliteral}{across\ multiple\ "{}levels"{}\ so\ we\ can\ stress\ the\ chain\ without\ hand-\/typing\ curl.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00007}00007\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00008}00008\ \textcolor{stringliteral}{Watching:}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ mempool\ fill\ /\ drain\ behavior}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ block\ production\ rate\ when\ mempool\ is\ non-\/empty}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ balance\ propagation\ to\ fresh\ addresses}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ -\/\ Rich\ List\ growth\ over\ time}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ -\/\ faucet\ refill\ cadence}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ -\/\ whether\ any\ TX\ gets\ silently\ dropped}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00015}00015\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00016}00016\ \textcolor{stringliteral}{Levels}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00017}00017\ \textcolor{stringliteral}{-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ L0\ —\ base\ load\ \ \ \ :\ 2\ tx\ /\ 30s,\ \ amounts\ 1k–10k\ SAT\ \ (forever-\/safe)}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ L1\ —\ light\ burst\ \ :\ 3\ tx\ /\ 8s,\ \ \ amounts\ 10k–100k\ SAT}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00020}00020\ \textcolor{stringliteral}{\ \ L2\ —\ moderate\ \ \ \ \ :\ 15\ tx\ /\ 10s,\ amounts\ 10k–50k\ SAT\ (mempool\ steady\ fill)}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00021}00021\ \textcolor{stringliteral}{\ \ L3\ —\ stress\ \ \ \ \ \ \ :\ 50\ tx\ /\ 10s,\ amounts\ 1k–20k\ SAT\ \ (race-\/test,\ overlap\ blocks)}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00022}00022\ \textcolor{stringliteral}{\ \ L4\ —\ extreme\ \ \ \ \ \ :\ 100\ tx\ /\ 8s,\ amounts\ 1k–15k\ SAT\ \ (push\ to\ limits)}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00023}00023\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00024}00024\ \textcolor{stringliteral}{Usage}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00025}00025\ \textcolor{stringliteral}{-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00026}00026\ \textcolor{stringliteral}{\ \ \#\ Local\ node,\ default\ testnet\ RPC}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00027}00027\ \textcolor{stringliteral}{\ \ python\ tx-\/stress-\/sim2.py\ -\/-\/level\ 0\ -\/-\/duration\ 1h}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00028}00028\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00029}00029\ \textcolor{stringliteral}{\ \ \#\ VPS\ testnet\ (needs\ OMNIBUS\_RPC\_TOKEN\ env\ var):}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00030}00030\ \textcolor{stringliteral}{\ \ export\ OMNIBUS\_RPC\_TOKEN=31926ece...}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00031}00031\ \textcolor{stringliteral}{\ \ python\ tx-\/stress-\/sim2.py\ -\/-\/level\ 1\ -\/-\/duration\ 24h\ \(\backslash\)\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00032}00032\ \textcolor{stringliteral}{\ \ \ \ \ \ -\/-\/rpc\ http://omnibusblockchain.cc:18332}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00033}00033\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00034}00034\ \textcolor{stringliteral}{\ \ \#\ Burst\ mode\ +\ detailed\ stats}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00035}00035\ \textcolor{stringliteral}{\ \ python\ tx-\/stress-\/sim2.py\ -\/-\/level\ 3\ -\/-\/duration\ 30m\ -\/-\/burst-\/mode\ -\/-\/detailed-\/stats}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00036}00036\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00037}00037\ \textcolor{stringliteral}{\ \ \#\ Custom\ recipient\ pool\ size\ (rotates\ through\ real\ testnet\ addresses)}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00038}00038\ \textcolor{stringliteral}{\ \ python\ tx-\/stress-\/sim2.py\ -\/-\/level\ 2\ -\/-\/num-\/addresses\ 8\ -\/-\/duration\ 2h}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00039}00039\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00040}00040\ \textcolor{keyword}{from}\ \_\_future\_\_\ \textcolor{keyword}{import}\ annotations}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00042}00042\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00043}00043\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00044}00044\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00045}00045\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00046}00046\ \textcolor{keyword}{import}\ signal}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00047}00047\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00048}00048\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00049}00049\ \textcolor{keyword}{import}\ urllib.request}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00050}00050\ \textcolor{keyword}{import}\ urllib.error}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00051}00051\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ field}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00052}00052\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00055}00055\ \textcolor{comment}{\#\ Real\ testnet\ recipients\ —\ verified\ against\ live\ richlist\ 2026-\/04-\/27.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00056}00056\ \textcolor{comment}{\#\ (`getrichlist`\ order,\ NOT\ BIP-\/44\ derivation\ order,\ so\ rank\ ==\ position.)}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00057}\doxymbox{\hyperlink{namespacetx-stress-sim2_a326d6664c874b2b554258943e1214c6c}{00057}}\ BASE\_RECIPIENTS\ =\ [}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00058}00058\ \ \ \ \ \textcolor{stringliteral}{"{}ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0"{}},\ \ \textcolor{comment}{\#\ rank\ 2\ —\ savacazan.omnibus}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00059}00059\ \ \ \ \ \textcolor{stringliteral}{"{}ob1qvetjtq3swujv0jqsmw0gq84fymtfuaz5p5cjdv"{}},\ \ \textcolor{comment}{\#\ rank\ 3\ —\ testnet\ faucet}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00060}00060\ \ \ \ \ \textcolor{stringliteral}{"{}ob1qpjt7gngkj79663a298schx6dkjxqf37hwfggw2"{}},\ \ \textcolor{comment}{\#\ rank\ 4}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00061}00061\ \ \ \ \ \textcolor{stringliteral}{"{}ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa"{}},\ \ \textcolor{comment}{\#\ rank\ 5}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00062}00062\ \ \ \ \ \textcolor{stringliteral}{"{}ob1quax5e9hyyzmft2m2lzn735asswsw9gh4gtgess"{}},\ \ \textcolor{comment}{\#\ rank\ 6}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00063}00063\ \ \ \ \ \textcolor{stringliteral}{"{}ob1qdpknh5kapc22fv6s7jv0ntj7kwepqf3hcq4jrj"{}},\ \ \textcolor{comment}{\#\ rank\ 7}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00064}00064\ \ \ \ \ \textcolor{stringliteral}{"{}ob1q5stczt5xxxphedadlqej09f5hww22qhvrj2nln"{}},\ \ \textcolor{comment}{\#\ rank\ 8}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00065}00065\ \ \ \ \ \textcolor{stringliteral}{"{}ob1q8wm5est4fft7mrj937sg9uyaz2nskgttf3ku5u"{}},\ \ \textcolor{comment}{\#\ rank\ 9}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00066}00066\ \ \ \ \ \textcolor{stringliteral}{"{}ob1qcdep7azzrr8t3x8tgn9wp6p69fc884g8g80v09"{}},\ \ \textcolor{comment}{\#\ rank\ 10}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00067}00067\ ]}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00070}00070\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00071}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_level_config}{00071}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classtx-stress-sim2_1_1_level_config}{LevelConfig}}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00072}00072\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00073}00073\ \ \ \ \ tx\_per\_round:\ int}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00074}00074\ \ \ \ \ round\_interval\_s:\ float}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00075}00075\ \ \ \ \ amount\_min\_sat:\ int}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00076}00076\ \ \ \ \ amount\_max\_sat:\ int}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00077}00077\ \ \ \ \ description:\ str}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00080}\doxymbox{\hyperlink{namespacetx-stress-sim2_a4d86d32bba18c848fe8b3a5b2e21b69a}{00080}}\ LEVELS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00081}00081\ \ \ \ \ 0:\ \doxymbox{\hyperlink{classtx-stress-sim2_1_1_level_config}{LevelConfig}}(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}L0\ base\ load"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ tx\_per\_round=2,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ round\_interval\_s=30.0,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ amount\_min\_sat=1\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ amount\_max\_sat=10\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}2\ tx\ /\ 30s,\ dust\ amounts.\ Chain\ should\ run\ forever."{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00088}00088\ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00089}00089\ \ \ \ \ 1:\ \doxymbox{\hyperlink{classtx-stress-sim2_1_1_level_config}{LevelConfig}}(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}L1\ light"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ tx\_per\_round=3,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ round\_interval\_s=8.0,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ amount\_min\_sat=10\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ amount\_max\_sat=100\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}3\ tx\ /\ 8s,\ mid\ amounts.\ Tests\ Rich\ List\ growth."{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00096}00096\ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00097}00097\ \ \ \ \ 2:\ \doxymbox{\hyperlink{classtx-stress-sim2_1_1_level_config}{LevelConfig}}(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}L2\ moderate"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ tx\_per\_round=15,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ round\_interval\_s=10.0,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ amount\_min\_sat=10\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ amount\_max\_sat=50\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}15\ tx\ /\ 10s,\ fan-\/out.\ Tests\ mempool\ steady\ fill."{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00104}00104\ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00105}00105\ \ \ \ \ 3:\ \doxymbox{\hyperlink{classtx-stress-sim2_1_1_level_config}{LevelConfig}}(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}L3\ stress"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ tx\_per\_round=50,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ round\_interval\_s=10.0,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ amount\_min\_sat=1\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ amount\_max\_sat=20\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}50\ tx\ /\ 10s\ (300\ tx/min).\ Designed\ to\ overlap\ blocks;\ race-\/test."{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00112}00112\ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00113}00113\ \ \ \ \ 4:\ \doxymbox{\hyperlink{classtx-stress-sim2_1_1_level_config}{LevelConfig}}(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}L4\ extreme"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ tx\_per\_round=100,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ round\_interval\_s=8.0,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ amount\_min\_sat=1\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ amount\_max\_sat=15\_000,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}100\ tx\ /\ 8s\ (750\ tx/min).\ Pushes\ chain\ to\ limits."{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00120}00120\ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00121}00121\ \}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00124}00124\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00125}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats}{00125}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats}{Stats}}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00126}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_ad623c040edefe507135f3af4b3d274be}{00126}}\ \ \ \ \ sent:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00127}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_aca7a40c1429c4fcaa6e8966401f0fe7a}{00127}}\ \ \ \ \ accepted:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00128}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_aaf58bfa210a46c0370d7fd0a7d8c3a2f}{00128}}\ \ \ \ \ rejected:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00129}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_a034b4de57ad056eca4a864540e499a75}{00129}}\ \ \ \ \ rpc\_errors:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00130}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_ab1a37818e606e9a59eecd5fc301ee45c}{00130}}\ \ \ \ \ started\_at:\ float\ =\ field(default\_factory=time.time)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00131}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_a4e43d20b3b3e50ffe0dde424126de932}{00131}}\ \ \ \ \ last\_height:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00132}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_a1cee313e126cb7e3d339544f58b50a91}{00132}}\ \ \ \ \ last\_mempool:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00133}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_a54e87ff3c1e07937c6bf4d3cbf958731}{00133}}\ \ \ \ \ height\_at\_start:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00134}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_a15b4eb03f550bbe7633c6eaecb984991}{00134}}\ \ \ \ \ last\_report\_time:\ float\ =\ 0.0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00135}\doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats_af6b2b51716b52895c2815011d17fc91e}{00135}}\ \ \ \ \ addr\_stats:\ dict[str,\ int]\ =\ field(default\_factory=dict)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00138}\doxymbox{\hyperlink{namespacetx-stress-sim2_ac9ab6d0c4e90563cfd586f010baa2f74}{00138}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-stress-sim2_ac9ab6d0c4e90563cfd586f010baa2f74}{parse\_duration}}(s:\ str)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00139}00139\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Accepts\ strings\ like\ '1h',\ '24h',\ '30m',\ '90s'.\ Returns\ seconds."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00140}00140\ \ \ \ \ s\ =\ s.strip().lower()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{if}\ s.endswith(\textcolor{stringliteral}{"{}h"{}}):}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ int(float(s[:-\/1])\ *\ 3600)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{if}\ s.endswith(\textcolor{stringliteral}{"{}m"{}}):}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ int(float(s[:-\/1])\ *\ 60)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{if}\ s.endswith(\textcolor{stringliteral}{"{}s"{}}):}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ int(float(s[:-\/1]))}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00147}00147\ \ \ \ \ \textcolor{keywordflow}{return}\ int(float(s))}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00150}\doxymbox{\hyperlink{namespacetx-stress-sim2_afb5d282686b618492a2e8490ede4f4b0}{00150}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-stress-sim2_afb5d282686b618492a2e8490ede4f4b0}{rpc}}(url:\ str,\ method:\ str,\ params:\ list[Any]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},\ *,\ timeout:\ float\ =\ 5.0,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ token:\ str\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00152}00152\ \ \ \ \ body\ =\ json.dumps(\{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ []\}).encode()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00154}00154\ \ \ \ \ headers\ =\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00155}00155\ \ \ \ \ \textcolor{keywordflow}{if}\ token:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ headers[\textcolor{stringliteral}{"{}Authorization"{}}]\ =\ f\textcolor{stringliteral}{"{}Bearer\ \{token\}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00157}00157\ \ \ \ \ req\ =\ urllib.request.Request(url,\ data=body,\ headers=headers)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00158}00158\ \ \ \ \ \textcolor{keyword}{with}\ urllib.request.urlopen(req,\ timeout=timeout)\ \textcolor{keyword}{as}\ resp:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00160}00160\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ data\ \textcolor{keywordflow}{and}\ data[\textcolor{stringliteral}{"{}error"{}}]:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}\{method\}:\ \{data['error'].get('message',\ data['error'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00162}00162\ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00165}\doxymbox{\hyperlink{namespacetx-stress-sim2_a42abc4ec911393d78ca225b85f3de28f}{00165}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-stress-sim2_a42abc4ec911393d78ca225b85f3de28f}{chain\_snapshot}}(rpc\_url:\ str,\ token:\ str\ |\ \textcolor{keywordtype}{None})\ -\/>\ tuple[int,\ int]:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00166}00166\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}(height,\ mempool\_size).\ Returns\ (-\/1,\ -\/1)\ on\ RPC\ failure.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00167}00167\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00168}00168\ \textcolor{stringliteral}{\ \ \ \ Uses\ \`{}getblockcount\`{}\ +\ \`{}getmempoolinfo\`{}\ for\ portability\ across\ node\ versions}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00169}00169\ \textcolor{stringliteral}{\ \ \ \ (\`{}getblockchaininfo\`{}\ doesn't\ always\ include\ mempool\_size).}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00170}00170\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ height\ =\ int(\doxymbox{\hyperlink{namespacetx-stress-sim2_afb5d282686b618492a2e8490ede4f4b0}{rpc}}(rpc\_url,\ \textcolor{stringliteral}{"{}getblockcount"{}},\ token=token))}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00173}00173\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1,\ -\/1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ mp\ =\ \doxymbox{\hyperlink{namespacetx-stress-sim2_afb5d282686b618492a2e8490ede4f4b0}{rpc}}(rpc\_url,\ \textcolor{stringliteral}{"{}getmempoolinfo"{}},\ token=token)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ mempool\ =\ int(mp.get(\textcolor{stringliteral}{"{}size"{}},\ mp.get(\textcolor{stringliteral}{"{}mempool\_size"{}},\ 0)))\ \textcolor{keywordflow}{if}\ isinstance(mp,\ dict)\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00178}00178\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ mempool\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00180}00180\ \ \ \ \ \textcolor{keywordflow}{return}\ height,\ mempool}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00183}\doxymbox{\hyperlink{namespacetx-stress-sim2_ad5ea2cc9c284531c81457a91078df94f}{00183}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-stress-sim2_ad5ea2cc9c284531c81457a91078df94f}{send\_one}}(rpc\_url:\ str,\ to\_addr:\ str,\ amount\_sat:\ int,\ token:\ str\ |\ \textcolor{keywordtype}{None})\ -\/>\ tuple[bool,\ str]:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00184}00184\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Returns\ (accepted,\ txid\_or\_error).}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00185}00185\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00186}00186\ \textcolor{stringliteral}{\ \ \ \ Uses\ \`{}sendtransaction\`{}\ (signs\ with\ node's\ primary\ wallet\ —\ sender\ =\ node).}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00187}00187\ \textcolor{stringliteral}{\ \ \ \ For\ per-\/address\ signing,\ would\ need\ \`{}sendrawtransaction\`{}\ +\ local\ key\ derivation.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00188}00188\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00189}00189\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacetx-stress-sim2_afb5d282686b618492a2e8490ede4f4b0}{rpc}}(rpc\_url,\ \textcolor{stringliteral}{"{}sendtransaction"{}},\ [to\_addr,\ amount\_sat],\ token=token)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(result,\ dict)\ \textcolor{keywordflow}{and}\ result.get(\textcolor{stringliteral}{"{}status"{}})\ ==\ \textcolor{stringliteral}{"{}accepted"{}}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True},\ result.get(\textcolor{stringliteral}{"{}txid"{}},\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ str(result)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00194}00194\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ str(e)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00196}00196\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00198}\doxymbox{\hyperlink{namespacetx-stress-sim2_aace2f3af2735b5b5c337085a95ab95c2}{00198}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-stress-sim2_aace2f3af2735b5b5c337085a95ab95c2}{report}}(stats:\ Stats,\ rpc\_url:\ str,\ token:\ str\ |\ \textcolor{keywordtype}{None},\ detailed:\ bool\ =\ \textcolor{keyword}{False})\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00199}00199\ \ \ \ \ elapsed\ =\ time.time()\ -\/\ stats.started\_at}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00200}00200\ \ \ \ \ h,\ mp\ =\ \doxymbox{\hyperlink{namespacetx-stress-sim2_a42abc4ec911393d78ca225b85f3de28f}{chain\_snapshot}}(rpc\_url,\ token)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00201}00201\ \ \ \ \ blocks\_added\ =\ (h\ -\/\ stats.height\_at\_start)\ \textcolor{keywordflow}{if}\ (h\ >=\ 0\ \textcolor{keywordflow}{and}\ stats.height\_at\_start)\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00202}00202\ \ \ \ \ rate\_per\_min\ =\ stats.sent\ /\ max(1.0,\ elapsed\ /\ 60.0)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00203}00203\ \ \ \ \ accept\_pct\ =\ 100.0\ *\ stats.accepted\ /\ max(1,\ stats.sent)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00205}00205\ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}[REPORT\ t=\{int(elapsed)\}s]\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}sent=\{stats.sent\}\ accepted=\{stats.accepted\}\ (\{accept\_pct:.1f\}\%)\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}rejected=\{stats.rejected\}\ rpc\_err=\{stats.rpc\_errors\}\ |\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}height=\{h\}\ (+\{blocks\_added\})\ mempool=\{mp\}\ |\ rate=\{rate\_per\_min:.2f\}\ tx/min"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ flush=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00211}00211\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00213}00213\ \ \ \ \ \textcolor{keywordflow}{if}\ detailed\ \textcolor{keywordflow}{and}\ stats.addr\_stats:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ top\_addrs\ =\ sorted(stats.addr\_stats.items(),\ key=\textcolor{keyword}{lambda}\ x:\ x[1],\ reverse=\textcolor{keyword}{True})[:5]}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ Top\ 5\ recipients:"{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ addr,\ count\ \textcolor{keywordflow}{in}\ top\_addrs:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ short\ =\ addr[-\/12:]\ \textcolor{keywordflow}{if}\ len(addr)\ >\ 12\ \textcolor{keywordflow}{else}\ addr}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ ...\{short\}:\ \{count\}\ tx"{}},\ flush=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00220}00220\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00221}\doxymbox{\hyperlink{namespacetx-stress-sim2_a7431cb90017e54fe695b23d4190db046}{00221}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-stress-sim2_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00222}00222\ \ \ \ \ p\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ testnet\ TX\ stress\ simulator."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00223}00223\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/level"{}},\ type=int,\ default=0,\ choices=sorted(LEVELS.keys()),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Load\ level\ (0–\{max(LEVELS.keys())\}).\ See\ LEVELS\ in\ source."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00225}00225\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/duration"{}},\ default=\textcolor{stringliteral}{"{}1h"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Run\ length:\ '1h',\ '24h',\ '30m',\ '90s'.\ Default\ 1h."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00227}00227\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:18332"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}RPC\ URL.\ Default:\ 127.0.0.1:18332\ (testnet\ local).\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}VPS:\ http://omnibusblockchain.cc:18332"{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00230}00230\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/token"{}},\ default=os.environ.get(\textcolor{stringliteral}{"{}OMNIBUS\_RPC\_TOKEN"{}}),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Bearer\ token\ for\ non-\/loopback\ RPC.\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Default:\ \$OMNIBUS\_RPC\_TOKEN\ env\ var."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00233}00233\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/report-\/every"{}},\ type=int,\ default=30,}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Print\ a\ status\ line\ every\ N\ seconds.\ Default\ 30."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00235}00235\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/seed"{}},\ type=int,\ default=\textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Random\ seed\ for\ reproducibility."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00237}00237\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/num-\/addresses"{}},\ type=int,\ default=len(BASE\_RECIPIENTS),}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Number\ of\ recipients\ to\ rotate\ through.\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Max\ \{len(BASE\_RECIPIENTS)\}\ (size\ of\ BASE\_RECIPIENTS).\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Higher\ values\ are\ clamped\ —\ we\ don't\ fabricate\ addresses."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00241}00241\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/detailed-\/stats"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Show\ top\ recipients\ per\ report\ and\ at\ end."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00243}00243\ \ \ \ \ p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/burst-\/mode"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Send\ all\ TX\ in\ a\ burst\ at\ the\ start\ of\ each\ interval."{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00245}00245\ \ \ \ \ args\ =\ p.parse\_args()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00247}00247\ \ \ \ \ \textcolor{keywordflow}{if}\ args.seed\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ random.seed(args.seed)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00250}00250\ \ \ \ \ \textcolor{comment}{\#\ Clamp\ num\_addresses\ to\ actual\ pool\ size\ —\ we\ cannot\ fabricate\ valid\ addresses.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00251}00251\ \ \ \ \ n\_addr\ =\ max(1,\ min(args.num\_addresses,\ len(BASE\_RECIPIENTS)))}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00252}00252\ \ \ \ \ \textcolor{keywordflow}{if}\ args.num\_addresses\ >\ len(BASE\_RECIPIENTS):}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}[WARN]\ -\/-\/num-\/addresses=\{args.num\_addresses\}\ >\ pool\ size\ \{len(BASE\_RECIPIENTS)\};\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}clamping\ to\ \{n\_addr\}"{}},\ file=sys.stderr)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00255}00255\ \ \ \ \ recipient\_pool\ =\ BASE\_RECIPIENTS[:n\_addr]}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00257}00257\ \ \ \ \ cfg\ =\ LEVELS[args.level]}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00258}00258\ \ \ \ \ duration\_s\ =\ \doxymbox{\hyperlink{namespacetx-stress-sim2_ac9ab6d0c4e90563cfd586f010baa2f74}{parse\_duration}}(args.duration)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00259}00259\ \ \ \ \ deadline\ =\ time.time()\ +\ duration\_s}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00261}00261\ \ \ \ \ stats\ =\ \doxymbox{\hyperlink{classtx-stress-sim2_1_1_stats}{Stats}}()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00262}00262\ \ \ \ \ stats.last\_report\_time\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00263}00263\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00264}00264\ \ \ \ \ h0,\ \_\ =\ \doxymbox{\hyperlink{namespacetx-stress-sim2_a42abc4ec911393d78ca225b85f3de28f}{chain\_snapshot}}(args.rpc,\ args.token)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00265}00265\ \ \ \ \ \textcolor{keywordflow}{if}\ h0\ <\ 0:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}ERROR:\ cannot\ reach\ RPC\ at\ \{args.rpc\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}(token\ \{'set'\ if\ args.token\ else\ 'NOT\ set'\})"{}},\ file=sys.stderr)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 2}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00269}00269\ \ \ \ \ stats.height\_at\_start\ =\ h0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00270}00270\ \ \ \ \ stats.last\_height\ =\ h0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00272}00272\ \ \ \ \ stopping\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00273}00273\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00274}00274\ \ \ \ \ \textcolor{keyword}{def\ }on\_sigint(\_sig,\ \_frame):}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ nonlocal\ stopping}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stopping:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ stopping\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n[CTRL-\/C]\ stopping,\ final\ report\ below…"{}},\ flush=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00281}00281\ \ \ \ \ signal.signal(signal.SIGINT,\ on\_sigint)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00283}00283\ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}===\ OmniBus\ TX\ stress\ sim\ ===\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ level:\ \ \ \ \ \ \ \ \{cfg.name\}\ —\ \{cfg.description\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ tx/round:\ \ \ \ \ \{cfg.tx\_per\_round\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ interval:\ \ \ \ \ \{cfg.round\_interval\_s\}s\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ amount:\ \ \ \ \ \ \ \{cfg.amount\_min\_sat\}–\{cfg.amount\_max\_sat\}\ SAT\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ duration:\ \ \ \ \ \{duration\_s\}s\ (\{args.duration\})\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ rpc:\ \ \ \ \ \ \ \ \ \ \{args.rpc\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ auth:\ \ \ \ \ \ \ \ \ \{'Bearer\ (set)'\ if\ args.token\ else\ 'none\ (loopback\ only)'\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ start\ height:\ \{h0\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ recipients:\ \ \ \{len(recipient\_pool)\}\ addresses\ (rotation)\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00294}00294\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ burst\ mode:\ \ \ \{'ON'\ if\ args.burst\_mode\ else\ 'OFF'\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ Ctrl+C\ to\ stop\ early\ —\ final\ report\ on\ exit.\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ flush=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00297}00297\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00298}00298\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00299}00299\ \ \ \ \ last\_report\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00300}00300\ \ \ \ \ round\_start\_time\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00302}00302\ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keywordflow}{not}\ stopping\ \textcolor{keywordflow}{and}\ time.time()\ <\ deadline:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.burst\_mode:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ All\ TX\ up-\/front,\ then\ sleep\ the\ rest\ of\ the\ interval.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(cfg.tx\_per\_round):}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stopping:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ to\_addr\ =\ random.choice(recipient\_pool)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Bimodal\ amount:\ 80\%\ small,\ 20\%\ larger.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ random.random()\ <\ 0.2:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ amt\ =\ random.randint(cfg.amount\_max\_sat\ //\ 2,\ cfg.amount\_max\_sat)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ amt\ =\ random.randint(cfg.amount\_min\_sat,\ max(cfg.amount\_min\_sat,\ cfg.amount\_max\_sat\ //\ 2))}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00314}00314\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.sent\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ok,\ info\ =\ \doxymbox{\hyperlink{namespacetx-stress-sim2_ad5ea2cc9c284531c81457a91078df94f}{send\_one}}(args.rpc,\ to\_addr,\ amt,\ args.token)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ok:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.accepted\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.addr\_stats[to\_addr]\ =\ stats.addr\_stats.get(to\_addr,\ 0)\ +\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ low\ =\ info.lower()\ \textcolor{keywordflow}{if}\ isinstance(info,\ str)\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}rpc"{}}\ \textcolor{keywordflow}{in}\ low\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}connect"{}}\ \textcolor{keywordflow}{in}\ low\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}timeout"{}}\ \textcolor{keywordflow}{in}\ low\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}urlopen"{}}\ \textcolor{keywordflow}{in}\ low:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.rpc\_errors\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.rejected\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Tiny\ breath\ every\ 10\ TX\ in\ burst,\ so\ we\ don't\ blast\ the\ socket.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ i\ \textcolor{keywordflow}{and}\ i\ \%\ 10\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(0.01)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00331}00331\ \ \ \ \ \ \ \ \ \ \ \ \ elapsed\_round\ =\ time.time()\ -\/\ round\_start\_time}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ \ \ \ \ sleep\_left\ =\ cfg.round\_interval\_s\ -\/\ elapsed\_round}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ sleep\_left\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(sleep\_left)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00335}00335\ \ \ \ \ \ \ \ \ \ \ \ \ round\_start\_time\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00336}00336\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00337}00337\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00338}00338\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Spread\ mode:\ distribute\ TX\ evenly\ across\ the\ interval.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ \ \ \ \ tx\_interval\ =\ (cfg.round\_interval\_s\ /\ cfg.tx\_per\_round)\ \textcolor{keywordflow}{if}\ cfg.tx\_per\_round\ >\ 0\ \textcolor{keywordflow}{else}\ cfg.round\_interval\_s}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00340}00340\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(cfg.tx\_per\_round):}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stopping:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ to\_addr\ =\ random.choice(recipient\_pool)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Trimodal\ amount:\ 70\%\ normal,\ 15\%\ large,\ 15\%\ dust.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rand\_choice\ =\ random.random()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00347}00347\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ rand\_choice\ <\ 0.7:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00348}00348\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ amt\ =\ random.randint(cfg.amount\_min\_sat,\ cfg.amount\_max\_sat)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00349}00349\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ rand\_choice\ <\ 0.85:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ "{}Large"{}\ capped\ at\ 1.5×\ max,\ not\ 2×,\ so\ we\ don't\ drift\ balance\ away\ too\ fast.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ upper\ =\ max(cfg.amount\_max\_sat\ +\ 1,\ int(cfg.amount\_max\_sat\ *\ 1.5))}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ amt\ =\ random.randint(cfg.amount\_max\_sat,\ upper)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00354}00354\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ amt\ =\ random.randint(max(1,\ cfg.amount\_min\_sat\ //\ 10),\ cfg.amount\_min\_sat)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00355}00355\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00356}00356\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.sent\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ok,\ info\ =\ \doxymbox{\hyperlink{namespacetx-stress-sim2_ad5ea2cc9c284531c81457a91078df94f}{send\_one}}(args.rpc,\ to\_addr,\ amt,\ args.token)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ok:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.accepted\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.addr\_stats[to\_addr]\ =\ stats.addr\_stats.get(to\_addr,\ 0)\ +\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ low\ =\ info.lower()\ \textcolor{keywordflow}{if}\ isinstance(info,\ str)\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00363}00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}rpc"{}}\ \textcolor{keywordflow}{in}\ low\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}connect"{}}\ \textcolor{keywordflow}{in}\ low\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}timeout"{}}\ \textcolor{keywordflow}{in}\ low\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}urlopen"{}}\ \textcolor{keywordflow}{in}\ low:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00364}00364\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.rpc\_errors\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00365}00365\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00366}00366\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats.rejected\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00367}00367\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00368}00368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 90\%\ of\ slot\ to\ leave\ slack\ for\ the\ RPC;\ keeps\ cumulative\ drift\ bounded.}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00369}00369\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(tx\_interval\ *\ 0.9)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00370}00370\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00371}00371\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ time.time()\ -\/\ last\_report\ >=\ args.report\_every:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00372}00372\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetx-stress-sim2_aace2f3af2735b5b5c337085a95ab95c2}{report}}(stats,\ args.rpc,\ args.token,\ args.detailed\_stats)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00373}00373\ \ \ \ \ \ \ \ \ \ \ \ \ last\_report\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00374}00374\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00375}00375\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n===\ FINAL\ REPORT\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00376}00376\ \ \ \ \ \doxymbox{\hyperlink{namespacetx-stress-sim2_aace2f3af2735b5b5c337085a95ab95c2}{report}}(stats,\ args.rpc,\ args.token,\ \textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00377}00377\ \ \ \ \ elapsed\ =\ time.time()\ -\/\ stats.started\_at}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00378}00378\ \ \ \ \ accept\_pct\ =\ 100.0\ *\ stats.accepted\ /\ max(1,\ stats.sent)}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00380}00380\ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00381}00381\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ duration:\ \ \ \ \ \{int(elapsed)\}s\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00382}00382\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ sent:\ \ \ \ \ \ \ \ \ \{stats.sent\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00383}00383\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ accepted:\ \ \ \ \ \{stats.accepted\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00384}00384\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ rejected:\ \ \ \ \ \{stats.rejected\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00385}00385\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ rpc\ errs:\ \ \ \ \ \{stats.rpc\_errors\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00386}00386\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ accept\ rate:\ \ \{accept\_pct:.1f\}\%\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00387}00387\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ avg\ tx/min:\ \ \ \{stats.sent\ /\ max(1.0,\ elapsed\ /\ 60.0):.2f\}\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00388}00388\ \ \ \ \ \ \ \ \ flush=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00389}00389\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00390}00390\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00391}00391\ \ \ \ \ \textcolor{keywordflow}{if}\ stats.addr\_stats:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00392}00392\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Address\ distribution\ (top\ 10):"{}})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00393}00393\ \ \ \ \ \ \ \ \ top\_addrs\ =\ sorted(stats.addr\_stats.items(),\ key=\textcolor{keyword}{lambda}\ x:\ x[1],\ reverse=\textcolor{keyword}{True})[:10]}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00394}00394\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ addr,\ count\ \textcolor{keywordflow}{in}\ top\_addrs:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00395}00395\ \ \ \ \ \ \ \ \ \ \ \ \ short\ =\ addr[-\/12:]\ \textcolor{keywordflow}{if}\ len(addr)\ >\ 12\ \textcolor{keywordflow}{else}\ addr}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00396}00396\ \ \ \ \ \ \ \ \ \ \ \ \ pct\ =\ 100.0\ *\ count\ /\ stats.sent}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00397}00397\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ ...\{short\}:\ \{count\}\ tx\ (\{pct:.1f\}\%)"{}},\ flush=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00398}00398\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00399}00399\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00400}00400\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00401}00401\ }
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00402}00402\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{tx-stress-sim2_8py_source_l00403}00403\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacetx-stress-sim2_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

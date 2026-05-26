@@ -1,0 +1,108 @@
+\chapter{CLAUDE.\+md }
+\hypertarget{md__c_l_a_u_d_e}{}\label{md__c_l_a_u_d_e}\index{CLAUDE.md@{CLAUDE.md}}
+\label{md__c_l_a_u_d_e_autotoc_md44}%
+\Hypertarget{md__c_l_a_u_d_e_autotoc_md44}%
+
+
+This file provides guidance to Claude Code (claude.\+ai/\+code) when working with code in this repository.\hypertarget{md__c_l_a_u_d_e_autotoc_md45}{}\doxysection{\texorpdfstring{Build \& Run}{Build \& Run}}\label{md__c_l_a_u_d_e_autotoc_md45}
+Requires {\bfseries{Zig 0.\+15.\+2+}} and {\bfseries{liboqs}} compiled with Min\+GW at {\ttfamily C:\+/\+\+Kits work/\+limaje de programare/\+liboqs-\/src/\+build/\+}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Build\ the\ node\ binary\ (outputs\ zig-\/out/bin/omnibus-\/node.exe)}
+\DoxyCodeLine{zig\ build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Build\ without\ liboqs\ (disables\ PQ\ wallet\ features)}
+\DoxyCodeLine{zig\ build\ -\/Doqs=false}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ the\ blockchain\ node}
+\DoxyCodeLine{zig\ build\ run}
+\DoxyCodeLine{\#\ Or\ directly:}
+\DoxyCodeLine{./zig-\/out/bin/omnibus-\/node.exe\ -\/-\/mode\ seed\ -\/-\/node-\/id\ node-\/1\ -\/-\/port\ 9000}
+\DoxyCodeLine{./zig-\/out/bin/omnibus-\/node.exe\ -\/-\/mode\ miner\ -\/-\/node-\/id\ miner-\/1\ -\/-\/seed-\/host\ 127.0.0.1\ -\/-\/seed-\/port\ 9000}
+
+\end{DoxyCode}
+\hypertarget{md__c_l_a_u_d_e_autotoc_md46}{}\doxysection{\texorpdfstring{Testing}{Testing}}\label{md__c_l_a_u_d_e_autotoc_md46}
+Tests are embedded in each {\ttfamily core/\+\texorpdfstring{$\ast$}{*}.zig} file (Zig\textquotesingle{}s {\ttfamily test} blocks). The build system defines grouped test steps:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{zig\ build\ test\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ All\ tests\ (without\ liboqs)}
+\DoxyCodeLine{zig\ build\ test-\/crypto\ \ \ \ \ \ \ \#\ secp256k1,\ BIP32,\ ripemd160,\ schnorr,\ multisig,\ BLS,\ peer\ scoring,\ etc.}
+\DoxyCodeLine{zig\ build\ test-\/chain\ \ \ \ \ \ \ \ \#\ block,\ blockchain,\ genesis,\ mempool,\ consensus,\ finality,\ governance,\ e2e\ mining}
+\DoxyCodeLine{zig\ build\ test-\/net\ \ \ \ \ \ \ \ \ \ \#\ RPC,\ P2P,\ sync,\ network,\ node\ launcher,\ bootstrap,\ CLI,\ vault\ reader}
+\DoxyCodeLine{zig\ build\ test-\/shard\ \ \ \ \ \ \ \ \#\ sub-\/blocks,\ shard\ config,\ blockchain\ v2}
+\DoxyCodeLine{zig\ build\ test-\/storage\ \ \ \ \ \ \#\ storage,\ binary\ codec,\ archive,\ prune\ config,\ state\ trie,\ compact\ TX,\ witness}
+\DoxyCodeLine{zig\ build\ test-\/light\ \ \ \ \ \ \ \ \#\ light\ client,\ light\ miner,\ mining\ pool,\ key\ encryption}
+\DoxyCodeLine{zig\ build\ test-\/pq\ \ \ \ \ \ \ \ \ \ \ \#\ PQ\ crypto\ pure\ Zig\ (no\ liboqs)}
+\DoxyCodeLine{zig\ build\ test-\/wallet\ \ \ \ \ \ \ \#\ wallet\ (requires\ liboqs)}
+
+\end{DoxyCode}
+
+
+To test a single module, run its file directly:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{zig\ test\ core/secp256k1.zig}
+
+\end{DoxyCode}
+
+
+There are also standalone test files in {\ttfamily test/\+} (consensus\+\_\+test.\+zig, mempool\+\_\+test.\+zig, etc.) that can be run with {\ttfamily zig test test/\+\texorpdfstring{$<$}{<}name\texorpdfstring{$>$}{>}.zig}.\hypertarget{md__c_l_a_u_d_e_autotoc_md47}{}\doxysection{\texorpdfstring{Architecture}{Architecture}}\label{md__c_l_a_u_d_e_autotoc_md47}
+\hypertarget{md__c_l_a_u_d_e_autotoc_md48}{}\doxysubsection{\texorpdfstring{Node Startup (core/\+main.\+zig)}{Node Startup (core/\+main.\+zig)}}\label{md__c_l_a_u_d_e_autotoc_md48}
+{\ttfamily main.\+zig} is the entry point that orchestrates all subsystems in sequence:\+
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Single-\/instance lock}} — OS-\/level lock prevents two miners on the same machine
+\item {\bfseries{CLI parsing}} ({\ttfamily cli.\+zig}) → mode (seed/\+miner), node-\/id, host, port, seed-\/host
+\item {\bfseries{Vault reader}} ({\ttfamily vault\+\_\+reader.\+zig}) → reads mnemonic from Super\+Vault Named Pipe, env var, or dev default
+\item {\bfseries{Database}} ({\ttfamily database.\+zig}) → loads/\+persists blockchain state from {\ttfamily omnibus-\/chain.\+dat}
+\item {\bfseries{Genesis}} ({\ttfamily genesis.\+zig}) → initializes chain with official genesis block (mainnet or testnet config)
+\item {\bfseries{Wallet}} ({\ttfamily wallet.\+zig}) → derives wallet from mnemonic, 5 PQ address domains via liboqs
+\item {\bfseries{Mempool}} ({\ttfamily mempool.\+zig}) → FIFO transaction pool with size/\+time limits
+\item {\bfseries{Consensus}} ({\ttfamily consensus.\+zig}) → PoW engine with difficulty adjustment
+\item {\bfseries{Metachain + Shards}} ({\ttfamily metachain.\+zig}, {\ttfamily shard\+\_\+coordinator.\+zig}) → 4-\/shard architecture
+\item {\bfseries{Subsystems}} — state trie, finality (Casper FFG), staking, governance, peer scoring, DNS registry, guardian
+\item {\bfseries{P2P}} ({\ttfamily p2p.\+zig}) → TCP transport, peer discovery, knock-\/knock duplicate detection
+\item {\bfseries{Web\+Socket}} ({\ttfamily ws\+\_\+server.\+zig}) → push events to React frontend on port 8334
+\item {\bfseries{RPC}} ({\ttfamily rpc\+\_\+server.\+zig}) → JSON-\/\+RPC 2.\+0 HTTP server on port 8332 (separate thread)
+\item {\bfseries{Mining loop}} — Sub\+Block engine (10 × 0.\+1s sub-\/blocks → 1 Key\+Block), then mine main block
+\end{DoxyEnumerate}\hypertarget{md__c_l_a_u_d_e_autotoc_md49}{}\doxysubsection{\texorpdfstring{Core Layers}{Core Layers}}\label{md__c_l_a_u_d_e_autotoc_md49}
+
+\begin{DoxyItemize}
+\item {\bfseries{Crypto}}:\+ Pure Zig secp256k1 ({\ttfamily secp256k1.\+zig}), BIP-\/32 HD wallet ({\ttfamily bip32\+\_\+wallet.\+zig}), RIPEMD-\/160 ({\ttfamily ripemd160.\+zig}), Schnorr signatures, BLS signatures, multisig. PQ crypto via liboqs C bindings ({\ttfamily pq\+\_\+crypto.\+zig}, {\ttfamily wallet.\+zig}).
+\item {\bfseries{Consensus}}:\+ PoW with sub-\/block system ({\ttfamily sub\+\_\+block.\+zig}), Casper FFG finality ({\ttfamily finality.\+zig}), governance voting ({\ttfamily governance.\+zig}), staking/\+validator system ({\ttfamily staking.\+zig})
+\item {\bfseries{Networking}}:\+ TCP P2P ({\ttfamily p2p.\+zig}), node sync ({\ttfamily sync.\+zig}), Kademlia DHT ({\ttfamily kademlia\+\_\+dht.\+zig}), peer scoring ({\ttfamily peer\+\_\+scoring.\+zig}), bootstrap/\+discovery ({\ttfamily bootstrap.\+zig})
+\item {\bfseries{Storage}}:\+ Binary codec ({\ttfamily binary\+\_\+codec.\+zig}), archive manager ({\ttfamily archive\+\_\+manager.\+zig}), state trie ({\ttfamily state\+\_\+trie.\+zig}), compact blocks/\+transactions, witness data, pruning config
+\end{DoxyItemize}\hypertarget{md__c_l_a_u_d_e_autotoc_md50}{}\doxysubsection{\texorpdfstring{Frontend (frontend/\+)}{Frontend (frontend/\+)}}\label{md__c_l_a_u_d_e_autotoc_md50}
+React + Type\+Script app with Vite. Components:\+ Block\+Explorer, Wallet, Stats. Communicates via JSON-\/\+RPC ({\ttfamily api/\+rpc-\/client.\+ts}) to port 8332 and Web\+Socket on 8334.\hypertarget{md__c_l_a_u_d_e_autotoc_md51}{}\doxysubsection{\texorpdfstring{Each core/\+\texorpdfstring{$\ast$}{*}.zig file is self-\/contained}{Each core/\+\texorpdfstring{$\ast$}{*}.zig file is self-\/contained}}\label{md__c_l_a_u_d_e_autotoc_md51}
+Modules don\textquotesingle{}t share a central module registry. Each file declares its own types and exports them. {\ttfamily main.\+zig} imports everything it needs directly. Tests live inside each file — no separate test runner needed.\hypertarget{md__c_l_a_u_d_e_autotoc_md52}{}\doxysection{\texorpdfstring{Key Parameters}{Key Parameters}}\label{md__c_l_a_u_d_e_autotoc_md52}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  \\
+Block time  &10s (10 × 0.\+1s sub-\/blocks)  \\
+RPC port  &8332 (HTTP)  \\
+Web\+Socket port  &8334  \\
+P2P port  &9000+ (configurable)  \\
+Max supply  &21M OMNI  \\
+Block reward  &50 OMNI (halves every 210k blocks)  \\
+SAT/\+\+OMNI  &1,000,000,000 (1e9)  \\
+DB file  &omnibus-\/chain.\+dat  \\
+Shards  &4  \\
+\end{DoxyTable}
+\hypertarget{md__c_l_a_u_d_e_autotoc_md53}{}\doxysection{\texorpdfstring{Git Workflow}{Git Workflow}}\label{md__c_l_a_u_d_e_autotoc_md53}
+Every commit must include 9 co-\/authors:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Co-\/Authored-\/By:\ OmniBus\ AI\ v1.stable\ <learn@omnibus.ai>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Google\ Gemini\ <gemini-\/cli-\/agent@google.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ DeepSeek\ AI\ <noreply@deepseek.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Haiku\ (Code)\ <claude-\/code@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Haiku\ <haiku-\/4.5@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Sonnet\ <sonnet-\/4.5@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Claude\ 4.5\ Opus\ <opus-\/4.5@anthropic.com>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Perplexity\ AI\ <support@perplexity.ai>}
+\DoxyCodeLine{Co-\/Authored-\/By:\ Ollama\ <hello@ollama.com>}
+
+\end{DoxyCode}
+\hypertarget{md__c_l_a_u_d_e_autotoc_md54}{}\doxysection{\texorpdfstring{Ecosystem Context}{Ecosystem Context}}\label{md__c_l_a_u_d_e_autotoc_md54}
+This repo is one of 8+ repos in {\ttfamily C:\+\textbackslash{}Kits work\textbackslash{}limaje de programare\textbackslash{}} — the Omni\+Bus financial platform ecosystem. See the parent {\ttfamily \doxylink{_c_l_a_u_d_e_8md}{CLAUDE.\+md}} for cross-\/repo architecture. Key siblings:\+ Omni\+Bus (bare-\/metal OS), Zig-\/toolz-\/\+Assembly (HFT), Tor\+Network\+Exchange (DEX), Omnibus\+Sidebar (desktop wallet). 

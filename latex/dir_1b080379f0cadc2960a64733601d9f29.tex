@@ -1,0 +1,587 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@noble/\+post-\/quantum/\+node\+\_\+modules/\+@noble/\+hashes Directory Reference}
+\hypertarget{dir_1b080379f0cadc2960a64733601d9f29}{}\label{dir_1b080379f0cadc2960a64733601d9f29}\index{frontend/node\_modules/"@noble/post-\/quantum/node\_modules/"@noble/hashes Directory Reference@{frontend/node\_modules/"@noble/post-\/quantum/node\_modules/"@noble/hashes Directory Reference}}
+Directory dependency graph for hashes:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4655}{}\doxysubsection{\texorpdfstring{noble-\/hashes}{noble-\/hashes}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4655}
+Audited \& minimal JS implementation of hash functions, MACs and KDFs.
+
+
+\begin{DoxyItemize}
+\item 🔒 \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Audited\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}{\bfseries{Audited}}
+\end{DoxyItemize}by an independent security firm
+\begin{DoxyItemize}
+\item 🔻 Tree-\/shakeable:\+ unused code is excluded from your builds
+\item 🏎 Fast:\+ hand-\/optimized for caveats of JS engines
+\item 🔍 Reliable:\+ chained /\+ sliding window /\+ DoS /\+ ACVP tests and fuzzing
+\item 🔁 No unrolled loops:\+ makes it easier to verify and reduces source code size up to 5x
+\item 🦘 Includes SHA, RIPEMD, BLAKE, HMAC, HKDF, PBKDF, Scrypt, Argon2
+\item 🥈 Optional, friendly wrapper over native Web\+Crypto
+\item 🪶 22KB (gzipped) for everything, 2.\+4\+KB for single-\/hash build
+\end{DoxyItemize}
+
+Use \href{https://github.com/paulmillr/awasm-noble}{\texttt{awasm-\/noble}} if you need an even faster (WASM) alternative. Check out UpgradingUpgrading for information about upgrading from previous versions. Take a glance at \href{https://github.com/paulmillr/noble-hashes/discussions}{\texttt{Git\+Hub Discussions}} for questions and support.
+
+The library\textquotesingle{}s initial development was funded by \href{https://ethereum.org/}{\texttt{Ethereum Foundation}}.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4656}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape noble} cryptography}{This library belongs to {\itshape noble} cryptography}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4656}
+\begin{quote}
+{\bfseries{noble cryptography}} — high-\/security, easily auditable set of contained cryptographic libraries and tools. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds
+\item All libraries:\+ \href{https://github.com/paulmillr/noble-ciphers}{\texttt{ciphers}}, \href{https://github.com/paulmillr/noble-curves}{\texttt{curves}}, \href{https://github.com/paulmillr/noble-hashes}{\texttt{hashes}}, \href{https://github.com/paulmillr/noble-post-quantum}{\texttt{post-\/quantum}}, 5kb \href{https://github.com/paulmillr/noble-secp256k1}{\texttt{secp256k1}} /\+ \href{https://github.com/paulmillr/noble-ed25519}{\texttt{ed25519}}
+\item \href{https://paulmillr.com/noble/}{\texttt{Check out the homepage}} for reading resources, documentation, and apps built with noble
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4657}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4657}
+\begin{quote}
+{\ttfamily npm install @noble/\+hashes} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@noble/\+hashes} \end{quote}
+
+
+\doxylink{namespace_we}{We} support all major platforms and runtimes. For React Native, you may need a \href{https://github.com/LinusU/react-native-get-random-values}{\texttt{polyfill for get\+Random\+Values}}. A standalone file \href{https://github.com/paulmillr/noble-hashes/releases}{\texttt{noble-\/hashes.\+js}} is also available.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ import\ *\ from\ '@noble/hashes';\ //\ Error:\ use\ sub-\/imports,\ to\ ensure\ small\ app\ size}
+\DoxyCodeLine{import\ \{\ sha256\ as\ noble\_sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{const\ hash\ =\ noble\_sha256(Uint8Array.from([0xca,\ 0xfe,\ 0x01,\ 0x23]));}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Available\ modules}
+\DoxyCodeLine{import\ \{\ sha256,\ sha384,\ sha512,\ sha224,\ sha512\_224,\ sha512\_256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ sha3\_256,\ sha3\_512,}
+\DoxyCodeLine{\ \ keccak\_256,\ keccak\_512,}
+\DoxyCodeLine{\ \ shake128,\ shake256,}
+\DoxyCodeLine{\}\ from\ '@noble/hashes/sha3.js';}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ cshake256,\ turboshake256,\ kmac256,\ tuplehash256,}
+\DoxyCodeLine{\ \ kt128,\ kt256,\ keccakprg,}
+\DoxyCodeLine{\}\ from\ '@noble/hashes/sha3-\/addons.js';}
+\DoxyCodeLine{import\ \{\ blake3\ \}\ from\ '@noble/hashes/blake3.js';}
+\DoxyCodeLine{import\ \{\ blake2b,\ blake2s\ \}\ from\ '@noble/hashes/blake2.js';}
+\DoxyCodeLine{import\ \{\ blake256,\ blake512\ \}\ from\ '@noble/hashes/blake1.js';}
+\DoxyCodeLine{import\ \{\ sha1,\ md5,\ ripemd160\ \}\ from\ '@noble/hashes/legacy.js';}
+\DoxyCodeLine{import\ \{\ hmac\ \}\ from\ '@noble/hashes/hmac.js';}
+\DoxyCodeLine{import\ \{\ hkdf\ \}\ from\ '@noble/hashes/hkdf.js';}
+\DoxyCodeLine{import\ \{\ pbkdf2,\ pbkdf2Async\ \}\ from\ '@noble/hashes/pbkdf2.js';}
+\DoxyCodeLine{import\ \{\ scrypt,\ scryptAsync\ \}\ from\ '@noble/hashes/scrypt.js';}
+\DoxyCodeLine{import\ \{\ argon2d,\ argon2i,\ argon2id\ \}\ from\ '@noble/hashes/argon2.js';}
+\DoxyCodeLine{import\ *\ as\ webcrypto\ from\ '@noble/hashes/webcrypto.js';}
+\DoxyCodeLine{//\ const\ \{\ sha256,\ sha384,\ sha512,\ hmac,\ hkdf,\ pbkdf2\ \}\ =\ webcrypto;}
+\DoxyCodeLine{import\ *\ as\ utils\ from\ '@noble/hashes/utils.js';}
+\DoxyCodeLine{const\ \{\ bytesToHex,\ concatBytes,\ equalBytes,\ hexToBytes\ \}\ =\ utils;}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item sha2:\+ sha256, sha384, sha512sha2:\+ \doxylink{namespacesha256}{sha256}, sha384, sha512
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item sha3:\+ FIPS, SHAKE, Keccaksha3:\+ FIPS, SHAKE, Keccak
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item sha3-\/addons:\+ c\+SHAKE, KMAC, KT128, Turbo\+SHAKEsha3-\/addons:\+ c\+SHAKE, KMAC, KT128, Turbo\+SHAKE
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item blake1, blake2, blake3blake1, blake2, blake3
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item legacy:\+ sha1, md5, ripemd160legacy:\+ sha1, md5, ripemd160
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item MACs:\+ hmachmac
+\end{DoxyItemize}\texorpdfstring{$\vert$}{|} kmackmac \texorpdfstring{$\vert$}{|} blake3 key modeblake3 key mode
+\begin{DoxyItemize}
+\item KDFs:\+ hkdfhkdf
+\end{DoxyItemize}\texorpdfstring{$\vert$}{|} pbkdf2pbkdf2 \texorpdfstring{$\vert$}{|} scryptscrypt \texorpdfstring{$\vert$}{|} argon2argon2
+\begin{DoxyItemize}
+\item webcrypto:\+ friendly wrapperwebcrypto:\+ friendly wrapper
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item utilsutils
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SecuritySecurity
+\end{DoxyItemize}\texorpdfstring{$\vert$}{|} SpeedSpeed \texorpdfstring{$\vert$}{|} Contributing \& testingContributing \& testing \texorpdfstring{$\vert$}{|} LicenseLicense\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4658}{}\doxysubsubsection{\texorpdfstring{Implementations}{Implementations}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4658}
+Hash functions:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{namespacesha256}{sha256()}}:\+ receive \& return {\ttfamily Uint8\+Array}
+\item {\ttfamily sha256.\+create().update(a).update(b).digest()}:\+ support partial updates
+\item {\ttfamily blake3.\+create(\{ context:\+ \textquotesingle{}e\textquotesingle{}, dk\+Len:\+ 32 \})}:\+ can have options
+\item support little-\/endian architecture; also experimentally big-\/endian
+\item can hash up to 4GB per chunk, with any amount of chunks
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4659}{}\doxysubsubsubsection{\texorpdfstring{sha2:\+ sha256, sha384, sha512 and others}{sha2:\+ sha256, sha384, sha512 and others}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4659}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ sha224,\ sha256,\ sha384,\ sha512,\ sha512\_224,\ sha512\_256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{const\ res\ =\ sha256(Uint8Array.from([0xbc]));\ //\ basic}
+\DoxyCodeLine{for\ (let\ hash\ of\ [sha256,\ sha384,\ sha512,\ sha224,\ sha512\_224,\ sha512\_256])\ \{}
+\DoxyCodeLine{\ \ const\ arr\ =\ Uint8Array.from([0x10,\ 0x20,\ 0x30]);}
+\DoxyCodeLine{\ \ const\ a\ =\ hash(arr);}
+\DoxyCodeLine{\ \ const\ b\ =\ hash.create().update(arr).digest();}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Check out \href{https://datatracker.ietf.org/doc/html/rfc4634}{\texttt{RFC 4634}} and \href{https://eprint.iacr.org/2010/548.pdf}{\texttt{the paper on truncated SHA512/\+256}}.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4660}{}\doxysubsubsubsection{\texorpdfstring{sha3:\+ FIPS, SHAKE, Keccak}{sha3:\+ FIPS, SHAKE, Keccak}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4660}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ sha3\_224,\ sha3\_256,\ sha3\_384,\ sha3\_512,}
+\DoxyCodeLine{\ \ keccak\_224,\ keccak\_256,\ keccak\_384,\ keccak\_512,}
+\DoxyCodeLine{\ \ shake128,\ shake256,}
+\DoxyCodeLine{\}\ from\ '@noble/hashes/sha3.js';}
+\DoxyCodeLine{for\ (let\ hash\ of\ [}
+\DoxyCodeLine{\ \ sha3\_224,\ sha3\_256,\ sha3\_384,\ sha3\_512,}
+\DoxyCodeLine{\ \ keccak\_224,\ keccak\_256,\ keccak\_384,\ keccak\_512,}
+\DoxyCodeLine{])\ \{}
+\DoxyCodeLine{\ \ const\ arr\ =\ Uint8Array.from([0x10,\ 0x20,\ 0x30]);}
+\DoxyCodeLine{\ \ const\ a\ =\ hash(arr);}
+\DoxyCodeLine{\ \ const\ b\ =\ hash.create().update(arr).digest();}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{const\ shka\ =\ shake128(Uint8Array.from([0x10]),\ \{\ dkLen:\ 512\ \});}
+\DoxyCodeLine{const\ shkb\ =\ shake256(Uint8Array.from([0x30]),\ \{\ dkLen:\ 512\ \});}
+
+\end{DoxyCode}
+
+
+Check out \href{https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf}{\texttt{FIPS-\/202}}, \href{https://keccak.team/keccak.html}{\texttt{Website}}.
+
+Check out \href{https://crypto.stackexchange.com/questions/15727/what-are-the-key-differences-between-the-draft-sha-3-standard-and-the-keccak-sub}{\texttt{the differences between SHA-\/3 and Keccak}}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4661}{}\doxysubsubsubsection{\texorpdfstring{sha3-\/addons:\+ c\+SHAKE, KMAC, K12, Turbo\+SHAKE}{sha3-\/addons:\+ c\+SHAKE, KMAC, K12, Turbo\+SHAKE}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4661}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ cshake128,\ cshake256,\ kt128,\ kt256,}
+\DoxyCodeLine{\ \ keccakprg,\ kmac128,\ kmac256,}
+\DoxyCodeLine{\ \ parallelhash256,\ tuplehash256,}
+\DoxyCodeLine{\ \ turboshake128,\ turboshake256,}
+\DoxyCodeLine{\}\ from\ '@noble/hashes/sha3-\/addons.js';}
+\DoxyCodeLine{const\ data\ =\ Uint8Array.from([0x10,\ 0x20,\ 0x30]);}
+\DoxyCodeLine{const\ personalization\ =\ new\ TextEncoder().encode('def');}
+\DoxyCodeLine{const\ ec1\ =\ cshake128(data,\ \{\ personalization\ \});}
+\DoxyCodeLine{const\ ec2\ =\ cshake256(data,\ \{\ personalization\ \});}
+\DoxyCodeLine{const\ et1\ =\ turboshake128(data);}
+\DoxyCodeLine{const\ et2\ =\ turboshake256(data,\ \{\ D:\ 0x05\ \});}
+\DoxyCodeLine{//\ tuplehash(['ab',\ 'c'])\ !==\ tuplehash(['a',\ 'bc'])\ !==\ tuplehash([data])}
+\DoxyCodeLine{const\ et3\ =\ tuplehash256([new\ TextEncoder().encode('ab'),\ new\ TextEncoder().encode('c')]);}
+\DoxyCodeLine{//\ Not\ parallel\ in\ JS\ (similar\ to\ blake3\ /\ kt128),\ added\ for\ compat}
+\DoxyCodeLine{const\ ep1\ =\ parallelhash256(data,\ \{\ blockLen:\ 8\ \});}
+\DoxyCodeLine{const\ kk\ =\ Uint8Array.from([0xca]);}
+\DoxyCodeLine{const\ ek10\ =\ kmac128(kk,\ data);}
+\DoxyCodeLine{const\ ek11\ =\ kmac256(kk,\ data);}
+\DoxyCodeLine{const\ ek12\ =\ kt128(data);\ //\ kangarootwelve\ 128-\/bit}
+\DoxyCodeLine{const\ ek13\ =\ kt256(data);\ //\ kangarootwelve\ 256-\/bit}
+\DoxyCodeLine{//\ pseudo-\/random\ generator,\ first\ argument\ is\ capacity.\ XKCP\ recommends\ 254\ bits\ capacity\ for\ 128-\/bit\ security\ strength.}
+\DoxyCodeLine{//\ *\ with\ a\ capacity\ of\ 254\ bits.}
+\DoxyCodeLine{const\ p\ =\ keccakprg(254);}
+\DoxyCodeLine{p.addEntropy(Uint8Array.from([1,\ 2,\ 3]));}
+\DoxyCodeLine{const\ rand1b\ =\ p.randomBytes(32);}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item c\+SHAKE, KMAC, Tuple\+Hash, Parallel\+Hash + XOF are available, matching \href{https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf}{\texttt{NIST SP 800-\/185}}
+\item Reduced-\/round Keccak KT128 (Kangaroo\+Twelve 🦘, K12) and Turbo\+SHAKE are available, matching \href{https://datatracker.ietf.org/doc/rfc9861/}{\texttt{RFC 9861}}.
+\item \href{https://keccak.team/files/CSF-0.1.pdf}{\texttt{Keccak\+PRG}}:\+ pseudo-\/random generator based on Keccak
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4662}{}\doxysubsubsubsection{\texorpdfstring{blake1, blake2, blake3}{blake1, blake2, blake3}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4662}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ blake224,\ blake256,\ blake384,\ blake512\ \}\ from\ '@noble/hashes/blake1.js';}
+\DoxyCodeLine{import\ \{\ blake2b,\ blake2s\ \}\ from\ '@noble/hashes/blake2.js';}
+\DoxyCodeLine{import\ \{\ blake3\ \}\ from\ '@noble/hashes/blake3.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{for\ (let\ hash\ of\ [blake224,\ blake256,\ blake384,\ blake512,\ blake2b,\ blake2s,\ blake3])\ \{}
+\DoxyCodeLine{\ \ const\ arr\ =\ Uint8Array.from([0x10,\ 0x20,\ 0x30]);}
+\DoxyCodeLine{\ \ const\ a\ =\ hash(arr);}
+\DoxyCodeLine{\ \ const\ b\ =\ hash.create().update(arr).digest();}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ blake2\ advanced\ usage}
+\DoxyCodeLine{const\ ab\ =\ Uint8Array.from([0x01]);}
+\DoxyCodeLine{const\ txt\ =\ new\ TextEncoder();}
+\DoxyCodeLine{blake2s(ab);}
+\DoxyCodeLine{blake2s(ab,\ \{\ key:\ new\ Uint8Array(32)\ \});}
+\DoxyCodeLine{blake2s(ab,\ \{\ personalization:\ txt.encode('pers1234')\ \});}
+\DoxyCodeLine{blake2s(ab,\ \{\ salt:\ txt.encode('salt1234')\ \});}
+\DoxyCodeLine{blake2b(ab);}
+\DoxyCodeLine{blake2b(ab,\ \{\ key:\ new\ Uint8Array(64)\ \});}
+\DoxyCodeLine{blake2b(ab,\ \{\ personalization:\ txt.encode('pers1234pers1234')\ \});}
+\DoxyCodeLine{blake2b(ab,\ \{\ salt:\ txt.encode('salt1234salt1234')\ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ blake3\ advanced\ usage}
+\DoxyCodeLine{blake3(ab);}
+\DoxyCodeLine{blake3(ab,\ \{\ dkLen:\ 256\ \});}
+\DoxyCodeLine{blake3(ab,\ \{\ key:\ new\ Uint8Array(32)\ \});}
+\DoxyCodeLine{blake3(ab,\ \{\ context:\ txt.encode('application-\/name')\ \});}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item Blake1 is legacy hash, one of SHA3 proposals. It is rarely used anywhere. See \href{https://www.aumasson.jp/blake/blake.pdf}{\texttt{pdf}}.
+\item Blake2 is popular fast hash. blake2b focuses on 64-\/bit platforms while blake2s is for 8-\/bit to 32-\/bit ones. See \href{https://datatracker.ietf.org/doc/html/rfc7693}{\texttt{RFC 7693}}, \href{https://www.blake2.net}{\texttt{Website}}
+\item Blake3 is faster, reduced-\/round blake2. See \href{https://blake3.io}{\texttt{Website \& specs}}
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4663}{}\doxysubsubsubsection{\texorpdfstring{legacy:\+ sha1, md5, ripemd160}{legacy:\+ sha1, md5, ripemd160}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4663}
+SHA1 (RFC 3174), MD5 (RFC 1321) and RIPEMD160 (RFC 2286) legacy, weak hash functions. Don\textquotesingle{}t use them in a new protocol. What "{}weak"{} means:\+
+
+
+\begin{DoxyItemize}
+\item Collisions can be made with 2\texorpdfstring{$^\wedge$}{\string^}18 effort in MD5, 2\texorpdfstring{$^\wedge$}{\string^}60 in SHA1, 2\texorpdfstring{$^\wedge$}{\string^}80 in RIPEMD160.
+\item No practical pre-\/image attacks (only theoretical, 2\texorpdfstring{$^\wedge$}{\string^}123.4)
+\item HMAC seems kinda ok:\+ \href{https://datatracker.ietf.org/doc/html/rfc6151}{\texttt{https:\+/\+/\+datatracker.\+ietf.\+org/\+doc/\+html/\+rfc6151}}
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ md5,\ ripemd160,\ sha1\ \}\ from\ '@noble/hashes/legacy.js';}
+\DoxyCodeLine{for\ (let\ hash\ of\ [md5,\ ripemd160,\ sha1])\ \{}
+\DoxyCodeLine{\ \ const\ arr\ =\ Uint8Array.from([0x10,\ 0x20,\ 0x30]);}
+\DoxyCodeLine{\ \ const\ a\ =\ hash(arr);}
+\DoxyCodeLine{\ \ const\ b\ =\ hash.create().update(arr).digest();}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4664}{}\doxysubsubsubsection{\texorpdfstring{hmac}{hmac}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4664}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ hmac\ \}\ from\ '@noble/hashes/hmac.js';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{const\ key\ =\ new\ Uint8Array(32).fill(1);}
+\DoxyCodeLine{const\ msg\ =\ new\ Uint8Array(32).fill(2);}
+\DoxyCodeLine{const\ mac1\ =\ hmac(sha256,\ key,\ msg);}
+\DoxyCodeLine{const\ mac2\ =\ hmac.create(sha256,\ key).update(msg).digest();}
+
+\end{DoxyCode}
+
+
+Conforms to \href{https://datatracker.ietf.org/doc/html/rfc2104}{\texttt{RFC 2104}}.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4665}{}\doxysubsubsubsection{\texorpdfstring{hkdf}{hkdf}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4665}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ hkdf\ \}\ from\ '@noble/hashes/hkdf.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/hashes/utils.js';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{const\ inputKey\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ salt\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ info\ =\ new\ TextEncoder().encode('application-\/key');}
+\DoxyCodeLine{const\ hk1\ =\ hkdf(sha256,\ inputKey,\ salt,\ info,\ 32);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ ==\ same\ as}
+\DoxyCodeLine{import\ \{\ extract,\ expand\ \}\ from\ '@noble/hashes/hkdf.js';}
+\DoxyCodeLine{const\ prk\ =\ extract(sha256,\ inputKey,\ salt);}
+\DoxyCodeLine{const\ hk2\ =\ expand(sha256,\ prk,\ info,\ 32);}
+
+\end{DoxyCode}
+
+
+Conforms to \href{https://datatracker.ietf.org/doc/html/rfc5869}{\texttt{RFC 5869}}.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4666}{}\doxysubsubsubsection{\texorpdfstring{pbkdf2}{pbkdf2}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4666}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ pbkdf2,\ pbkdf2Async\ \}\ from\ '@noble/hashes/pbkdf2.js';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{const\ pbkey1\ =\ pbkdf2(sha256,\ 'password',\ 'salt',\ \{\ c:\ 524288,\ dkLen:\ 32\ \});}
+\DoxyCodeLine{const\ pbkey2\ =\ await\ pbkdf2Async(sha256,\ 'password',\ 'salt',\ \{\ c:\ 524288,\ dkLen:\ 32\ \});}
+\DoxyCodeLine{const\ pbkey3\ =\ await\ pbkdf2Async(sha256,\ Uint8Array.from([1,\ 2,\ 3]),\ Uint8Array.from([4,\ 5,\ 6]),\ \{}
+\DoxyCodeLine{\ \ c:\ 524288,}
+\DoxyCodeLine{\ \ dkLen:\ 32,}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+
+
+Conforms to \href{https://datatracker.ietf.org/doc/html/rfc2898}{\texttt{RFC 2898}}.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4667}{}\doxysubsubsubsection{\texorpdfstring{scrypt}{scrypt}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4667}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ scrypt,\ scryptAsync\ \}\ from\ '@noble/hashes/scrypt.js';}
+\DoxyCodeLine{const\ scr1\ =\ scrypt('password',\ 'salt',\ \{\ N:\ 2\ **\ 16,\ r:\ 8,\ p:\ 1,\ dkLen:\ 32\ \});}
+\DoxyCodeLine{const\ scr2\ =\ await\ scryptAsync('password',\ 'salt',\ \{\ N:\ 2\ **\ 16,\ r:\ 8,\ p:\ 1,\ dkLen:\ 32\ \});}
+\DoxyCodeLine{const\ scr3\ =\ await\ scryptAsync(Uint8Array.from([1,\ 2,\ 3]),\ Uint8Array.from([4,\ 5,\ 6]),\ \{}
+\DoxyCodeLine{\ \ N:\ 2\ **\ 17,}
+\DoxyCodeLine{\ \ r:\ 8,}
+\DoxyCodeLine{\ \ p:\ 1,}
+\DoxyCodeLine{\ \ dkLen:\ 32,}
+\DoxyCodeLine{\ \ onProgress(percentage)\ \{}
+\DoxyCodeLine{\ \ \ \ console.log('progress',\ percentage);}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ maxmem:\ 2\ **\ 32\ +\ 128\ *\ 8\ *\ 1,\ //\ N\ *\ r\ *\ p\ *\ 128\ +\ (128*r*p)}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+
+
+Conforms to \href{https://datatracker.ietf.org/doc/html/rfc7914}{\texttt{RFC 7914}}, \href{https://www.tarsnap.com/scrypt.html}{\texttt{Website}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily N, r, p} are work factors. It is common to only adjust N, while keeping {\ttfamily r:\+ 8, p:\+ 1}. See \href{https://blog.filippo.io/the-scrypt-parameters/}{\texttt{the blog post}}. JS doesn\textquotesingle{}t support parallelization, making increasing {\ttfamily p} meaningless.
+\item {\ttfamily dk\+Len} is the length of output bytes e.\+g. {\ttfamily 32} or {\ttfamily 64}
+\item {\ttfamily on\+Progress} can be used with async version of the function to report progress to a user.
+\item {\ttfamily maxmem} prevents DoS and is limited to {\ttfamily 1GB + 1KB} ({\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}30 + 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}10}), but can be adjusted using formula:\+ {\ttfamily N \texorpdfstring{$\ast$}{*} r \texorpdfstring{$\ast$}{*} p \texorpdfstring{$\ast$}{*} 128 + (128 \texorpdfstring{$\ast$}{*} r \texorpdfstring{$\ast$}{*} p)}
+\end{DoxyItemize}
+
+Time it takes to derive Scrypt key under different values of N (2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}N) on Apple M4 (mobile phones can be 1x-\/4x slower):\+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}N pow  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Time  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}RAM  \\
+16  &0.\+1s  &64MB  \\
+17  &0.\+2s  &128MB  \\
+18  &0.\+4s  &256MB  \\
+19  &0.\+8s  &512MB  \\
+20  &1.\+5s  &1GB  \\
+21  &3.\+1s  &2GB  \\
+22  &6.\+2s  &4GB  \\
+23  &13s  &8GB  \\
+24  &27s  &16GB  \\
+\end{DoxyTable}
+
+
+\begin{DoxyNote}{Note}
+\doxylink{namespace_we}{We} support N larger than {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}20} where available, however, not all JS engines support \texorpdfstring{$>$}{>}= 2GB Array\+Buffer-\/s. When using such N, you\textquotesingle{}ll need to manually adjust {\ttfamily maxmem}, using formula above. Other JS implementations don\textquotesingle{}t support large N-\/s.
+\end{DoxyNote}
+\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4668}{}\doxysubsubsubsection{\texorpdfstring{argon2}{argon2}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4668}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ argon2d,\ argon2i,\ argon2id\ \}\ from\ '@noble/hashes/argon2.js';}
+\DoxyCodeLine{const\ arg1\ =\ argon2id('password',\ 'saltsalt',\ \{\ t:\ 2,\ m:\ 65536,\ p:\ 1,\ maxmem:\ 2\ **\ 32\ -\/\ 1\ \});}
+
+\end{DoxyCode}
+
+
+Argon2 \href{https://datatracker.ietf.org/doc/html/rfc9106}{\texttt{RFC 9106}} implementation.
+
+\begin{DoxyWarning}{Warning}
+Argon2 can\textquotesingle{}t be fast in JS, because there is no fast Uint64\+Array. It is suggested to use ScryptScrypt instead. Being 5x slower than native code means brute-\/forcing attackers have bigger advantage.
+\end{DoxyWarning}
+\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4669}{}\doxysubsubsubsection{\texorpdfstring{webcrypto:\+ friendly wrapper}{webcrypto:\+ friendly wrapper}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4669}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ sha256,\ sha384,\ sha512,\ hmac,\ hkdf,\ pbkdf2\ \}\ from\ '@noble/hashes/webcrypto.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/hashes/utils.js';}
+\DoxyCodeLine{const\ whash\ =\ await\ sha256(Uint8Array.from([0xca,\ 0xfe,\ 0x01,\ 0x23]));}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ key\ =\ new\ Uint8Array(32).fill(1);}
+\DoxyCodeLine{const\ msg\ =\ new\ Uint8Array(32).fill(2);}
+\DoxyCodeLine{const\ wmac\ =\ await\ hmac(sha256,\ key,\ msg);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ inputKey\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ salt\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ info\ =\ new\ TextEncoder().encode('application-\/key');}
+\DoxyCodeLine{const\ hk1\ =\ await\ hkdf(sha256,\ inputKey,\ salt,\ info,\ 32);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ pbkey1\ =\ await\ pbkdf2(sha256,\ 'password',\ 'salt',\ \{\ c:\ 524288,\ dkLen:\ 32\ \});}
+
+\end{DoxyCode}
+
+
+Sometimes people want to use built-\/in {\ttfamily crypto.\+subtle} instead of pure JS implementation. However, it has terrible API.
+
+\doxylink{namespace_we}{We} simplify access to built-\/ins with API which mirrors noble-\/hashes. The overhead is minimal -\/ just 30+ lines of code, which verify input correctness.
+
+\begin{DoxyNote}{Note}
+Webcrypto methods are always async.
+\end{DoxyNote}
+\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4670}{}\doxysubsubsubsection{\texorpdfstring{utils}{utils}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4670}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ bytesToHex\ as\ toHex,\ randomBytes\ \}\ from\ '@noble/hashes/utils.js';}
+\DoxyCodeLine{console.log(toHex(randomBytes(32)));}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily bytes\+To\+Hex} will convert {\ttfamily Uint8\+Array} to a hex string
+\item {\ttfamily random\+Bytes(bytes)} will produce cryptographically secure random {\ttfamily Uint8\+Array} of length {\ttfamily bytes}
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4671}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4671}
+The library has been audited:\+
+
+
+\begin{DoxyItemize}
+\item at version 2.\+2.\+0, in Apr 2026, by ourselves (self-\/audited)
+\begin{DoxyItemize}
+\item Scope:\+ everything
+\item \href{https://github.com/paulmillr/noble-hashes/compare/2.2.0..main}{\texttt{Changes since audit}}
+\end{DoxyItemize}
+\item at version 1.\+0.\+0, in Jan 2022, independently, by \href{https://cure53.de}{\texttt{Cure53}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{https://cure53.de/pentest-report_hashing-libs.pdf}{\texttt{website}}, \href{./audit/2022-01-05-cure53-audit-nbl2.pdf}{\texttt{in-\/repo}}
+\item Scope:\+ everything, besides {\ttfamily blake3}, {\ttfamily sha3-\/addons}, {\ttfamily sha1} and {\ttfamily argon2}, which have not been audited
+\item The audit has been funded by \href{https://ethereum.org/en/}{\texttt{Ethereum Foundation}} with help of \href{https://nomiclabs.io}{\texttt{Nomic Labs}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+It is tested against property-\/based, cross-\/library and Wycheproof vectors, and is being fuzzed in \href{https://github.com/paulmillr/fuzzing}{\texttt{the separate repo}}.
+
+If you see anything unusual:\+ investigate and report.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4672}{}\doxysubsubsection{\texorpdfstring{Constant-\/timeness}{Constant-\/timeness}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4672}
+\doxylink{namespace_we}{We}\textquotesingle{}re targetting algorithmic constant time. {\itshape JIT-\/compiler} and {\itshape Garbage Collector} make "{}constant time"{} extremely hard to achieve \href{https://en.wikipedia.org/wiki/Timing_attack}{\texttt{timing attack}} resistance in a scripting language. Which means {\itshape any other JS library can\textquotesingle{}t have constant-\/timeness}. Even statically typed Rust, a language without GC, \href{https://www.chosenplaintext.ca/open-source/rust-timing-shield/security}{\texttt{makes it harder to achieve constant-\/time}} for some cases. If your goal is absolute security, don\textquotesingle{}t use any JS lib — including bindings to native ones. Use low-\/level libraries \& languages.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4673}{}\doxysubsubsection{\texorpdfstring{Memory dumping}{Memory dumping}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4673}
+The library shares state buffers between hash function calls. The buffers are zeroed-\/out after each call. However, if an attacker can read application memory, you are doomed in any case:\+
+
+
+\begin{DoxyItemize}
+\item At some point, input will be a string and strings are immutable in JS:\+ there is no way to overwrite them with zeros. For example:\+ deriving key from {\ttfamily scrypt(password, salt)} where password and salt are strings
+\item Input from a file will stay in file buffers
+\item Input /\+ output will be re-\/used multiple times in application which means it could stay in memory
+\item {\ttfamily await anything()} will always write all internal variables (including numbers) to memory. With async functions /\+ Promises there are no guarantees when the code chunk would be executed. Which means attacker can have plenty of time to read data from memory
+\item There is no way to guarantee anything about zeroing sensitive data without complex tests-\/suite which will dump process memory and verify that there is no sensitive data left. For JS it means testing all browsers (incl. mobile), which is complex. And of course it will be useless without using the same test-\/suite in the actual application that consumes the library
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4674}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4674}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys to prevent forgery. Be sure to verify the commit signatures
+\item {\bfseries{Releases}} are made transparently through token-\/less Git\+Hub CI and Trusted Publishing. Be sure to verify the \href{https://docs.npmjs.com/generating-provenance-statements}{\texttt{provenance logs}} for authenticity.
+\item {\bfseries{Rare releasing}} is practiced to minimize the need for re-\/audits by end-\/users.
+\item {\bfseries{Dependencies}} are minimized and strictly pinned to reduce supply-\/chain risk.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} use as few dependencies as possible.
+\item Version ranges are locked, and changes are checked with npm-\/diff.
+\end{DoxyItemize}
+\item {\bfseries{Dev dependencies}} are excluded from end-\/user installs; they’re only used for development and build steps.
+\end{DoxyItemize}
+
+For this package, there are 0 dependencies; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item jsbt contains helpers for building, benchmarking \& testing secure JS apps. It is developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4675}{}\doxysubsubsection{\texorpdfstring{Randomness}{Randomness}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4675}
+\doxylink{namespace_we}{We} rely on the built-\/in \href{https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues}{\texttt{{\ttfamily crypto.\+get\+Random\+Values}}}, which is considered a cryptographically secure PRNG.
+
+Browsers have had weaknesses in the past -\/ and could again -\/ but implementing a userspace CSPRNG is even worse, as there’s no reliable userspace source of high-\/quality entropy.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4676}{}\doxysubsubsection{\texorpdfstring{Quantum computers}{Quantum computers}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4676}
+Cryptographically relevant quantum computer, if built, will allow to utilize Grover\textquotesingle{}s algorithm to break hashes in 2\texorpdfstring{$^\wedge$}{\string^}n/\+2 operations, instead of 2\texorpdfstring{$^\wedge$}{\string^}n.
+
+This means SHA256 should be replaced with SHA512, SHA3-\/256 with SHA3-\/512, SHAKE128 with SHAKE256 etc.
+
+Australian ASD prohibits SHA256 and similar hashes \href{https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism/cyber-security-guidelines/guidelines-cryptography}{\texttt{after 2030}}.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4677}{}\doxysubsection{\texorpdfstring{Upgrading}{Upgrading}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4677}
+Supported node.\+js versions:\+
+
+
+\begin{DoxyItemize}
+\item v2:\+ v20.\+19+ (ESM-\/only)
+\item v1:\+ v14.\+21+ (ESM \& CJS)
+\end{DoxyItemize}
+
+v2.\+0 changelog:\+
+
+
+\begin{DoxyItemize}
+\item The package is now ESM-\/only. ESM can finally be loaded from common.\+js on node v20.\+19+
+\item {\ttfamily .js} extension must be used for all modules
+\begin{DoxyItemize}
+\item Old:\+ {\ttfamily @noble/\+hashes/\+sha3}
+\item New:\+ {\ttfamily @noble/\+hashes/\+sha3.\+js}
+\item This simplifies working in browsers natively without transpilers
+\end{DoxyItemize}
+\item Only allow Uint8\+Array as hash inputs, prohibit {\ttfamily string}
+\begin{DoxyItemize}
+\item Strict validation checks improve security
+\item To replicate previous behavior, use {\ttfamily utils.\+utf8\+To\+Bytes}
+\end{DoxyItemize}
+\item Rename /\+ remove some modules for consistency. Previously, sha384 resided in sha512, which was weird
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{namespacesha256}{sha256}}, {\ttfamily sha512} =\texorpdfstring{$>$}{>} {\ttfamily sha2.\+js} (consistent with {\ttfamily sha3.\+js})
+\item {\ttfamily blake2b}, {\ttfamily blake2s} =\texorpdfstring{$>$}{>} {\ttfamily blake2.\+js} (consistent with {\ttfamily blake3.\+js}, {\ttfamily blake1.\+js})
+\item {\ttfamily ripemd160}, {\ttfamily sha1}, {\ttfamily md5} =\texorpdfstring{$>$}{>} {\ttfamily legacy.\+js} (all low-\/security hashes are there)
+\item {\ttfamily \+\_\+assert} =\texorpdfstring{$>$}{>} {\ttfamily utils.\+js}
+\item {\ttfamily \doxylink{namespacecrypto}{crypto}} internal module got removed:\+ use built-\/in Web\+Crypto instead
+\end{DoxyItemize}
+\item Improve typescript types \& option autocomplete
+\item Bump compilation target from es2020 to es2022
+\end{DoxyItemize}\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4678}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4678}
+{\ttfamily test/\+misc} directory contains implementations of loop unrolling and md5.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run lint} /\+ {\ttfamily npm run format} will run linter /\+ fix linter issues.
+\item {\ttfamily npm run bench} will run benchmarks
+\item {\ttfamily npm run \doxylink{namespacebuild}{build}:\+release} will build single file
+\item There is {\bfseries{additional}} 20-\/min DoS test {\ttfamily npm run \doxylink{namespacetest}{test}:\+dos} and 2-\/hour multicore test {\ttfamily npm run \doxylink{namespacetest}{test}:\+slow}. See our approach to testing
+\end{DoxyItemize}
+
+Some hashes are outside of scope of the library:\+
+\begin{DoxyItemize}
+\item \href{https://github.com/paulmillr/micro-zk-proofs/blob/1ed5ce1253583b2e540eef7f3477fb52bf5344ff/src/pedersen.ts}{\texttt{Pedersen in micro-\/zk-\/proofs}}
+\item \href{https://github.com/paulmillr/noble-curves/blob/3d124dd3ecec8b6634cc0b2ba1c183aded5304f9/src/abstract/poseidon.ts}{\texttt{Poseidon in noble-\/curves}}
+\item \href{https://github.com/paulmillr/noble-ciphers}{\texttt{Poly1305 \& GHash in noble-\/ciphers}}
+\end{DoxyItemize}
+
+See \href{https://paulmillr.com/noble/}{\texttt{paulmillr.\+com/\+noble}} for useful resources, articles, documentation and demos related to the library.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4679}{}\doxysubsection{\texorpdfstring{Speed}{Speed}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4679}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ run\ bench}
+
+\end{DoxyCode}
+
+
+Benchmarks measured on Apple M4. If you need truly exemplar performance, switch to \href{https://github.com/paulmillr/awasm-noble}{\texttt{awasm-\/noble}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 32B}
+\DoxyCodeLine{sha256\ x\ 2,016,129\ ops/sec\ @\ 496ns/op}
+\DoxyCodeLine{sha512\ x\ 740,740\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{sha3\_256\ x\ 287,686\ ops/sec\ @\ 3μs/op}
+\DoxyCodeLine{sha3\_512\ x\ 288,267\ ops/sec\ @\ 3μs/op}
+\DoxyCodeLine{k12\ x\ 476,190\ ops/sec\ @\ 2μs/op}
+\DoxyCodeLine{blake2b\ x\ 410,340\ ops/sec\ @\ 2μs/op}
+\DoxyCodeLine{blake2s\ x\ 942,507\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{blake3\ x\ 1,006,036\ ops/sec\ @\ 994ns/op}
+\DoxyCodeLine{ripemd160\ x\ 1,410,437\ ops/sec\ @\ 709ns/op}
+\DoxyCodeLine{md5\ x\ 1,663,893\ ops/sec\ @\ 601ns/op}
+\DoxyCodeLine{sha1\ x\ 1,589,825\ ops/sec\ @\ 629ns/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 1MB}
+\DoxyCodeLine{sha256\ x\ 331\ ops/sec\ @\ 3ms/op}
+\DoxyCodeLine{sha512\ x\ 128\ ops/sec\ @\ 7ms/op}
+\DoxyCodeLine{sha3\_256\ x\ 39\ ops/sec\ @\ 25ms/op}
+\DoxyCodeLine{sha3\_512\ x\ 21\ ops/sec\ @\ 46ms/op}
+\DoxyCodeLine{kt128\ x\ 91\ ops/sec\ @\ 10ms/op}
+\DoxyCodeLine{kt256\ x\ 75\ ops/sec\ @\ 13ms/op}
+\DoxyCodeLine{turboshake128\ x\ 93\ ops/sec\ @\ 10ms/op}
+\DoxyCodeLine{blake256\ x\ 57\ ops/sec\ @\ 17ms/op}
+\DoxyCodeLine{blake2b\ x\ 61\ ops/sec\ @\ 16ms/op}
+\DoxyCodeLine{blake2s\ x\ 78\ ops/sec\ @\ 12ms/op}
+\DoxyCodeLine{blake3\ x\ 95\ ops/sec\ @\ 10ms/op}
+\DoxyCodeLine{ripemd160\ x\ 177\ ops/sec\ @\ 5ms/op}
+\DoxyCodeLine{md5\ x\ 250\ ops/sec\ @\ 3ms/op}
+\DoxyCodeLine{sha1\ x\ 416\ ops/sec\ @\ 2ms/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ MAC}
+\DoxyCodeLine{hmac(sha256)\ x\ 599,880\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{hmac(sha512)\ x\ 197,122\ ops/sec\ @\ 5μs/op}
+\DoxyCodeLine{kmac256\ x\ 87,981\ ops/sec\ @\ 11μs/op}
+\DoxyCodeLine{blake3(key)\ x\ 796,812\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ KDF}
+\DoxyCodeLine{hkdf(sha256)\ x\ 259,942\ ops/sec\ @\ 3μs/op}
+\DoxyCodeLine{blake3(context)\ x\ 424,808\ ops/sec\ @\ 2μs/op}
+\DoxyCodeLine{pbkdf2(sha256,\ c:\ 2\ **\ 18)\ x\ 5\ ops/sec\ @\ 197ms/op}
+\DoxyCodeLine{pbkdf2(sha512,\ c:\ 2\ **\ 18)\ x\ 1\ ops/sec\ @\ 630ms/op}
+\DoxyCodeLine{scrypt(n:\ 2\ **\ 18,\ r:\ 8,\ p:\ 1)\ x\ 2\ ops/sec\ @\ 400ms/op}
+\DoxyCodeLine{argon2id(t:\ 1,\ m:\ 256MB)\ 2881ms}
+
+\end{DoxyCode}
+
+
+The library could be 3x faster by utilizing loop unrolling. It isn\textquotesingle{}t used because unrolling a) would increase bundle size b) make lib un-\/readable c) current perf is "{}fast enough"{} for most use-\/cases.\hypertarget{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4680}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_1b080379f0cadc2960a64733601d9f29_autotoc_md4680}
+The MIT License (MIT)
+
+Copyright (c) 2022 Paul Miller \href{https://paulmillr.com}{\texttt{(https:\+/\+/\+paulmillr.\+com)}}
+
+See LICENSE file. 

@@ -6599,8 +6599,8 @@ fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const dir: []const u8 = if (is_from) "sent" else "received";
         const sep: []const u8 = if (count == 0) "" else ",";
         const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"status\":\"pending\"}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir });
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"status\":\"pending\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, txSchemeLabel(tx.scheme), tx.timestamp });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m; count += 1;
     }
@@ -6646,8 +6646,8 @@ fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     const dir: []const u8 = if (is_from) "sent" else "received";
                     const sep: []const u8 = if (count == 0) "" else ",";
                     const e = try std.fmt.allocPrint(alloc,
-                        "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"status\":\"confirmed\"}}",
-                        .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir });
+                        "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"status\":\"confirmed\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
+                        .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, txSchemeLabel(tx.scheme), tx.timestamp });
                     const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
                     alloc.free(entries); alloc.free(e); entries = m; count += 1;
                     break;

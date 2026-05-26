@@ -1,0 +1,197 @@
+\chapter{Module:\+ {\ttfamily secp256k1} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1}{}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1}\index{Module: $<$tt$>$secp256k1$<$/tt$>$@{Module: $<$tt$>$secp256k1$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2897}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2897}%
+
+
+\begin{quote}
+Pure Zig secp256k1 ECDSA implementation — private key to public key derivation, ECDSA signing and verification, point arithmetic on the secp256k1 curve. Bitcoin-\/compatible. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+secp256k1.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 142 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 6 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 7
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2899}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2899}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2900}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2900}
+
+\begin{DoxyItemize}
+\item \`{}\+Secp256k1\+Crypto\`{}{\ttfamily Secp256k1\+Crypto}
+\end{DoxyItemize}— secp256k1 — curba eliptica Bitcoin/\+\+OMNI Foloseste std.\+crypto.\+sign.\+ecdsa (Zig 0.\+1...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2901}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2901}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2902}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2902}
+
+\begin{DoxyItemize}
+\item \`{}private\+Key\+To\+Public\+Key()\`{}{\ttfamily private\+Key\+To\+Public\+Key()}
+\end{DoxyItemize}— Genereaza compressed public key din private key
+\begin{DoxyItemize}
+\item \`{}private\+Key\+To\+Hash160()\`{}{\ttfamily private\+Key\+To\+Hash160()}
+\end{DoxyItemize}— Genereaza adresa Bitcoin-\/style din private key privkey → pubkey → SHA2...
+\begin{DoxyItemize}
+\item \`{}sign()\`{}{\ttfamily sign()}
+\end{DoxyItemize}— Semneaza un mesaj cu private key (ECDSA secp256k1 + SHA256d)
+\begin{DoxyItemize}
+\item \`{}verify()\`{}{\ttfamily verify()}
+\end{DoxyItemize}— Verifica semnatura unui mesaj cu public key
+\begin{DoxyItemize}
+\item \`{}is\+Valid\+Private\+Key()\`{}{\ttfamily is\+Valid\+Private\+Key()}
+\end{DoxyItemize}— Verifica daca o cheie privata e valida (in range \+[1, n-\/1]\+)
+\begin{DoxyItemize}
+\item \`{}generate\+Key\+Pair()\`{}{\ttfamily generate\+Key\+Pair()}
+\end{DoxyItemize}— Genereaza o pereche de chei random (pentru teste/\+debug)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2904}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2904}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2905}{}\doxysubsection{\texorpdfstring{{\ttfamily Secp256k1\+Crypto}}{{\ttfamily Secp256k1\+Crypto}}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2905}
+secp256k1 — curba eliptica Bitcoin/\+\+OMNI Foloseste std.\+crypto.\+sign.\+ecdsa (Zig 0.\+15 stdlib, zero dependente externe)
+
+{\itshape Defined at line 7}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2907}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2907}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Compressed\+Pubkey}  &{\ttfamily \+[33]\+u8}  &Compressed pubkey  \\
+{\ttfamily Private\+Key}  &{\ttfamily \+[32]\+u8}  &Private key  \\
+{\ttfamily Signature}  &{\ttfamily \+[64]\+u8}  &Signature  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2909}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2909}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2910}{}\doxysubsection{\texorpdfstring{{\ttfamily private\+Key\+To\+Public\+Key()}}{{\ttfamily private\+Key\+To\+Public\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2910}
+Genereaza compressed public key din private key
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ privateKeyToPublicKey(private\_key:\ PrivateKey)\ !CompressedPubkey\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily private\+\_\+key}  &{\ttfamily Private\+Key}  &Private\+\_\+key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Compressed\+Pubkey}
+
+{\itshape Defined at line 18}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2912}{}\doxysubsection{\texorpdfstring{{\ttfamily private\+Key\+To\+Hash160()}}{{\ttfamily private\+Key\+To\+Hash160()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2912}
+Genereaza adresa Bitcoin-\/style din private key privkey → pubkey → SHA256 → SHA256\+[0..20]\+ (SHA256\+[0..20]\+ ca aproximare pentru RIPEMD-\/160 — see ripemd160.\+zig for full impl)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ privateKeyToHash160(private\_key:\ PrivateKey)\ ![20]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily private\+\_\+key}  &{\ttfamily Private\+Key}  &Private\+\_\+key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[20]\+u8}
+
+{\itshape Defined at line 27}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2914}{}\doxysubsection{\texorpdfstring{{\ttfamily sign()}}{{\ttfamily sign()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2914}
+Semneaza un mesaj cu private key (ECDSA secp256k1 + SHA256d)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sign(private\_key:\ PrivateKey,\ message:\ []const\ u8)\ !Signature\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily private\+\_\+key}  &{\ttfamily Private\+Key}  &Private\+\_\+key  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Signature}
+
+{\itshape Defined at line 41}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2916}{}\doxysubsection{\texorpdfstring{{\ttfamily verify()}}{{\ttfamily verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2916}
+Verifica semnatura unui mesaj cu public key
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verify(compressed\_pubkey:\ CompressedPubkey,\ message:\ []const\ u8,\ signature:\ Signature)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily compressed\+\_\+pubkey}  &{\ttfamily Compressed\+Pubkey}  &Compressed\+\_\+pubkey  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily signature}  &{\ttfamily Signature}  &Signature  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 49}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2918}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Valid\+Private\+Key()}}{{\ttfamily is\+Valid\+Private\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2918}
+Verifica daca o cheie privata e valida (in range \+[1, n-\/1]\+)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isValidPrivateKey(private\_key:\ PrivateKey)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily private\+\_\+key}  &{\ttfamily Private\+Key}  &Private\+\_\+key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 57}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2920}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Key\+Pair()}}{{\ttfamily generate\+Key\+Pair()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2secp256k1_autotoc_md2920}
+Genereaza o pereche de chei random (pentru teste/\+debug)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateKeyPair()\ !struct\ \{\ private\_key:\ PrivateKey,\ public\_key:\ CompressedPubkey\ \}\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !struct}
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

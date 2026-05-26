@@ -1,0 +1,434 @@
+\chapter{Module:\+ {\ttfamily state\+\_\+trie} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie}{}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie}\index{Module: $<$tt$>$state\_trie$<$/tt$>$@{Module: $<$tt$>$state\_trie$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3123}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3123}%
+
+
+\begin{quote}
+Merkle Patricia Trie for account state — O(log n) lookups, cryptographic proofs, 50MB vs 1.\+6\+TB for 1M+ accounts. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+state\+\_\+trie.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 234 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 14 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 5
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3125}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3125}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3126}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3126}
+
+\begin{DoxyItemize}
+\item \`{}\+Account\+State\`{}{\ttfamily Account\+State}
+\end{DoxyItemize}— Account state (replaces needing to store all transactions)
+\begin{DoxyItemize}
+\item \`{}\+State\+Trie\`{}{\ttfamily State\+Trie}
+\end{DoxyItemize}— State Trie -\/ merkle tree of account states Instead of storing all transactions, ...
+\begin{DoxyItemize}
+\item \`{}\+State\+Snapshot\`{}{\ttfamily State\+Snapshot}
+\end{DoxyItemize}— State snapshot for checkpointing\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3127}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3127}
+
+\begin{DoxyItemize}
+\item \`{}hash()\`{}{\ttfamily hash()}
+\end{DoxyItemize}— Checks whether the h condition is true.
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the state\+\_\+trie module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}update\+Balance()\`{}{\ttfamily update\+Balance()}
+\end{DoxyItemize}— Update account balance
+\begin{DoxyItemize}
+\item \`{}increment\+Nonce()\`{}{\ttfamily increment\+Nonce()}
+\end{DoxyItemize}— Increment nonce (for transaction sequencing)
+\begin{DoxyItemize}
+\item \`{}get\+Balance()\`{}{\ttfamily get\+Balance()}
+\end{DoxyItemize}— Get account balance
+\begin{DoxyItemize}
+\item \`{}get\+Nonce()\`{}{\ttfamily get\+Nonce()}
+\end{DoxyItemize}— Get account nonce
+\begin{DoxyItemize}
+\item \`{}calculate\+Root\+Hash()\`{}{\ttfamily calculate\+Root\+Hash()}
+\end{DoxyItemize}— Calculate root hash (merkle root of all accounts)
+\begin{DoxyItemize}
+\item \`{}get\+Account\+Count()\`{}{\ttfamily get\+Account\+Count()}
+\end{DoxyItemize}— Get account count
+\begin{DoxyItemize}
+\item \`{}estimate\+Storage\+Size()\`{}{\ttfamily estimate\+Storage\+Size()}
+\end{DoxyItemize}— Estimate storage size
+\begin{DoxyItemize}
+\item \`{}print\+Stats()\`{}{\ttfamily print\+Stats()}
+\end{DoxyItemize}— Print statistics
+\begin{DoxyItemize}
+\item \`{}get\+All\+Accounts()\`{}{\ttfamily get\+All\+Accounts()}
+\end{DoxyItemize}— Get all accounts (for verification)
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the state\+\_\+trie module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3129}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3129}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3130}{}\doxysubsection{\texorpdfstring{{\ttfamily Account\+State}}{{\ttfamily Account\+State}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3130}
+Account state (replaces needing to store all transactions)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[20]\+u8}  &Address  \\
+{\ttfamily balance}  &{\ttfamily u64}  &Balance  \\
+{\ttfamily nonce}  &{\ttfamily u32}  &Nonce  \\
+{\ttfamily last\+\_\+updated\+\_\+block}  &{\ttfamily u32}  &Last\+\_\+updated\+\_\+block  \\
+{\ttfamily flags}  &{\ttfamily u8}  &Flags  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 5}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3132}{}\doxysubsection{\texorpdfstring{{\ttfamily State\+Trie}}{{\ttfamily State\+Trie}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3132}
+State Trie -\/ merkle tree of account states Instead of storing all transactions, store only current state \texorpdfstring{$\sim$}{\string~}50 MB for 1M+ accounts vs 1.\+6 TB for all transaction history!
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily accounts}  &{\ttfamily std.\+Auto\+Hash\+Map(\+[20]\+u8}  &Accounts  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 41}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3134}{}\doxysubsection{\texorpdfstring{{\ttfamily State\+Snapshot}}{{\ttfamily State\+Snapshot}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3134}
+State snapshot for checkpointing
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u32}  &Block\+\_\+height  \\
+{\ttfamily root\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Root\+\_\+hash  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily account\+\_\+count}  &{\ttfamily usize}  &Account\+\_\+count  \\
+{\ttfamily size\+\_\+bytes}  &{\ttfamily u64}  &Size\+\_\+bytes  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 157}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3136}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3136}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3137}{}\doxysubsection{\texorpdfstring{{\ttfamily hash()}}{{\ttfamily hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3137}
+Checks whether the h condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hash(self:\ *const\ AccountState)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Account\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 12}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3139}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3139}
+Performs the print operation on the state\+\_\+trie module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ AccountState)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Account\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 30}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3141}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3141}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ StateTrie\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily State\+Trie}
+
+{\itshape Defined at line 47}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3143}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Balance()}}{{\ttfamily update\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3143}
+Update account balance
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateBalance(self:\ *StateTrie,\ address:\ [20]u8,\ new\_balance:\ u64,\ block\_height:\ u32)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+State\+Trie}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[20]\+u8}  &Address  \\
+{\ttfamily new\+\_\+balance}  &{\ttfamily u64}  &New\+\_\+balance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u32}  &Block\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 55}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3145}{}\doxysubsection{\texorpdfstring{{\ttfamily increment\+Nonce()}}{{\ttfamily increment\+Nonce()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3145}
+Increment nonce (for transaction sequencing)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ incrementNonce(self:\ *StateTrie,\ address:\ [20]u8,\ block\_height:\ u32)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+State\+Trie}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[20]\+u8}  &Address  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u32}  &Block\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 68}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3147}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance()}}{{\ttfamily get\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3147}
+Get account balance
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalance(self:\ *const\ StateTrie,\ address:\ [20]u8)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Trie}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[20]\+u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 81}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3149}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Nonce()}}{{\ttfamily get\+Nonce()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3149}
+Get account nonce
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getNonce(self:\ *const\ StateTrie,\ address:\ [20]u8)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Trie}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[20]\+u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3151}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Root\+Hash()}}{{\ttfamily calculate\+Root\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3151}
+Calculate root hash (merkle root of all accounts)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateRootHash(self:\ *const\ StateTrie)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Trie}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 93}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3153}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Account\+Count()}}{{\ttfamily get\+Account\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3153}
+Get account count
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAccountCount(self:\ *const\ StateTrie)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Trie}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 108}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3155}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+Storage\+Size()}}{{\ttfamily estimate\+Storage\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3155}
+Estimate storage size
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateStorageSize(self:\ *const\ StateTrie)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Trie}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 113}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3157}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Stats()}}{{\ttfamily print\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3157}
+Print statistics
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStats(self:\ *const\ StateTrie)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Trie}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 119}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3159}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+All\+Accounts()}}{{\ttfamily get\+All\+Accounts()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3159}
+Get all accounts (for verification)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAllAccounts(self:\ *const\ StateTrie,\ allocator:\ std.mem.Allocator)\ ![]AccountState\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Trie}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+Account\+State}
+
+{\itshape Defined at line 140}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3161}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3161}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *StateTrie)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+State\+Trie}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3163}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2state__trie_autotoc_md3163}
+Performs the print operation on the state\+\_\+trie module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ StateSnapshot)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Snapshot}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 164}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

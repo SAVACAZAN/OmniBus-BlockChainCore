@@ -1,0 +1,30 @@
+\doxysection{api Namespace Reference}
+\hypertarget{namespaceapi}{}\label{namespaceapi}\index{api@{api}}
+
+
+-\/surface-\/analyzer  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/surface-\/analyzer 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — API Surface Analyzer
+===============================================
+Scans core/*.zig files for ``pub fn`` declarations and catalogs the
+entire public API surface of the project.
+
+Features:
+  - Lists all public functions grouped by module
+  - Detects potentially unused public functions (pub fn not @imported
+    by any other module)
+  - Counts pub const, pub var, pub struct, pub enum too
+  - Exports results as table + JSON
+
+Usage:
+    python api-surface-analyzer.py
+    python api-surface-analyzer.py --source-dir ../../core
+    python api-surface-analyzer.py --json-output api.json --show-unused
+\end{DoxyVerb}
+ 

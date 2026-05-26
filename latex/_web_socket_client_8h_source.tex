@@ -1,0 +1,47 @@
+\doxysection{Web\+Socket\+Client.\+h}
+\hypertarget{_web_socket_client_8h_source}{}\label{_web_socket_client_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/WebSocketClient.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/WebSocketClient.h}}
+\doxymbox{\hyperlink{_web_socket_client_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QObject>}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QWebSocket>}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QTimer>}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00008}00008\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00010}\doxymbox{\hyperlink{classomni_1_1_web_socket_client}{00010}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_web_socket_client_a892ae3fc8e0053deb7fdbf265e39f5b9}{WebSocketClient}}\ :\ \textcolor{keyword}{public}\ QObject\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00011}00011\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00012}00012\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00013}00013\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a892ae3fc8e0053deb7fdbf265e39f5b9}{WebSocketClient}}(QObject*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00015}00015\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_ab9f46dd0450cee4c5280b33628459888}{connectToNode}}(\textcolor{keyword}{const}\ QString\&\ host,\ \textcolor{keywordtype}{int}\ port);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00016}00016\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_ad659d4915dea674482f22f90907cf35b}{disconnect}}();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a7a916883ae7c3f2ccad863734b685a79}{isConnected}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00019}00019\ signals:}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00020}00020\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a2a9e4eaf74cc59f61f9364ff48f4a396}{newBlock}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\&\ \doxymbox{\hyperlink{namespaceblock}{block}});}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_af43805710e5bed71b978abdbb9dbfb2f}{newTransaction}}(\textcolor{keyword}{const}\ QString\&\ txid,\ \textcolor{keyword}{const}\ QString\&\ from,\ qint64\ amountSat);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a637dcf4e9c935d486c1b138a7e4e1942}{statusUpdate}}(\textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{namespacedifficulty}{difficulty}});}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00023}00023\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a6bbe493b9f41b4863f39ccfd2bebdb8a}{connectionChanged}}(\textcolor{keywordtype}{bool}\ connected);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00025}00025\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00026}00026\ \ \ \ \ \textcolor{keywordtype}{void}\ onConnected();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00027}00027\ \ \ \ \ \textcolor{keywordtype}{void}\ onDisconnected();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00028}00028\ \ \ \ \ \textcolor{keywordtype}{void}\ onTextMessage(\textcolor{keyword}{const}\ QString\&\ message);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00029}00029\ \ \ \ \ \textcolor{keywordtype}{void}\ onError(QAbstractSocket::SocketError\ error);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00030}00030\ \ \ \ \ \textcolor{keywordtype}{void}\ tryReconnect();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00032}00032\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00033}00033\ \ \ \ \ QWebSocket\ m\_ws;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00034}00034\ \ \ \ \ QTimer\ m\_reconnectTimer;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00035}00035\ \ \ \ \ QString\ m\_url;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00036}00036\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_reconnectDelay\ =\ 3000;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00037}00037\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_connected\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00038}00038\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_intentionalDisconnect\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00039}00039\ \};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8h_source_l00041}00041\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

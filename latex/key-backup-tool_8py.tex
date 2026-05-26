@@ -1,0 +1,39 @@
+\doxysection{tools/\+\+WALLET/\+key-\/backup-\/tool.py File Reference}
+\hypertarget{key-backup-tool_8py}{}\label{key-backup-tool_8py}\index{tools/WALLET/key-\/backup-\/tool.py@{tools/WALLET/key-\/backup-\/tool.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacekey-backup-tool}{key-\/backup-\/tool}}
+\item 
+namespace \doxymbox{\hyperlink{namespacekey}{key}}
+\begin{DoxyCompactList}\small\item\em -\/backup-\/tool \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{key-\/backup-\/tool.\+cprint}} (str color, str msg)
+\item 
+bytes \doxymbox{\hyperlink{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b}{key-\/backup-\/tool.\+\_\+derive\+\_\+key}} (str password, bytes salt)
+\item 
+Dict\+[str, str]\+ \doxymbox{\hyperlink{namespacekey-backup-tool_a37e06e5e419198b00d86e278c16368cc}{key-\/backup-\/tool.\+encrypt}} (bytes plaintext, str password)
+\item 
+bytes \doxymbox{\hyperlink{namespacekey-backup-tool_a8c7a1d124b41a34e46ed3774bcb85475}{key-\/backup-\/tool.\+decrypt}} (Dict\+[str, str]\+ payload, str password)
+\item 
+bool \doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{key-\/backup-\/tool.\+backup}} (str key\+\_\+file, str password, str out\+\_\+file)
+\item 
+bool \doxymbox{\hyperlink{namespacekey-backup-tool_ad24fa3f87fbc5036c44f4dc9cf761a1c}{key-\/backup-\/tool.\+restore}} (str backup\+\_\+file, str password, str out\+\_\+file)
+\item 
+int \doxymbox{\hyperlink{namespacekey-backup-tool_a7431cb90017e54fe695b23d4190db046}{key-\/backup-\/tool.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_a560e1b74b0e4121ee16ddc316209b4ec}{key-\/backup-\/tool.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_ab31f078a33d3df0dec51299e8f051b41}{key-\/backup-\/tool.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_a01be6317f6347575c8affa62396a44f3}{key-\/backup-\/tool.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacekey-backup-tool_a6b88811842c61b8f849e0b23b3ca55b3}{key-\/backup-\/tool.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+bool \doxymbox{\hyperlink{namespacekey-backup-tool_ac97b4641df1202cecdf1352bcbf41560}{key-\/backup-\/tool.\+HAS\+\_\+\+CRYPTO}} = True
+\end{DoxyCompactItemize}

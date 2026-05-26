@@ -1,0 +1,143 @@
+\doxysection{difficulty-\/predictor.py}
+\hypertarget{difficulty-predictor_8py_source}{}\label{difficulty-predictor_8py_source}\index{tools/AI/difficulty-\/predictor.py@{tools/AI/difficulty-\/predictor.py}}
+\doxymbox{\hyperlink{difficulty-predictor_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00001}\doxymbox{\hyperlink{namespacedifficulty-predictor}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00002}\doxymbox{\hyperlink{namespacedifficulty}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Difficulty\ Predictor\ (LSTM)}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00005}00005\ \textcolor{stringliteral}{Trains\ an\ LSTM\ model\ on\ historical\ difficulty/block-\/time\ sequences}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00006}00006\ \textcolor{stringliteral}{to\ predict\ optimal\ difficulty\ for\ next\ epoch.}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00011}00011\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00012}00012\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00013}00013\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00014}00014\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00016}\doxymbox{\hyperlink{namespacedifficulty-predictor_a384a070ec508bac3f0fbd8414605a91b}{00016}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00017}\doxymbox{\hyperlink{namespacedifficulty-predictor_accf8bb14d0d232aa4577cee239507ef1}{00017}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00018}\doxymbox{\hyperlink{namespacedifficulty-predictor_a2a0e085994a1fa200acb540ec86330c7}{00018}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00019}\doxymbox{\hyperlink{namespacedifficulty-predictor_a717669a221eed1a3cbb473c49b1db43d}{00019}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00022}\doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{00022}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00023}00023\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00026}\doxymbox{\hyperlink{namespacedifficulty-predictor_afef49b43ec2a88a19c3b495be4b01dec}{00026}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-predictor_afef49b43ec2a88a19c3b495be4b01dec}{generate\_synthetic\_series}}(length:\ int\ =\ 2000)\ -\/>\ List[Dict[str,\ float]]:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00027}00027\ \ \ \ \ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00028}00028\ \ \ \ \ series\ =\ []}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00029}00029\ \ \ \ \ diff\ =\ 1.0}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00030}00030\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(length):}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ target\ =\ 120.0}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ noise\ =\ random.gauss(0,\ 10)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ block\_time\ =\ target\ +\ noise\ +\ math.sin(i\ /\ 200.0)\ *\ 15}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ diff\ *=\ max(0.25,\ min(4.0,\ target\ /\ max(block\_time,\ 1)))}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ series.append(\{\textcolor{stringliteral}{"{}height"{}}:\ i,\ \textcolor{stringliteral}{"{}block\_time"{}}:\ block\_time,\ \textcolor{stringliteral}{"{}difficulty"{}}:\ diff\})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{return}\ series}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00039}\doxymbox{\hyperlink{namespacedifficulty-predictor_aae51516a3c59a71e483e574adb5e5972}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-predictor_aae51516a3c59a71e483e574adb5e5972}{prepare\_sequences}}(series:\ List[Dict[str,\ float]],\ seq\_len:\ int\ =\ 10)\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00040}00040\ \ \ \ \ diffs\ =\ [s[\textcolor{stringliteral}{"{}difficulty"{}}]\ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ series]}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00041}00041\ \ \ \ \ X,\ y\ =\ [],\ []}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00042}00042\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(len(diffs)\ -\/\ seq\_len):}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ X.append(diffs[i\ :\ i\ +\ seq\_len])}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ y.append(diffs[i\ +\ seq\_len])}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00045}00045\ \ \ \ \ \textcolor{keywordflow}{return}\ X,\ y}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00048}\doxymbox{\hyperlink{namespacedifficulty-predictor_ae36ec5687a77df666b87e3e4cd36e5f2}{00048}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-predictor_ae36ec5687a77df666b87e3e4cd36e5f2}{train\_lstm}}(X:\ List[List[float]],\ y:\ List[float])\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ torch}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ torch.nn\ \textcolor{keyword}{as}\ nn}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00052}00052\ \ \ \ \ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ \textcolor{stringliteral}{"{}PyTorch\ not\ installed.\ Using\ linear\ regression\ fallback."{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Fallback:\ simple\ linear\ regression\ on\ last\ value}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00057}00057\ \ \ \ \ \textcolor{keyword}{class\ }LSTMModel(nn.Module):}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ input\_size:\ int\ =\ 1,\ hidden\_size:\ int\ =\ 32,\ num\_layers:\ int\ =\ 1):}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ super().\_\_init\_\_()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00060}\doxymbox{\hyperlink{namespacedifficulty-predictor_a3018cc57ae582744d9197a24952cf531}{00060}}\ \ \ \ \ \ \ \ \ \ \ \ \ self.lstm\ =\ nn.LSTM(input\_size,\ hidden\_size,\ num\_layers,\ batch\_first=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00061}\doxymbox{\hyperlink{namespacedifficulty-predictor_a7d8f29123983e92b81496c7c33a6ec7f}{00061}}\ \ \ \ \ \ \ \ \ \ \ \ \ self.fc\ =\ nn.Linear(hidden\_size,\ 1)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }forward(self,\ x):}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ out,\ \_\ =\ self.lstm(x)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ out\ =\ self.fc(out[:,\ -\/1,\ :])}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ out}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00068}00068\ \ \ \ \ Xt\ =\ torch.tensor(X,\ dtype=torch.float32).unsqueeze(-\/1)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00069}00069\ \ \ \ \ yt\ =\ torch.tensor(y,\ dtype=torch.float32).unsqueeze(-\/1)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00070}00070\ \ \ \ \ model\ =\ LSTMModel()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00071}00071\ \ \ \ \ criterion\ =\ nn.MSELoss()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00072}00072\ \ \ \ \ optimizer\ =\ torch.optim.Adam(model.parameters(),\ lr=0.01)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{for}\ epoch\ \textcolor{keywordflow}{in}\ range(200):}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ model.train()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ optimizer.zero\_grad()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ output\ =\ model(Xt)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ loss\ =\ criterion(output,\ yt)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ loss.backward()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ optimizer.step()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ epoch\ \%\ 50\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Epoch\ \{epoch\},\ Loss=\{loss.item():.6f\}"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00084}00084\ \ \ \ \ \textcolor{keywordflow}{return}\ model}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00087}\doxymbox{\hyperlink{namespacedifficulty-predictor_acc076f4d58c3b732d96eccb2eb290037}{00087}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-predictor_acc076f4d58c3b732d96eccb2eb290037}{predict\_next}}(model:\ Any,\ last\_seq:\ List[float])\ -\/>\ float:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ torch}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ model.eval()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ torch.no\_grad():}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ x\ =\ torch.tensor([last\_seq],\ dtype=torch.float32).unsqueeze(-\/1)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ pred\ =\ model(x).item()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ pred}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ fallback:\ average\ of\ last\ 3}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ sum(last\_seq[-\/3:])\ /\ 3.0}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00100}\doxymbox{\hyperlink{namespacedifficulty-predictor_a7431cb90017e54fe695b23d4190db046}{00100}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-predictor_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00101}00101\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Train\ LSTM\ difficulty\ predictor"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00102}00102\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/input"{}},\ help=\textcolor{stringliteral}{"{}JSON\ with\ series\ array"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00103}00103\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}difficulty-\/prediction.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00104}00104\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/seq-\/len"{}},\ type=int,\ default=10,\ help=\textcolor{stringliteral}{"{}Sequence\ length"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00105}00105\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00107}00107\ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Difficulty\ Predictor\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{if}\ args.input\ \textcolor{keywordflow}{and}\ os.path.isfile(args.input):}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.input,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ series\ =\ data.get(\textcolor{stringliteral}{"{}series"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ series\ =\ \doxymbox{\hyperlink{namespacedifficulty-predictor_afef49b43ec2a88a19c3b495be4b01dec}{generate\_synthetic\_series}}()}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}Using\ synthetic\ training\ data"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00116}00116\ \ \ \ \ X,\ y\ =\ \doxymbox{\hyperlink{namespacedifficulty-predictor_aae51516a3c59a71e483e574adb5e5972}{prepare\_sequences}}(series,\ args.seq\_len)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00117}00117\ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Prepared\ \{len(X)\}\ training\ sequences"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00119}00119\ \ \ \ \ model\ =\ \doxymbox{\hyperlink{namespacedifficulty-predictor_ae36ec5687a77df666b87e3e4cd36e5f2}{train\_lstm}}(X,\ y)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00120}00120\ \ \ \ \ last\_seq\ =\ [s[\textcolor{stringliteral}{"{}difficulty"{}}]\ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ series][-\/args.seq\_len\ :]}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00121}00121\ \ \ \ \ pred\ =\ \doxymbox{\hyperlink{namespacedifficulty-predictor_acc076f4d58c3b732d96eccb2eb290037}{predict\_next}}(model,\ last\_seq)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00123}00123\ \ \ \ \ result\ =\ \{}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}predicted\_next\_difficulty"{}}:\ round(pred,\ 4),}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}last\_known\_difficulty"{}}:\ round(last\_seq[-\/1],\ 4),}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}training\_samples"{}}:\ len(X),}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00127}00127\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00128}00128\ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Predicted\ next\ difficulty:\ \{pred:.4f\}"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00130}00130\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ json.dump(result,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00132}00132\ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Result\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00133}00133\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00136}00136\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{difficulty-predictor_8py_source_l00137}00137\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacedifficulty-predictor_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

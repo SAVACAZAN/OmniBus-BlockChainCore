@@ -1,0 +1,226 @@
+\doxysection{omni::\+Transaction\+Table\+Model Class Reference}
+\hypertarget{classomni_1_1_transaction_table_model}{}\label{classomni_1_1_transaction_table_model}\index{omni::TransactionTableModel@{omni::TransactionTableModel}}
+
+
+{\ttfamily \+\#include $<$Transaction\+Table\+Model.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Transaction\+Table\+Model:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Transaction\+Table\+Model:\+
+% FIG 1
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dc}{Column}} \{ \newline
+\doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcafd90a00bb7e59b49a05722cea09a0c5c}{Col\+Direction}}
+, \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaa2dc2149eb48b0d1f3094381cbac4ec5}{Col\+Tx\+Id}}
+, \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca70dda46252738d13da2802999a3d9d3a}{Col\+From}}
+, \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaff02d67769be78f155aae811e58dc8c5}{Col\+To}}
+, \newline
+\doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca717654a2b1fb860a6ceffc4f0ae73dd5}{Col\+Amount}}
+, \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca2e0ac75beca48344a30d68616ed2916f}{Col\+Fee}}
+, \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaba5d2997e47d1b608e8ce11ba96deab5}{Col\+Confirmations}}
+, \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcab0068dc0e3e75fe748bea20b1e8173b7}{Col\+Status}}
+, \newline
+\doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca007006756123aa74681fd443f50080bc}{Col\+Count}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_transaction_table_model_ad53d36ff57e5ceea7f67da62f52ec102}{Transaction\+Table\+Model}} (QObject \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a0a28202b2d3664855863f98bcd52fc2f}{row\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a3ffed436f3ebb0b340c87c4357f5ce54}{column\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a93b5de33471a8ec69df61baeaf133e55}{data}} (const QModel\+Index \&index, int role=Qt::\+\+Display\+Role) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_ad23668aa9bfd55ed9f3488ab5fcdb216}{header\+Data}} (int section, Qt::\+\+Orientation orientation, int role=Qt::\+\+Display\+Role) const override
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a8e409c45595d5587e166ffa7bc8ca3c0}{set\+Transactions}} (const QList$<$ \doxymbox{\hyperlink{structomni_1_1_transaction_data}{Transaction\+Data}} $>$ \&txs)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_af5688922676a19281ca270a40dbeafe9}{add\+Transaction}} (const \doxymbox{\hyperlink{structomni_1_1_transaction_data}{Transaction\+Data}} \&tx)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_ab3dc21427f4013cae4252361f5a9eae5}{clear}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8h_source_l00009}{9}} of file \doxymbox{\hyperlink{_transaction_table_model_8h_source}{Transaction\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_transaction_table_model_doc-enum-members}
+\Hypertarget{classomni_1_1_transaction_table_model_doc-enum-members}
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dc}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!Column@{Column}}
+\index{Column@{Column}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{Column}{Column}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dc} 
+enum \doxymbox{\hyperlink{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dc}{omni::\+\+Transaction\+Table\+Model::\+\+Column}}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColDirection@{ColDirection}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColDirection@{ColDirection}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcafd90a00bb7e59b49a05722cea09a0c5c}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcafd90a00bb7e59b49a05722cea09a0c5c} 
+Col\+Direction&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColTxId@{ColTxId}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColTxId@{ColTxId}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaa2dc2149eb48b0d1f3094381cbac4ec5}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaa2dc2149eb48b0d1f3094381cbac4ec5} 
+Col\+Tx\+Id&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColFrom@{ColFrom}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColFrom@{ColFrom}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca70dda46252738d13da2802999a3d9d3a}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca70dda46252738d13da2802999a3d9d3a} 
+Col\+From&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColTo@{ColTo}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColTo@{ColTo}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaff02d67769be78f155aae811e58dc8c5}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaff02d67769be78f155aae811e58dc8c5} 
+Col\+To&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColAmount@{ColAmount}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColAmount@{ColAmount}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca717654a2b1fb860a6ceffc4f0ae73dd5}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca717654a2b1fb860a6ceffc4f0ae73dd5} 
+Col\+Amount&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColFee@{ColFee}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColFee@{ColFee}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca2e0ac75beca48344a30d68616ed2916f}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca2e0ac75beca48344a30d68616ed2916f} 
+Col\+Fee&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColConfirmations@{ColConfirmations}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColConfirmations@{ColConfirmations}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaba5d2997e47d1b608e8ce11ba96deab5}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcaba5d2997e47d1b608e8ce11ba96deab5} 
+Col\+Confirmations&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColStatus@{ColStatus}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColStatus@{ColStatus}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcab0068dc0e3e75fe748bea20b1e8173b7}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dcab0068dc0e3e75fe748bea20b1e8173b7} 
+Col\+Status&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColCount@{ColCount}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\index{omni::TransactionTableModel@{omni::TransactionTableModel}!ColCount@{ColCount}}
+}\Hypertarget{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca007006756123aa74681fd443f50080bc}\label{classomni_1_1_transaction_table_model_a87553515e9307fbbb1c8079eed38f7dca007006756123aa74681fd443f50080bc} 
+Col\+Count&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8h_source_l00012}{12}} of file \doxymbox{\hyperlink{_transaction_table_model_8h_source}{Transaction\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_transaction_table_model_doc-constructors}
+\Hypertarget{classomni_1_1_transaction_table_model_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_transaction_table_model_ad53d36ff57e5ceea7f67da62f52ec102}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!TransactionTableModel@{TransactionTableModel}}
+\index{TransactionTableModel@{TransactionTableModel}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{TransactionTableModel()}{TransactionTableModel()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_ad53d36ff57e5ceea7f67da62f52ec102} 
+omni::\+\+Transaction\+Table\+Model::\+\+Transaction\+Table\+Model (\begin{DoxyParamCaption}\item[{QObject \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00007}{7}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+
+
+\label{classomni_1_1_transaction_table_model_doc-func-members}
+\Hypertarget{classomni_1_1_transaction_table_model_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_transaction_table_model_af5688922676a19281ca270a40dbeafe9}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!addTransaction@{addTransaction}}
+\index{addTransaction@{addTransaction}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{addTransaction()}{addTransaction()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_af5688922676a19281ca270a40dbeafe9} 
+void omni::\+\+Transaction\+Table\+Model::\+add\+Transaction (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1_transaction_data}{Transaction\+Data}} \&}]{tx}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00090}{90}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_transaction_table_model_ab3dc21427f4013cae4252361f5a9eae5}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!clear@{clear}}
+\index{clear@{clear}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_ab3dc21427f4013cae4252361f5a9eae5} 
+void omni::\+\+Transaction\+Table\+Model::\+clear (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00096}{96}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_transaction_table_model_a3ffed436f3ebb0b340c87c4357f5ce54}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!columnCount@{columnCount}}
+\index{columnCount@{columnCount}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{columnCount()}{columnCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_a3ffed436f3ebb0b340c87c4357f5ce54} 
+int omni::\+\+Transaction\+Table\+Model::\+column\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00016}{16}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_transaction_table_model_a93b5de33471a8ec69df61baeaf133e55}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!data@{data}}
+\index{data@{data}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_a93b5de33471a8ec69df61baeaf133e55} 
+QVariant omni::\+\+Transaction\+Table\+Model::\+data (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{index}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00020}{20}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classomni_1_1_transaction_table_model_ad23668aa9bfd55ed9f3488ab5fcdb216}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!headerData@{headerData}}
+\index{headerData@{headerData}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{headerData()}{headerData()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_ad23668aa9bfd55ed9f3488ab5fcdb216} 
+QVariant omni::\+\+Transaction\+Table\+Model::\+header\+Data (\begin{DoxyParamCaption}\item[{int}]{section}{, }\item[{Qt::\+\+Orientation}]{orientation}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00067}{67}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_transaction_table_model_a0a28202b2d3664855863f98bcd52fc2f}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!rowCount@{rowCount}}
+\index{rowCount@{rowCount}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{rowCount()}{rowCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_a0a28202b2d3664855863f98bcd52fc2f} 
+int omni::\+\+Transaction\+Table\+Model::\+row\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00012}{12}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_transaction_table_model_a8e409c45595d5587e166ffa7bc8ca3c0}\index{omni::TransactionTableModel@{omni::TransactionTableModel}!setTransactions@{setTransactions}}
+\index{setTransactions@{setTransactions}!omni::TransactionTableModel@{omni::TransactionTableModel}}
+\doxysubsubsection{\texorpdfstring{setTransactions()}{setTransactions()}}
+{\footnotesize\ttfamily \label{classomni_1_1_transaction_table_model_a8e409c45595d5587e166ffa7bc8ca3c0} 
+void omni::\+\+Transaction\+Table\+Model::\+set\+Transactions (\begin{DoxyParamCaption}\item[{const QList$<$ \doxymbox{\hyperlink{structomni_1_1_transaction_data}{Transaction\+Data}} $>$ \&}]{txs}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_transaction_table_model_8cpp_source_l00084}{84}} of file \doxymbox{\hyperlink{_transaction_table_model_8cpp_source}{Transaction\+Table\+Model.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_transaction_table_model_8h}{Transaction\+Table\+Model.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_transaction_table_model_8cpp}{Transaction\+Table\+Model.\+cpp}}\end{DoxyCompactItemize}

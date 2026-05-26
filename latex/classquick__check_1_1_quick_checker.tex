@@ -1,0 +1,170 @@
+\doxysection{quick\+\_\+check.\+Quick\+Checker Class Reference}
+\hypertarget{classquick__check_1_1_quick_checker}{}\label{classquick__check_1_1_quick_checker}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a647db86029ab70e395d4f99dfd953ffa}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+Tuple\+[bool, str, str]\+ \doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}{run\+\_\+command}} (self, List\+[str]\+ cmd, int timeout=30)
+\item 
+\doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} \doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a7a2c312bd2652217a959a2c3c33a447b}{check\+\_\+syntax}} (self)
+\item 
+\doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} \doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a367f26cde6ed47ff5c2b9869477340c2}{check\+\_\+build}} (self)
+\item 
+\doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} \doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ac100246286bbcea7a068de334a27b88b}{check\+\_\+tests\+\_\+crypto}} (self)
+\item 
+\doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} \doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a5dc3ea796035febf0f63dbb0e726fd98}{check\+\_\+tests\+\_\+chain}} (self)
+\item 
+List\+[\doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}}]\+ \doxymbox{\hyperlink{classquick__check_1_1_quick_checker_a569aaed7344154647b5412808c65bf13}{run\+\_\+all}} (self, List\+[str]\+ checks\+\_\+to\+\_\+run=None)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classquick__check_1_1_quick_checker_aa251f68cd3f6fc2a43f51919872861f9}{project\+\_\+root}} = project\+\_\+root
+\item 
+list \doxymbox{\hyperlink{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4}{results}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Execută verificări rapide pe proiect.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+
+
+\label{classquick__check_1_1_quick_checker_doc-constructors}
+\Hypertarget{classquick__check_1_1_quick_checker_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classquick__check_1_1_quick_checker_a647db86029ab70e395d4f99dfd953ffa}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_a647db86029ab70e395d4f99dfd953ffa} 
+quick\+\_\+check.\+Quick\+Checker.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+
+
+\label{classquick__check_1_1_quick_checker_doc-func-members}
+\Hypertarget{classquick__check_1_1_quick_checker_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classquick__check_1_1_quick_checker_a367f26cde6ed47ff5c2b9869477340c2}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!check\_build@{check\_build}}
+\index{check\_build@{check\_build}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{check\_build()}{check\_build()}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_a367f26cde6ed47ff5c2b9869477340c2} 
+ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} quick\+\_\+check.\+Quick\+Checker.\+check\+\_\+build (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Încearcă build rapid fără liboqs.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00096}{96}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classquick__check_1_1_quick_checker_a7a2c312bd2652217a959a2c3c33a447b}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!check\_syntax@{check\_syntax}}
+\index{check\_syntax@{check\_syntax}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{check\_syntax()}{check\_syntax()}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_a7a2c312bd2652217a959a2c3c33a447b} 
+ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} quick\+\_\+check.\+Quick\+Checker.\+check\+\_\+syntax (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică sintaxa Zig cu zig fmt --check.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00063}{63}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{classquick__check_1_1_quick_checker_a5dc3ea796035febf0f63dbb0e726fd98}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!check\_tests\_chain@{check\_tests\_chain}}
+\index{check\_tests\_chain@{check\_tests\_chain}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{check\_tests\_chain()}{check\_tests\_chain()}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_a5dc3ea796035febf0f63dbb0e726fd98} 
+ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} quick\+\_\+check.\+Quick\+Checker.\+check\+\_\+tests\+\_\+chain (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rulează testele de chain.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00158}{158}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{classquick__check_1_1_quick_checker_ac100246286bbcea7a068de334a27b88b}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!check\_tests\_crypto@{check\_tests\_crypto}}
+\index{check\_tests\_crypto@{check\_tests\_crypto}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{check\_tests\_crypto()}{check\_tests\_crypto()}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_ac100246286bbcea7a068de334a27b88b} 
+ \doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}} quick\+\_\+check.\+Quick\+Checker.\+check\+\_\+tests\+\_\+crypto (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rulează testele de crypto (cele mai rapide).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00123}{123}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{classquick__check_1_1_quick_checker_a569aaed7344154647b5412808c65bf13}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!run\_all@{run\_all}}
+\index{run\_all@{run\_all}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{run\_all()}{run\_all()}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_a569aaed7344154647b5412808c65bf13} 
+ List\+[\doxymbox{\hyperlink{classquick__check_1_1_check_result}{Check\+Result}}]\+ quick\+\_\+check.\+Quick\+Checker.\+run\+\_\+all (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{List\+[str]\+ }]{checks\+\_\+to\+\_\+run}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rulează toate verificările.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00177}{177}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+\Hypertarget{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!run\_command@{run\_command}}
+\index{run\_command@{run\_command}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{run\_command()}{run\_command()}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_a0a4107cb179089ff62abf741dfdf0991} 
+ Tuple\+[bool, str, str]\+ quick\+\_\+check.\+Quick\+Checker.\+run\+\_\+command (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{List\+[str]\+}]{cmd}{, }\item[{int }]{timeout}{ = {\ttfamily 30}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Execută o comandă și returnează rezultatul.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+\label{classquick__check_1_1_quick_checker_doc-variable-members}
+\Hypertarget{classquick__check_1_1_quick_checker_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classquick__check_1_1_quick_checker_aa251f68cd3f6fc2a43f51919872861f9}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_aa251f68cd3f6fc2a43f51919872861f9} 
+quick\+\_\+check.\+Quick\+Checker.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+\Hypertarget{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4}\index{quick\_check.QuickChecker@{quick\_check.QuickChecker}!results@{results}}
+\index{results@{results}!quick\_check.QuickChecker@{quick\_check.QuickChecker}}
+\doxysubsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily \label{classquick__check_1_1_quick_checker_ae3f477737ee0d4b42139a7cf17784da4} 
+list quick\+\_\+check.\+Quick\+Checker.\+results = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{quick__check_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{quick__check_8py_source}{quick\+\_\+check.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{quick__check_8py}{quick\+\_\+check.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,316 @@
+\chapter{Sumar:\+ Wallet-\/uri Omni\+Bus -\/ Toate Opțiunile }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y}{}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y}\index{Sumar: Wallet-\/uri OmniBus -\/ Toate Opțiunile@{Sumar: Wallet-\/uri OmniBus -\/ Toate Opțiunile}}
+\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3789}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3789}%
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3790}{}\doxysection{\texorpdfstring{📋 Lista Completă de Wallet-\/uri Compatibile (100+ Soluții)}{📋 Lista Completă de Wallet-\/uri Compatibile (100+ Soluții)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3790}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3791}{}\doxysubsection{\texorpdfstring{🏗️ SOLUȚ\+II OPEN SOURCE PENTRU CONSTRUIRE}{🏗️ SOLUȚ\+II OPEN SOURCE PENTRU CONSTRUIRE}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3791}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Proiect  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Git\+Hub  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Stack  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Cel mai bun pentru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Efort  \\
+1  &{\bfseries{QRL Wallet}}  &github.\+com/\+the\+QRL/\+qrl-\/wallet  &Meteor+\+Electron  &Desktop wallet (Win/\+\+Mac/\+\+Linux)  &🟡 Mediu  \\
+2  &{\bfseries{e\+Stream App}}  &github.\+com/\+polyquantum/\+estream-\/app  &React Native  &Mobile wallet (i\+OS/\+\+Android)  &🟡 Mediu  \\
+3  &{\bfseries{Tether WDK}}  &docs.\+wdk.\+tether.\+io  &Type\+Script SDK  &SDK pentru integratori  &🟢 Mic  \\
+4  &{\bfseries{PQC Vault}}  &github.\+com/\+\+Simedru\+F/\+\+PQC\+\_\+\+Vault  &Tauri+\+Rust  &Desktop PQ reference  &🟡 Mediu  \\
+5  &{\bfseries{Quantum Safe}}  &ETHGlobal winner  &Rust+\+STM32  &Firmware hardware embedded  &🔴 Mare  \\
+6  &{\bfseries{Trezor Safe 7}}  &github.\+com/\+trezor/\+trezor-\/firmware  &C+\+Micro\+Python  &Hardware wallet open source  &🔴 Mare  \\
+7  &{\bfseries{Meta\+Mask Snaps}}  &github.\+com/\+\+Meta\+Mask/\+snaps-\/monorepo  &Type\+Script  &Browser extension PQ  &🟡 Mediu  \\
+8  &{\bfseries{OKX Go SDK}}  &github.\+com/\+okx/\+go-\/wallet-\/sdk  &Go  &SDK Go (folosește liboqs)  &🟢 Mic  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3793}{}\doxysection{\texorpdfstring{🎯 Arhitectura Recomandată:\+ "{}\+Omni\+Bus 3-\/\+Wallet System"{}}{🎯 Arhitectura Recomandată:\+ "{}\+Omni\+Bus 3-\/\+Wallet System"{}}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3793}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OMNIUS\ HYBRID\ WALLET\ ARCHITECTURE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────┐\ \ ┌──────────────────┐\ \ ┌──────────────────┐\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ MOBILE\ WALLET\ \ \ │\ \ │\ \ DESKTOP\ WALLET\ \ │\ \ │\ \ SDK/BROWSER\ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ (eStream\ Fork)\ \ │\ \ │\ \ \ (QRL\ Fork)\ \ \ \ \ │\ \ │\ \ \ (Tether\ WDK)\ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ •\ iOS/Android\ \ \ \ │\ \ │\ •\ Win/Mac/Linux\ \ │\ \ │\ •\ Any\ platform\ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ •\ React\ Native\ \ \ │\ \ │\ •\ Electron\ \ \ \ \ \ \ │\ \ │\ •\ Embedded\ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ •\ Rust\ modules\ \ \ │\ \ │\ •\ WebAssembly\ \ \ \ │\ \ │\ •\ AI\ agents\ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ •\ Seeker\ Enclave\ │\ \ │\ •\ Ledger\ support\ │\ \ │\ •\ Multi-\/chain\ \ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └────────┬─────────┘\ \ └────────┬─────────┘\ \ └────────┬─────────┘\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ └─────────────────────┼─────────────────────┘\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ┌────────────┴────────────┐\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ CORE\ OMNIBUS\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ (Zig/WASM)\ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ •\ BIP-\/32/39\ HD\ Wallet\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ •\ ML-\/DSA-\/87\ signing\ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ •\ Falcon-\/512\ signing\ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ •\ SLH-\/DSA-\/256s\ signing\ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ •\ secp256k1\ signing\ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ •\ Base58Check\ encoding\ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ └────────────┬────────────┘\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ┌────────────┴────────────┐\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ BLOCKCHAIN\ OMNIBUS\ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ (Core\ Zig\ Node)\ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ └─────────────────────────┘\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3795}{}\doxysection{\texorpdfstring{🚀 Implementare Pas cu Pas}{🚀 Implementare Pas cu Pas}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3795}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3796}{}\doxysubsection{\texorpdfstring{Pasul 1:\+ Core SDK (Săptămâna 1-\/2)}{Pasul 1:\+ Core SDK (Săptămâna 1-\/2)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3796}
+Compilează core-\/ul Zig pentru multiple platforme:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Zig\ →\ WebAssembly\ (pentru\ web/desktop)}
+\DoxyCodeLine{zig\ build\ -\/Dtarget=wasm32-\/wasi}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Zig\ →\ C\ library\ (pentru\ mobile/integrare)}
+\DoxyCodeLine{zig\ build\ -\/Dtarget=native\ -\/Doutput=c\_lib}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Zig\ →\ Rust\ bindings\ (pentru\ React\ Native)}
+\DoxyCodeLine{cd\ bindings/rust\ \&\&\ cargo\ build\ -\/-\/release}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3797}{}\doxysubsection{\texorpdfstring{Pasul 2:\+ Mobile Wallet (Săptămâna 3-\/4)}{Pasul 2:\+ Mobile Wallet (Săptămâna 3-\/4)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3797}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Fork\ eStream\ App}
+\DoxyCodeLine{git\ clone\ https://github.com/polyquantum/estream-\/app.git\ wallet-\/omnibus-\/mobile}
+\DoxyCodeLine{cd\ wallet-\/omnibus-\/mobile}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Adaugă\ modul\ OmniBus\ PQ}
+\DoxyCodeLine{npm\ install\ @omnibus/crypto-\/pq}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Modifică\ pentru\ 5\ domenii}
+\DoxyCodeLine{\#\ src/services/vault/OmniBusVault.ts}
+
+\end{DoxyCode}
+
+
+{\bfseries{Modificări necesare:\+}}
+\begin{DoxyItemize}
+\item Adaugă suport Falcon-\/512 și SLH-\/\+DSA-\/256s
+\item UI pentru 5 domenii (omni, love, food, rent, vacation)
+\item Deep linking {\ttfamily \doxylink{namespaceomnibus}{omnibus}:\+/\+/\+}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3798}{}\doxysubsection{\texorpdfstring{Pasul 3:\+ Desktop Wallet (Săptămâna 5-\/6)}{Pasul 3:\+ Desktop Wallet (Săptămâna 5-\/6)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3798}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Fork\ QRL\ Wallet}
+\DoxyCodeLine{git\ clone\ https://github.com/theQRL/qrl-\/wallet.git\ wallet-\/omnibus-\/desktop}
+\DoxyCodeLine{cd\ wallet-\/omnibus-\/desktop}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Adaugă\ modul\ OmniBus}
+\DoxyCodeLine{npm\ install\ @omnibus/crypto-\/pq-\/wasm}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Înlocuiește\ XMSS\ cu\ ML-\/DSA/Falcon/SLH-\/DSA}
+\DoxyCodeLine{\#\ imports/modules/omnibus.js}
+
+\end{DoxyCode}
+
+
+{\bfseries{Modificări necesare:\+}}
+\begin{DoxyItemize}
+\item Compilează Zig crypto în WASM
+\item Adaugă suport 5 coin types (777-\/781)
+\item Păstrează Ledger integration
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3799}{}\doxysubsection{\texorpdfstring{Pasul 4:\+ SDK (Săptămâna 7)}{Pasul 4:\+ SDK (Săptămâna 7)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3799}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Extend\ Tether\ WDK}
+\DoxyCodeLine{npm\ install\ @tether/wdk}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Creează\ wrapper\ OmniBus}
+\DoxyCodeLine{\#\ src/OmniBusWallet.ts}
+
+\end{DoxyCode}
+
+
+{\bfseries{Modificări necesare:\+}}
+\begin{DoxyItemize}
+\item Extinde Wallet class cu metode PQ
+\item Adaugă suport multi-\/domain
+\item Export pentru multiple platforme
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3801}{}\doxysection{\texorpdfstring{🔗 Interoperabilitate -\/ Cum se recunosc}{🔗 Interoperabilitate -\/ Cum se recunosc}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3801}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3802}{}\doxysubsection{\texorpdfstring{Format Adresă Unificat}{Format Adresă Unificat}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3802}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Domeniu  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prefix  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coin Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Algoritm  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Exemplu adresă  \\
+Omni  &ob\+\_\+omni\+\_\+  &777  &ML-\/\+DSA-\/87  &ob\+\_\+omni\+\_\+a1b2c3...  \\
+Love  &ob\+\_\+k1\+\_\+  &778  &ML-\/\+DSA-\/87  &ob\+\_\+k1\+\_\+d4e5f6...  \\
+Food  &ob\+\_\+f5\+\_\+  &779  &Falcon-\/512  &ob\+\_\+f5\+\_\+g7h8i9...  \\
+Rent  &ob\+\_\+d5\+\_\+  &780  &ML-\/\+DSA-\/87  &ob\+\_\+d5\+\_\+j0k1l2...  \\
+Vacation  &ob\+\_\+s3\+\_\+  &781  &SLH-\/\+DSA-\/256s  &ob\+\_\+s3\+\_\+m3n4o5...  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3803}{}\doxysubsection{\texorpdfstring{Export/\+\+Import Standard}{Export/\+\+Import Standard}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3803}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}format"{}:\ "{}omnibus-\/wallet-\/v1"{},}
+\DoxyCodeLine{\ \ "{}mnemonic"{}:\ "{}abandon\ abandon\ ...\ about"{},}
+\DoxyCodeLine{\ \ "{}addresses"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}omni"{}:\ \{\ "{}address"{}:\ "{}ob1q..."{},\ "{}path"{}:\ "{}m/44'/777'/0'/0/0"{}\ \},}
+\DoxyCodeLine{\ \ \ \ "{}love"{}:\ \{\ "{}address"{}:\ "{}ob\_k1\_..."{},\ "{}path"{}:\ "{}m/44'/778'/0'/0/0"{}\ \},}
+\DoxyCodeLine{\ \ \ \ "{}food"{}:\ \{\ "{}address"{}:\ "{}ob\_f5\_..."{},\ "{}path"{}:\ "{}m/44'/779'/0'/0/0"{}\ \},}
+\DoxyCodeLine{\ \ \ \ "{}rent"{}:\ \{\ "{}address"{}:\ "{}ob\_d5\_..."{},\ "{}path"{}:\ "{}m/44'/780'/0'/0/0"{}\ \},}
+\DoxyCodeLine{\ \ \ \ "{}vacation"{}:\ \{\ "{}address"{}:\ "{}ob\_s3\_..."{},\ "{}path"{}:\ "{}m/44'/781'/0'/0/0"{}\ \}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Toate wallet-\/urile pot importa/\+exporta acest format!}}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3805}{}\doxysection{\texorpdfstring{📱 Matrix Wallet-\/uri Finale}{📱 Matrix Wallet-\/uri Finale}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3805}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3806}{}\doxysubsection{\texorpdfstring{După implementare, Omni\+Bus va fi suportat de:\+}{După implementare, Omni\+Bus va fi suportat de:\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3806}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Platformă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Wallet-\/uri  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Număr  \\
+{\bfseries{Mobile}}  &Trust, Meta\+Mask Mobile, Rainbow, Zerion, Argent, im\+Token, Token\+Pocket, Math Wallet, Safe\+Pal, 1inch + Omni\+Bus Native  &50+  \\
+{\bfseries{Desktop}}  &Meta\+Mask, Rabby, Frame, Brave, Opera, Taho, Coinbase Wallet + Omni\+Bus Native  &30+  \\
+{\bfseries{Web}}  &Meta\+Mask, Wallet\+Connect, Rainbow\+Kit + Omni\+Bus Web  &20+  \\
+{\bfseries{Hardware}}  &Trezor Safe 7, Ledger (custom), Omni\+Bus Hardware  &3+  \\
+{\bfseries{SDK}}  &Tether WDK, Omni\+Bus SDK, Meta\+Mask Snap  &5+  \\
+\end{DoxyTable}
+
+
+{\bfseries{TOTAL:\+ 100+ wallet-\/uri compatibile}}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3808}{}\doxysection{\texorpdfstring{✅ Checklist Construcție}{✅ Checklist Construcție}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3808}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3809}{}\doxysubsection{\texorpdfstring{Pentru echipa Omni\+Bus:\+}{Pentru echipa Omni\+Bus:\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3809}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Compilează core Zig în WASM
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Compilează core Zig în C lib
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Creează bindings Type\+Script
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Creează bindings React Native
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Publică pachete npm
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3810}{}\doxysubsection{\texorpdfstring{Pentru Mobile Wallet (e\+Stream fork):\+}{Pentru Mobile Wallet (e\+Stream fork):\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3810}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Fork repository
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă modul Omni\+Bus
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Implementează 5 domenii UI
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă deep linking
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Testează pe i\+OS/\+\+Android
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3811}{}\doxysubsection{\texorpdfstring{Pentru Desktop Wallet (QRL fork):\+}{Pentru Desktop Wallet (QRL fork):\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3811}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Fork repository
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă WASM crypto
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Implementează 5 domenii
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Păstrează Ledger support
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Build pentru Win/\+\+Mac/\+\+Linux
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3812}{}\doxysubsection{\texorpdfstring{Pentru SDK (Tether WDK extend):\+}{Pentru SDK (Tether WDK extend):\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3812}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Install WDK
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Extinde cu metode PQ
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă multi-\/domain support
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Documentație API
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Exemple de utilizare
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3814}{}\doxysection{\texorpdfstring{🎁 Rezultat Final}{🎁 Rezultat Final}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3814}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3815}{}\doxysubsection{\texorpdfstring{Utilizatorul poate:\+}{Utilizatorul poate:\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3815}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Să folosească orice wallet preferă}}
+\begin{DoxyItemize}
+\item Îi place Meta\+Mask? → Folosește EVM adapter
+\item Îi place Trust? → Folosește Wallet\+Connect
+\item Vrea mobile native? → Folosește Omni\+Bus Mobile
+\item Vrea desktop? → Folosește Omni\+Bus Desktop
+\item Vrea hardware? → Folosește Trezor/\+\+Ledger
+\end{DoxyItemize}
+\item {\bfseries{Să aibă aceeași adresă peste tot}}
+\begin{DoxyItemize}
+\item Un seed BIP-\/39 = Toate cele 5 adrese
+\item Import în orice wallet = Aceleași adrese
+\item Backup unic = Recuperare oriunde
+\end{DoxyItemize}
+\item {\bfseries{Să transfere între wallet-\/uri seamless}}
+\begin{DoxyItemize}
+\item Creează TX pe mobile
+\item Semnează pe hardware
+\item Confirmă pe desktop
+\item Toate vorbesc aceeași limbă
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3817}{}\doxysection{\texorpdfstring{📚 Documentație creată}{📚 Documentație creată}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3817}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Document  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scop  \\
+{\ttfamily \doxylink{_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_8md}{OMNIBUS\+\_\+\+WALLET\+\_\+\+INTEGRATION\+\_\+\+ROADMAP.\+md}}  &Plan complet cu toate opțiunile  \\
+{\ttfamily \doxylink{_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_8md}{EVM\+\_\+\+COMPATIBILITY\+\_\+\+GUIDE.\+md}}  &Integrare Meta\+Mask/\+\+Trust etc.  \\
+{\ttfamily \doxylink{_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_8md}{WALLETCONNECT\+\_\+\+INTEGRATION.\+md}}  &Integrare mobile wallets  \\
+{\ttfamily \doxylink{_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_8md}{HARDWARE\+\_\+\+WALLET\+\_\+\+INTEGRATION.\+md}}  &Trezor/\+\+Ledger integration  \\
+{\ttfamily \doxylink{_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_r_o_p_e_r_a_b_i_l_i_t_y_8md}{OMNIBUS\+\_\+\+WALLET\+\_\+\+INTEROPERABILITY.\+md}}  &Cum se recunosc wallet-\/urile  \\
+{\ttfamily \doxylink{_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_8md}{OMNIBUS\+\_\+\+WALLET\+\_\+\+SUMMARY.\+md}}  &Acest sumar  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3819}{}\doxysection{\texorpdfstring{🔗 Resurse Esențiale}{🔗 Resurse Esențiale}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y_autotoc_md3819}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Resursă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}URL  \\
+QRL Wallet  &github.\+com/\+the\+QRL/\+qrl-\/wallet  \\
+e\+Stream App  &github.\+com/\+polyquantum/\+estream-\/app  \\
+Tether WDK  &docs.\+wdk.\+tether.\+io  \\
+PQC Vault  &github.\+com/\+\+Simedru\+F/\+\+PQC\+\_\+\+Vault  \\
+Trezor Firmware  &github.\+com/\+trezor/\+trezor-\/firmware  \\
+Meta\+Mask Snaps  &docs.\+metamask.\+io/\+snaps  \\
+Wallet\+Connect  &walletconnect.\+com  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Sumar complet pentru construirea ecosistemului de wallet-\/uri Omni\+Bus} {\itshape 100+ soluții compatibile, toate open source} 

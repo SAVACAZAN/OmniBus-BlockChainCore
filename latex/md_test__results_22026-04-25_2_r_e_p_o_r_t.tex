@@ -1,0 +1,219 @@
+\chapter{Block\+Chain\+Core — Test Session Report }
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t}{}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t}\index{BlockChainCore — Test Session Report@{BlockChainCore — Test Session Report}}
+\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9750}%
+\Hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9750}%
+
+
+{\bfseries{Date:\+}} 2026-\/04-\/25 {\bfseries{Duration:\+}} \texorpdfstring{$\sim$}{\string~}30 min {\bfseries{Build version:\+}} v0.\+3.\+1 (post-\/fixes)
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9752}{}\doxysection{\texorpdfstring{Summary}{Summary}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9752}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Test  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Result  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+🟢 Build ({\ttfamily \doxylink{namespacezig}{zig} \doxylink{namespacebuild}{build} -\/Doqs=false})  &PASS  &Exit 0, zero warnings  \\
+🟢 Unit tests (8 groups)  &{\bfseries{8/\+8 PASS}}  &test, test-\/crypto, test-\/chain, test-\/net, test-\/shard, test-\/storage, test-\/light, test-\/pq  \\
+🟢 RPC live (5/\+12 methods)  &PARTIAL  &Core methods OK, missing standard Bitcoin RPCs  \\
+🟢 Mainnet boot  &PASS  &Loaded 140 blocks from {\ttfamily omnibus-\/chain.\+dat}  \\
+🟢 P2P sync (seed + miner)  &PASS  &Block \#156 announced + relayed to 1 peer  \\
+🔴 → 🟢 DB separation per chain  &FIXED  &Initial:\+ not wired in main.\+zig. After fix:\+ 3 DBs isolated correctly  \\
+🟢 Chain selection ({\ttfamily -\/-\/mainnet/\+-\/-\/testnet/\+-\/-\/regtest})  &FIXED  &Initial:\+ ignored, defaulted to mainnet. After fix:\+ picks correct Chain\+Config  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9754}{}\doxysection{\texorpdfstring{Unit Tests (8/\+8 PASS)}{Unit Tests (8/\+8 PASS)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9754}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{test:\ \ \ \ \ \ \ \ \ PASS\ (1m\ 12s)}
+\DoxyCodeLine{test-\/crypto:\ \ PASS\ (9s)}
+\DoxyCodeLine{test-\/chain:\ \ \ PASS\ (43s)}
+\DoxyCodeLine{test-\/net:\ \ \ \ \ PASS\ (11s)}
+\DoxyCodeLine{test-\/shard:\ \ \ PASS\ (7s)}
+\DoxyCodeLine{test-\/storage:\ PASS\ (1s)}
+\DoxyCodeLine{test-\/light:\ \ \ PASS\ (5s)}
+\DoxyCodeLine{test-\/pq:\ \ \ \ \ \ PASS\ (\string~immediate)}
+
+\end{DoxyCode}
+
+
+Files:\+ {\ttfamily 01\+\_\+unit\+\_\+tests/\+\{group\}.\doxylink{namespacelog}{log}} for each.
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9756}{}\doxysection{\texorpdfstring{RPC Live Tests}{RPC Live Tests}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9756}
+Seed node @ {\ttfamily \href{http://127.0.0.1:8332}{\texttt{http:\+/\+/\+127.\+0.\+0.\+1:\+8332}}} while running with mainnet DB (141 blocks total).\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9757}{}\doxysubsection{\texorpdfstring{✅ Working (5)}{✅ Working (5)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9757}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Method  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Response  \\
+{\ttfamily getblockcount}  &{\ttfamily 141}  \\
+{\ttfamily getbalance}  &Full wallet info:\+ address, balance, UTXOs, tx\+Count  \\
+{\ttfamily getmempoolinfo}  &{\ttfamily \{size:\+ 0, bytes:\+ 0\}}  \\
+{\ttfamily getblockchaininfo}  &{\ttfamily \{blocks:\+ 141, \doxylink{namespacedifficulty}{difficulty}:\+ 4, \doxylink{namespacechain}{chain}:\+ "{}omnibus-\/mainnet"{}, version:\+ "{}0.\+3.\+0"{}\}}  \\
+{\ttfamily getnetworkinfo}  &Full network details (chain, block\+Height, peer\+Count, etc.)  \\
+\end{DoxyTable}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9758}{}\doxysubsection{\texorpdfstring{❌ Not implemented (7)}{❌ Not implemented (7)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9758}
+
+\begin{DoxyItemize}
+\item {\ttfamily getbestblockhash}
+\item {\ttfamily getdifficulty}
+\item {\ttfamily getblockhash(\+N)}
+\item {\ttfamily getconnectioncount}
+\item {\ttfamily getmininginfo}
+\item {\ttfamily getpeerinfo}
+\item {\ttfamily getblock(hash)}
+\end{DoxyItemize}
+
+{\bfseries{Action:\+}} consider adding these for Bitcoin RPC compatibility.
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9760}{}\doxysection{\texorpdfstring{P2P Sync Test (2 nodes)}{P2P Sync Test (2 nodes)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9760}
+{\bfseries{Setup:\+}}
+\begin{DoxyItemize}
+\item Seed:\+ {\ttfamily -\/-\/mode seed -\/-\/port 9000 -\/-\/primary} (loaded mainnet, 141 blocks)
+\item Miner:\+ {\ttfamily -\/-\/mode miner -\/-\/port 9001 -\/-\/seed-\/host 127.\+0.\+0.\+1 -\/-\/seed-\/port 9000}
+\end{DoxyItemize}
+
+{\bfseries{Result:\+}} P2P working — blocks announced + gossip relay confirmed:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[REWARD]\ Miner\ ob1qw6zhsqg29aht\ +8333333\ SAT\ (0.01\ OMNI)\ @\ block\ 155}
+\DoxyCodeLine{[P2P]\ Block\ \#155\ anuntat\ la\ 1\ peeri}
+\DoxyCodeLine{[GOSSIP]\ Block\ \#155\ relayed\ to\ 1\ peers}
+\DoxyCodeLine{[META]\ Block\ \#15\ finalized\ |\ shards=1\ |\ tx=0\ |\ cross\_receipts=0}
+
+\end{DoxyCode}
+
+
+{\bfseries{⚠️ Side effect:\+}} miner used same DB as seed (legacy {\ttfamily omnibus-\/chain.\+dat}) and added 16 blocks (140 → 156). DB was restored after test from snapshot {\ttfamily omnibus-\/chain.\+dat.\+backup-\/20260425-\/1230}. Tainted version saved as {\ttfamily omnibus-\/chain.\+dat.\+test-\/tainted-\/1237}.
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9762}{}\doxysection{\texorpdfstring{Critical Issues Found \& Fixed}{Critical Issues Found \& Fixed}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9762}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9763}{}\doxysubsection{\texorpdfstring{Issue 1 (FIXED):\+ DB path not wired per chain}{Issue 1 (FIXED):\+ DB path not wired per chain}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9763}
+{\bfseries{Symptom:\+}} {\ttfamily -\/-\/testnet} and {\ttfamily -\/-\/regtest} flags both wrote to {\ttfamily omnibus-\/chain.\+dat} (mainnet DB).
+
+{\bfseries{Root cause:\+}} {\ttfamily main.\+zig} had {\ttfamily const DB\+\_\+\+PATH = "{}omnibus-\/chain.\+dat"{}} hardcoded. Agent A3 (initial round) created {\ttfamily db\+Path\+For\+Chain()} in {\ttfamily database.\+zig} but the wire-\/up in main.\+zig was never done.
+
+{\bfseries{Fix:\+}} Replaced {\ttfamily DB\+\_\+\+PATH} constant with runtime {\ttfamily db\+\_\+path} calculated per chain:\+
+\begin{DoxyItemize}
+\item Mainnet → uses {\ttfamily omnibus-\/chain.\+dat} if present (legacy back-\/compat), else {\ttfamily data/\+mainnet/\+chain.\+dat}
+\item Testnet → always {\ttfamily data/\+testnet/\+chain.\+dat}
+\item Regtest → always {\ttfamily data/\+regtest/\+chain.\+dat}
+\end{DoxyItemize}
+
+8 references in main.\+zig updated.\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9764}{}\doxysubsection{\texorpdfstring{Issue 2 (FIXED):\+ Chain selection ignored CLI flag}{Issue 2 (FIXED):\+ Chain selection ignored CLI flag}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9764}
+{\bfseries{Symptom:\+}} {\ttfamily -\/-\/regtest} showed {\ttfamily Network:\+ omnibus-\/mainnet} in banner.
+
+{\bfseries{Root cause:\+}} {\ttfamily main.\+zig} line 268 used {\ttfamily cli.\+parse\+Args(args)} (legacy, returns Node\+Config without chain\+\_\+mode) instead of {\ttfamily cli.\+parse\+Args\+Full(args)} (returns Parsed\+Args with chain\+\_\+mode). Then selected chain via {\ttfamily if (config.\+testnet) testnet else mainnet} boolean.
+
+{\bfseries{Fix:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ parsed\ =\ cli.parseArgsFull(args)\ catch\ |err|\ \{\ ...\ \};}
+\DoxyCodeLine{const\ config\ =\ parsed.node;\ \ //\ alias\ for\ back-\/compat\ with\ existing\ code}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ net\_cfg:\ ChainConfig\ =\ switch\ (parsed.chain\_mode)\ \{}
+\DoxyCodeLine{\ \ \ \ .mainnet\ =>\ ChainConfig.mainnet(),}
+\DoxyCodeLine{\ \ \ \ .testnet\ =>\ ChainConfig.testnet(),}
+\DoxyCodeLine{\ \ \ \ .regtest\ =>\ ChainConfig.regtest(),}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9766}{}\doxysection{\texorpdfstring{Final Verification (All 3 chains)}{Final Verification (All 3 chains)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9766}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Command  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Network  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Chain ID  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}DB Path  \\
+{\ttfamily omnibus-\/node -\/-\/mainnet}  &omnibus-\/mainnet  &1  &{\ttfamily omnibus-\/chain.\+dat} (legacy) ✅  \\
+{\ttfamily omnibus-\/node -\/-\/testnet}  &omnibus-\/testnet  &2  &{\ttfamily data/\+testnet/\+chain.\+dat} ✅  \\
+{\ttfamily omnibus-\/node -\/-\/regtest}  &omnibus-\/regtest  &4  &{\ttfamily data/\+regtest/\+chain.\+dat} ✅  \\
+\end{DoxyTable}
+
+
+{\ttfamily data/\+} directory tree auto-\/created with subfolders per chain.
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9768}{}\doxysection{\texorpdfstring{DB Backup Trail}{DB Backup Trail}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9768}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Size  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily omnibus-\/chain.\+dat}  &29910 B  &Restored — original 140 blocks  \\
+{\ttfamily omnibus-\/chain.\+dat.\+backup-\/20260425-\/1230}  &29910 B  &Pre-\/test snapshot  \\
+{\ttfamily omnibus-\/chain.\+dat.\+bak}  &29860 B  &Auto-\/created backup by node  \\
+{\ttfamily omnibus-\/chain.\+dat.\+test-\/tainted-\/1237}  &38033 B  &Tainted version with 16 test-\/mined blocks (kept for reference)  \\
+{\ttfamily test\+\_\+results/\+2026-\/04-\/25/\+04\+\_\+node\+\_\+logs/\+omnibus-\/chain.\+dat.\+pretest-\/1235}  &29860 B  &Backup before test session  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9770}{}\doxysection{\texorpdfstring{Folder Structure for Test Results}{Folder Structure for Test Results}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9770}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{test\_results/}
+\DoxyCodeLine{├──\ 2026-\/04-\/25/}
+\DoxyCodeLine{│\ \ \ ├──\ 01\_unit\_tests/\ \ \ \ \ \ \ \ \#\ zig\ build\ test-\/*\ outputs}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ \_summary.txt}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ run.log}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ test.log}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ test-\/crypto.log}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ ...\ (8\ logs)}
+\DoxyCodeLine{│\ \ \ ├──\ 02\_rpc\_tests/\ \ \ \ \ \ \ \ \ \#\ curl\ JSON-\/RPC\ results}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ \_results.txt}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ db\_selection.log}
+\DoxyCodeLine{│\ \ \ ├──\ 03\_p2p\_sync/\ \ \ \ \ \ \ \ \ \ \#\ (empty\ —\ output\ captured\ in\ 04\_node\_logs)}
+\DoxyCodeLine{│\ \ \ ├──\ 04\_node\_logs/\ \ \ \ \ \ \ \ \ \#\ raw\ node\ stdout/stderr}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ omnibus-\/chain.dat.pretest-\/1235}
+\DoxyCodeLine{│\ \ \ └──\ REPORT.md\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ this\ file}
+\DoxyCodeLine{└──\ latest/}
+\DoxyCodeLine{\ \ \ \ └──\ \_pointer.txt\ \ \ \ \ \ \ \ \ \ \#\ →\ "{}2026-\/04-\/25"{}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9772}{}\doxysection{\texorpdfstring{What\textquotesingle{}s Next (P2-\/\+P4)}{What\textquotesingle{}s Next (P2-\/\+P4)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9772}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9773}{}\doxysubsection{\texorpdfstring{P2 — Quick wins (10 min)}{P2 — Quick wins (10 min)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9773}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test transaction send (regtest, instant blocks)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add missing standard RPC methods ({\ttfamily getblockhash}, {\ttfamily getblock}, {\ttfamily getbestblockhash})
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test multi-\/peer P2P (3+ nodes)
+\end{DoxyItemize}\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9774}{}\doxysubsection{\texorpdfstring{P3 — Wallet operations (15 min)}{P3 — Wallet operations (15 min)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9774}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Custom mnemonic via {\ttfamily -\/-\/mnemonic} flag
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test cross-\/chain wallet derivation (5 PQ domains)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test mempool propagation
+\end{DoxyItemize}\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9775}{}\doxysubsection{\texorpdfstring{P4 — Advanced (1h+)}{P4 — Advanced (1h+)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9775}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Bridge wire-\/up (Omni\+Bus chain ↔ Sepolia bridge from aweb3)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] PQ wallet build with {\ttfamily -\/Doqs=true} (requires liboqs Min\+GW)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Mining pool functional test
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Lightning Network channel open/\+close
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9777}{}\doxysection{\texorpdfstring{Co-\/\+Authors (this session)}{Co-\/\+Authors (this session)}}\label{md_test__results_22026-04-25_2_r_e_p_o_r_t_autotoc_md9777}
+
+\begin{DoxyItemize}
+\item 5 parallel agents (chain wiring round 1) — 205K tokens total, \texorpdfstring{$\sim$}{\string~}7 min
+\item 3 parallel agents (cleanup fixes) — 144K tokens, \texorpdfstring{$\sim$}{\string~}3 min
+\item 1 agent (DB path wiring fix) — 56K tokens, 70s
+\item Manual fixes by Claude Code main session:\+ chain\+\_\+mode wire-\/up, devnet enum issue 
+\end{DoxyItemize}

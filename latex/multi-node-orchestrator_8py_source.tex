@@ -1,0 +1,300 @@
+\doxysection{multi-\/node-\/orchestrator.py}
+\hypertarget{multi-node-orchestrator_8py_source}{}\label{multi-node-orchestrator_8py_source}\index{tools/DEVOPS/multi-\/node-\/orchestrator.py@{tools/DEVOPS/multi-\/node-\/orchestrator.py}}
+\doxymbox{\hyperlink{multi-node-orchestrator_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00001}\doxymbox{\hyperlink{namespacemulti-node-orchestrator}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00002}\doxymbox{\hyperlink{namespacemulti}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ BlockChainCore\ —\ Multi-\/Node\ Orchestrator}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00004}00004\ \textcolor{stringliteral}{=================================================}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00005}00005\ \textcolor{stringliteral}{Manages\ multiple\ local\ OmniBus\ nodes\ for\ development\ and\ testing.}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00006}00006\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00007}00007\ \textcolor{stringliteral}{Starts\ N\ nodes\ (1\ seed\ +\ N-\/1\ miners)\ on\ sequential\ ports,\ monitors}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00008}00008\ \textcolor{stringliteral}{their\ health,\ and\ provides\ commands\ to\ stop\ all\ nodes\ cleanly.}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00010}00010\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ python\ multi-\/node-\/orchestrator.py\ -\/-\/count\ 3}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ python\ multi-\/node-\/orchestrator.py\ -\/-\/count\ 5\ -\/-\/base-\/port\ 9000}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ python\ multi-\/node-\/orchestrator.py\ -\/-\/stop}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00014}00014\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00016}00016\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00017}00017\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00018}00018\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00019}00019\ \textcolor{keyword}{import}\ signal}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00020}00020\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00023}00023\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00025}00025\ \textcolor{comment}{\#\ ──\ ANSI\ colours\ ─────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00026}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_acbb0750f34b7c418fddbecf4b279d47d}{00026}}\ RESET\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00027}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_ac5143606254fae4264adf14db38011c6}{00027}}\ BOLD\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00028}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_ae6ee467da10c83bd713dd96886b853c8}{00028}}\ DIM\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00029}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_aeeed312163a648f824b4170e76d0a302}{00029}}\ RED\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00030}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a5239b03bd55f93a233810749f519367e}{00030}}\ GREEN\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00031}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a69fb996a654449881a201d84ce55d75a}{00031}}\ YELLOW\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00032}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_af3d0f96fef3047a2943ebbed44e893fa}{00032}}\ CYAN\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00033}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a22948345a9c99bef4fa6a2873804926c}{00033}}\ MAGENTA\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00034}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a813be94e485790479dd01c4b74357cbb}{00034}}\ WHITE\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00035}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a52a2e0139e1fa1fbb9bf516631a71e8a}{00035}}\ BG\_BLUE\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[44m"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00037}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3c3e42e9d7f21268af1aa83cbfcec842}{00037}}\ PID\_FILE\ =\ Path(\_\_file\_\_).resolve().parent\ /\ \textcolor{stringliteral}{"{}.orchestrator-\/pids.json"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00040}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a83b6d2eab1289c096549ebd6e1972798}{00040}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a83b6d2eab1289c096549ebd6e1972798}{find\_binary}}()\ -\/>\ Path\ |\ None:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00041}00041\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Locate\ omnibus-\/node\ binary\ relative\ to\ script\ location."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00042}00042\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).resolve().parent}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00043}00043\ \ \ \ \ candidates\ =\ [}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ script\_dir.parent.parent\ /\ \textcolor{stringliteral}{"{}zig-\/out"{}}\ /\ \textcolor{stringliteral}{"{}bin"{}}\ /\ \textcolor{stringliteral}{"{}omnibus-\/node.exe"{}},}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ script\_dir.parent.parent\ /\ \textcolor{stringliteral}{"{}zig-\/out"{}}\ /\ \textcolor{stringliteral}{"{}bin"{}}\ /\ \textcolor{stringliteral}{"{}omnibus-\/node"{}},}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00046}00046\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00047}00047\ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ candidates:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ c.exists():}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ c}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00053}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a583010000c41f2f33d6e7e52909b9dfb}{00053}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a583010000c41f2f33d6e7e52909b9dfb}{save\_pids}}(nodes:\ list[dict]):}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00054}00054\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Save\ running\ node\ info\ to\ PID\ file."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00055}00055\ \ \ \ \ \textcolor{keyword}{with}\ open(PID\_FILE,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ json.dump(nodes,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00059}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}{00059}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}{load\_pids}}()\ -\/>\ list[dict]:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00060}00060\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Load\ node\ info\ from\ PID\ file."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{if}\ PID\_FILE.exists():}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(PID\_FILE)\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{return}\ []}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00067}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}{00067}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}{is\_pid\_alive}}(pid:\ int)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00068}00068\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ if\ a\ process\ is\ still\ running."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ os.name\ ==\ \textcolor{stringliteral}{"{}nt"{}}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}tasklist"{}},\ \textcolor{stringliteral}{"{}/FI"{}},\ f\textcolor{stringliteral}{"{}PID\ eq\ \{pid\}"{}}],}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=5,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ str(pid)\ \textcolor{keywordflow}{in}\ result.stdout}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ os.kill(pid,\ 0)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00079}00079\ \ \ \ \ \textcolor{keywordflow}{except}\ (OSError,\ subprocess.TimeoutExpired):}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00083}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a0b0254b591c691fa0aa3dbee44f4ccdb}{00083}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a0b0254b591c691fa0aa3dbee44f4ccdb}{kill\_process}}(pid:\ int):}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00084}00084\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Kill\ a\ process\ by\ PID."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ os.name\ ==\ \textcolor{stringliteral}{"{}nt"{}}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ subprocess.run([\textcolor{stringliteral}{"{}taskkill"{}},\ \textcolor{stringliteral}{"{}/F"{}},\ \textcolor{stringliteral}{"{}/PID"{}},\ str(pid)],}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ os.kill(pid,\ signal.SIGTERM)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(1)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ os.kill(pid,\ signal.SIGKILL)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ OSError:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00096}00096\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00100}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_acab535141ad8445d72e055682d020c35}{00100}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_acab535141ad8445d72e055682d020c35}{start\_nodes}}(binary:\ Path,\ count:\ int,\ base\_port:\ int,\ rpc\_base:\ int):}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00101}00101\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Start\ 1\ seed\ +\ (count-\/1)\ miner\ nodes."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00102}00102\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BG\_BLUE\}\{WHITE\}\{BOLD\}\ OmniBus\ Multi-\/Node\ Orchestrator\ \{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00103}00103\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00104}00104\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Binary:\{RESET\}\ \ \ \ \ \{binary\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00105}00105\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Nodes:\{RESET\}\ \ \ \ \ \ \{count\}\ (1\ seed\ +\ \{count\ -\/\ 1\}\ miners)"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00106}00106\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Base\ port:\{RESET\}\ \ \{base\_port\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00107}00107\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}RPC\ base:\{RESET\}\ \ \ \{rpc\_base\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00108}00108\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00110}00110\ \ \ \ \ work\_dir\ =\ binary.parent.parent.parent}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00111}00111\ \ \ \ \ nodes\ =\ []}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00113}00113\ \ \ \ \ \textcolor{comment}{\#\ Start\ seed\ node}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00114}00114\ \ \ \ \ seed\_port\ =\ base\_port}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00115}00115\ \ \ \ \ seed\_rpc\ =\ rpc\_base}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00116}00116\ \ \ \ \ seed\_id\ =\ \textcolor{stringliteral}{"{}seed-\/1"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00117}00117\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{MAGENTA\}[1/\{count\}]\{RESET\}\ Starting\ \{BOLD\}seed\{RESET\}\ node\ \{seed\_id\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}(P2P:\ \{seed\_port\},\ RPC:\ \{seed\_rpc\})"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00120}00120\ \ \ \ \ seed\_cmd\ =\ [}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ str(binary),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/mode"{}},\ \textcolor{stringliteral}{"{}seed"{}},}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/node-\/id"{}},\ seed\_id,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/port"{}},\ str(seed\_port),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00125}00125\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00127}00127\ \ \ \ \ log\_dir\ =\ work\_dir\ /\ \textcolor{stringliteral}{"{}logs"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00128}00128\ \ \ \ \ log\_dir.mkdir(exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00130}00130\ \ \ \ \ seed\_log\ =\ open(log\_dir\ /\ f\textcolor{stringliteral}{"{}\{seed\_id\}.log"{}},\ \textcolor{stringliteral}{"{}w"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00131}00131\ \ \ \ \ seed\_proc\ =\ subprocess.Popen(}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ seed\_cmd,\ cwd=str(work\_dir),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ stdout=seed\_log,\ stderr=subprocess.STDOUT,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00134}00134\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00135}00135\ \ \ \ \ nodes.append(\{}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_id"{}}:\ seed\_id,\ \textcolor{stringliteral}{"{}mode"{}}:\ \textcolor{stringliteral}{"{}seed"{}},\ \textcolor{stringliteral}{"{}pid"{}}:\ seed\_proc.pid,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}port"{}}:\ seed\_port,\ \textcolor{stringliteral}{"{}rpc\_port"{}}:\ seed\_rpc,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00138}00138\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00139}00139\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{GREEN\}[OK]\{RESET\}\ PID\ \{seed\_proc.pid\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00141}00141\ \ \ \ \ \textcolor{comment}{\#\ Give\ seed\ node\ time\ to\ bind}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00142}00142\ \ \ \ \ time.sleep(1)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00144}00144\ \ \ \ \ \textcolor{comment}{\#\ Start\ miner\ nodes}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ count):}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ miner\_port\ =\ base\_port\ +\ i}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ miner\_rpc\ =\ rpc\_base\ +\ i}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ miner\_id\ =\ f\textcolor{stringliteral}{"{}miner-\/\{i\}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{MAGENTA\}[\{i\ +\ 1\}/\{count\}]\{RESET\}\ Starting\ \{BOLD\}miner\{RESET\}\ node\ \{miner\_id\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}(P2P:\ \{miner\_port\},\ RPC:\ \{miner\_rpc\})"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ miner\_cmd\ =\ [}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ str(binary),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/mode"{}},\ \textcolor{stringliteral}{"{}miner"{}},}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/node-\/id"{}},\ miner\_id,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/port"{}},\ str(miner\_port),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/seed-\/host"{}},\ \textcolor{stringliteral}{"{}127.0.0.1"{}},}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/seed-\/port"{}},\ str(seed\_port),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ miner\_log\ =\ open(log\_dir\ /\ f\textcolor{stringliteral}{"{}\{miner\_id\}.log"{}},\ \textcolor{stringliteral}{"{}w"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ miner\_proc\ =\ subprocess.Popen(}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ miner\_cmd,\ cwd=str(work\_dir),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ stdout=miner\_log,\ stderr=subprocess.STDOUT,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ nodes.append(\{}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_id"{}}:\ miner\_id,\ \textcolor{stringliteral}{"{}mode"{}}:\ \textcolor{stringliteral}{"{}miner"{}},\ \textcolor{stringliteral}{"{}pid"{}}:\ miner\_proc.pid,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}port"{}}:\ miner\_port,\ \textcolor{stringliteral}{"{}rpc\_port"{}}:\ miner\_rpc,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{GREEN\}[OK]\{RESET\}\ PID\ \{miner\_proc.pid\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ time.sleep(0.3)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00173}00173\ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a583010000c41f2f33d6e7e52909b9dfb}{save\_pids}}(nodes)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00174}00174\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00175}00175\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}\{BOLD\}All\ \{count\}\ nodes\ started.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00176}00176\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}PID\ file:\ \{PID\_FILE\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00177}00177\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}Logs\ dir:\ \{log\_dir\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00178}00178\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}Stop\ all:\ python\ \{Path(\_\_file\_\_).name\}\ -\/-\/stop\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00180}00180\ \ \ \ \ \textcolor{keywordflow}{return}\ nodes}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00183}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3944447296c01e5ecfffcd4451a59a69}{00183}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3944447296c01e5ecfffcd4451a59a69}{stop\_nodes}}():}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00184}00184\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Stop\ all\ nodes\ tracked\ in\ PID\ file."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00185}00185\ \ \ \ \ nodes\ =\ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}{load\_pids}}()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00186}00186\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ nodes:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}No\ running\ nodes\ found\ (PID\ file\ empty\ or\ missing).\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00190}00190\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{BOLD\}\ \ Stopping\ \{len(nodes)\}\ nodes...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00191}00191\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00193}00193\ \ \ \ \ \textcolor{keywordflow}{for}\ node\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ pid\ =\ node[\textcolor{stringliteral}{"{}pid"{}}]}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ alive\ =\ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}{is\_pid\_alive}}(pid)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{GREEN\}running\{RESET\}"{}}\ \textcolor{keywordflow}{if}\ alive\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{DIM\}already\ stopped\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{node['node\_id']:12s\}\ \ PID\ \{pid:6d\}\ \ \{status\}"{}},\ end=\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ alive:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a0b0254b591c691fa0aa3dbee44f4ccdb}{kill\_process}}(pid)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ -\/>\ \{RED\}killed\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00205}00205\ \ \ \ \ PID\_FILE.unlink(missing\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00206}00206\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{GREEN\}\{BOLD\}All\ nodes\ stopped.\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00207}00207\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00209}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d}{00209}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d}{status\_nodes}}():}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00210}00210\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Show\ status\ of\ tracked\ nodes."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00211}00211\ \ \ \ \ nodes\ =\ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}{load\_pids}}()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ nodes:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}No\ tracked\ nodes.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00216}00216\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{BOLD\}\ \ Node\ Status\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00217}00217\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00218}00218\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{'Node\ ID':<14s\}\ \{'Mode':<8s\}\ \{'PID':<8s\}\ \{'P2P\ Port':<10s\}\ \{'Status'\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00219}00219\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00220}00220\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00221}00221\ \ \ \ \ \textcolor{keywordflow}{for}\ node\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ alive\ =\ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}{is\_pid\_alive}}(node[\textcolor{stringliteral}{"{}pid"{}}])}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ status\ =\ f\textcolor{stringliteral}{"{}\{GREEN\}RUNNING\{RESET\}"{}}\ \textcolor{keywordflow}{if}\ alive\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{RED\}STOPPED\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{node['node\_id']:<14s\}\ \{node['mode']:<8s\}\ \{node['pid']:<8d\}\ \{node['port']:<10d\}\ \{status\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00225}00225\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00226}00226\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00227}00227\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00229}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a969eb144360ebcb590d789cbc1a64141}{00229}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a969eb144360ebcb590d789cbc1a64141}{monitor\_loop}}(interval:\ int):}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00230}00230\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Continuously\ monitor\ node\ status."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00231}00231\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}Monitoring\ nodes\ (interval:\ \{interval\}s).\ Ctrl+C\ to\ stop.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00232}00232\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ os.system(\textcolor{stringliteral}{"{}cls"{}}\ \textcolor{keywordflow}{if}\ os.name\ ==\ \textcolor{stringliteral}{"{}nt"{}}\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}clear"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d}{status\_nodes}}()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ nodes\ =\ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}{load\_pids}}()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ dead\ =\ [n\ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ nodes\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}{is\_pid\_alive}}(n[\textcolor{stringliteral}{"{}pid"{}}])]}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ dead:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ dead:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}WARNING:\{RESET\}\ \{n['node\_id']\}\ (PID\ \{n['pid']\})\ has\ stopped!"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(interval)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00242}00242\ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{YELLOW\}Monitoring\ stopped.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00246}\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a51af30a60f9f02777c6396b8247e356f}{00246}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00247}00247\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Multi-\/Node\ Orchestrator"{}},}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ epilog=(}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Examples:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ multi-\/node-\/orchestrator.py\ -\/-\/count\ 3\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ multi-\/node-\/orchestrator.py\ -\/-\/count\ 5\ -\/-\/base-\/port\ 9100\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ multi-\/node-\/orchestrator.py\ -\/-\/status\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ multi-\/node-\/orchestrator.py\ -\/-\/stop"{}}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00257}00257\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00258}00258\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/count"{}},\ type=int,\ default=3,\ help=\textcolor{stringliteral}{"{}Number\ of\ nodes\ to\ start\ (default:\ 3)"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00259}00259\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/base-\/port"{}},\ type=int,\ default=9000,\ help=\textcolor{stringliteral}{"{}Base\ P2P\ port\ (default:\ 9000)"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00260}00260\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/base"{}},\ type=int,\ default=8332,\ help=\textcolor{stringliteral}{"{}Base\ RPC\ port\ (default:\ 8332)"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00261}00261\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/stop"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Stop\ all\ running\ nodes"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00262}00262\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/status"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Show\ status\ of\ tracked\ nodes"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00263}00263\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/monitor"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Continuously\ monitor\ node\ health"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00264}00264\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/interval"{}},\ type=int,\ default=10,\ help=\textcolor{stringliteral}{"{}Monitor\ interval\ in\ seconds\ (default:\ 10)"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00265}00265\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00266}00266\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00267}00267\ \ \ \ \ \textcolor{keywordflow}{if}\ args.stop:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3944447296c01e5ecfffcd4451a59a69}{stop\_nodes}}()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00271}00271\ \ \ \ \ \textcolor{keywordflow}{if}\ args.status:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d}{status\_nodes}}()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00275}00275\ \ \ \ \ \textcolor{keywordflow}{if}\ args.monitor:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a969eb144360ebcb590d789cbc1a64141}{monitor\_loop}}(args.interval)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00279}00279\ \ \ \ \ \textcolor{comment}{\#\ Start\ mode}}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00280}00280\ \ \ \ \ binary\ =\ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a83b6d2eab1289c096549ebd6e1972798}{find\_binary}}()}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00281}00281\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ binary:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}ERROR:\{RESET\}\ Cannot\ find\ omnibus-\/node\ binary\ in\ zig-\/out/bin/"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}Run\ 'zig\ build'\ first,\ or\ use\ deploy-\/node.py\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00285}00285\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00286}00286\ \ \ \ \ \textcolor{keywordflow}{if}\ args.count\ <\ 1:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}ERROR:\{RESET\}\ -\/-\/count\ must\ be\ >=\ 1"{}})}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00290}00290\ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_acab535141ad8445d72e055682d020c35}{start\_nodes}}(binary,\ args.count,\ args.base\_port,\ args.rpc\_base)}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00293}00293\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{multi-node-orchestrator_8py_source_l00294}00294\ \ \ \ \ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

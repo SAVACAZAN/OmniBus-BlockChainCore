@@ -1,0 +1,424 @@
+\chapter{Module:\+ {\ttfamily consensus} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus}{}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus}\index{Module: $<$tt$>$consensus$<$/tt$>$@{Module: $<$tt$>$consensus$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1340}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1340}%
+
+
+\begin{quote}
+Proof-\/of-\/\+Work consensus engine — SHA256d mining, difficulty validation, block verification, and modular design for future PBFT support. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+consensus.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 280 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 12 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 7
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1342}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1342}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1343}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1343}
+
+\begin{DoxyItemize}
+\item \`{}\+Validator\+Vote\`{}{\ttfamily Validator\+Vote}
+\end{DoxyItemize}— Starea unui validator in runda curenta
+\begin{DoxyItemize}
+\item \`{}\+Consensus\+Config\`{}{\ttfamily Consensus\+Config}
+\end{DoxyItemize}— Configuratia consensului — independenta de blockchain
+\begin{DoxyItemize}
+\item \`{}\+Consensus\+Round\`{}{\ttfamily Consensus\+Round}
+\end{DoxyItemize}— Runda de consens pentru un bloc/\+micro-\/bloc
+\begin{DoxyItemize}
+\item \`{}\+Consensus\+Engine\`{}{\ttfamily Consensus\+Engine}
+\end{DoxyItemize}— Motor de consens simplu — orchestreaza rundele Modular:\+ poate fi inlocuit cu PBF...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1344}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1344}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1345}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1345}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}byzantine\+Tolerance()\`{}{\ttfamily byzantine\+Tolerance()}
+\end{DoxyItemize}— Tolereanta la Byzantine faults (noduri care mint)
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the consensus module.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Vote()\`{}{\ttfamily add\+Vote()}
+\end{DoxyItemize}— Adauga votul unui validator Returneaza true daca votul a atins quorum-\/...
+\begin{DoxyItemize}
+\item \`{}count\+Approved()\`{}{\ttfamily count\+Approved()}
+\end{DoxyItemize}— Numara voturile de aprobare pentru hash-\/ul curent
+\begin{DoxyItemize}
+\item \`{}is\+Timed\+Out()\`{}{\ttfamily is\+Timed\+Out()}
+\end{DoxyItemize}— Verifica daca runda a expirat (timeout)
+\begin{DoxyItemize}
+\item \`{}get\+Result()\`{}{\ttfamily get\+Result()}
+\end{DoxyItemize}— Returns the current result.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}new\+Round()\`{}{\ttfamily new\+Round()}
+\end{DoxyItemize}— Creeaza o noua runda de consens pentru un bloc
+\begin{DoxyItemize}
+\item \`{}validate\+PoW()\`{}{\ttfamily validate\+Po\+W()}
+\end{DoxyItemize}— Verifica daca un bloc poate fi acceptat in mod PoW (compatibil cu codu...
+\begin{DoxyItemize}
+\item \`{}is\+Block\+Hash\+Valid()\`{}{\ttfamily is\+Block\+Hash\+Valid()}
+\end{DoxyItemize}— Quick check:\+ hash-\/ul unui bloc e valid pentru consensul curent?
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1347}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1347}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1348}{}\doxysubsection{\texorpdfstring{{\ttfamily Validator\+Vote}}{{\ttfamily Validator\+Vote}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1348}
+Starea unui validator in runda curenta
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily validator\+\_\+id}  &{\ttfamily u16}  &Validator\+\_\+id  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily approved}  &{\ttfamily bool}  &Approved  \\
+{\ttfamily timestamp\+\_\+ms}  &{\ttfamily i64}  &Timestamp\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 18}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1350}{}\doxysubsection{\texorpdfstring{{\ttfamily Consensus\+Config}}{{\ttfamily Consensus\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1350}
+Configuratia consensului — independenta de blockchain
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily consensus\+\_\+type}  &{\ttfamily Consensus\+Type}  &Consensus\+\_\+type  \\
+{\ttfamily total\+\_\+validators}  &{\ttfamily u16}  &Total\+\_\+validators  \\
+{\ttfamily round\+\_\+timeout\+\_\+ms}  &{\ttfamily u32}  &Round\+\_\+timeout\+\_\+ms  \\
+{\ttfamily min\+\_\+votes}  &{\ttfamily u16}  &Min\+\_\+votes  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 26}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1352}{}\doxysubsection{\texorpdfstring{{\ttfamily Consensus\+Round}}{{\ttfamily Consensus\+Round}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1352}
+Runda de consens pentru un bloc/\+micro-\/bloc
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Consensus\+Config}  &Config  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily votes}  &{\ttfamily array\+\_\+list.\+Managed(\+Validator\+Vote)}  &Votes  \\
+{\ttfamily started\+\_\+at}  &{\ttfamily i64}  &Started\+\_\+at  \\
+{\ttfamily finalized}  &{\ttfamily bool}  &Finalized  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily config}  &{\ttfamily Consensus\+Config}  &Config  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 72}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1354}{}\doxysubsection{\texorpdfstring{{\ttfamily Consensus\+Engine}}{{\ttfamily Consensus\+Engine}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1354}
+Motor de consens simplu — orchestreaza rundele Modular:\+ poate fi inlocuit cu PBFT complet fara sa schimbe blockchain.\+zig
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Consensus\+Config}  &Config  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 161}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1356}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1356}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &Block  \\
+{\ttfamily Consensus\+Type}  &{\ttfamily enum \{}  &Consensus type  \\
+{\ttfamily Result}  &{\ttfamily enum \{ Approved, Rejected, Timeout, Pending \}}  &Result  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1358}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1358}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1359}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1359}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(ctype:\ ConsensusType,\ total\_validators:\ u16)\ ConsensusConfig\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily ctype}  &{\ttfamily Consensus\+Type}  &Ctype  \\
+{\ttfamily total\+\_\+validators}  &{\ttfamily u16}  &Total\+\_\+validators  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Consensus\+Config}
+
+{\itshape Defined at line 35}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1361}{}\doxysubsection{\texorpdfstring{{\ttfamily byzantine\+Tolerance()}}{{\ttfamily byzantine\+Tolerance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1361}
+Tolereanta la Byzantine faults (noduri care mint)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ byzantineTolerance(self:\ *const\ ConsensusConfig)\ u16\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Config}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u16}
+
+{\itshape Defined at line 50}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1363}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1363}
+Performs the print operation on the consensus module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ ConsensusConfig)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Config}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 58}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1365}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1365}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *ConsensusRound)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Consensus\+Round}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 95}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1367}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Vote()}}{{\ttfamily add\+Vote()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1367}
+Adauga votul unui validator Returneaza true daca votul a atins quorum-\/ul si runda e finalizata
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addVote(self:\ *ConsensusRound,\ vote:\ ValidatorVote)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Consensus\+Round}  &The instance  \\
+{\ttfamily vote}  &{\ttfamily Validator\+Vote}  &Vote  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 101}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1369}{}\doxysubsection{\texorpdfstring{{\ttfamily count\+Approved()}}{{\ttfamily count\+Approved()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1369}
+Numara voturile de aprobare pentru hash-\/ul curent
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ countApproved(self:\ *const\ ConsensusRound)\ u16\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Round}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u16}
+
+{\itshape Defined at line 124}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1371}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Timed\+Out()}}{{\ttfamily is\+Timed\+Out()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1371}
+Verifica daca runda a expirat (timeout)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isTimedOut(self:\ *const\ ConsensusRound)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Round}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 135}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1373}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Result()}}{{\ttfamily get\+Result()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1373}
+Returns the current result.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getResult(self:\ *const\ ConsensusRound)\ Result\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Round}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Result}
+
+{\itshape Defined at line 143}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1375}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1375}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(config:\ ConsensusConfig,\ allocator:\ std.mem.Allocator)\ ConsensusEngine\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Consensus\+Config}  &Config  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Consensus\+Engine}
+
+{\itshape Defined at line 165}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1377}{}\doxysubsection{\texorpdfstring{{\ttfamily new\+Round()}}{{\ttfamily new\+Round()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1377}
+Creeaza o noua runda de consens pentru un bloc
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ newRound(self:\ *const\ ConsensusEngine,\ block\_hash:\ [32]u8)\ ConsensusRound\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Engine}  &The instance  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Consensus\+Round}
+
+{\itshape Defined at line 170}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1379}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Po\+W()}}{{\ttfamily validate\+Po\+W()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1379}
+Verifica daca un bloc poate fi acceptat in mod PoW (compatibil cu codul existent din blockchain.\+zig)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validatePoW(self:\ *const\ ConsensusEngine,\ hash:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Engine}  &The instance  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 176}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1381}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Block\+Hash\+Valid()}}{{\ttfamily is\+Block\+Hash\+Valid()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2consensus_autotoc_md1381}
+Quick check:\+ hash-\/ul unui bloc e valid pentru consensul curent?
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isBlockHashValid(self:\ *const\ ConsensusEngine,\ hash:\ []const\ u8,\ difficulty:\ u32)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Consensus\+Engine}  &The instance  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+{\ttfamily \doxylink{namespacedifficulty}{difficulty}}  &{\ttfamily u32}  &Difficulty  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 187}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,27 @@
+\doxysection{deploy Namespace Reference}
+\hypertarget{namespacedeploy}{}\label{namespacedeploy}\index{deploy@{deploy}}
+
+
+-\/node  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/node 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Node Deployment Tool
+==============================================
+Automates the full deployment of an OmniBus blockchain node:
+
+  1. Verifies Zig compiler is installed and accessible
+  2. Runs ``zig build`` to compile the node binary
+  3. Copies omnibus-node binary to target directory
+  4. Generates a default omnibus.toml configuration file
+  5. Creates a launcher script (systemd .service on Linux, .bat on Windows)
+
+Usage:
+    python deploy-node.py --target-dir /opt/omnibus --mode seed
+    python deploy-node.py --target-dir C:\\omnibus --mode miner --seed-host 10.0.0.1
+\end{DoxyVerb}
+ 

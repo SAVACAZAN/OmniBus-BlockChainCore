@@ -1,0 +1,64 @@
+\doxysection{archived-\/4-\/eterniti/\+tools-\/python/\+\+ANALYSIS/\+blockchain\+\_\+deep\+\_\+audit.py File Reference}
+\hypertarget{blockchain__deep__audit_8py}{}\label{blockchain__deep__audit_8py}\index{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_deep\_audit.py@{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_deep\_audit.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_c_w_e}{blockchain\+\_\+deep\+\_\+audit.\+CWE}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_risk_level}{blockchain\+\_\+deep\+\_\+audit.\+Risk\+Level}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_function_info}{blockchain\+\_\+deep\+\_\+audit.\+Function\+Info}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{blockchain\+\_\+deep\+\_\+audit.\+Security\+Finding}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{blockchain\+\_\+deep\+\_\+audit.\+Duplicate\+Block}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{blockchain\+\_\+deep\+\_\+audit.\+Module\+Deep\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceblockchain__deep__audit}{blockchain\+\_\+deep\+\_\+audit}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_function_info}{Function\+Info}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_af6cc2f4b55439305945916a008dd04a8}{blockchain\+\_\+deep\+\_\+audit.\+extract\+\_\+functions}} (str code, str module\+\_\+name)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{Security\+Finding}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a1de12ce5c239673dcd19cb043b851f7d}{blockchain\+\_\+deep\+\_\+audit.\+security\+\_\+scan}} (str code, str module\+\_\+name)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a9055f7af3e1aac63cfdbfdc78dfd56cc}{blockchain\+\_\+deep\+\_\+audit.\+find\+\_\+duplicates}} (Dict\+[str, str]\+ all\+\_\+code, int block\+\_\+size=8)
+\item 
+float \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a27c454b52ab690b332e51d2a2322e7a7}{blockchain\+\_\+deep\+\_\+audit.\+calc\+\_\+maintainability}} (int lines, float complexity, float comment\+\_\+ratio)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{Security\+Finding}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_ab7c80f3bdf257e7b1407ced7e2bf765a}{blockchain\+\_\+deep\+\_\+audit.\+check\+\_\+layer\+\_\+violations}} (str module\+\_\+name, List\+[str]\+ imports)
+\item 
+\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}} \doxymbox{\hyperlink{namespaceblockchain__deep__audit_afe1c75fc6f25357295fda654b7d3abfd}{blockchain\+\_\+deep\+\_\+audit.\+deep\+\_\+analyze}} (Path module\+\_\+path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_ac3c512b801f0fc82f5a3f8948494772f}{blockchain\+\_\+deep\+\_\+audit.\+print\+\_\+deep\+\_\+report}} (List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}}]\+ results, List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+ duplicates, bool security\+\_\+only=False, bool complexity\+\_\+only=False)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_aed0cd3b63b12b438cce309a53ea53d50}{blockchain\+\_\+deep\+\_\+audit.\+export\+\_\+json}} (List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}}]\+ results, List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+ duplicates, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_a51af30a60f9f02777c6396b8247e356f}{blockchain\+\_\+deep\+\_\+audit.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{blockchain\+\_\+deep\+\_\+audit.\+ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a9d73b1f2f3176776d0abd6e69c8959d1}{blockchain\+\_\+deep\+\_\+audit.\+CORE}} = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5a6fa708ef8934939aaa7cde4af46e5a}{blockchain\+\_\+deep\+\_\+audit.\+TEST}} = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}test"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a41351784bbfce61fd6d896c6957f0059}{blockchain\+\_\+deep\+\_\+audit.\+AGENT}} = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}agent"{}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__deep__audit_ad651b0b1894ac12606d68258197371c2}{blockchain\+\_\+deep\+\_\+audit.\+SECURITY\+\_\+\+RULES}}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a6beae8c36199f51c362be979a94119e1}{blockchain\+\_\+deep\+\_\+audit.\+LAYER\+\_\+\+ORDER}}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_aea91940e759d9847f1fddca1df0f9cb7}{blockchain\+\_\+deep\+\_\+audit.\+G}} = "{}\textbackslash{}033\+[94m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_aba487c77af7f6ca171b5620871bfe646}{blockchain\+\_\+deep\+\_\+audit.\+C}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a671de7ccb1823ce010b3312076f00525}{blockchain\+\_\+deep\+\_\+audit.\+RISK\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}

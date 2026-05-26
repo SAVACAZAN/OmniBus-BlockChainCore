@@ -1,0 +1,397 @@
+\doxysection{crypto-\/edge-\/cases Namespace Reference}
+\hypertarget{namespacecrypto-edge-cases}{}\label{namespacecrypto-edge-cases}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_aee4e29814a91cace1e1ec73b7ae3fba1}{mod\+\_\+mul}} (int a, int b, int m=\doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{P}})
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a925b4a20276d18dc37d01f4faf5f516e}{mod\+\_\+add}} (int a, int b, int m=\doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{P}})
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a48e02cc239887b340a977f653460ac0a}{mod\+\_\+inv}} (int a, int m=\doxymbox{\hyperlink{namespacecrypto-edge-cases_a616362d91ac38edaa6634a91b1c5384c}{N}})
+\item 
+tuple\+[int, int, int]\+ \doxymbox{\hyperlink{namespacecrypto-edge-cases_a5e6a6646f80b725e25e4e67e452e74e9}{extended\+\_\+gcd}} (int a, int b)
+\item 
+\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacecrypto-edge-cases_ac111d60a5b9a56cc99c9f6b38862f684}{point\+\_\+add}} (\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None p1, \doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None p2)
+\item 
+\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a0ce69a2c8ac9046b25a0f72fb0fd9fce}{scalar\+\_\+mul}} (int k, \doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None p=None)
+\item 
+dict\+[str, Any]\+\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a222a472b654b4b99dc71021c5020e31a}{sign\+\_\+raw}} (int private\+\_\+key, bytes message\+\_\+hash, int k)
+\item 
+bool \doxymbox{\hyperlink{namespacecrypto-edge-cases_a7cf8d5c9f857a6d8fb767cce717431ab}{verify\+\_\+low\+\_\+s}} (int s)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacecrypto-edge-cases_a9c397f903c00fb39246c0d851406126d}{run\+\_\+edge\+\_\+cases}} ()
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{namespacecrypto-edge-cases_a29140ae36cc6e5a17cb9ea5df2910cb6}{HAVE\+\_\+\+COINCURVE}} = True
+\item 
+bool \doxymbox{\hyperlink{namespacecrypto-edge-cases_a2c31b27af2b5e9d9b8987573f04ab7b5}{HAVE\+\_\+\+ECDSA}} = True
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a0dba0fe3390a13ce90440aef4d2b91e6}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a0c1bb149e4c20b08fe852fa0686c77fd}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a1c4b4525c15fddf3be42c53448efada4}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a874cb8bf4dbfa266f1046d11244f0070}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a82b18b59e811910d5593725e7bef19e8}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{P}} = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a616362d91ac38edaa6634a91b1c5384c}{N}} = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6\+AF48\+A03\+BBFD25\+E8\+CD0364141
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_af1d48b1a3a7a9a710699bf90163163d3}{A}} = 0
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a401828d9b12106fcfe0a8bc36a7cbc98}{B}} = 7
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a7c049a828fc9cc4781fcb8a1c4686413}{Gx}} = 0x79\+BE667\+EF9\+DCBBAC55\+A06295\+CE870\+B07029\+BFCDB2\+DCE28\+D959\+F2815\+B16\+F81798
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a4c607138ed13e6c090b0ab4233de012c}{Gy}} = 0x483\+ADA7726\+A3\+C4655\+DA4\+FBFC0\+E1108\+A8\+FD17\+B448\+A68554199\+C47\+D08\+FFB10\+D4\+B8
+\item 
+\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}} = namedtuple("{}Point"{}, \+["{}x"{}, "{}y"{}]\+)
+\end{DoxyCompactItemize}
+
+
+\label{namespacecrypto-edge-cases_doc-func-members}
+\Hypertarget{namespacecrypto-edge-cases_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacecrypto-edge-cases_a5e6a6646f80b725e25e4e67e452e74e9}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!extended\_gcd@{extended\_gcd}}
+\index{extended\_gcd@{extended\_gcd}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{extended\_gcd()}{extended\_gcd()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a5e6a6646f80b725e25e4e67e452e74e9} 
+ tuple\+[int, int, int]\+ extended\+\_\+gcd (\begin{DoxyParamCaption}\item[{int}]{a}{, }\item[{int}]{b}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00090}{90}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacecrypto-edge-cases_abf994b8269849d29e07697ea8a840f74}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacecrypto-edge-cases_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacecrypto-edge-cases_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacecrypto-edge-cases_adf0e2aa4d06b5ca38e44721821eca783}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00059}{59}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacecrypto-edge-cases_a7431cb90017e54fe695b23d4190db046}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!main@{main}}
+\index{main@{main}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00330}{330}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacecrypto-edge-cases_a925b4a20276d18dc37d01f4faf5f516e}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!mod\_add@{mod\_add}}
+\index{mod\_add@{mod\_add}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{mod\_add()}{mod\_add()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a925b4a20276d18dc37d01f4faf5f516e} 
+ int mod\+\_\+add (\begin{DoxyParamCaption}\item[{int}]{a}{, }\item[{int}]{b}{, }\item[{int }]{m}{ = {\ttfamily \doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{P}}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a48e02cc239887b340a977f653460ac0a}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!mod\_inv@{mod\_inv}}
+\index{mod\_inv@{mod\_inv}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{mod\_inv()}{mod\_inv()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a48e02cc239887b340a977f653460ac0a} 
+ int mod\+\_\+inv (\begin{DoxyParamCaption}\item[{int}]{a}{, }\item[{int }]{m}{ = {\ttfamily \doxymbox{\hyperlink{namespacecrypto-edge-cases_a616362d91ac38edaa6634a91b1c5384c}{N}}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00082}{82}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacecrypto-edge-cases_aee4e29814a91cace1e1ec73b7ae3fba1}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!mod\_mul@{mod\_mul}}
+\index{mod\_mul@{mod\_mul}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{mod\_mul()}{mod\_mul()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_aee4e29814a91cace1e1ec73b7ae3fba1} 
+ int mod\+\_\+mul (\begin{DoxyParamCaption}\item[{int}]{a}{, }\item[{int}]{b}{, }\item[{int }]{m}{ = {\ttfamily \doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{P}}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacecrypto-edge-cases_ac111d60a5b9a56cc99c9f6b38862f684}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!point\_add@{point\_add}}
+\index{point\_add@{point\_add}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{point\_add()}{point\_add()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_ac111d60a5b9a56cc99c9f6b38862f684} 
+ \doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}} \texorpdfstring{$\vert$}{|} None point\+\_\+add (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}} \texorpdfstring{$\vert$}{|} None}]{p1}{, }\item[{\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}} \texorpdfstring{$\vert$}{|} None}]{p2}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Add two points on secp256k1. None represents point at infinity.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00105}{105}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacecrypto-edge-cases_a9c397f903c00fb39246c0d851406126d}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!run\_edge\_cases@{run\_edge\_cases}}
+\index{run\_edge\_cases@{run\_edge\_cases}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{run\_edge\_cases()}{run\_edge\_cases()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a9c397f903c00fb39246c0d851406126d} 
+ list\+[dict\+[str, Any]\+]\+ run\+\_\+edge\+\_\+cases (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00166}{166}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespacecrypto-edge-cases_a0ce69a2c8ac9046b25a0f72fb0fd9fce}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!scalar\_mul@{scalar\_mul}}
+\index{scalar\_mul@{scalar\_mul}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{scalar\_mul()}{scalar\_mul()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a0ce69a2c8ac9046b25a0f72fb0fd9fce} 
+ \doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}} \texorpdfstring{$\vert$}{|} None scalar\+\_\+mul (\begin{DoxyParamCaption}\item[{int}]{k}{, }\item[{\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}} \texorpdfstring{$\vert$}{|} None }]{p}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00123}{123}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 15
+Here is the caller graph for this function:\+
+% FIG 16
+\Hypertarget{namespacecrypto-edge-cases_a222a472b654b4b99dc71021c5020e31a}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!sign\_raw@{sign\_raw}}
+\index{sign\_raw@{sign\_raw}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{sign\_raw()}{sign\_raw()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a222a472b654b4b99dc71021c5020e31a} 
+ dict\+[str, Any]\+ \texorpdfstring{$\vert$}{|} None sign\+\_\+raw (\begin{DoxyParamCaption}\item[{int}]{private\+\_\+key}{, }\item[{bytes}]{message\+\_\+hash}{, }\item[{int}]{k}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return raw (r, s) or None if k is invalid.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00139}{139}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 17
+Here is the caller graph for this function:\+
+% FIG 18
+\Hypertarget{namespacecrypto-edge-cases_a7cf8d5c9f857a6d8fb767cce717431ab}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!verify\_low\_s@{verify\_low\_s}}
+\index{verify\_low\_s@{verify\_low\_s}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{verify\_low\_s()}{verify\_low\_s()}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a7cf8d5c9f857a6d8fb767cce717431ab} 
+ bool verify\+\_\+low\+\_\+s (\begin{DoxyParamCaption}\item[{int}]{s}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}BIP-62 low-s check: s <= N/2.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00158}{158}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 19
+
+
+\label{namespacecrypto-edge-cases_doc-var-members}
+\Hypertarget{namespacecrypto-edge-cases_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacecrypto-edge-cases_af1d48b1a3a7a9a710699bf90163163d3}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!A@{A}}
+\index{A@{A}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{A}{A}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_af1d48b1a3a7a9a710699bf90163163d3} 
+int \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+A = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a401828d9b12106fcfe0a8bc36a7cbc98}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!B@{B}}
+\index{B@{B}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{B}{B}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a401828d9b12106fcfe0a8bc36a7cbc98} 
+int \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+B = 7}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a874cb8bf4dbfa266f1046d11244f0070}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a874cb8bf4dbfa266f1046d11244f0070} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a0dba0fe3390a13ce90440aef4d2b91e6}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a0dba0fe3390a13ce90440aef4d2b91e6} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a7c049a828fc9cc4781fcb8a1c4686413}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!Gx@{Gx}}
+\index{Gx@{Gx}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{Gx}{Gx}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a7c049a828fc9cc4781fcb8a1c4686413} 
+int \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+Gx = 0x79\+BE667\+EF9\+DCBBAC55\+A06295\+CE870\+B07029\+BFCDB2\+DCE28\+D959\+F2815\+B16\+F81798}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00070}{70}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a4c607138ed13e6c090b0ab4233de012c}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!Gy@{Gy}}
+\index{Gy@{Gy}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{Gy}{Gy}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a4c607138ed13e6c090b0ab4233de012c} 
+int \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+Gy = 0x483\+ADA7726\+A3\+C4655\+DA4\+FBFC0\+E1108\+A8\+FD17\+B448\+A68554199\+C47\+D08\+FFB10\+D4\+B8}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00071}{71}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a29140ae36cc6e5a17cb9ea5df2910cb6}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!HAVE\_COINCURVE@{HAVE\_COINCURVE}}
+\index{HAVE\_COINCURVE@{HAVE\_COINCURVE}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{HAVE\_COINCURVE}{HAVE\_COINCURVE}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a29140ae36cc6e5a17cb9ea5df2910cb6} 
+bool HAVE\+\_\+\+COINCURVE = True}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a2c31b27af2b5e9d9b8987573f04ab7b5}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!HAVE\_ECDSA@{HAVE\_ECDSA}}
+\index{HAVE\_ECDSA@{HAVE\_ECDSA}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{HAVE\_ECDSA}{HAVE\_ECDSA}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a2c31b27af2b5e9d9b8987573f04ab7b5} 
+bool HAVE\+\_\+\+ECDSA = True}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a616362d91ac38edaa6634a91b1c5384c}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!N@{N}}
+\index{N@{N}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{N}{N}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a616362d91ac38edaa6634a91b1c5384c} 
+int \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+N = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6\+AF48\+A03\+BBFD25\+E8\+CD0364141}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00067}{67}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!P@{P}}
+\index{P@{P}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{P}{P}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364} 
+int \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+P = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00066}{66}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!Point@{Point}}
+\index{Point@{Point}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{Point}{Point}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd} 
+\doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+Point = namedtuple("{}Point"{}, \+["{}x"{}, "{}y"{}]\+)}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00102}{102}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a0c1bb149e4c20b08fe852fa0686c77fd}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!RED@{RED}}
+\index{RED@{RED}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a0c1bb149e4c20b08fe852fa0686c77fd} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a82b18b59e811910d5593725e7bef19e8}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!RESET@{RESET}}
+\index{RESET@{RESET}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a82b18b59e811910d5593725e7bef19e8} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+
+\Hypertarget{namespacecrypto-edge-cases_a1c4b4525c15fddf3be42c53448efada4}\index{crypto-\/edge-\/cases@{crypto-\/edge-\/cases}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!crypto-\/edge-\/cases@{crypto-\/edge-\/cases}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacecrypto-edge-cases_a1c4b4525c15fddf3be42c53448efada4} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/edge-\/cases.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-edge-cases_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{crypto-edge-cases_8py_source}{crypto-\/edge-\/cases.\+py}}.
+

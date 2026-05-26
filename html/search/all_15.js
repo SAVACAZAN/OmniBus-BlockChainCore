@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['magenta_0',['MAGENTA',['../class_we-_are-_here-_hod_lum-_w_o_r_k_e_r_1_1_c.html#a555a6a3622caa7dab54be2b9e706377d',1,'We-Are-Here-HodLum-WORKER::C']]],
+  ['main_1',['main',['../namespacetx-stress-sim.html#a7431cb90017e54fe695b23d4190db046',1,'tx-stress-sim.main()'],['../namespacetx-stress-sim2.html#a7431cb90017e54fe695b23d4190db046',1,'tx-stress-sim2.main()'],['../namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r.html#a51af30a60f9f02777c6396b8247e356f',1,'We-Are-Here-HodLum-WORKER.main()']]],
+  ['main_20zig_2',['Node Startup (core/main.zig)',['../md__c_l_a_u_d_e.html#autotoc_md48',1,'']]],
+  ['mainnet_20testnet_20regtest_3',['Added — Multi-chain Selection (Mainnet / Testnet / Regtest)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md33',1,'']]],
+  ['make_20applyblock_20spend_20the_20inputs_4',['B.1 — Make &lt;span class=&quot;tt&quot;&gt;applyBlock&lt;/span&gt; spend the inputs',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md76',1,'']]],
+  ['match_20settlement_205–8_20h_5',['Phase 4 — Exchange match settlement (~5–8 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md21',1,'']]],
+  ['matters_6',['Why this matters',['../md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e.html#autotoc_md11',1,'']]],
+  ['md_7',['CLAUDE.md',['../md__c_l_a_u_d_e.html',1,'']]],
+  ['measured_8',['Performance, measured',['../md__k_i_m_i___p_r_o_m_p_t.html#autotoc_md60',1,'']]],
+  ['memory_20legitimately_9',['What stays in memory (legitimately)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md16',1,'']]],
+  ['methods_10',['Added — 7 missing standard Bitcoin RPC methods',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md29',1,'']]],
+  ['methods_20phase_201_11',['RPC Methods (Phase 1)',['../md__s_e_t_u_p.html#autotoc_md153',1,'']]],
+  ['migration_20plan_20separate_20dedicated_20session_12',['Migration plan (separate dedicated session)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md17',1,'']]],
+  ['migration_20strategy_13',['Migration strategy',['../md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e.html#autotoc_md5',1,'']]],
+  ['mining_14',['Terminal 1: Start Blockchain (Mining)',['../md__s_e_t_u_p.html#autotoc_md132',1,'']]],
+  ['mining_20pool_20node_20js_15',['Mining Pool (Node.js)',['../md__r_e_a_d_m_e.html#autotoc_md108',1,'']]],
+  ['minutes_16',['Quick Start (5 Minutes)',['../md__s_e_t_u_p.html#autotoc_md125',1,'']]],
+  ['missing_20standard_20bitcoin_20rpc_20methods_17',['Added — 7 missing standard Bitcoin RPC methods',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md29',1,'']]],
+  ['move_20to_20bitcoin_20style_20omnibus_20tuned_18',['What we move to (Bitcoin-style, OmniBus-tuned)',['../md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e.html#autotoc_md3',1,'']]],
+  ['multi_20chain_20selection_20mainnet_20testnet_20regtest_19',['Added — Multi-chain Selection (Mainnet / Testnet / Regtest)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md33',1,'']]],
+  ['must_20be_20a_20chain_20tx_20',['Architectural fix: every state change MUST be a chain TX',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html',1,'']]],
+  ['mvp_21',['Stretch goals (post-MVP)',['../md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e.html#autotoc_md8',1,'']]]
+];

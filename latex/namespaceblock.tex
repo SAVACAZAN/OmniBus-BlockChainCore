@@ -1,0 +1,26 @@
+\doxysection{block Namespace Reference}
+\hypertarget{namespaceblock}{}\label{namespaceblock}\index{block@{block}}
+
+
+-\/malformation-\/tester  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/malformation-\/tester 
+
+\begin{DoxyVerb}block-malformation-tester.py
+
+Construct invalid blocks and submit them to a BlockChainCore node via RPC
+ to verify they are rejected.  Malformations include:
+  - wrong previous block hash
+  - timestamp in the future
+  - difficulty mismatch
+  - double-spend transaction inside block
+  - invalid signature
+  - oversized block
+
+Outputs: block-validation-report.json
+\end{DoxyVerb}
+ 

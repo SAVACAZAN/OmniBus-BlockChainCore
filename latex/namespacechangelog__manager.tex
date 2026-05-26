@@ -1,0 +1,85 @@
+\doxysection{changelog\+\_\+manager Namespace Reference}
+\hypertarget{namespacechangelog__manager}{}\label{namespacechangelog__manager}\index{changelog\_manager@{changelog\_manager}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classchangelog__manager_1_1_change}{Change}}
+\item 
+class \doxymbox{\hyperlink{classchangelog__manager_1_1_release}{Release}}
+\item 
+class \doxymbox{\hyperlink{classchangelog__manager_1_1_changelog_manager}{Changelog\+Manager}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacechangelog__manager_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacechangelog__manager_a16cff093d33a239e20508c0c0fef55df}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespacechangelog__manager_afb1586112c243faf66cb4f5e6ed23686}{CHANGELOG}} = \doxymbox{\hyperlink{namespacechangelog__manager_a16cff093d33a239e20508c0c0fef55df}{ROOT}} /\+ "{}CHANGELOG.\+md"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}changelog_manager.py - OmniBus Changelog & Release Manager v1.0
+
+Gestionează changelog și release notes:
+  - Parsează commit-uri git pentru changes
+  - Categorizează: Added, Changed, Fixed, Security
+  - Generează CHANGELOG.md în format Keep a Changelog
+  - Sugerează version bumping (semver)
+  - Crează release notes pentru GitHub
+
+Usage:
+  python tools/DOCUMENTATION/changelog_manager.py              # Generează changelog
+  python tools/DOCUMENTATION/changelog_manager.py --since v1.0.0  # De la versiune
+  python tools/DOCUMENTATION/changelog_manager.py --bump major    # Sugerează bump
+  python tools/DOCUMENTATION/changelog_manager.py --release       # Crează release
+\end{DoxyVerb}
+ 
+
+\label{namespacechangelog__manager_doc-func-members}
+\Hypertarget{namespacechangelog__manager_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacechangelog__manager_a51af30a60f9f02777c6396b8247e356f}\index{changelog\_manager@{changelog\_manager}!main@{main}}
+\index{main@{main}!changelog\_manager@{changelog\_manager}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacechangelog__manager_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{changelog__manager_8py_source_l00252}{252}} of file \doxymbox{\hyperlink{changelog__manager_8py_source}{changelog\+\_\+manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+
+
+\label{namespacechangelog__manager_doc-var-members}
+\Hypertarget{namespacechangelog__manager_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacechangelog__manager_afb1586112c243faf66cb4f5e6ed23686}\index{changelog\_manager@{changelog\_manager}!CHANGELOG@{CHANGELOG}}
+\index{CHANGELOG@{CHANGELOG}!changelog\_manager@{changelog\_manager}}
+\doxysubsubsection{\texorpdfstring{CHANGELOG}{CHANGELOG}}
+{\footnotesize\ttfamily \label{namespacechangelog__manager_afb1586112c243faf66cb4f5e6ed23686} 
+str changelog\+\_\+manager.\+CHANGELOG = \doxymbox{\hyperlink{namespacechangelog__manager_a16cff093d33a239e20508c0c0fef55df}{ROOT}} /\+ "{}CHANGELOG.\+md"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{changelog__manager_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{changelog__manager_8py_source}{changelog\+\_\+manager.\+py}}.
+
+\Hypertarget{namespacechangelog__manager_a16cff093d33a239e20508c0c0fef55df}\index{changelog\_manager@{changelog\_manager}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!changelog\_manager@{changelog\_manager}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespacechangelog__manager_a16cff093d33a239e20508c0c0fef55df} 
+changelog\+\_\+manager.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{changelog__manager_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{changelog__manager_8py_source}{changelog\+\_\+manager.\+py}}.
+

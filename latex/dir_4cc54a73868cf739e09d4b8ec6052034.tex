@@ -1,0 +1,34 @@
+\doxysection{frontend/\+node\+\_\+modules/\+get-\/proto Directory Reference}
+\hypertarget{dir_4cc54a73868cf739e09d4b8ec6052034}{}\label{dir_4cc54a73868cf739e09d4b8ec6052034}\index{frontend/node\_modules/get-\/proto Directory Reference@{frontend/node\_modules/get-\/proto Directory Reference}}
+Directory dependency graph for get-\/proto:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7043}{}\doxysubsection{\texorpdfstring{get-\/proto \textsuperscript{\+[!\+[Version Badge]\+\+[npm-\/version-\/svg]\+]\+\+[package-\/url]\+}}{get-\/proto \textsuperscript{\+[!\+[Version Badge]\+\+[npm-\/version-\/svg]\+]\+\+[package-\/url]\+}}}\label{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7043}
+\href{https://github.com/ljharb/get-proto/actions}{\texttt{}} \href{https://app.codecov.io/gh/ljharb/get-proto/}{\texttt{}} \+[]\+\+[license-\/url]\+ \href{https://npm-stat.com/charts.html?package=get-proto}{\texttt{}}
+
+\href{https://npmjs.org/package/get-proto}{\texttt{}}
+
+Robustly get the \+[\+[Prototype]\+]\+ of an object. Uses the best available method.\hypertarget{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7044}{}\doxysubsection{\texorpdfstring{Getting started}{Getting started}}\label{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7044}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ -\/-\/save\ get-\/proto}
+
+\end{DoxyCode}
+\hypertarget{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7045}{}\doxysubsection{\texorpdfstring{Usage/\+\+Examples}{Usage/\+\+Examples}}\label{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7045}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ assert\ =\ require('assert');}
+\DoxyCodeLine{const\ getProto\ =\ require('get-\/proto');}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ a\ =\ \{\ a:\ 1,\ b:\ 2,\ [Symbol.toStringTag]:\ 'foo'\ \};}
+\DoxyCodeLine{const\ b\ =\ \{\ c:\ 3,\ \_\_proto\_\_:\ a\ \};}
+\DoxyCodeLine{}
+\DoxyCodeLine{assert.equal(getProto(b),\ a);}
+\DoxyCodeLine{assert.equal(getProto(a),\ Object.prototype);}
+\DoxyCodeLine{assert.equal(getProto(\{\ \_\_proto\_\_:\ null\ \}),\ null);}
+
+\end{DoxyCode}
+\hypertarget{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7046}{}\doxysubsection{\texorpdfstring{Tests}{Tests}}\label{dir_4cc54a73868cf739e09d4b8ec6052034_autotoc_md7046}
+Clone the repo, {\ttfamily npm install}, and run {\ttfamily npm \doxylink{namespacetest}{test}} 

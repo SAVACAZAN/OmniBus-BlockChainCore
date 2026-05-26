@@ -686,9 +686,15 @@ pub const PersistentBlockchain = struct {
             try out.appendSlice(&b8);
         }
 
-        // Write atomically: tmp file then rename
+        // Write atomically: tmp file then rename.
+        // errdefer cleans up partial .tmp if writeAll fails (e.g. NoSpaceLeft) —
+        // otherwise the half-written file accumulates and confuses the next load.
         const file = try std.fs.cwd().createFile(tmp_path, .{});
-        try file.writeAll(out.items);
+        errdefer std.fs.cwd().deleteFile(tmp_path) catch {};
+        file.writeAll(out.items) catch |err| {
+            file.close();
+            return err;
+        };
         file.close();
         try std.fs.cwd().rename(tmp_path, path);
 
@@ -887,9 +893,14 @@ pub const PersistentBlockchain = struct {
         try writeFillsHistory(&out, bc);
         try appendCrc32(&out, section_fills_start);
 
-        // Atomic write: tmp file then rename
+        // Atomic write: tmp file then rename.
+        // errdefer cleans up partial .tmp if writeAll fails (e.g. NoSpaceLeft).
         const file = try std.fs.cwd().createFile(tmp_path, .{});
-        try file.writeAll(out.items);
+        errdefer std.fs.cwd().deleteFile(tmp_path) catch {};
+        file.writeAll(out.items) catch |err| {
+            file.close();
+            return err;
+        };
         file.close();
         try std.fs.cwd().rename(tmp_path, path);
 

@@ -52,6 +52,10 @@ pub const UTXOSet = struct {
     count: u64,
     /// Total value locked in all UTXOs
     total_value: u64,
+    /// RW lock — mining thread mutates (addUTXO/spendUTXO) while RPC/sync threads read.
+    /// Without this, concurrent getOrPut() rehashing causes "incorrect alignment" panic
+    /// when a reader sees half-written `metadata` ptr.
+    lock: std.Thread.RwLock = .{},
 
     pub fn init(allocator: std.mem.Allocator) UTXOSet {
         return UTXOSet{
@@ -60,6 +64,7 @@ pub const UTXOSet = struct {
             .allocator = allocator,
             .count = 0,
             .total_value = 0,
+            .lock = .{},
         };
     }
 
@@ -93,6 +98,9 @@ pub const UTXOSet = struct {
         script_pubkey: []const u8,
         is_coinbase: bool,
     ) !void {
+        self.lock.lock();
+        defer self.lock.unlock();
+
         const utxo = UTXO{
             .tx_hash = tx_hash,
             .output_index = output_index,
@@ -121,6 +129,9 @@ pub const UTXOSet = struct {
 
     /// Spend (remove) a UTXO by outpoint
     pub fn spendUTXO(self: *UTXOSet, tx_hash: []const u8, output_index: u32) !UTXO {
+        self.lock.lock();
+        defer self.lock.unlock();
+
         var key_buf: [128]u8 = undefined;
         const key = std.fmt.bufPrint(&key_buf, "{s}:{d}", .{ tx_hash, output_index }) catch return error.OutpointTooLong;
 
@@ -149,19 +160,30 @@ pub const UTXOSet = struct {
         return utxo;
     }
 
-    /// Get all UTXOs for an address
+    /// Get all UTXOs for an address.
+    /// CAUTION: returned slice points into the hashmap's internal storage; only safe
+    /// while no concurrent addUTXO/spendUTXO runs. For thread-safe usage prefer
+    /// getBalance/selectUTXOs which take the lock internally. Held under read-lock
+    /// here just to guarantee `metadata` ptr is consistent during the lookup itself.
     pub fn getUTXOsForAddress(self: *const UTXOSet, address: []const u8) []const []const u8 {
+        const lk = @constCast(&self.lock);
+        lk.lockShared();
+        defer lk.unlockShared();
         if (self.address_index.get(address)) |list| {
             return list.items;
         }
         return &.{};
     }
 
-    /// Get balance for an address (sum of all UTXOs)
+    /// Get balance for an address (sum of all UTXOs) — thread-safe.
     pub fn getBalance(self: *const UTXOSet, address: []const u8) u64 {
-        const outpoints = self.getUTXOsForAddress(address);
+        const lk = @constCast(&self.lock);
+        lk.lockShared();
+        defer lk.unlockShared();
+
+        const list = self.address_index.get(address) orelse return 0;
         var total: u64 = 0;
-        for (outpoints) |outpoint| {
+        for (list.items) |outpoint| {
             if (self.utxos.get(outpoint)) |utxo| {
                 total += utxo.amount;
             }
@@ -171,6 +193,10 @@ pub const UTXOSet = struct {
 
     /// Get a UTXO by outpoint
     pub fn getUTXO(self: *const UTXOSet, tx_hash: []const u8, output_index: u32) ?UTXO {
+        const lk = @constCast(&self.lock);
+        lk.lockShared();
+        defer lk.unlockShared();
+
         var key_buf: [128]u8 = undefined;
         const key = std.fmt.bufPrint(&key_buf, "{s}:{d}", .{ tx_hash, output_index }) catch return null;
         return self.utxos.get(key);
@@ -196,19 +222,21 @@ pub const UTXOSet = struct {
         current_height: u64,
         allocator: std.mem.Allocator,
     ) !Selection {
+        const lk = @constCast(&self.lock);
+        lk.lockShared();
+        defer lk.unlockShared();
+
         var selected: std.ArrayList(UTXO) = .empty;
         var total: u64 = 0;
 
-        const outpoints = self.getUTXOsForAddress(address);
-        for (outpoints) |outpoint| {
-            if (self.utxos.get(outpoint)) |utxo| {
-                // Skip immature coinbase
-                if (!utxo.isMature(current_height)) continue;
-
-                try selected.append(allocator, utxo);
-                total += utxo.amount;
-
-                if (total >= target_amount) break;
+        if (self.address_index.get(address)) |list| {
+            for (list.items) |outpoint| {
+                if (self.utxos.get(outpoint)) |utxo| {
+                    if (!utxo.isMature(current_height)) continue;
+                    try selected.append(allocator, utxo);
+                    total += utxo.amount;
+                    if (total >= target_amount) break;
+                }
             }
         }
 
@@ -222,6 +250,9 @@ pub const UTXOSet = struct {
 
     /// Get UTXO count for an address
     pub fn getUTXOCount(self: *const UTXOSet, address: []const u8) usize {
+        const lk = @constCast(&self.lock);
+        lk.lockShared();
+        defer lk.unlockShared();
         if (self.address_index.get(address)) |list| {
             return list.items.len;
         }
@@ -230,6 +261,9 @@ pub const UTXOSet = struct {
 
     /// Get statistics
     pub fn getStats(self: *const UTXOSet) struct { count: u64, total_value: u64, addresses: u32 } {
+        const lk = @constCast(&self.lock);
+        lk.lockShared();
+        defer lk.unlockShared();
         return .{
             .count = self.count,
             .total_value = self.total_value,

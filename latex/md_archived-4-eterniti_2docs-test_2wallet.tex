@@ -1,0 +1,206 @@
+\chapter{Module:\+ {\ttfamily wallet} }
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet}{}\label{md_archived-4-eterniti_2docs-test_2wallet}\index{Module: $<$tt$>$wallet$<$/tt$>$@{Module: $<$tt$>$wallet$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3877}%
+\Hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3877}%
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3878}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3878}
+
+\begin{DoxyItemize}
+\item StructsStructs
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item FunctionsFunctions
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3879}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3879}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3880}{}\doxysubsection{\texorpdfstring{{\ttfamily Wallet}}{{\ttfamily Wallet}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3880}
+Omni\+Bus Wallet — derivare reala BIP32 + secp256k1
+
+{\itshape Line:\+ 11}\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3881}{}\doxysubsection{\texorpdfstring{{\ttfamily Address}}{{\ttfamily Address}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3881}
+{\itshape Line:\+ 24}\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3882}{}\doxysubsection{\texorpdfstring{{\ttfamily PQSign\+Result}}{{\ttfamily PQSign\+Result}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3882}
+Rezultatul semnarii pentru un domeniu PQ
+
+{\itshape Line:\+ 237}\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3883}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3883}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3884}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Mnemonic}}{{\ttfamily from\+Mnemonic}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3884}
+Creeaza wallet din mnemonic (BIP-\/39) si passphrase
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromMnemonic(mnemonic:\ []const\ u8,\ passphrase:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !Wallet\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily mnemonic}:\+ {\ttfamily \+[]\+const u8}
+\item {\ttfamily passphrase}:\+ {\ttfamily \+[]\+const u8}
+\item {\ttfamily allocator}:\+ {\ttfamily std.\+mem.\+Allocator}
+\end{DoxyItemize}
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Wallet}
+
+{\itshape Line:\+ 34}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3886}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit}}{{\ttfamily deinit}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3886}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *Wallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}
+\end{DoxyItemize}
+
+{\itshape Line:\+ 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3888}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance}}{{\ttfamily get\+Balance}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3888}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalance(self:\ *const\ Wallet)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}
+\end{DoxyItemize}
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Line:\+ 97}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3890}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance\+OMNI}}{{\ttfamily get\+Balance\+OMNI}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3890}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalanceOMNI(self:\ *const\ Wallet)\ f64\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}
+\end{DoxyItemize}
+
+{\bfseries{Returns:\+}} {\ttfamily f64}
+
+{\itshape Line:\+ 101}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3892}{}\doxysubsection{\texorpdfstring{{\ttfamily can\+Send}}{{\ttfamily can\+Send}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3892}
+Verifica daca ai suficienta balanta pentru un transfer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ canSend(self:\ *const\ Wallet,\ amount\_sat:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}
+\item {\ttfamily amount\+\_\+sat}:\+ {\ttfamily u64}
+\end{DoxyItemize}
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Line:\+ 106}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3894}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Balance}}{{\ttfamily update\+Balance}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3894}
+Actualizeaza balanta (apelat din RPC fetch)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateBalance(self:\ *Wallet,\ new\_balance\_sat:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}
+\item {\ttfamily new\+\_\+balance\+\_\+sat}:\+ {\ttfamily u64}
+\end{DoxyItemize}
+
+{\itshape Line:\+ 111}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3896}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address}}{{\ttfamily get\+Address}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3896}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ Wallet,\ index:\ u32)\ ?Address\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}
+\item {\ttfamily index}:\+ {\ttfamily u32}
+\end{DoxyItemize}
+
+{\bfseries{Returns:\+}} {\ttfamily ?Address}
+
+{\itshape Line:\+ 115}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3898}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+All\+Addresses}}{{\ttfamily get\+All\+Addresses}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3898}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAllAddresses(self:\ *const\ Wallet)\ [5]Address\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}
+\end{DoxyItemize}
+
+{\bfseries{Returns:\+}} {\ttfamily \+[5]\+Address}
+
+{\itshape Line:\+ 120}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3900}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Addresses}}{{\ttfamily print\+Addresses}}}\label{md_archived-4-eterniti_2docs-test_2wallet_autotoc_md3900}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printAddresses(self:\ *const\ Wallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Parameters:\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily self}:\+ {\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}
+\end{DoxyItemize}
+
+{\itshape Line:\+ 146}
+
+\DoxyHorRuler{0}
+ 

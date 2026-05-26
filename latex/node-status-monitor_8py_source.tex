@@ -1,0 +1,188 @@
+\doxysection{node-\/status-\/monitor.py}
+\hypertarget{node-status-monitor_8py_source}{}\label{node-status-monitor_8py_source}\index{tools/MONITORING/node-\/status-\/monitor.py@{tools/MONITORING/node-\/status-\/monitor.py}}
+\doxymbox{\hyperlink{node-status-monitor_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00001}\doxymbox{\hyperlink{namespacenode-status-monitor}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ BlockChainCore\ —\ Node\ Status\ Monitor}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00004}00004\ \textcolor{stringliteral}{=============================================}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00005}00005\ \textcolor{stringliteral}{Polls\ the\ OmniBus\ node\ JSON-\/RPC\ endpoint\ every\ N\ seconds\ and\ displays}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00006}00006\ \textcolor{stringliteral}{a\ live\ terminal\ dashboard\ showing\ block\ height,\ peer\ count,\ mempool}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00007}00007\ \textcolor{stringliteral}{size,\ mining\ status,\ and\ uptime.}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00008}00008\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00009}00009\ \textcolor{stringliteral}{Uses\ only\ Python\ stdlib\ (http.client\ for\ JSON-\/RPC\ 2.0\ over\ HTTP).}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00011}00011\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ python\ node-\/status-\/monitor.py}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ python\ node-\/status-\/monitor.py\ -\/-\/host\ 192.168.1.50\ -\/-\/port\ 8332\ -\/-\/interval\ 5}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00014}00014\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00016}00016\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00017}00017\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00021}00021\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timedelta}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00024}00024\ \textcolor{comment}{\#\ ──\ ANSI\ colours\ ─────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00025}\doxymbox{\hyperlink{namespacenode-status-monitor_a85f8568b03b01607f373ad5e86e159aa}{00025}}\ RESET\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00026}\doxymbox{\hyperlink{namespacenode-status-monitor_a7dd36d96ba16a24920de281e40179d17}{00026}}\ BOLD\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00027}\doxymbox{\hyperlink{namespacenode-status-monitor_a88d552186144fe20c7ada1d99378e3ce}{00027}}\ DIM\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00028}\doxymbox{\hyperlink{namespacenode-status-monitor_ab1bae626f34e3c68b338908ea4f12264}{00028}}\ RED\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00029}\doxymbox{\hyperlink{namespacenode-status-monitor_a146ebd1026422b72575735ccbc20f9b1}{00029}}\ GREEN\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00030}\doxymbox{\hyperlink{namespacenode-status-monitor_a55c63d69ab5fc064e5a8a6a19edad4ab}{00030}}\ YELLOW\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00031}\doxymbox{\hyperlink{namespacenode-status-monitor_a1372124c923905abf849c1a83458881e}{00031}}\ CYAN\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00032}\doxymbox{\hyperlink{namespacenode-status-monitor_ab6c406951401ab8fad2b84cf08946605}{00032}}\ MAGENTA\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00033}\doxymbox{\hyperlink{namespacenode-status-monitor_a7076e46a6e3b53f018dcef7cccd97d7c}{00033}}\ WHITE\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00034}\doxymbox{\hyperlink{namespacenode-status-monitor_a4588f57f2478a5d7eeee831886d8a517}{00034}}\ BG\_BLUE\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[44m"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00037}\doxymbox{\hyperlink{namespacenode-status-monitor_abe4dfe974413db0749ae0cf0dadb91b0}{00037}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-status-monitor_abe4dfe974413db0749ae0cf0dadb91b0}{clear\_screen}}():}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00038}00038\ \ \ \ \ os.system(\textcolor{stringliteral}{"{}cls"{}}\ \textcolor{keywordflow}{if}\ os.name\ ==\ \textcolor{stringliteral}{"{}nt"{}}\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}clear"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00041}\doxymbox{\hyperlink{namespacenode-status-monitor_ae45ada562a188df1687bea37637fa094}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-status-monitor_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host:\ str,\ port:\ int,\ method:\ str,\ params=\textcolor{keywordtype}{None},\ timeout:\ int\ =\ 5):}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00042}00042\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ a\ JSON-\/RPC\ 2.0\ request\ and\ return\ the\ result\ (or\ None\ on\ error)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00043}00043\ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00048}00048\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ body=payload,\ headers=\{}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}},}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ data:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data[\textcolor{stringliteral}{"{}result"{}}]}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00064}\doxymbox{\hyperlink{namespacenode-status-monitor_acbff8ff0441c3a42598a76ffa6b63842}{00064}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-status-monitor_acbff8ff0441c3a42598a76ffa6b63842}{format\_bytes}}(n:\ int)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{for}\ unit\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}B"{}},\ \textcolor{stringliteral}{"{}KB"{}},\ \textcolor{stringliteral}{"{}MB"{}},\ \textcolor{stringliteral}{"{}GB"{}},\ \textcolor{stringliteral}{"{}TB"{}}):}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ abs(n)\ <\ 1024:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}\{n:.1f\}\ \{unit\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ n\ /=\ 1024}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}\{n:.1f\}\ PB"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00072}\doxymbox{\hyperlink{namespacenode-status-monitor_a53b56a74d37d2fe5c8cea403eab254c1}{00072}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-status-monitor_a53b56a74d37d2fe5c8cea403eab254c1}{severity\_colour}}(ok:\ bool)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{return}\ GREEN\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00076}\doxymbox{\hyperlink{namespacenode-status-monitor_a595dcd3c278965e3b45cf2354f4a1c16}{00076}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-status-monitor_a595dcd3c278965e3b45cf2354f4a1c16}{render\_dashboard}}(host:\ str,\ port:\ int,\ start\_time:\ float,\ poll\_count:\ int):}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00077}00077\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Fetch\ data\ and\ print\ dashboard."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00078}00078\ \ \ \ \ now\ =\ datetime.now().strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M:\%S"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00079}00079\ \ \ \ \ uptime\_delta\ =\ timedelta(seconds=int(time.time()\ -\/\ start\_time))}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00081}00081\ \ \ \ \ \textcolor{comment}{\#\ ──\ RPC\ calls\ ────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00082}00082\ \ \ \ \ info\ \ \ \ \ \ \ \ =\ \doxymbox{\hyperlink{namespacenode-status-monitor_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getblockchaininfo"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00083}00083\ \ \ \ \ net\_info\ \ \ \ =\ \doxymbox{\hyperlink{namespacenode-status-monitor_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getnetworkinfo"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00084}00084\ \ \ \ \ mempool\ \ \ \ \ =\ \doxymbox{\hyperlink{namespacenode-status-monitor_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getmempoolinfo"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00085}00085\ \ \ \ \ mining\ \ \ \ \ \ =\ \doxymbox{\hyperlink{namespacenode-status-monitor_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getmininginfo"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00086}00086\ \ \ \ \ node\_info\ \ \ =\ \doxymbox{\hyperlink{namespacenode-status-monitor_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getnodeinfo"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00088}00088\ \ \ \ \ node\_online\ =\ info\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00090}00090\ \ \ \ \ \textcolor{comment}{\#\ Extract\ values\ (fallback\ to\ "{}?"{}\ if\ RPC\ down)}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00091}00091\ \ \ \ \ block\_height\ =\ info.get(\textcolor{stringliteral}{"{}blocks"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ info\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00092}00092\ \ \ \ \ best\_hash\ \ \ \ =\ info.get(\textcolor{stringliteral}{"{}bestblockhash"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \ \textcolor{keywordflow}{if}\ info\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00093}00093\ \ \ \ \ chain\ \ \ \ \ \ \ \ =\ info.get(\textcolor{stringliteral}{"{}chain"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ info\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00094}00094\ \ \ \ \ peers\ \ \ \ \ \ \ \ =\ net\_info.get(\textcolor{stringliteral}{"{}connections"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \textcolor{keywordflow}{if}\ net\_info\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00095}00095\ \ \ \ \ mempool\_size\ =\ mempool.get(\textcolor{stringliteral}{"{}size"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mempool\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00096}00096\ \ \ \ \ mempool\_bytes\ =\ mempool.get(\textcolor{stringliteral}{"{}bytes"{}},\ 0)\ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mempool\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00097}00097\ \ \ \ \ is\_mining\ \ \ \ =\ mining.get(\textcolor{stringliteral}{"{}mining"{}},\ \textcolor{keyword}{False})\ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mining\ \textcolor{keywordflow}{else}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00098}00098\ \ \ \ \ hashrate\ \ \ \ \ =\ mining.get(\textcolor{stringliteral}{"{}hashrate"{}},\ 0)\ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mining\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00099}00099\ \ \ \ \ difficulty\ \ \ =\ mining.get(\textcolor{stringliteral}{"{}difficulty"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \ \ \ \ \textcolor{keywordflow}{if}\ mining\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00100}00100\ \ \ \ \ node\_id\ \ \ \ \ \ =\ node\_info.get(\textcolor{stringliteral}{"{}node\_id"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \ \ \ \textcolor{keywordflow}{if}\ node\_info\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00101}00101\ \ \ \ \ node\_uptime\ \ =\ node\_info.get(\textcolor{stringliteral}{"{}uptime"{}},\ \textcolor{stringliteral}{"{}?"{}})\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ node\_info\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}?"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00103}00103\ \ \ \ \ \textcolor{comment}{\#\ ──\ Render\ ───────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00104}00104\ \ \ \ \ \doxymbox{\hyperlink{namespacenode-status-monitor_abe4dfe974413db0749ae0cf0dadb91b0}{clear\_screen}}()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00106}00106\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BG\_BLUE\}\{BOLD\}\{WHITE\}\ OmniBus\ Node\ Status\ Monitor\ \{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00107}00107\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\{'─'\ *\ 60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00108}00108\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Host:\{RESET\}\ \ \{host\}:\{port\}\ \ \ \ \{CYAN\}Time:\{RESET\}\ \ \{now\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00109}00109\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Monitor\ uptime:\{RESET\}\ \ \{uptime\_delta\}\ \ \ \ \{CYAN\}Polls:\{RESET\}\ \ \{poll\_count\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00110}00110\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\{'─'\ *\ 60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00112}00112\ \ \ \ \ status\_label\ =\ f\textcolor{stringliteral}{"{}\{GREEN\}ONLINE\{RESET\}"{}}\ \textcolor{keywordflow}{if}\ node\_online\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{RED\}OFFLINE\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00113}00113\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}Node\ status:\{RESET\}\ \ \ \{status\_label\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00114}00114\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}Node\ ID:\{RESET\}\ \ \ \ \ \ \ \{node\_id\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00115}00115\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}Chain:\{RESET\}\ \ \ \ \ \ \ \ \ \{chain\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00116}00116\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}Node\ uptime:\{RESET\}\ \ \ \{node\_uptime\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00117}00117\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00119}00119\ \ \ \ \ \textcolor{comment}{\#\ Block\ info}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00120}00120\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{MAGENTA\}[Blockchain]\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00121}00121\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Block\ height\ :\ \ \{YELLOW\}\{block\_height\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00122}00122\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Best\ hash\ \ \ \ :\ \ \{DIM\}\{str(best\_hash)[:40]\}...\{RESET\}"{}}\ \textcolor{keywordflow}{if}\ len(str(best\_hash))\ >\ 40\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\ \ \ \ Best\ hash\ \ \ \ :\ \ \{DIM\}\{best\_hash\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00123}00123\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Difficulty\ \ \ :\ \ \{difficulty\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00124}00124\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00126}00126\ \ \ \ \ \textcolor{comment}{\#\ Network}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00127}00127\ \ \ \ \ peers\_ok\ =\ isinstance(peers,\ int)\ \textcolor{keywordflow}{and}\ peers\ >\ 0}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00128}00128\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{MAGENTA\}[Network]\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00129}00129\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Peers\ \ \ \ \ \ \ \ :\ \ \{severity\_colour(peers\_ok)\}\{peers\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00130}00130\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00132}00132\ \ \ \ \ \textcolor{comment}{\#\ Mempool}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00133}00133\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{MAGENTA\}[Mempool]\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00134}00134\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Transactions\ :\ \ \{mempool\_size\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00135}00135\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Size\ \ \ \ \ \ \ \ \ :\ \ \{format\_bytes(mempool\_bytes)\ if\ isinstance(mempool\_bytes,\ (int,\ float))\ else\ '?'\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00136}00136\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00138}00138\ \ \ \ \ \textcolor{comment}{\#\ Mining}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00139}00139\ \ \ \ \ mining\_label\ =\ f\textcolor{stringliteral}{"{}\{GREEN\}ACTIVE\{RESET\}"{}}\ \textcolor{keywordflow}{if}\ is\_mining\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{YELLOW\}INACTIVE\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00140}00140\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{MAGENTA\}[Mining]\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00141}00141\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Status\ \ \ \ \ \ \ :\ \ \{mining\_label\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00142}00142\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Hash\ rate\ \ \ \ :\ \ \{hashrate\}\ H/s"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00143}00143\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00145}00145\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\{'─'\ *\ 60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00146}00146\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ node\_online:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}\{BOLD\}WARNING:\{RESET\}\ \{RED\}Cannot\ reach\ node\ RPC\ at\ \{host\}:\{port\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}Ensure\ omnibus-\/node.exe\ is\ running\ and\ RPC\ is\ enabled.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00149}00149\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}All\ systems\ nominal.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00151}00151\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\ \ Press\ Ctrl+C\ to\ exit.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00154}\doxymbox{\hyperlink{namespacenode-status-monitor_a51af30a60f9f02777c6396b8247e356f}{00154}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-status-monitor_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00155}00155\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Node\ Status\ Monitor\ —\ live\ terminal\ dashboard"{}},}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ epilog=\textcolor{stringliteral}{"{}Example:\(\backslash\)n\ \ python\ node-\/status-\/monitor.py\ -\/-\/host\ 127.0.0.1\ -\/-\/port\ 8332\ -\/-\/interval\ 10"{}},}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00159}00159\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00160}00160\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Node\ RPC\ host\ (default:\ 127.0.0.1)"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00161}00161\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=8332,\ help=\textcolor{stringliteral}{"{}Node\ RPC\ port\ (default:\ 8332)"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00162}00162\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/interval"{}},\ type=int,\ default=10,\ help=\textcolor{stringliteral}{"{}Poll\ interval\ in\ seconds\ (default:\ 10)"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00163}00163\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00165}00165\ \ \ \ \ start\_time\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00166}00166\ \ \ \ \ poll\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00168}00168\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}Starting\ OmniBus\ Node\ Status\ Monitor...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00169}00169\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Target:\ \{args.host\}:\{args.port\}\ \ Interval:\ \{args.interval\}s\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ poll\_count\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacenode-status-monitor_a595dcd3c278965e3b45cf2354f4a1c16}{render\_dashboard}}(args.host,\ args.port,\ start\_time,\ poll\_count)}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(args.interval)}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00176}00176\ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{YELLOW\}Monitor\ stopped.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ sys.exit(0)}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00181}00181\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{node-status-monitor_8py_source_l00182}00182\ \ \ \ \ \doxymbox{\hyperlink{namespacenode-status-monitor_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

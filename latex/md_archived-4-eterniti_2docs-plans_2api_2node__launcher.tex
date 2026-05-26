@@ -1,0 +1,411 @@
+\chapter{Module:\+ {\ttfamily node\+\_\+launcher} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher}{}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher}\index{Module: $<$tt$>$node\_launcher$<$/tt$>$@{Module: $<$tt$>$node\_launcher$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2261}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2261}%
+
+
+\begin{quote}
+Node orchestration — starts all subsystems in order, manages seed/\+miner mode, initiates mining loop. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+node\+\_\+launcher.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 395 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 13 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2263}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2263}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2264}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2264}
+
+\begin{DoxyItemize}
+\item \`{}\+Node\+Config\`{}{\ttfamily Node\+Config}
+\end{DoxyItemize}— Node launcher configuration
+\begin{DoxyItemize}
+\item \`{}\+Node\+Launcher\`{}{\ttfamily Node\+Launcher}
+\end{DoxyItemize}— Main node launcher\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2265}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2265}
+
+\begin{DoxyItemize}
+\item 2 constants defined2 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2266}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2266}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}attach\+P2\+PNode()\`{}{\ttfamily attach\+P2\+PNode()}
+\end{DoxyItemize}— Ataseaza P2\+PNode real (TCP) — apelat din main.\+zig dupa init \doxylink{namespacep2p}{p2p} Permit...
+\begin{DoxyItemize}
+\item \`{}start\+Seed\+Node()\`{}{\ttfamily start\+Seed\+Node()}
+\end{DoxyItemize}— Start seed node
+\begin{DoxyItemize}
+\item \`{}start\+Miner\+Node()\`{}{\ttfamily start\+Miner\+Node()}
+\end{DoxyItemize}— Start miner node
+\begin{DoxyItemize}
+\item \`{}register\+Miner\+With\+Pool()\`{}{\ttfamily register\+Miner\+With\+Pool()}
+\end{DoxyItemize}— Register miner with pool (for seed node)
+\begin{DoxyItemize}
+\item \`{}on\+Peer\+Connected()\`{}{\ttfamily on\+Peer\+Connected()}
+\end{DoxyItemize}— Update bootstrap node status when peer joins
+\begin{DoxyItemize}
+\item \`{}ready\+For\+Mining()\`{}{\ttfamily ready\+For\+Mining()}
+\end{DoxyItemize}— Transition to mining when ready (requires MIN\+\_\+\+PEERS\+\_\+\+FOR\+\_\+\+MINING connect...
+\begin{DoxyItemize}
+\item \`{}start\+Mining()\`{}{\ttfamily start\+Mining()}
+\end{DoxyItemize}— Start mining on this node
+\begin{DoxyItemize}
+\item \`{}stop\+Mining()\`{}{\ttfamily stop\+Mining()}
+\end{DoxyItemize}— Stop mining
+\begin{DoxyItemize}
+\item \`{}get\+Network\+Status()\`{}{\ttfamily get\+Network\+Status()}
+\end{DoxyItemize}— Get network status
+\begin{DoxyItemize}
+\item \`{}get\+Bootstrap\+Status()\`{}{\ttfamily get\+Bootstrap\+Status()}
+\end{DoxyItemize}— Get bootstrap status
+\begin{DoxyItemize}
+\item \`{}maintenance()\`{}{\ttfamily maintenance()}
+\end{DoxyItemize}— Periodic maintenance (remove stale peers, etc.)
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2268}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2268}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2269}{}\doxysubsection{\texorpdfstring{{\ttfamily Node\+Config}}{{\ttfamily Node\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2269}
+Node launcher configuration
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mode}  &{\ttfamily Node\+Mode}  &Mode  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily is\+\_\+primary}  &{\ttfamily bool}  &Is\+\_\+primary  \\
+{\ttfamily max\+\_\+peers}  &{\ttfamily u32}  &Max\+\_\+peers  \\
+{\ttfamily seed\+\_\+host}  &{\ttfamily ?\+[]\+const u8}  &Seed\+\_\+host  \\
+{\ttfamily seed\+\_\+port}  &{\ttfamily ?u16}  &Seed\+\_\+port  \\
+{\ttfamily hashrate}  &{\ttfamily ?u64}  &Hashrate  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 15}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2271}{}\doxysubsection{\texorpdfstring{{\ttfamily Node\+Launcher}}{{\ttfamily Node\+Launcher}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2271}
+Main node launcher
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Node\+Config}  &Config  \\
+{\ttfamily bootstrap\+\_\+node}  &{\ttfamily ?bootstrap.\+Bootstrap\+Node}  &Bootstrap\+\_\+node  \\
+{\ttfamily p2p\+\_\+network}  &{\ttfamily ?network.\+P2\+PNetwork}  &P2p\+\_\+network  \\
+{\ttfamily mining\+\_\+pool}  &{\ttfamily ?mining\+\_\+pool.\+Mining\+Pool}  &Mining\+\_\+pool  \\
+{\ttfamily p2p\+\_\+node}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}p2p\+\_\+mod.P2\+PNode}  &P2p\+\_\+node  \\
+{\ttfamily is\+\_\+running}  &{\ttfamily bool}  &Is\+\_\+running  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 30}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2273}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2273}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Node\+Mode}  &{\ttfamily enum \{}  &Node mode  \\
+{\ttfamily MIN\+\_\+\+PEERS\+\_\+\+FOR\+\_\+\+MINING}  &{\ttfamily usize = 10}  &M i n\+\_\+ p e e r s\+\_\+ f o r\+\_\+ m i n i n g  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2275}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2275}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2276}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2276}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(config:\ NodeConfig)\ NodeLauncher\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Node\+Config}  &Config  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Node\+Launcher}
+
+{\itshape Defined at line 38}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2278}{}\doxysubsection{\texorpdfstring{{\ttfamily attach\+P2\+PNode()}}{{\ttfamily attach\+P2\+PNode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2278}
+Ataseaza P2\+PNode real (TCP) — apelat din main.\+zig dupa init \doxylink{namespacep2p}{p2p} Permite broadcast() sa trimita mesaje TCP reale in loc de print-\/only
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ attachP2PNode(self:\ *NodeLauncher,\ node:\ *p2p\_mod.P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+{\ttfamily \doxylink{namespacenode}{node}}  &{\ttfamily \texorpdfstring{$\ast$}{*}p2p\+\_\+mod.P2\+PNode}  &Node  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2280}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+Seed\+Node()}}{{\ttfamily start\+Seed\+Node()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2280}
+Start seed node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startSeedNode(self:\ *NodeLauncher)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 51}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2282}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+Miner\+Node()}}{{\ttfamily start\+Miner\+Node()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2282}
+Start miner node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startMinerNode(self:\ *NodeLauncher)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2284}{}\doxysubsection{\texorpdfstring{{\ttfamily register\+Miner\+With\+Pool()}}{{\ttfamily register\+Miner\+With\+Pool()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2284}
+Register miner with pool (for seed node)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ registerMinerWithPool(self:\ *NodeLauncher,\ miner\_id:\ []const\ u8,\ address:\ []const\ u8,\ hashrate:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily hashrate}  &{\ttfamily u64}  &Hashrate  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 114}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2286}{}\doxysubsection{\texorpdfstring{{\ttfamily on\+Peer\+Connected()}}{{\ttfamily on\+Peer\+Connected()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2286}
+Update bootstrap node status when peer joins
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ onPeerConnected(self:\ *NodeLauncher,\ peer:\ bootstrap.BootstrapNode.Peer)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+{\ttfamily \doxylink{namespacepeer}{peer}}  &{\ttfamily bootstrap.\+Bootstrap\+Node.\+Peer}  &Peer  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 125}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2288}{}\doxysubsection{\texorpdfstring{{\ttfamily ready\+For\+Mining()}}{{\ttfamily ready\+For\+Mining()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2288}
+Transition to mining when ready (requires MIN\+\_\+\+PEERS\+\_\+\+FOR\+\_\+\+MINING connected)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ readyForMining(self:\ *NodeLauncher)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 143}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2290}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+Mining()}}{{\ttfamily start\+Mining()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2290}
+Start mining on this node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startMining(self:\ *NodeLauncher)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 157}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2292}{}\doxysubsection{\texorpdfstring{{\ttfamily stop\+Mining()}}{{\ttfamily stop\+Mining()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2292}
+Stop mining
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ stopMining(self:\ *NodeLauncher)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 177}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2294}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Network\+Status()}}{{\ttfamily get\+Network\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2294}
+Get network status
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getNetworkStatus(self:\ *const\ NodeLauncher)\ ?network.NetworkStatus\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?network.\+Network\+Status}
+
+{\itshape Defined at line 194}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2296}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Bootstrap\+Status()}}{{\ttfamily get\+Bootstrap\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2296}
+Get bootstrap status
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBootstrapStatus(self:\ *const\ NodeLauncher)\ ?bootstrap.BootstrapStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?bootstrap.\+Bootstrap\+Stats}
+
+{\itshape Defined at line 202}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2298}{}\doxysubsection{\texorpdfstring{{\ttfamily maintenance()}}{{\ttfamily maintenance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2298}
+Periodic maintenance (remove stale peers, etc.)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ maintenance(self:\ *NodeLauncher)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 210}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2300}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2node__launcher_autotoc_md2300}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *NodeLauncher)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Node\+Launcher}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 216}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

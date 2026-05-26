@@ -1,0 +1,51 @@
+\doxysection{scripts/\+generate\+\_\+miners.py File Reference}
+\hypertarget{generate__miners_8py}{}\label{generate__miners_8py}\index{scripts/generate\_miners.py@{scripts/generate\_miners.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacegenerate__miners}{generate\+\_\+miners}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a5131aff6356a52dd3837c3c38b38dc73}{generate\+\_\+miners.\+\_\+b58encode}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_acb100d43e1ce1f93d11efb2bb2ddecb3}{generate\+\_\+miners.\+\_\+checksum}} (bytes d)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_ad76d5a49ab295544aaaf16a4826a4f94}{generate\+\_\+miners.\+\_\+hash160}} (bytes d)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a1e70c32fed62567ab744417e0e8d2230}{generate\+\_\+miners.\+\_\+omni\+\_\+address}} (bytes pubkey\+\_\+bytes, str prefix, int version\+\_\+byte=0x4F)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_ae25985cbffdd427fbb532b92bd15a356}{generate\+\_\+miners.\+\_\+hkdf\+\_\+expand}} (bytes prk, bytes info, int length=64)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__miners_a926017e4eb6aef827ffd8e4615709f6f}{generate\+\_\+miners.\+\_\+seed\+\_\+to\+\_\+keypair}} (bytes seed, int coin\+\_\+type, int index=0)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_a5e3b26742b9f7a597c26ca57549bf36b}{generate\+\_\+miners.\+\_\+mnemonic\+\_\+to\+\_\+seed}} (str mnemonic, str passphrase="{}"{})
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a61b8fdb9aed25cbbd18f2c46b10ee288}{generate\+\_\+miners.\+\_\+generate\+\_\+mnemonic\+\_\+12}} ()
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a32d55fe6373f2af1856d5462afc3bb6c}{generate\+\_\+miners.\+\_\+generate\+\_\+mnemonic\+\_\+fallback}} ()
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__miners_a1931a821caac5ef64d259c646e5767f1}{generate\+\_\+miners.\+generate\+\_\+miner}} (str name, int index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__miners_ac88f4a01356a90bad1c7b0b1279ec2e3}{generate\+\_\+miners.\+check\+\_\+single\+\_\+instance}} ()
+\item 
+\doxymbox{\hyperlink{namespacegenerate__miners_a51af30a60f9f02777c6396b8247e356f}{generate\+\_\+miners.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__miners_a4e48c7f11c999bc0c745c06471cb7730}{generate\+\_\+miners.\+MINER\+\_\+\+NAMES}}
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__miners_a9a2a27f52eb65c9684dfc8ee20439dfd}{generate\+\_\+miners.\+OMNI\+\_\+\+COIN\+\_\+\+TYPE}} = 777
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a028a88936890dcf608b1e168bf210e27}{generate\+\_\+miners.\+OMNI\+\_\+\+PREFIX}} = "{}ob\+\_\+omni\+\_\+"{}
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__miners_a3e0b89ff8b40f10b42d5a91c8a143748}{generate\+\_\+miners.\+OMNI\+\_\+\+VERSION\+\_\+\+BYTE}} = 0x4F
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__miners_af1da04a8072f1cc90f1ce69a8b6de7b1}{generate\+\_\+miners.\+PQ\+\_\+\+DOMAINS}}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_ad05934d2810651e0a5f5ac397b1259f9}{generate\+\_\+miners.\+\_\+\+B58}} = "{}123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"{}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a2b9f861935f39343d3b18cff786cbada}{generate\+\_\+miners.\+SINGLE\+\_\+\+INSTANCE\+\_\+\+ZIG}}
+\end{DoxyCompactItemize}

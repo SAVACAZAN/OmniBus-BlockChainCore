@@ -1,0 +1,166 @@
+\doxysection{test\+\_\+results/\+stress Directory Reference}
+\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1}{}\label{dir_83f5e1458aafc54acfe78504795bdbc1}\index{test\_results/stress Directory Reference@{test\_results/stress Directory Reference}}
+Directory dependency graph for stress:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_eb37d3a66299a57bccce397ff004bc8b}{2026-\/04-\/25}}
+\item 
+directory \doxymbox{\hyperlink{dir_76759b42425d24e8e5b0e2d088980444}{segfault\+\_\+scan}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \doxymbox{\hyperlink{report_8py}{report.\+py}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9830}{}\doxysubsection{\texorpdfstring{Omni\+Bus Stress Test Suite}{Omni\+Bus Stress Test Suite}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9830}
+10 Power\+Shell scripts + 1 Python report generator for stress-\/testing {\ttfamily omnibus-\/node.\+exe} in {\bfseries{regtest}} mode. Mainnet is never touched.\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9831}{}\doxysubsection{\texorpdfstring{Layout}{Layout}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9831}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{test\_results/stress/}
+\DoxyCodeLine{\ \ 01\_start\_node.ps1\ \ \ \ \ \ \ \ \ supervisor\ with\ auto-\/restart}
+\DoxyCodeLine{\ \ 02\_flood\_rpc.ps1\ \ \ \ \ \ \ \ \ \ concurrent\ RPC\ flood}
+\DoxyCodeLine{\ \ 03\_flood\_evm.ps1\ \ \ \ \ \ \ \ \ \ EVM\ endpoint\ flood}
+\DoxyCodeLine{\ \ 04\_block\_monitor.ps1\ \ \ \ \ \ block\ height\ +\ stall\ detection}
+\DoxyCodeLine{\ \ 05\_metrics\_collector.ps1\ \ RAM\ /\ CPU\ /\ handles\ /\ disk}
+\DoxyCodeLine{\ \ 06\_chaos\_kill.ps1\ \ \ \ \ \ \ \ \ random\ kills\ (chaos)}
+\DoxyCodeLine{\ \ 07\_concurrent\_clients.ps1\ 20\ parallel\ jobs}
+\DoxyCodeLine{\ \ 08\_mempool\_flood.ps1\ \ \ \ \ \ sendrawtransaction\ /\ getmempoolinfo}
+\DoxyCodeLine{\ \ 09\_evm\_deploy\_loop.ps1\ \ \ \ minimal\ contract\ deploy\ loop}
+\DoxyCodeLine{\ \ 10\_full\_orchestrator.ps1\ \ runs\ everything\ for\ N\ hours}
+\DoxyCodeLine{\ \ report.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aggregates\ CSVs\ into\ REPORT.md\ /\ REPORT.html}
+\DoxyCodeLine{\ \ README.md\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ this\ file}
+\DoxyCodeLine{\ \ <YYYY-\/MM-\/DD>/\ \ \ \ \ \ \ \ \ \ \ \ \ per-\/run\ output\ folder\ (auto-\/created)}
+\DoxyCodeLine{\ \ \ \ logs/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stdout/stderr\ from\ the\ supervisor}
+\DoxyCodeLine{\ \ \ \ crashes.log\ \ \ \ \ \ \ \ \ \ \ \ \ one\ entry\ per\ restart\ with\ last\ 50\ stderr\ lines}
+\DoxyCodeLine{\ \ \ \ block\_height.csv}
+\DoxyCodeLine{\ \ \ \ block\_stalls.log}
+\DoxyCodeLine{\ \ \ \ metrics.csv}
+\DoxyCodeLine{\ \ \ \ rpc\_stress\_*.csv}
+\DoxyCodeLine{\ \ \ \ evm\_stress\_*.csv}
+\DoxyCodeLine{\ \ \ \ concurrent\_*.csv}
+\DoxyCodeLine{\ \ \ \ mempool\_*.csv}
+\DoxyCodeLine{\ \ \ \ deploys\_*.csv}
+\DoxyCodeLine{\ \ \ \ kills\_*.log}
+\DoxyCodeLine{\ \ \ \ orchestrator.log}
+\DoxyCodeLine{\ \ \ \ REPORT.md\ /\ REPORT.html\ (after\ report.py)}
+
+\end{DoxyCode}
+\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9832}{}\doxysubsection{\texorpdfstring{Prerequisites}{Prerequisites}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9832}
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{namespacezig}{zig} \doxylink{namespacebuild}{build}} already produced {\ttfamily zig-\/out/\+bin/\+omnibus-\/node.\+exe} and the matching UCRT/\+\+Min\+GW DLLs in the same folder.
+\item Power\+Shell 7 ({\ttfamily pwsh}) recommended. Windows Power\+Shell 5.\+1 also works for the individual scripts (the orchestrator launches each child via {\ttfamily pwsh}).
+\item Python 3.\+10+ on PATH (only needed for {\ttfamily \doxylink{report_8py}{report.\+py}}).
+\end{DoxyItemize}\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9833}{}\doxysubsection{\texorpdfstring{One-\/shot run (recommended)}{One-\/shot run (recommended)}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9833}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ "{}C:\(\backslash\)Kits\ work\(\backslash\)limaje\ de\ programare\(\backslash\)1\_CORE\(\backslash\)BlockChainCore\(\backslash\)test\_results\(\backslash\)stress"{}}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)10\_full\_orchestrator.ps1\ -\/DurationHours\ 24}
+
+\end{DoxyCode}
+
+
+That single command:\+
+
+
+\begin{DoxyEnumerate}
+\item Boots {\ttfamily omnibus-\/node.\+exe -\/-\/regtest} under the auto-\/restart supervisor.
+\item Starts the long-\/running watchers (block monitor, metrics, mempool, chaos).
+\item Repeatedly fires waves of RPC flood + EVM flood + concurrent clients + contract deploys until the duration elapses.
+\item Tears every job down on {\ttfamily Ctrl+C} or after the timer.
+\item Generates {\ttfamily \texorpdfstring{$<$}{<}date\texorpdfstring{$>$}{>}/\+\+REPORT.md} and {\ttfamily \texorpdfstring{$<$}{<}date\texorpdfstring{$>$}{>}/\+\+REPORT.html}.
+\end{DoxyEnumerate}
+
+Useful flags:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/DurationHours\ 0.5\ \ \ \ \#\ quick\ smoke\ test\ (\string~30\ min)}
+\DoxyCodeLine{-\/SkipChaos\ \ \ \ \ \ \ \ \ \ \ \ \#\ disable\ random\ kills}
+\DoxyCodeLine{-\/SkipNode\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ if\ you\ want\ to\ start\ the\ node\ yourself}
+\DoxyCodeLine{-\/SkipReport\ \ \ \ \ \ \ \ \ \ \ \#\ skip\ Python\ report}
+\DoxyCodeLine{-\/RpcPort\ 8332\ -\/P2PPort\ 9700}
+
+\end{DoxyCode}
+\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9834}{}\doxysubsection{\texorpdfstring{Running scripts individually}{Running scripts individually}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9834}
+Each script also runs standalone. Examples:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)01\_start\_node.ps1\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ just\ the\ supervisor}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)02\_flood\_rpc.ps1\ -\/Threads\ 20\ -\/CallsPerThread\ 500}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)03\_flood\_evm.ps1\ -\/CallsPerMethod\ 2000}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)04\_block\_monitor.ps1\ -\/IntervalSec\ 2\ -\/StallSec\ 60}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)05\_metrics\_collector.ps1\ -\/IntervalSec\ 5}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)06\_chaos\_kill.ps1\ -\/MinSec\ 60\ -\/MaxSec\ 600}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)07\_concurrent\_clients.ps1\ -\/Clients\ 50\ -\/CallsEach\ 200}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)08\_mempool\_flood.ps1\ -\/RateHz\ 30\ -\/DurationSec\ 1800}
+\DoxyCodeLine{pwsh\ -\/File\ .\(\backslash\)09\_evm\_deploy\_loop.ps1\ -\/Count\ 500}
+
+\end{DoxyCode}
+
+
+All of them honour {\ttfamily Ctrl+C} and finish writing their CSV before exiting.\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9835}{}\doxysubsection{\texorpdfstring{Auto-\/restart pattern}{Auto-\/restart pattern}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9835}
+{\ttfamily 01\+\_\+start\+\_\+node.\+ps1} is a forever-\/loop that:\+
+
+
+\begin{DoxyEnumerate}
+\item Spawns the EXE with {\ttfamily Start-\/\+Process -\/Pass\+Thru} and redirected stdout/\+stderr.
+\item Calls {\ttfamily Wait\+For\+Exit()}.
+\item On any non-\/clean exit, appends to {\ttfamily crashes.\+log} (timestamp + reason + last 50 stderr lines) and sleeps {\ttfamily -\/Restart\+Delay\+Sec} (default 3 s).
+\item Exits cleanly when {\ttfamily Ctrl+C} flips {\ttfamily \$KEEP\+\_\+\+RUNNING = \$false}.
+\end{DoxyEnumerate}
+
+{\ttfamily 06\+\_\+chaos\+\_\+kill.\+ps1} works in tandem:\+ it picks a random delay between {\ttfamily -\/Min\+Sec} and {\ttfamily -\/Max\+Sec}, then {\ttfamily Get-\/\+Process omnibus-\/node \texorpdfstring{$\vert$}{|} Kill()}. The supervisor immediately restarts. Compare {\ttfamily kills\+\_\+\texorpdfstring{$\ast$}{*}.\doxylink{namespacelog}{log}} against {\ttfamily crashes.\+log} to see whether every kill produced a clean recovery.\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9836}{}\doxysubsection{\texorpdfstring{Graceful shutdown pattern}{Graceful shutdown pattern}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9836}
+Every script:\+
+
+
+\begin{DoxyItemize}
+\item Sets {\ttfamily \$Error\+Action\+Preference = \textquotesingle{}Continue\textquotesingle{}}.
+\item Declares {\ttfamily \$script:\+STOP = \$false}.
+\item Registers {\ttfamily Console\+Cancel\+Pressed} (or, in {\ttfamily 01\+\_\+start\+\_\+node.\+ps1}, the engine\textquotesingle{}s exit event) to flip {\ttfamily \$STOP = \$true}.
+\item Buffers CSV rows in a small {\ttfamily List\+[string]\+} and flushes either every 50 rows or at exit, so a {\ttfamily Ctrl+C} never leaves a half-\/written line.
+\item The orchestrator additionally calls {\ttfamily Stop-\/\+Job} /\+ {\ttfamily Remove-\/\+Job} on every background job before exiting.
+\end{DoxyItemize}\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9837}{}\doxysubsection{\texorpdfstring{Reading the report}{Reading the report}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9837}
+After a run finishes (or whenever you want a snapshot):\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ .\(\backslash\)report.py\ -\/-\/date\ 2026-\/04-\/25}
+
+\end{DoxyCode}
+
+
+The report includes:\+
+
+
+\begin{DoxyItemize}
+\item Crash count vs chaos-\/kill count with recovery rate.
+\item RPC /\+ EVM /\+ concurrent latency table per method (avg /\+ p95 /\+ p99 /\+ max).
+\item Block production rate (blocks/\+min, blocks/\+hour) + stall detection.
+\item Memory growth verdict ({\ttfamily OK} /\+ {\ttfamily WATCH} /\+ {\ttfamily LIKELY LEAK}) over the run.
+\item Mempool size statistics + injection breakdown.
+\item EVM deploy success/\+failure breakdown.
+\end{DoxyItemize}\hypertarget{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9838}{}\doxysubsection{\texorpdfstring{Disk-\/budget estimate (24 h run)}{Disk-\/budget estimate (24 h run)}}\label{dir_83f5e1458aafc54acfe78504795bdbc1_autotoc_md9838}
+Rough numbers for a default 24 h orchestrator run (RPC port 8332, regtest):\+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Source  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rate  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Per 24 h  \\
+{\ttfamily metrics.\+csv} (10 s tick)  &\texorpdfstring{$\sim$}{\string~}80 B/\+row  &\texorpdfstring{$\sim$}{\string~}0.7 MB  \\
+{\ttfamily block\+\_\+height.\+csv} (2 s tick)  &\texorpdfstring{$\sim$}{\string~}70 B/\+row  &\texorpdfstring{$\sim$}{\string~}3 MB  \\
+{\ttfamily mempool\+\_\+\texorpdfstring{$\ast$}{*}.csv} (20 Hz)  &\texorpdfstring{$\sim$}{\string~}70 B/\+row  &\texorpdfstring{$\sim$}{\string~}115 MB  \\
+{\ttfamily rpc\+\_\+stress\+\_\+\texorpdfstring{$\ast$}{*}.csv} (waves)  &\texorpdfstring{$\sim$}{\string~}110 B/\+row  &\texorpdfstring{$\sim$}{\string~}50-\/150 MB  \\
+{\ttfamily evm\+\_\+stress\+\_\+\texorpdfstring{$\ast$}{*}.csv} (waves)  &\texorpdfstring{$\sim$}{\string~}120 B/\+row  &\texorpdfstring{$\sim$}{\string~}30-\/80 MB  \\
+{\ttfamily concurrent\+\_\+\texorpdfstring{$\ast$}{*}.csv} (waves)  &\texorpdfstring{$\sim$}{\string~}100 B/\+row  &\texorpdfstring{$\sim$}{\string~}20-\/60 MB  \\
+{\ttfamily deploys\+\_\+\texorpdfstring{$\ast$}{*}.csv}  &small  &\texorpdfstring{$\sim$}{\string~}1 MB  \\
+node stdout/\+stderr  &log-\/volume dependent  &50-\/500 MB  \\
+\end{DoxyTable}
+
+
+Plan for \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\texorpdfstring{$\sim$}{\string~}0.5-\/1 GB\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} under {\ttfamily \texorpdfstring{$<$}{<}date\texorpdfstring{$>$}{>}/\+}. Mostly plain CSV/\+text, gzip-\/friendly. 

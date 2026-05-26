@@ -1,0 +1,24 @@
+\doxysection{rop Namespace Reference}
+\hypertarget{namespacerop}{}\label{namespacerop}\index{rop@{rop}}
+
+
+-\/gadget-\/scanner  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/gadget-\/scanner 
+
+\begin{DoxyVerb}rop-gadget-scanner.py — OmniBus BlockChainCore ROP Gadget Scanner
+
+Scan compiled binaries for Return-Oriented Programming (ROP) gadgets:
+  - ret (0xC3) sequences
+  - pop reg + ret combinations
+  - syscall + ret
+  - Stack pivots, write-what-where, arbitrary call gadgets
+
+Pure Python binary analysis, no external dependencies required.
+Compares gadget counts against typical hardened/unhardened thresholds.
+\end{DoxyVerb}
+ 

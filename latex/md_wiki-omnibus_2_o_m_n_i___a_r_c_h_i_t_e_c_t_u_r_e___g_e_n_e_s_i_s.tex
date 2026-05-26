@@ -1,0 +1,1174 @@
+\chapter{Omni\+Bus OMNI — Genesis + Rewards + Sharding + Ada Spark + HDD/\+\+SSD }
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s}{}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s}\index{OmniBus OMNI — Genesis + Rewards + Sharding + Ada Spark + HDD/SSD@{OmniBus OMNI — Genesis + Rewards + Sharding + Ada Spark + HDD/SSD}}
+\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11234}%
+\Hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11234}%
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11235}{}\doxysection{\texorpdfstring{Arhitectura Completă 2026 — Analiză, Statistici, Comparații}{Arhitectura Completă 2026 — Analiză, Statistici, Comparații}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11235}
+\begin{quote}
+{\bfseries{Data:\+}} 2026-\/03-\/26 \texorpdfstring{$\vert$}{|} {\bfseries{Versiune:\+}} 1.\+0 \texorpdfstring{$\vert$}{|} {\bfseries{Status:\+}} Design Final \end{quote}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11237}{}\doxysection{\texorpdfstring{1. PARAMETRII ECONOMICI (ADN-\/\+UL BITCOIN)}{1. PARAMETRII ECONOMICI (ADN-\/\+UL BITCOIN)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11237}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11238}{}\doxysubsection{\texorpdfstring{Constante de Baza}{Constante de Baza}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11238}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Explicatie  \\
+{\bfseries{Total Supply}}  &21,000,000 OMNI  &Fix, identic BTC  \\
+{\bfseries{Block Time}}  &1 secundă  &600× mai rapid ca BTC  \\
+{\bfseries{Micro-\/\+Block Time}}  &0.\+1 secunde (100ms)  &Soft-\/confirmation instant  \\
+{\bfseries{Micro-\/\+Blocks per Block}}  &10  &10 × 0.\+1s = 1 bloc valid  \\
+{\bfseries{Initial Block Reward}}  &0.\+08333333 OMNI/\+bloc  &= 50 OMNI /\+ 600 blocuri (10 min)  \\
+{\bfseries{Initial Reward (SAT)}}  &8,333,333 sat/\+bloc  &9 zecimale:\+ 1 OMNI = 1,000,000,000 sat  \\
+{\bfseries{Halving Interval}}  &126,144,000 blocuri  &= 4 ani × 365.\+25 × 24 × 3600 sec  \\
+{\bfseries{Ultimul Reward}}  &\texorpdfstring{$\sim$}{\string~}\+Anul 2158  &Dupa \texorpdfstring{$\sim$}{\string~}33 halvings  \\
+{\bfseries{Genesis Timestamp}}  &1743000000 (Unix)  &26 Martie 2026  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11239}{}\doxysubsection{\texorpdfstring{Calcul Emisie per 10 Minute (Echivalenta BTC)}{Calcul Emisie per 10 Minute (Echivalenta BTC)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11239}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{BTC:\ \ 1\ bloc\ /\ 10\ min\ ×\ 50\ BTC/bloc\ \ =\ 50\ BTC\ /\ 10\ min}
+\DoxyCodeLine{OMNI:\ 600\ blocuri\ /\ 10\ min\ ×\ 0.08333333\ OMNI/bloc\ =\ 50.00\ OMNI\ /\ 10\ min\ ✓}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11240}{}\doxysubsection{\texorpdfstring{Tabel Halvings OMNI}{Tabel Halvings OMNI}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11240}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Halving \#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}An Estimat  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Reward/\+bloc (OMNI)  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Reward/\+10min (OMNI)  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Total emis (\%)  \\
+0 (Genesis)  &2026  &0.\+08333333  &50.\+00  &0\%  \\
+1  &2030  &0.\+04166666  &25.\+00  &50\%  \\
+2  &2034  &0.\+02083333  &12.\+50  &75\%  \\
+3  &2038  &0.\+01041666  &6.\+25  &87.\+5\%  \\
+5  &2046  &0.\+00260416  &1.\+5625  &96.\+9\%  \\
+10  &2066  &0.\+00008138  &0.\+049  &99.\+9\%  \\
+33  &2158  &\texorpdfstring{$\sim$}{\string~}0 (sub 1 sat)  &0  &\texorpdfstring{$\sim$}{\string~}100\%  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11241}{}\doxysubsection{\texorpdfstring{Algoritmul de Halving (Zig)}{Algoritmul de Halving (Zig)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11241}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{///\ Block\ reward\ la\ height\ dat\ —\ halving\ la\ fiecare\ 126,144,000\ blocuri}
+\DoxyCodeLine{pub\ const\ BLOCK\_REWARD\_SAT:\ u64\ =\ 8\_333\_333;\ //\ 0.08333333\ OMNI\ in\ sat\ (9\ dec)}
+\DoxyCodeLine{pub\ const\ HALVING\_INTERVAL:\ u64\ =\ 126\_144\_000;\ //\ 4\ ani\ de\ blocuri\ de\ 1s}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ blockRewardAt(height:\ u64)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ const\ halvings\ =\ height\ /\ HALVING\_INTERVAL;}
+\DoxyCodeLine{\ \ \ \ if\ (halvings\ >=\ 64)\ return\ 0;}
+\DoxyCodeLine{\ \ \ \ return\ BLOCK\_REWARD\_SAT\ >>\ @intCast(halvings);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11242}{}\doxysubsection{\texorpdfstring{Algoritm Halving (Ada Spark — Verificare Formala)}{Algoritm Halving (Ada Spark — Verificare Formala)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11242}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/-\/\ Invariant:\ reward\ nu\ poate\ depasi\ emisia\ maxima}
+\DoxyCodeLine{procedure\ Get\_Block\_Reward\ (Height\ :\ Block\_Height;\ Reward\ :\ out\ OMNI\_SAT)}
+\DoxyCodeLine{\ \ with\ Post\ =>\ Reward\ <=\ 8\_333\_333}
+\DoxyCodeLine{\ \ \ \ and\ Reward\ >=\ 0;}
+\DoxyCodeLine{begin}
+\DoxyCodeLine{\ \ \ declare}
+\DoxyCodeLine{\ \ \ \ \ \ Halvings\ :\ constant\ Natural\ :=\ Natural(Height\ /\ 126\_144\_000);}
+\DoxyCodeLine{\ \ \ begin}
+\DoxyCodeLine{\ \ \ \ \ \ if\ Halvings\ >=\ 64\ then}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ Reward\ :=\ 0;}
+\DoxyCodeLine{\ \ \ \ \ \ else}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ Reward\ :=\ 8\_333\_333\ /\ (2\ **\ Halvings);\ -\/-\/\ Shift\ right}
+\DoxyCodeLine{\ \ \ \ \ \ end\ if;}
+\DoxyCodeLine{\ \ \ end;}
+\DoxyCodeLine{end\ Get\_Block\_Reward;}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11244}{}\doxysection{\texorpdfstring{2. GENESIS BLOCK — CONFIGURATIE COMPLETA}{2. GENESIS BLOCK — CONFIGURATIE COMPLETA}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11244}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11245}{}\doxysubsection{\texorpdfstring{Structura Genesis}{Structura Genesis}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11245}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Genesis\ Block\ \#0}
+\DoxyCodeLine{├──\ Index:\ \ \ \ \ \ \ \ \ 0}
+\DoxyCodeLine{├──\ Timestamp:\ \ \ \ \ 1743000000\ (26\ Mar\ 2026,\ ora\ 00:00:00\ UTC)}
+\DoxyCodeLine{├──\ Previous\ Hash:\ "{}0000000000000000000000000000000000000000000000000000000000000000"{}}
+\DoxyCodeLine{├──\ Merkle\ Root:\ \ \ SHA256("{}OmniBus\ Genesis\ —\ 1s\ blocks\ —\ 21M\ supply\ —\ Ada\ Spark"{})}
+\DoxyCodeLine{├──\ Nonce:\ \ \ \ \ \ \ \ \ 0\ (genesis\ nu\ necesita\ PoW)}
+\DoxyCodeLine{├──\ Hash:\ \ \ \ \ \ \ \ \ \ "{}genesis\_omnibus\_v1\_2026"{}}
+\DoxyCodeLine{├──\ Reward:\ \ \ \ \ \ \ \ 8,333,333\ SAT\ (0.08333333\ OMNI)}
+\DoxyCodeLine{└──\ pszTimestamp:\ \ "{}26/Mar/2026\ OmniBus\ born\ —\ 600×\ faster\ than\ Bitcoin\ —\ Ada\ Spark\ verified"{}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11246}{}\doxysubsection{\texorpdfstring{Genesis Message (Embedded in Chain)}{Genesis Message (Embedded in Chain)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11246}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{"{}The\ Times\ 26/Mar/2026:\ OmniBus\ —\ Bitcoin\ economics\ at\ Visa\ speed.}
+\DoxyCodeLine{\ 1\ block\ per\ second.\ 21\ million\ OMNI.\ Ada\ Spark\ verified.}
+\DoxyCodeLine{\ ob\_omni\_\ —\ the\ first\ post-\/quantum\ Bitcoin-\/compatible\ chain."{}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11247}{}\doxysubsection{\texorpdfstring{Coinbase (Fondatori) — Optional}{Coinbase (Fondatori) — Optional}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11247}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Adresa  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Suma  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scop  \\
+{\ttfamily ob\+\_\+omni\+\_\+\+Foundation...}  &0 OMNI  &Nicio pre-\/minare (fair launch)  \\
+\end{DoxyTable}
+
+
+\begin{quote}
+{\bfseries{Design decision:\+}} Fair Launch complet — nicio moneda pre-\/minata, ca Bitcoin original. \end{quote}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11249}{}\doxysection{\texorpdfstring{3. STRUCTURA MICRO-\/\+BLOCKS + KEY-\/\+BLOCKS}{3. STRUCTURA MICRO-\/\+BLOCKS + KEY-\/\+BLOCKS}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11249}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11250}{}\doxysubsection{\texorpdfstring{Flux Temporal (0.\+1s → 1s → ...)}{Flux Temporal (0.\+1s → 1s → ...)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11250}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{t=0.0s\ \ [Micro-\/Block\ \#0]\ 100ms\ →\ validat\ de\ Shard\ Leaders}
+\DoxyCodeLine{t=0.1s\ \ [Micro-\/Block\ \#1]\ 100ms\ →\ BLS\ semnatura\ agregata}
+\DoxyCodeLine{t=0.2s\ \ [Micro-\/Block\ \#2]\ 100ms}
+\DoxyCodeLine{...}
+\DoxyCodeLine{t=0.9s\ \ [Micro-\/Block\ \#9]\ 100ms}
+\DoxyCodeLine{t=1.0s\ \ [KEY-\/BLOCK\ \#N]\ \ ←\ agregarea\ celor\ 10\ micro-\/blocuri\ →\ scris\ in\ ledger}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{\ \ \ \ Reward:\ 8,333,333\ SAT\ →\ distribuit\ validatorilor}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11251}{}\doxysubsection{\texorpdfstring{Header Micro-\/\+Block (Binary, 119 bytes)}{Header Micro-\/\+Block (Binary, 119 bytes)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11251}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ Field\ \ \ \ \ \ \ \ \ \ \ \ │\ Type\ \ \ \ \ \ \ \ │\ Size\ \ │\ Description\ │}
+\DoxyCodeLine{├──────────────────┼─────────────┼───────┼─────────────┤}
+\DoxyCodeLine{│\ Prev\_Micro\_Hash\ \ │\ Hash256\ \ \ \ \ │\ 32\ B\ \ │\ Hash\ -\/0.1s\ \ │}
+\DoxyCodeLine{│\ Merkle\_Root\_Tiny\ │\ Hash256\ \ \ \ \ │\ 32\ B\ \ │\ TX\ merkle\ \ \ │}
+\DoxyCodeLine{│\ Timestamp\_ms\ \ \ \ \ │\ Uint64\ \ \ \ \ \ │\ \ 8\ B\ \ │\ Unix\ ms\ \ \ \ \ │}
+\DoxyCodeLine{│\ Micro\_Index\ \ \ \ \ \ │\ Uint8(0-\/9)\ \ │\ \ 1\ B\ \ │\ Pozitie\ \ \ \ \ │}
+\DoxyCodeLine{│\ Shard\_ID\ \ \ \ \ \ \ \ \ │\ Uint16\ \ \ \ \ \ │\ \ 2\ B\ \ │\ ID\ shard\ \ \ \ │}
+\DoxyCodeLine{│\ Validator\_ID\ \ \ \ \ │\ Uint16\ \ \ \ \ \ │\ \ 2\ B\ \ │\ ID\ validator│}
+\DoxyCodeLine{│\ BLS\_Sig\_Agg\ \ \ \ \ \ │\ BLS48\ \ \ \ \ \ \ │\ 48\ B\ \ │\ Sem.\ agreg.\ │}
+\DoxyCodeLine{├──────────────────┼─────────────┼───────┼─────────────┤}
+\DoxyCodeLine{│\ TOTAL\ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ │\ 125\ B\ │\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11252}{}\doxysubsection{\texorpdfstring{Header Key-\/\+Block (Binary, \texorpdfstring{$\sim$}{\string~}208 bytes)}{Header Key-\/\+Block (Binary, \texorpdfstring{$\sim$}{\string~}208 bytes)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11252}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ Field\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ Type\ \ \ \ │\ Size\ \ │\ Description\ \ \ \ \ \ \ │}
+\DoxyCodeLine{├────────────────────┼─────────┼───────┼───────────────────┤}
+\DoxyCodeLine{│\ Index\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ Uint64\ \ │\ \ 8\ B\ \ │\ Numar\ bloc\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Timestamp\ \ \ \ \ \ \ \ \ \ │\ Uint64\ \ │\ \ 8\ B\ \ │\ Unix\ seconds\ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Prev\_Key\_Hash\ \ \ \ \ \ │\ Hash256\ │\ 32\ B\ \ │\ Hash\ bloc\ anterior│}
+\DoxyCodeLine{│\ Merkle\_Micro\_Root\ \ │\ Hash256\ │\ 32\ B\ \ │\ Hash\ 10\ micro-\/b.\ \ │}
+\DoxyCodeLine{│\ State\_Root\ \ \ \ \ \ \ \ \ │\ Hash256\ │\ 32\ B\ \ │\ State\ Trie\ root\ \ \ │}
+\DoxyCodeLine{│\ Tx\_Root\ \ \ \ \ \ \ \ \ \ \ \ │\ Hash256\ │\ 32\ B\ \ │\ Merkle\ TX\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Nonce\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ Uint64\ \ │\ \ 8\ B\ \ │\ PoS\ nonce\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Difficulty\ \ \ \ \ \ \ \ \ │\ Uint32\ \ │\ \ 4\ B\ \ │\ DGW\ difficulty\ \ \ \ │}
+\DoxyCodeLine{│\ Reward\_SAT\ \ \ \ \ \ \ \ \ │\ Uint64\ \ │\ \ 8\ B\ \ │\ Reward\ calculat\ \ \ │}
+\DoxyCodeLine{│\ Validator\_BLS\ \ \ \ \ \ │\ BLS48\ \ \ │\ 48\ B\ \ │\ BLS\ semnatura\ fin.│}
+\DoxyCodeLine{├────────────────────┼─────────┼───────┼───────────────────┤}
+\DoxyCodeLine{│\ TOTAL\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ │\ 212\ B\ │\ \string~0.2\ KB/bloc\ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11254}{}\doxysection{\texorpdfstring{4. STRUCTURA TRANZACTIEI BINARE (SBOT)}{4. STRUCTURA TRANZACTIEI BINARE (SBOT)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11254}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11255}{}\doxysubsection{\texorpdfstring{Standard Binary OMNI Transaction (SBOT) — 117 bytes}{Standard Binary OMNI Transaction (SBOT) — 117 bytes}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11255}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Bit\ Layout:}
+\DoxyCodeLine{\ 0-\/3\ \ \ \ :\ Version/Type\ \ \ (4\ bits)\ \ \ —\ 0=transfer,\ 1=stake,\ 2=crossShard,\ 3=PQ}
+\DoxyCodeLine{\ 4\ \ \ \ \ \ :\ Non-\/transferable\ flag\ (1\ bit)\ —\ 1=domeniu\ PQ\ lock}
+\DoxyCodeLine{\ 5-\/7\ \ \ \ :\ Reserved\ \ \ \ \ \ \ (3\ bits)}
+\DoxyCodeLine{\ 8-\/167\ \ :\ Sender\_Hash160\ (160\ bits\ =\ 20\ bytes)\ —\ RIPEMD160(SHA256(pubkey))}
+\DoxyCodeLine{168-\/327\ :\ Receiver\_Hash160(160\ bits\ =\ 20\ bytes)}
+\DoxyCodeLine{328-\/391\ :\ Amount\_SAT\ \ \ \ \ (64\ bits)\ \ —\ max\ 1.8×10\string^19\ SAT}
+\DoxyCodeLine{392-\/423\ :\ Nonce\ \ \ \ \ \ \ \ \ \ (32\ bits)\ \ —\ anti-\/replay}
+\DoxyCodeLine{424-\/431\ :\ Fee\_Premium\ \ \ \ (8\ bits)\ \ \ —\ 0-\/255\ priority}
+\DoxyCodeLine{432-\/443\ :\ Shard\_ID\_From\ \ (12\ bits)\ \ —\ max\ 4096\ shards}
+\DoxyCodeLine{444-\/455\ :\ Shard\_ID\_To\ \ \ \ (12\ bits)}
+\DoxyCodeLine{456-\/967\ :\ Signature\_ED25519\ (512\ bits\ =\ 64\ bytes)\ —\ sau\ BLS\ cu\ agregare}
+\DoxyCodeLine{-\/-\/-\/-\/-\/-\/-\/-\/-\/}
+\DoxyCodeLine{TOTAL\ \ \ :\ 968\ bits\ =\ 121\ bytes\ (cu\ aliniere:\ \string~124\ bytes)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Cu\ BLS\ Aggregation\ (N\ tranzactii\ per\ bloc):}
+\DoxyCodeLine{\ \ Header:\ \ 125\ bytes}
+\DoxyCodeLine{\ \ N\ ×\ 57\ bytes\ (fara\ semnatura\ individuala)}
+\DoxyCodeLine{\ \ +\ 1\ BLS\_Aggregate:\ 48\ bytes\ (pentru\ TOATE\ semnaturille)}
+\DoxyCodeLine{\ \ →\ La\ 1000\ TX:\ 125\ +\ 57,000\ +\ 48\ =\ 57,173\ bytes\ ≈\ 56\ KB}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11256}{}\doxysubsection{\texorpdfstring{Tranzactie cu Indexed Addresses (optimizat, recurent)}{Tranzactie cu Indexed Addresses (optimizat, recurent)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11256}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Daca\ adresa\ apare\ in\ State\ Trie\ cu\ Index\_ID\ (4\ bytes):}
+\DoxyCodeLine{\ \ Standard:\ 20\ bytes\ adresa\ →\ Index:\ 4\ bytes\ (reducere\ 80\%)}
+\DoxyCodeLine{\ \ Tranzactie\ optimizata:\ \string~80\ bytes\ (in\ loc\ de\ 124\ bytes)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11258}{}\doxysection{\texorpdfstring{5. SHARDING — ARHITECTURA EGLD-\/\+STYLE}{5. SHARDING — ARHITECTURA EGLD-\/\+STYLE}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11258}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11259}{}\doxysubsection{\texorpdfstring{Structura Shard-\/urilor}{Structura Shard-\/urilor}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11259}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ METACHAIN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ Coordonator\ global\ —\ finalizeaza\ Key-\/Blocks\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ State\ Root\ agregat\ —\ Cross-\/Shard\ communication\ \ \ \ \ \ │}
+\DoxyCodeLine{└───────────┬────────────┬────────────┬──────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ ┌─────▼─────┐\ ┌────▼─────┐\ ┌───▼──────┐}
+\DoxyCodeLine{\ \ \ \ \ \ │\ \ SHARD\ 0\ \ │\ │\ \ SHARD\ 1\ │\ │\ \ SHARD\ 2\ │\ \ ...\ N\ shards}
+\DoxyCodeLine{\ \ \ \ \ \ │\ 2000\ TPS\ \ │\ │\ 2000\ TPS\ │\ │\ 2000\ TPS\ │}
+\DoxyCodeLine{\ \ \ \ \ \ │\ ob\_omni\_\ \ │\ │\ \ ob\_k1\_\ \ │\ │\ \ ob\_f5\_\ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ └───────────┘\ └──────────┘\ └──────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ Total:\ N\ ×\ 2000\ TPS\ (scalare\ infinita)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11260}{}\doxysubsection{\texorpdfstring{Distribuirea Domeniilor PQ pe Shards}{Distribuirea Domeniilor PQ pe Shards}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11260}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Shard  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Domeniu  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prefix  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coin Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Algoritm  \\
+0  &omnibus.\+omni  &{\ttfamily ob1q} (Bech32)  &777  &TRANSFERABIL  &ML-\/\+KEM/\+\+Kyber-\/768 + secp256k1  \\
+1  &omnibus.\+love  &{\ttfamily ob\+\_\+k1\+\_\+}  &778  &NON-\/\+TRANSFERABIL  &ML-\/\+DSA/\+\+Dilithium-\/5  \\
+2  &omnibus.\+food  &{\ttfamily ob\+\_\+f5\+\_\+}  &779  &NON-\/\+TRANSFERABIL  &Falcon-\/512  \\
+3  &omnibus.\+rent  &{\ttfamily ob\+\_\+d5\+\_\+}  &780  &NON-\/\+TRANSFERABIL  &SLH-\/\+DSA/\+\+SPHINCS+  \\
+4  &omnibus.\+vacation  &{\ttfamily ob\+\_\+s3\+\_\+}  &781  &NON-\/\+TRANSFERABIL  &Falcon-\/\+Light/\+\+AES-\/128  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11261}{}\doxysubsection{\texorpdfstring{Non-\/\+Transferabil — Cum Functioneaza}{Non-\/\+Transferabil — Cum Functioneaza}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11261}
+Domeniile 778-\/781 sunt {\bfseries{infinite si non-\/transferabile}}:\+
+\begin{DoxyItemize}
+\item Nu pot fi trimise de la o adresa la alta (locked la owner)
+\item Pot fi {\bfseries{delegate}} (staking, voting, identity proof)
+\item Sunt utilizate pentru {\bfseries{reputatie, identitate, acces}} — nu pentru valoare financiara
+\item Reward-\/urile din aceste domenii vin exclusiv din {\bfseries{fees de servicii}} (nu mining)
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ob\_omni\_\ →\ TRANSFERABIL\ →\ Tranzactii\ financiare\ (ca\ BTC)}
+\DoxyCodeLine{ob\_k1\_\ \ \ →\ NON-\/TRANSFERABIL\ →\ Identitate\ digitala,\ semnatura\ legala}
+\DoxyCodeLine{ob\_f5\_\ \ \ →\ NON-\/TRANSFERABIL\ →\ Acces\ servicii\ food/restaurant}
+\DoxyCodeLine{ob\_d5\_\ \ \ →\ NON-\/TRANSFERABIL\ →\ Contract\ chirie\ (on-\/chain\ legal)}
+\DoxyCodeLine{ob\_s3\_\ \ \ →\ NON-\/TRANSFERABIL\ →\ Voucher\ vacanta,\ loialitate}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11262}{}\doxysubsection{\texorpdfstring{Distributia Recompenselor (Rewards)}{Distributia Recompenselor (Rewards)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11262}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Block\ Reward\ Total:\ 8,333,333\ SAT\ (0.08333333\ OMNI)}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Distributie\ recomandata:}
+\DoxyCodeLine{\ \ ├──\ 70\%\ →\ Mineri/Validatori\ (5,833,333\ SAT)\ —\ securitate\ retea}
+\DoxyCodeLine{\ \ ├──\ 20\%\ →\ Treasury\ DAO\ (1,666,666\ SAT)\ —\ dezvoltare\ ecosistem}
+\DoxyCodeLine{\ \ └──\ 10\%\ →\ Stakers\ non-\/transferabili\ (833,333\ SAT)\ —\ incurajare\ domenii\ PQ}
+\DoxyCodeLine{}
+\DoxyCodeLine{Domeniile\ non-\/transferabile\ (ob\_k1\_,\ ob\_f5\_,\ ob\_d5\_,\ ob\_s3\_):}
+\DoxyCodeLine{\ \ →\ Primesc\ fees\ din\ tranzactii\ servicii\ (nu\ reward\ direct)}
+\DoxyCodeLine{\ \ →\ Fees:\ 0.001-\/0.01\ OMNI\ per\ utilizare\ serviciu}
+\DoxyCodeLine{\ \ →\ Cu\ 10,000\ utilizatori\ activi/zi:\ \string~100-\/1000\ OMNI/zi\ din\ fees}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11263}{}\doxysubsection{\texorpdfstring{Cross-\/\+Shard Communication}{Cross-\/\+Shard Communication}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11263}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Tranzactie\ Cross-\/Shard\ (ex:\ Shard\ 0\ →\ Shard\ 2):}
+\DoxyCodeLine{\ \ t=0.0s:\ TX\ initiata\ in\ Shard\ 0\ (micro-\/block\ \#0)}
+\DoxyCodeLine{\ \ t=0.1s:\ Shard\ 0\ trimite\ "{}Cross-\/Shard\ Receipt"{}\ catre\ Metachain}
+\DoxyCodeLine{\ \ t=0.5s:\ Metachain\ valideaza\ si\ notifica\ Shard\ 2}
+\DoxyCodeLine{\ \ t=1.0s:\ TX\ finalizata\ in\ Key-\/Block\ (ambele\ shards\ confirmate)}
+\DoxyCodeLine{\ \ Latenta\ totala:\ max\ 1\ secunda\ (garantat\ prin\ protocol)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11265}{}\doxysection{\texorpdfstring{6. ADA SPARK OS — VERIFICARE FORMALA}{6. ADA SPARK OS — VERIFICARE FORMALA}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11265}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11266}{}\doxysubsection{\texorpdfstring{Ce Este Ada Spark si De Ce}{Ce Este Ada Spark si De Ce}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11266}
+Ada/\+\+SPARK este folosit in:\+
+\begin{DoxyItemize}
+\item {\bfseries{Aviatia militara}} (F-\/22, Eurofighter)
+\item {\bfseries{Sistemele spatiale}} (ESA, NASA)
+\item {\bfseries{Medicina}} (pacemakers, sisteme critice)
+\end{DoxyItemize}
+
+Proprietati cheie pentru Omni\+Bus:\+
+\begin{DoxyItemize}
+\item {\bfseries{Zero runtime errors}} — garantate matematic
+\item {\bfseries{Formal Verification}} — codul este {\itshape dovedit} corect
+\item {\bfseries{Strong typing}} — imposibil sa confunzi SAT cu OMNI
+\item {\bfseries{SPARK Contracts}} — Pre/\+\+Post conditii verificate la compilare
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11267}{}\doxysubsection{\texorpdfstring{Invarianti Critici Spark}{Invarianti Critici Spark}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11267}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/-\/\ Invariant\ 1:\ Emisia\ totala\ nu\ depaseste\ 21M\ OMNI}
+\DoxyCodeLine{type\ OMNI\_SAT\ is\ range\ 0\ ..\ 21\_000\_000\_000\_000\_000;\ -\/-\/\ 21M\ ×\ 10\string^9\ sat}
+\DoxyCodeLine{}
+\DoxyCodeLine{-\/-\/\ Invariant\ 2:\ Balanpa\ nu\ poate\ fi\ negativa}
+\DoxyCodeLine{procedure\ Transfer\ (From,\ To\ :\ Address;\ Amount\ :\ OMNI\_SAT)}
+\DoxyCodeLine{\ \ with\ Pre\ \ =>\ Balance(From)\ >=\ Amount,}
+\DoxyCodeLine{\ \ \ \ \ \ \ Post\ =>\ Balance(From)\ =\ Balance(From)'Old\ -\/\ Amount}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ and\ Balance(To)\ \ \ =\ Balance(To)'Old\ \ \ +\ Amount;}
+\DoxyCodeLine{-\/-\/\ Spark\ DOVEDESTE\ la\ compilare\ ca\ nu\ exista\ underflow/overflow}
+\DoxyCodeLine{}
+\DoxyCodeLine{-\/-\/\ Invariant\ 3:\ Block\ reward\ respecta\ curba\ de\ halving}
+\DoxyCodeLine{procedure\ Validate\_Reward\ (Height\ :\ Block\_Height;\ Reward\ :\ OMNI\_SAT)}
+\DoxyCodeLine{\ \ with\ Pre\ \ =>\ Reward\ =\ Block\_Reward\_At(Height),}
+\DoxyCodeLine{\ \ \ \ \ \ \ Post\ =>\ Total\_Emitted\ +\ Reward\ <=\ 21\_000\_000\_000\_000\_000;}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11268}{}\doxysubsection{\texorpdfstring{Integrare cu Zig (FFI)}{Integrare cu Zig (FFI)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11268}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Zig\ cheama\ kernel-\/ul\ Ada\ Spark\ prin\ C\ FFI}
+\DoxyCodeLine{extern\ fn\ ada\_validate\_transfer(from:\ [*]const\ u8,\ to:\ [*]const\ u8,\ amount:\ u64)\ bool;}
+\DoxyCodeLine{extern\ fn\ ada\_block\_reward\_at(height:\ u64)\ u64;}
+\DoxyCodeLine{extern\ fn\ ada\_verify\_emission\_invariant(total\_emitted:\ u64)\ bool;}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ validateTransfer(from:\ []const\ u8,\ to:\ []const\ u8,\ amount:\ u64)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ return\ ada\_validate\_transfer(from.ptr,\ to.ptr,\ amount);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11270}{}\doxysection{\texorpdfstring{7. STOCARE BINARA — MINIMIZAREA HDD/\+\+SSD}{7. STOCARE BINARA — MINIMIZAREA HDD/\+\+SSD}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11270}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11271}{}\doxysubsection{\texorpdfstring{Comparatie Formate}{Comparatie Formate}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11271}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Format  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Marime TX  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Marime Header  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Compresie  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+JSON/\+\+Text  &\texorpdfstring{$\sim$}{\string~}500 bytes  &\texorpdfstring{$\sim$}{\string~}2 KB  &1×  &Lizibil, dar enorm  \\
+RLP (Ethereum)  &\texorpdfstring{$\sim$}{\string~}200 bytes  &\texorpdfstring{$\sim$}{\string~}300 bytes  &2.\+5×  &Standard Web3  \\
+Protobuf  &\texorpdfstring{$\sim$}{\string~}150 bytes  &\texorpdfstring{$\sim$}{\string~}200 bytes  &3.\+3×  &Google standard  \\
+{\bfseries{SBOT Binary (OMNI)}}  &\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\texorpdfstring{$\sim$}{\string~}80-\/120 bytes\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}  &\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\texorpdfstring{$\sim$}{\string~}125 bytes\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}  &{\bfseries{4-\/6×}}  &{\bfseries{Custom + BLS}}  \\
+SBOT + BLS Aggregate  &\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\texorpdfstring{$\sim$}{\string~}57 bytes/\+\+TX\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}  &125 bytes global  &{\bfseries{8×}}  &La N TX per bloc  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11272}{}\doxysubsection{\texorpdfstring{Calcul Spatiu pe Disc (1s/\+bloc)}{Calcul Spatiu pe Disc (1s/\+bloc)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11272}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{La\ 1,000\ TPS\ ×\ 100\ bytes/TX\ =\ 100\ KB/s\ =\ 8.64\ GB/zi\ =\ \string~3.1\ TB/an}
+\DoxyCodeLine{La\ 1,000\ TPS\ ×\ 57\ bytes/TX\ (BLS)\ =\ 57\ KB/s\ =\ 4.92\ GB/zi\ =\ \string~1.8\ TB/an}
+\DoxyCodeLine{}
+\DoxyCodeLine{Dupa\ Pruning\ (pastram\ doar\ State\ Root\ +\ ultimele\ 30\ zile):}
+\DoxyCodeLine{\ \ Full\ Archive\ Node:\ 1.8\ TB/an}
+\DoxyCodeLine{\ \ Validator\ Node:\ \ \ \ \string~50\ GB\ total\ (State\ +\ 30\ zile)}
+\DoxyCodeLine{\ \ Light\ Client:\ \ \ \ \ \ \string~100\ MB\ (doar\ headers\ +\ State\ Root)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11273}{}\doxysubsection{\texorpdfstring{Strategii de Reducere Spatiu}{Strategii de Reducere Spatiu}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11273}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11274}{}\doxysubsubsection{\texorpdfstring{A) Epoch Pruning (Recomandat)}{A) Epoch Pruning (Recomandat)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11274}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Epoch\ =\ 24\ ore\ =\ 86,400\ blocuri\ de\ 1s}
+\DoxyCodeLine{\ \ →\ La\ fiecare\ Epoch,\ creeaza\ State\ Snapshot\ binar\ (toate\ balantele)}
+\DoxyCodeLine{\ \ →\ TX-\/urile\ individuale\ din\ epoch\ trecut\ →\ mutat\ in\ Cold\ Storage}
+\DoxyCodeLine{\ \ →\ Validator\ node\ pastreaza\ doar:}
+\DoxyCodeLine{\ \ \ \ \ \ *\ State\ Snapshot\ curent\ (\string~500\ MB\ pentru\ 10M\ adrese)}
+\DoxyCodeLine{\ \ \ \ \ \ *\ Ultimele\ 7\ epoch-\/uri\ (7\ ×\ \string~5\ GB\ ≈\ 35\ GB)}
+\DoxyCodeLine{\ \ \ \ \ \ *\ Headers\ compresate\ (toate,\ \string~212\ bytes\ ×\ 86400\ ×\ 365\ =\ \string~6\ GB/an)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11275}{}\doxysubsubsection{\texorpdfstring{B) ZK-\/\+Proof Compression (Varianta Avansata)}{B) ZK-\/\+Proof Compression (Varianta Avansata)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11275}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Foloseste\ Recursive\ ZK-\/SNARKs\ (stil\ Mina\ Protocol):}
+\DoxyCodeLine{\ \ →\ Un\ singur\ proof\ de\ 22\ KB\ demonstreaza\ validitatea\ INTREGULUI\ blockchain}
+\DoxyCodeLine{\ \ →\ Light\ clients:\ sync\ in\ secunde,\ nu\ zile}
+\DoxyCodeLine{\ \ →\ Tradeoff:\ Generarea\ proof-\/ului\ e\ computationally\ expensive}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11276}{}\doxysubsubsection{\texorpdfstring{C) BLS Signature Aggregation}{C) BLS Signature Aggregation}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11276}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Fara\ BLS:\ 1000\ TX\ ×\ 64\ bytes\ semnatura\ =\ 64,000\ bytes\ per\ bloc}
+\DoxyCodeLine{Cu\ BLS:\ \ \ 1000\ TX\ →\ 1\ semnatura\ de\ 48\ bytes\ =\ 48\ bytes\ per\ bloc}
+\DoxyCodeLine{Economie:\ 63,952\ bytes\ per\ bloc\ =\ 5.52\ GB/zi\ la\ 1000\ TPS}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11277}{}\doxysubsubsection{\texorpdfstring{D) Compact Block Headers (DGW)}{D) Compact Block Headers (DGW)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11277}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Dark\ Gravity\ Wave\ difficulty\ adjustment:}
+\DoxyCodeLine{\ \ →\ Ajustare\ la\ fiecare\ bloc\ (nu\ la\ fiecare\ 2016\ blocuri\ ca\ BTC)}
+\DoxyCodeLine{\ \ →\ Header\ contine\ doar:\ difficulty\_target\ (4\ bytes)\ in\ loc\ de\ full\ calculation}
+\DoxyCodeLine{\ \ →\ Economie:\ neglijabila\ per\ bloc,\ dar\ elimina\ calculele\ complexe\ de\ retea}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11278}{}\doxysubsection{\texorpdfstring{Dimensiuni Comparate cu alte Blockchain-\/uri}{Dimensiuni Comparate cu alte Blockchain-\/uri}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11278}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Blockchain  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block Size  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block Time  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Storage/\+\+An  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}TPS Real  \\
+{\bfseries{Bitcoin (BTC)}}  &2-\/4 MB  &10 min  &\texorpdfstring{$\sim$}{\string~}150 GB  &7 TPS  \\
+{\bfseries{Ethereum (ETH)}}  &\texorpdfstring{$\sim$}{\string~}85 KB avg  &12 sec  &\texorpdfstring{$\sim$}{\string~}1.2 TB  &30 TPS  \\
+{\bfseries{Solana (SOL)}}  &\texorpdfstring{$\sim$}{\string~}10 MB  &0.\+4 sec  &\texorpdfstring{$\sim$}{\string~}100 TB  &2,000-\/4,000 TPS  \\
+{\bfseries{MultiversX (EGLD)}}  &\texorpdfstring{$\sim$}{\string~}100 KB  &6 sec  &\texorpdfstring{$\sim$}{\string~}300 GB  &5,000-\/10,000 TPS  \\
+{\bfseries{Nano (XNO)}}  &214 bytes/\+\+TX  &\texorpdfstring{$<$}{<}1 sec  &\texorpdfstring{$<$}{<}1 GB  &\texorpdfstring{$\sim$}{\string~}1,000 TPS  \\
+{\bfseries{Mina (MINA)}}  &22 KB STATE  &3 min  &22 KB (fix!)  &\texorpdfstring{$\sim$}{\string~}22 TPS  \\
+{\bfseries{OMNI (Noi)}}  &\texorpdfstring{$\sim$}{\string~}56-\/125 KB  &{\bfseries{1 sec}}  &\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\texorpdfstring{$\sim$}{\string~}1.8 TB/\+an\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}  &{\bfseries{2,000-\/10,000+ TPS}}  \\
+{\bfseries{OMNI + ZK}}  &22 KB proof  &1 sec  &\texorpdfstring{$\sim$}{\string~}22 KB (Mina-\/style)  &2,000+ TPS  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11280}{}\doxysection{\texorpdfstring{8. COMPARATII PERFORMANTA — STATISTICI}{8. COMPARATII PERFORMANTA — STATISTICI}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11280}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11281}{}\doxysubsection{\texorpdfstring{TPS si Latenta}{TPS si Latenta}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11281}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────┬──────────┬──────────────┬──────────┬────────────────┐}
+\DoxyCodeLine{│\ Retea\ \ \ \ \ \ \ \ \ \ \ │\ TPS\ Real\ │\ TPS\ Teoretic\ │\ Finality\ │\ Cost\ TX\ (USD)\ \ │}
+\DoxyCodeLine{├─────────────────┼──────────┼──────────────┼──────────┼────────────────┤}
+\DoxyCodeLine{│\ Bitcoin\ (BTC)\ \ \ │\ 7\ \ \ \ \ \ \ \ │\ 27\ \ \ \ \ \ \ \ \ \ \ │\ 60\ min\ \ \ │\ \$1-\/50\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Ethereum\ (ETH)\ \ │\ 30\ \ \ \ \ \ \ │\ 100\ \ \ \ \ \ \ \ \ \ │\ 12\ min\ \ \ │\ \$0.1-\/10\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Solana\ (SOL)\ \ \ \ │\ 2,000-\/4K\ │\ 65,000-\/1M\ \ \ \ │\ 0.4-\/12s\ \ │\ \$0.0001\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ MultiversX\ \ \ \ \ \ │\ 10,000\ \ \ │\ 263,000\ \ \ \ \ \ │\ 6\ sec\ \ \ \ │\ \$0.002\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Optimism\ \ \ \ \ \ \ \ │\ 100-\/130\ \ │\ 2,000\ \ \ \ \ \ \ \ │\ 13\ min\ \ \ │\ \$0.001-\/0.01\ \ \ \ │}
+\DoxyCodeLine{│\ Nano\ (XNO)\ \ \ \ \ \ │\ 1,000\ \ \ \ │\ \string~7,000\ \ \ \ \ \ \ │\ <1\ sec\ \ \ │\ \$0.000\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Avalanche\ \ \ \ \ \ \ │\ 4,500\ \ \ \ │\ 6,500\ \ \ \ \ \ \ \ │\ 1-\/2\ sec\ \ │\ \$0.0001\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ **OMNI\ (1\ sh)**\ │**2,000**\ │**10,000**\ \ \ \ │**0.1-\/1s**│**\string~\$0.0001**\ \ \ \ │}
+\DoxyCodeLine{│\ **OMNI\ (5\ sh)**\ │**10,000**│**50,000+**\ \ \ │**0.1-\/1s**│**\string~\$0.00005**\ \ \ │}
+\DoxyCodeLine{│\ **OMNI\ (50\ sh)**│**100K**\ \ │**500,000+**\ \ │**0.1-\/1s**│**\string~\$0.000001**\ \ │}
+\DoxyCodeLine{└─────────────────┴──────────┴──────────────┴──────────┴────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11282}{}\doxysubsection{\texorpdfstring{Securitate (Rezistenta la Atacuri)}{Securitate (Rezistenta la Atacuri)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11282}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Atac  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Ethereum  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Solana  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}{\bfseries{OMNI}}  \\
+51\% Attack  &Scump (PoW)  &Mediu (PoS)  &Concentrat  &{\bfseries{SPoS distribuit}}  \\
+Double Spend  &Dificil (10 min)  &Dificil (12s)  &Posibil teoretic  &{\bfseries{Imposibil (BLS + Spark)}}  \\
+Quantum Attack  &Vulnerabil (ECDSA)  &Vulnerabil  &Vulnerabil  &{\bfseries{Rezistent (PQ domains)}}  \\
+Integer Overflow  &Corectat manual  &Corectat manual  &Vulnerabil  &{\bfseries{Imposibil (Ada Spark)}}  \\
+Inflation Bug  &Manual (patch)  &Manual (patch)  &Manual  &{\bfseries{Formal proof (Spark)}}  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11284}{}\doxysection{\texorpdfstring{9. PROTOCOL P2P — RETEA ULTRA-\/\+RAPIDA}{9. PROTOCOL P2P — RETEA ULTRA-\/\+RAPIDA}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11284}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11285}{}\doxysubsection{\texorpdfstring{Stack de Retea}{Stack de Retea}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11285}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ Application\ Layer:\ OmniBus\ P2P\ Protocol\ \ \ \ │}
+\DoxyCodeLine{│\ \ -\/\ Gossip\ cu\ prioritizare\ Flash/Normal\ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ -\/\ Handshake\ binar\ 4\ bytes\ (Shard+Version)\ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ Transport:\ UDP\ +\ FEC\ (Forward\ Error\ Corr.)\ │}
+\DoxyCodeLine{│\ \ -\/\ Nu\ asteapta\ ACK\ (nu\ blocat\ pe\ retea)\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ -\/\ FEC\ reconstruieste\ pachete\ pierdute\ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ Compact\ Blocks\ (BIP152-\/style)\ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ -\/\ Trimitem\ doar\ TX\ ID-\/urile\ (8\ bytes\ each)\ │}
+\DoxyCodeLine{│\ \ -\/\ Nodurile\ completeaza\ din\ mempool\ local\ \ \ │}
+\DoxyCodeLine{│\ \ -\/\ Reducere\ trafic:\ 90\%\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ Physical:\ Gigabit\ Fiber\ (>200\ Mbps\ req.)\ \ \ │}
+\DoxyCodeLine{│\ \ Miner\ minimum:\ 200\ Mbps\ symmetric\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ Full\ Node\ minimum:\ 100\ Mbps\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ Light\ Client:\ 10\ Mbps\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11286}{}\doxysubsection{\texorpdfstring{Cerinte Hardware (2026)}{Cerinte Hardware (2026)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11286}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip Nod  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}CPU  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}RAM  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}SSD  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Retea  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Cost/\+luna  \\
+Light Client  &Any  &512 MB  &1 GB  &10 Mbps  &\texorpdfstring{$\sim$}{\string~}\$0  \\
+Full Node  &4 core  &8 GB  &500 GB  &100 Mbps  &\texorpdfstring{$\sim$}{\string~}\$20-\/50  \\
+Validator  &8 core  &32 GB  &2 TB NVMe  &1 Gbps  &\texorpdfstring{$\sim$}{\string~}\$100-\/200  \\
+Archive Node  &16 core  &64 GB  &10 TB  &10 Gbps  &\texorpdfstring{$\sim$}{\string~}\$500  \\
+Miner (1 shard)  &16 core  &64 GB  &2 TB NVMe  &1 Gbps sym  &\texorpdfstring{$\sim$}{\string~}\$200-\/500  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11288}{}\doxysection{\texorpdfstring{10. CONSENSUL SPoS — SELECTIA VALIDATORILOR}{10. CONSENSUL SPoS — SELECTIA VALIDATORILOR}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11288}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11289}{}\doxysubsection{\texorpdfstring{Secure Proof of Stake (SPoS)}{Secure Proof of Stake (SPoS)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11289}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{La\ fiecare\ micro-\/bloc\ de\ 0.1s,\ protocolul:}
+\DoxyCodeLine{\ \ 1.\ Selecteaza\ ALEATOR\ un\ Validator\ din\ pool\ (VRF\ —\ Verifiable\ Random\ Function)}
+\DoxyCodeLine{\ \ 2.\ Validatorul\ semneaza\ micro-\/blocul\ cu\ cheia\ sa\ BLS}
+\DoxyCodeLine{\ \ 3.\ Ceilalti\ validatori\ din\ Shard\ verifica\ in\ paralel}
+\DoxyCodeLine{\ \ 4.\ BLS\ Aggregate:\ semnatura\ finala\ de\ 48\ bytes}
+\DoxyCodeLine{\ \ 5.\ La\ 1.0s:\ Metachain\ finalizeaza\ Key-\/Block}
+\DoxyCodeLine{}
+\DoxyCodeLine{Conditii\ pentru\ a\ deveni\ Validator:}
+\DoxyCodeLine{\ \ -\/\ Minim\ 100\ OMNI\ staked\ (din\ domeniu\ ob\_omni\_)}
+\DoxyCodeLine{\ \ -\/\ Uptime\ >\ 99.9\%\ (penalizare:\ slashing)}
+\DoxyCodeLine{\ \ -\/\ Hardware:\ Validator\ tier\ (tabel\ de\ mai\ sus)}
+\DoxyCodeLine{\ \ -\/\ KYC\ optional\ (pentru\ validatori\ institutionali)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11290}{}\doxysubsection{\texorpdfstring{Distributia Reward-\/urilor (Detaliata)}{Distributia Reward-\/urilor (Detaliata)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11290}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Block\ Reward:\ 8,333,333\ SAT\ (0.08333333\ OMNI)\ per\ bloc\ de\ 1s}
+\DoxyCodeLine{\ \ │}
+\DoxyCodeLine{\ \ ├──\ 70\%\ =\ 5,833,333\ SAT\ →\ Validatori\ activi\ in\ bloc}
+\DoxyCodeLine{\ \ │\ \ \ \ \ ├──\ 60\%\ →\ Lead\ Validator\ (a\ semnat\ Key-\/Block)}
+\DoxyCodeLine{\ \ │\ \ \ \ \ └──\ 40\%\ →\ Ceilalti\ validatori\ (proportional\ cu\ stake)}
+\DoxyCodeLine{\ \ │}
+\DoxyCodeLine{\ \ ├──\ 20\%\ =\ 1,666,666\ SAT\ →\ Treasury\ DAO}
+\DoxyCodeLine{\ \ │\ \ \ \ \ ├──\ 50\%\ →\ Development\ Fund}
+\DoxyCodeLine{\ \ │\ \ \ \ \ ├──\ 30\%\ →\ Security\ Audits}
+\DoxyCodeLine{\ \ │\ \ \ \ \ └──\ 20\%\ →\ Marketing/Ecosystem}
+\DoxyCodeLine{\ \ │}
+\DoxyCodeLine{\ \ └──\ 10\%\ =\ 833,333\ SAT\ →\ Stakers\ PQ\ Domains\ (non-\/transferabili)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ├──\ ob\_k1\_\ holders:\ 25\%\ din\ 10\%\ =\ 208,333\ SAT}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ├──\ ob\_f5\_\ holders:\ 25\%\ din\ 10\%\ =\ 208,333\ SAT}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ├──\ ob\_d5\_\ holders:\ 25\%\ din\ 10\%\ =\ 208,333\ SAT}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ └──\ ob\_s3\_\ holders:\ 25\%\ din\ 10\%\ =\ 208,333\ SAT}
+\DoxyCodeLine{}
+\DoxyCodeLine{La\ 10,000\ blocuri/zi\ ×\ 8,333,333\ SAT\ =\ 83.33\ OMNI/zi\ (toata\ reteaua)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11292}{}\doxysection{\texorpdfstring{11. BLOCKCHAIN SIZE — CEL MAI MIC POSIBIL}{11. BLOCKCHAIN SIZE — CEL MAI MIC POSIBIL}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11292}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11293}{}\doxysubsection{\texorpdfstring{Tehnici de Minimizare (Ranking)}{Tehnici de Minimizare (Ranking)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11293}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{BLS Signature Aggregation}} — Elimina 99.\+9\% din spatiul semnaturii
+\item {\bfseries{Indexed Addresses}} — Adresa 20→4 bytes pentru useri recurenti
+\item {\bfseries{Binary Packing}} — Fara JSON/\+text, fara padding
+\item {\bfseries{Epoch Pruning}} — Stocam snapshot, nu istoricul complet
+\item {\bfseries{Compact Blocks}} — Propagare:\+ TX ID in loc de TX completa
+\item {\bfseries{State Trie (MPT)}} — Stocam State Root (32 bytes), nu starea completa
+\item {\bfseries{ZK-\/\+Proofs}} (optional, viitor) — Intregul blockchain = 22 KB proof
+\end{DoxyEnumerate}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11294}{}\doxysubsection{\texorpdfstring{Dimensiunea Minima Teoretica a unui Bloc OMNI}{Dimensiunea Minima Teoretica a unui Bloc OMNI}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11294}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Header\ minim:\ 212\ bytes}
+\DoxyCodeLine{TX-\/uri:\ N\ ×\ 57\ bytes\ (cu\ BLS\ agg.)}
+\DoxyCodeLine{BLS\ Aggregate:\ 48\ bytes\ (pentru\ toate\ semnaturle\ TX)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Bloc\ gol\ (fara\ TX):\ 212\ bytes\ ≈\ 0.2\ KB}
+\DoxyCodeLine{Bloc\ cu\ 100\ TX:\ \ \ \ \ 212\ +\ 100×57\ +\ 48\ =\ 5,960\ bytes\ ≈\ 5.8\ KB}
+\DoxyCodeLine{Bloc\ cu\ 1000\ TX:\ \ \ \ 212\ +\ 1000×57\ +\ 48\ =\ 57,260\ bytes\ ≈\ 56\ KB}
+\DoxyCodeLine{Bloc\ cu\ 10,000\ TX:\ \ 212\ +\ 10000×57\ +\ 48\ =\ 570,260\ bytes\ ≈\ 557\ KB}
+\DoxyCodeLine{}
+\DoxyCodeLine{Comparatie\ cu\ Bitcoin:}
+\DoxyCodeLine{\ \ BTC\ bloc\ plin\ (3000\ TX):\ \string~1,500,000\ bytes\ =\ 1.5\ MB}
+\DoxyCodeLine{\ \ OMNI\ bloc\ plin\ (3000\ TX):\ 212\ +\ 3000×57\ =\ 171,212\ bytes\ =\ 0.17\ MB}
+\DoxyCodeLine{\ \ →\ OMNI\ este\ de\ \string~9×\ mai\ eficient\ per\ tranzactie}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11296}{}\doxysection{\texorpdfstring{12. FOAIE DE DRUM (ROADMAP)}{12. FOAIE DE DRUM (ROADMAP)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11296}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11297}{}\doxysubsection{\texorpdfstring{Phase 1 — Genesis (Curent, 2026 Q1-\/\+Q2)}{Phase 1 — Genesis (Curent, 2026 Q1-\/\+Q2)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11297}
+
+\begin{DoxyItemize}
+\item[\DoxyChecked] BIP32/\+39 real cu secp256k1
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Base58\+Check address (identic Python Omnibus\+Wallet)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Block rewards cu halving
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] RPC JSON-\/\+RPC 2.\+0 (port 8332)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Database persistence (omnibus-\/chain.\+dat)
+\item[\DoxyUnchecked] {\bfseries{Fix BLOCK\+\_\+\+REWARD\+\_\+\+SAT la 8,333,333 (0.\+08333333 OMNI)}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Fix HALVING\+\_\+\+INTERVAL la 126,144,000}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Genesis block cu mesaj embedded
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11298}{}\doxysubsection{\texorpdfstring{Phase 2 — Micro-\/\+Blocks + Sharding (2026 Q3-\/\+Q4)}{Phase 2 — Micro-\/\+Blocks + Sharding (2026 Q3-\/\+Q4)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11298}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] sub\+\_\+block.\+zig:\+ micro-\/block de 0.\+1s
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] shard\+\_\+config.\+zig:\+ configuratie shards
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] BLS signature aggregation
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Metachain coordinator
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11299}{}\doxysubsection{\texorpdfstring{Phase 3 — Ada Spark Kernel (2027)}{Phase 3 — Ada Spark Kernel (2027)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11299}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Ada Spark OS module pentru calcule financiare
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] FFI Zig ↔ Ada pentru transfer validation
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Formal proof pentru emisia de 21M
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11300}{}\doxysubsection{\texorpdfstring{Phase 4 — Stocare Avansata (2027)}{Phase 4 — Stocare Avansata (2027)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11300}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Epoch Pruning automat
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Binary codec optimizat (SBOT)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Archive nodes protocol
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11301}{}\doxysubsection{\texorpdfstring{Phase 5 — ZK Integration (2028)}{Phase 5 — ZK Integration (2028)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11301}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] ZK-\/\+SNARK proofs pentru State
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Light client sync in \texorpdfstring{$<$}{<}1 secunda
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Cross-\/chain bridges (ETH, BTC, EGLD)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11303}{}\doxysection{\texorpdfstring{13. CONFIGURATIE RECOMANDATA (GENESIS SETTINGS)}{13. CONFIGURATIE RECOMANDATA (GENESIS SETTINGS)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11303}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11304}{}\doxysubsection{\texorpdfstring{{\ttfamily genesis\+\_\+config.\+json} (Binary echivalent)}{{\ttfamily genesis\+\_\+config.\+json} (Binary echivalent)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11304}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}network"{}:\ "{}omnibus-\/mainnet"{},}
+\DoxyCodeLine{\ \ "{}genesis\_timestamp"{}:\ 1743000000,}
+\DoxyCodeLine{\ \ "{}genesis\_message"{}:\ "{}26/Mar/2026\ OmniBus\ —\ Bitcoin\ economics\ at\ Visa\ speed"{},}
+\DoxyCodeLine{\ \ "{}total\_supply\_sat"{}:\ 21000000000000000,}
+\DoxyCodeLine{\ \ "{}block\_time\_ms"{}:\ 1000,}
+\DoxyCodeLine{\ \ "{}micro\_block\_time\_ms"{}:\ 100,}
+\DoxyCodeLine{\ \ "{}micro\_blocks\_per\_block"{}:\ 10,}
+\DoxyCodeLine{\ \ "{}initial\_reward\_sat"{}:\ 8333333,}
+\DoxyCodeLine{\ \ "{}halving\_interval\_blocks"{}:\ 126144000,}
+\DoxyCodeLine{\ \ "{}max\_halvings"{}:\ 64,}
+\DoxyCodeLine{\ \ "{}difficulty\_algorithm"{}:\ "{}DGW\_v3"{},}
+\DoxyCodeLine{\ \ "{}consensus"{}:\ "{}SPoS\_BLS"{},}
+\DoxyCodeLine{\ \ "{}initial\_shards"{}:\ 1,}
+\DoxyCodeLine{\ \ "{}max\_shards"{}:\ 1024,}
+\DoxyCodeLine{\ \ "{}block\_size\_max\_bytes"{}:\ 1048576,}
+\DoxyCodeLine{\ \ "{}version\_byte"{}:\ "{}0x4F"{},}
+\DoxyCodeLine{\ \ "{}domains"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}omni"{}:\ \ \ \ \ \{"{}coin\_type"{}:\ 777,\ "{}prefix"{}:\ "{}ob1q"{},\ "{}transferable"{}:\ true\},}
+\DoxyCodeLine{\ \ \ \ "{}love"{}:\ \ \ \ \ \{"{}coin\_type"{}:\ 778,\ "{}prefix"{}:\ "{}ob\_k1\_"{},\ \ \ "{}transferable"{}:\ false\},}
+\DoxyCodeLine{\ \ \ \ "{}food"{}:\ \ \ \ \ \{"{}coin\_type"{}:\ 779,\ "{}prefix"{}:\ "{}ob\_f5\_"{},\ \ \ "{}transferable"{}:\ false\},}
+\DoxyCodeLine{\ \ \ \ "{}rent"{}:\ \ \ \ \ \{"{}coin\_type"{}:\ 780,\ "{}prefix"{}:\ "{}ob\_d5\_"{},\ \ \ "{}transferable"{}:\ false\},}
+\DoxyCodeLine{\ \ \ \ "{}vacation"{}:\ \{"{}coin\_type"{}:\ 781,\ "{}prefix"{}:\ "{}ob\_s3\_"{},\ \ \ "{}transferable"{}:\ false\}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11306}{}\doxysection{\texorpdfstring{14. CONCLUZII SI AVANTAJE COMPETITIVE}{14. CONCLUZII SI AVANTAJE COMPETITIVE}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11306}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmniBus\ OMNI\ vs.\ Lumea\ (2026):}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ Economie:\ \ \ \ =\ Bitcoin\ (21M,\ halving,\ deflationar)}
+\DoxyCodeLine{\ \ Viteza:\ \ \ \ \ \ >\ EGLD\ (0.1s\ vs\ 6s\ soft\ finality)}
+\DoxyCodeLine{\ \ Securitate:\ \ >\ Solana\ (Ada\ Spark\ vs\ Rust,\ formal\ proof)}
+\DoxyCodeLine{\ \ Eficienta:\ \ \ >\ Ethereum\ (9×\ mai\ mic\ per\ TX)}
+\DoxyCodeLine{\ \ Quantum:\ \ \ \ \ >\ Toti\ (PQ\ domains:\ ML-\/KEM,\ ML-\/DSA,\ Falcon,\ SLH-\/DSA)}
+\DoxyCodeLine{\ \ Stocare:\ \ \ \ \ \string~\ Nano\ (57\ bytes/TX\ vs\ 214\ bytes/TX)}
+\DoxyCodeLine{\ \ Matematica:\ \ >\ Toti\ (Ada\ Spark\ formal\ verification\ —\ UNIC\ in\ industrie)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ Rezumat:\ "{}Bitcoin-\/ul\ instant,\ cu\ matematica\ din\ aviatia\ militara}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ si\ rezistenta\ post-\/quantica\ nativa."{}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11308}{}\doxysection{\texorpdfstring{15. BYZANTINE FAULT TOLERANCE (BFT) — VALIDATORI SI MINERI}{15. BYZANTINE FAULT TOLERANCE (BFT) — VALIDATORI SI MINERI}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11308}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11309}{}\doxysubsection{\texorpdfstring{Ce Este Byzantine Fault Tolerance}{Ce Este Byzantine Fault Tolerance}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11309}
+Un validator {\bfseries{Byzantine}} este un nod care:\+
+\begin{DoxyItemize}
+\item Trimite date false (minte intentionat)
+\item Trimite mesaje diferite catre noduri diferite
+\item Nu raspunde (crash sau atac DoS)
+\item Incearca sa valideze blocuri invalide pentru profit
+\end{DoxyItemize}
+
+{\bfseries{Teorema BFT:\+}} O retea cu {\ttfamily N} validatori tolereaza {\ttfamily f} validatori Byzantine dacă:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{N\ >=\ 3f\ +\ 1}
+
+\end{DoxyCode}
+ Exemplu OMNI:\+ 7 validatori/\+shard → tolereaza 2 Byzantine simultan.\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11310}{}\doxysubsection{\texorpdfstring{Algoritmul PBFT Adaptat pentru OMNI (0.\+1s micro-\/blocks)}{Algoritmul PBFT Adaptat pentru OMNI (0.\+1s micro-\/blocks)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11310}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Faza\ 1\ —\ PRE-\/PREPARE\ (0.00s\ -\/\ 0.02s):}
+\DoxyCodeLine{\ \ Lead\ Validator\ trimite\ micro-\/block\ propus\ →\ toti\ ceilalti}
+\DoxyCodeLine{}
+\DoxyCodeLine{Faza\ 2\ —\ PREPARE\ (0.02s\ -\/\ 0.06s):}
+\DoxyCodeLine{\ \ Fiecare\ validator\ verifica\ micro-\/block-\/ul}
+\DoxyCodeLine{\ \ Trimite\ PREPARE\ message\ semnat\ cu\ BLS}
+\DoxyCodeLine{\ \ Asteapta\ 2f+1\ =\ 5\ PREPARE-\/uri\ (din\ 7)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Faza\ 3\ —\ COMMIT\ (0.06s\ -\/\ 0.09s):}
+\DoxyCodeLine{\ \ Cine\ a\ primit\ 5\ PREPARE-\/uri\ trimite\ COMMIT\ semnat}
+\DoxyCodeLine{\ \ Asteapta\ 2f+1\ =\ 5\ COMMIT-\/uri}
+\DoxyCodeLine{}
+\DoxyCodeLine{Faza\ 4\ —\ FINALIZE\ (0.09s\ -\/\ 0.10s):}
+\DoxyCodeLine{\ \ BLS\ Aggregate:\ 5\ semnături\ →\ 1\ semnatura\ de\ 48\ bytes}
+\DoxyCodeLine{\ \ Micro-\/block\ FINALIZAT\ →\ Metachain}
+\DoxyCodeLine{}
+\DoxyCodeLine{Daca\ Lead\ Validator\ e\ Byzantine\ →\ VIEW\ CHANGE\ automat:}
+\DoxyCodeLine{\ \ Ceilalti\ detecteaza\ timeout\ (>30ms\ fara\ PRE-\/PREPARE)}
+\DoxyCodeLine{\ \ Voteaza\ View\ Change\ →\ noul\ Lead\ e\ urmatorul\ in\ rotatie}
+\DoxyCodeLine{\ \ Latenta\ adaugata:\ max\ +30ms\ (tot\ sub\ 100ms\ total)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11311}{}\doxysubsection{\texorpdfstring{Diagrama BFT per Micro-\/\+Block}{Diagrama BFT per Micro-\/\+Block}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11311}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ t=0ms\ \ \ \ Lead\ Validator\ (V1)\ →\ PRE-\/PREPARE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ ┌──────────────────────────────────────┐\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ │\ \ [V1]──►[V2][V3][V4][V5][V6][V7]\ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ └──────────────────────────────────────┘\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ t=20ms\ \ \ PREPARE\ (fiecare\ validator\ verifica):\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ V2✓\ V3✓\ V4✗(Byzantine!)\ V5✓\ V6✓\ V7✓\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ →\ 5\ PREPARE\ valide\ din\ 6\ (suficient:\ 2f+1=5)\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ t=60ms\ \ \ COMMIT:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ V1✓\ V2✓\ V3✓\ V5✓\ V6✓\ V7✓\ →\ BLS\ Aggregate\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ V4\ ignorat\ (Byzantine)\ →\ SLASHING\ TRIGGER\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ t=100ms\ \ MICRO-\/BLOCK\ FINALIZAT\ ✓\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ V4\ →\ penalizat:\ -\/X\%\ stake\ (slashing)\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11312}{}\doxysubsection{\texorpdfstring{Ada Spark — Formal Proof pentru BFT}{Ada Spark — Formal Proof pentru BFT}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11312}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/-\/\ Invariant:\ consensus\ e\ atins\ doar\ cu\ >=\ 2f+1\ voturi\ valide}
+\DoxyCodeLine{procedure\ Finalize\_Micro\_Block\ (}
+\DoxyCodeLine{\ \ \ \ Votes\ \ \ \ \ \ \ :\ Vote\_Array;}
+\DoxyCodeLine{\ \ \ \ Total\_Nodes\ :\ Positive;}
+\DoxyCodeLine{\ \ \ \ Block\ \ \ \ \ \ \ :\ Micro\_Block\_Type;}
+\DoxyCodeLine{\ \ \ \ Finalized\ \ \ :\ out\ Boolean}
+\DoxyCodeLine{)}
+\DoxyCodeLine{\ \ with\ Pre\ \ =>\ Total\_Nodes\ >=\ 4,\ \ -\/-\/\ minim\ 4\ noduri\ pentru\ BFT}
+\DoxyCodeLine{\ \ \ \ \ \ \ Post\ =>\ (if\ Finalized\ then}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Count\_Valid\_Votes(Votes)\ >=\ (2\ *\ (Total\_Nodes\ /\ 3))\ +\ 1);}
+\DoxyCodeLine{-\/-\/\ Spark\ dovedeste:\ daca\ Finalized=True,\ atunci\ chiar\ avem\ quorum}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11314}{}\doxysection{\texorpdfstring{16. ORACLE CU BFT — PRETURI VERIFICATE MATEMATIC}{16. ORACLE CU BFT — PRETURI VERIFICATE MATEMATIC}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11314}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11315}{}\doxysubsection{\texorpdfstring{Problema Oracolului Byzantine}{Problema Oracolului Byzantine}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11315}
+Un oracle care furnizeaza pretul BTC/\+\+OMNI poate:\+
+\begin{DoxyItemize}
+\item Raporta un pret fals pentru profit (front-\/running)
+\item Ceda unui atac (hack al API-\/ului)
+\item Cadea (downtime) si raporta date expirate
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11316}{}\doxysubsection{\texorpdfstring{Arhitectura Oracle Multi-\/\+Sursa cu BFT}{Arhitectura Oracle Multi-\/\+Sursa cu BFT}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11316}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Surse\ de\ pret\ (N=5\ minim):}
+\DoxyCodeLine{\ \ ├──\ LCX\ Exchange\ \ \ \ \ \ \ \ →\ BTC/OMNI:\ \$X1}
+\DoxyCodeLine{\ \ ├──\ Coinbase\ Pro\ \ \ \ \ \ \ \ →\ BTC/OMNI:\ \$X2}
+\DoxyCodeLine{\ \ ├──\ Kraken\ \ \ \ \ \ \ \ \ \ \ \ \ \ →\ BTC/OMNI:\ \$X3}
+\DoxyCodeLine{\ \ ├──\ Binance\ \ \ \ \ \ \ \ \ \ \ \ \ →\ BTC/OMNI:\ \$X4}
+\DoxyCodeLine{\ \ └──\ On-\/chain\ DEX\ OMNI\ \ →\ BTC/OMNI:\ \$X5\ (trustless)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Algoritmul\ Byzantine-\/Tolerant:}
+\DoxyCodeLine{\ \ 1.\ Colecteaza\ N\ preturi\ cu\ timestamp\ (max\ lag:\ 5\ secunde)}
+\DoxyCodeLine{\ \ 2.\ Sorteaza:\ X1\ <\ X2\ <\ X3\ <\ X4\ <\ X5}
+\DoxyCodeLine{\ \ 3.\ Reject\ outliers:\ elimina\ valorile\ >\ 2σ\ de\ la\ medie}
+\DoxyCodeLine{\ \ 4.\ Median\ (X3)\ =\ pretul\ acceptat}
+\DoxyCodeLine{\ \ 5.\ Semneaza\ cu\ BLS\ (5\ oracles\ →\ 1\ semnatura\ de\ 48\ bytes)}
+\DoxyCodeLine{\ \ 6.\ Scrie\ on-\/chain\ in\ State\ Trie\ la\ fiecare\ Key-\/Block\ (1s)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Toleranta:\ pana\ la\ f=2\ oracles\ Byzantine\ (din\ 5)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11317}{}\doxysubsection{\texorpdfstring{Structura Binara Oracle Entry (68 bytes)}{Structura Binara Oracle Entry (68 bytes)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11317}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ Field\ \ \ \ \ \ \ \ \ \ │\ Size\ \ │\ Description\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├────────────────┼───────┼─────────────────────────┤}
+\DoxyCodeLine{│\ Asset\_ID\ \ \ \ \ \ \ │\ \ 2\ B\ \ │\ BTC=1,\ ETH=2,\ OMNI=777\ \ │}
+\DoxyCodeLine{│\ Price\_SAT\ \ \ \ \ \ │\ \ 8\ B\ \ │\ Pret\ in\ SAT\ (uint64)\ \ \ \ │}
+\DoxyCodeLine{│\ Timestamp\_ms\ \ \ │\ \ 8\ B\ \ │\ Unix\ milliseconds\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Source\_Bitmap\ \ │\ \ 1\ B\ \ │\ Bit\ i=1\ daca\ sursa\ i\ OK\ │}
+\DoxyCodeLine{│\ Confidence\ \ \ \ \ │\ \ 1\ B\ \ │\ 0-\/255\ (nr\ surse\ ×\ 51)\ \ \ │}
+\DoxyCodeLine{│\ BLS\_Aggregate\ \ │\ 48\ B\ \ │\ Semnaturi\ agregate\ \ \ \ \ \ │}
+\DoxyCodeLine{├────────────────┼───────┼─────────────────────────┤}
+\DoxyCodeLine{│\ TOTAL\ \ \ \ \ \ \ \ \ \ │\ 68\ B\ \ │\ Ultra-\/compact\ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11318}{}\doxysubsection{\texorpdfstring{Zig — Oracle BFT Validation}{Zig — Oracle BFT Validation}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11318}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ OracleEntry\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ asset\_id:\ \ \ \ \ \ u16,}
+\DoxyCodeLine{\ \ \ \ price\_sat:\ \ \ \ \ u64,}
+\DoxyCodeLine{\ \ \ \ timestamp\_ms:\ \ u64,}
+\DoxyCodeLine{\ \ \ \ source\_bitmap:\ u8,}
+\DoxyCodeLine{\ \ \ \ confidence:\ \ \ \ u8,}
+\DoxyCodeLine{\ \ \ \ bls\_aggregate:\ [48]u8,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ validateOraclePrice(entries:\ []OracleEntry,\ threshold:\ u8)\ ?u64\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Minim\ threshold\ surse\ valide\ (ex:\ 3\ din\ 5)}
+\DoxyCodeLine{\ \ \ \ var\ valid:\ [8]u64\ =\ undefined;}
+\DoxyCodeLine{\ \ \ \ var\ valid\_count:\ u8\ =\ 0;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ for\ (entries)\ |e|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Verifica\ ca\ pretul\ nu\ e\ expirat\ (max\ 5\ secunde\ lag)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ now\_ms\ =\ @as(u64,\ @intCast(std.time.milliTimestamp()));}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (now\_ms\ -\/\ e.timestamp\_ms\ >\ 5\_000)\ continue;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ valid[valid\_count]\ =\ e.price\_sat;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ valid\_count\ +=\ 1;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ if\ (valid\_count\ <\ threshold)\ return\ null;\ //\ insuficient\ surse}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Sorteaza\ si\ returneaza\ mediana}
+\DoxyCodeLine{\ \ \ \ std.mem.sort(u64,\ valid[0..valid\_count],\ \{\},\ std.sort.asc(u64));}
+\DoxyCodeLine{\ \ \ \ return\ valid[valid\_count\ /\ 2];\ //\ median\ =\ BFT-\/safe\ price}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11319}{}\doxysubsection{\texorpdfstring{Utilizari Oracle On-\/\+Chain}{Utilizari Oracle On-\/\+Chain}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11319}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Oracle\ pretul\ BTC/OMNI\ este\ folosit\ de:}
+\DoxyCodeLine{\ \ ├──\ SimpleDEX\ —\ swap-\/uri\ OMNI\ ↔\ BTC\ la\ pret\ corect}
+\DoxyCodeLine{\ \ ├──\ Lending\ Protocol\ —\ collateral\ ratio\ calculat}
+\DoxyCodeLine{\ \ ├──\ Subscriptions\ —\ plati\ recurente\ in\ valoare\ USD\ fixa}
+\DoxyCodeLine{\ \ ├──\ Arbitrage\ Bots\ —\ detectie\ discrepante\ on-\/chain\ vs\ off-\/chain}
+\DoxyCodeLine{\ \ └──\ Slashing\ Calculator\ —\ valoarea\ stake-\/ului\ in\ USD}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11321}{}\doxysection{\texorpdfstring{17. SLASHING — PENALIZAREA VALIDATORILOR BYZANTINE}{17. SLASHING — PENALIZAREA VALIDATORILOR BYZANTINE}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11321}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11322}{}\doxysubsection{\texorpdfstring{Ce Triggereaza Slashing}{Ce Triggereaza Slashing}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11322}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Comportament  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Severitate  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Penalizare  \\
+Double-\/sign (voteaza 2 blocuri diferite)  &CRITIC  &-\/100\% stake + ban permanent  \\
+Vot Byzantine dovedit  &MAJOR  &-\/50\% stake + 30 zile suspendare  \\
+Downtime \texorpdfstring{$>$}{>}1 ora  &MINOR  &-\/1\% stake /\+ ora  \\
+Oracle pret fals (\texorpdfstring{$>$}{>}5\% deviere)  &MAJOR  &-\/25\% stake  \\
+Mempool spam (TX invalide)  &MINOR  &-\/0.\+1\% stake /\+ incident  \\
+Sub-\/block incorect (shard gresit)  &MAJOR  &-\/10\% stake  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11323}{}\doxysubsection{\texorpdfstring{Algoritmul de Detectie (Fraud Proof)}{Algoritmul de Detectie (Fraud Proof)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11323}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Orice\ nod\ poate\ submite\ un\ Fraud\ Proof:}
+\DoxyCodeLine{\ \ 1.\ Nod\ detecteaza:\ V4\ a\ semnat\ Block\_A\ si\ Block\_B\ la\ acelasi\ height}
+\DoxyCodeLine{\ \ 2.\ Construieste\ FraudProof\ =\ \{semnatura\_A,\ semnatura\_B,\ height,\ V4\_pubkey\}}
+\DoxyCodeLine{\ \ 3.\ Trimite\ FraudProof\ catre\ Metachain}
+\DoxyCodeLine{\ \ 4.\ Metachain\ verifica\ cu\ BLS:\ ambele\ semnate\ de\ V4?\ →\ SLASHING}
+\DoxyCodeLine{}
+\DoxyCodeLine{Reward\ pentru\ raportator:}
+\DoxyCodeLine{\ \ →\ 10\%\ din\ stake-\/ul\ confiscat\ merge\ catre\ cel\ care\ a\ raportat}
+\DoxyCodeLine{\ \ →\ Stimulent\ economic\ pentru\ watchdogs\ (noduri\ de\ monitorizare)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11324}{}\doxysubsection{\texorpdfstring{Structura Slashing Event (On-\/\+Chain)}{Structura Slashing Event (On-\/\+Chain)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11324}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ SlashingEvent\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ validator\_id:\ \ \ u16,\ \ \ \ \ \ \ \ //\ ID\ validator\ penalizat}
+\DoxyCodeLine{\ \ \ \ reason:\ \ \ \ \ \ \ \ \ SlashReason,\ //\ enum:\ DoubleSign,\ Byzantine,\ Downtime}
+\DoxyCodeLine{\ \ \ \ evidence\_hash:\ \ [32]u8,\ \ \ \ \ //\ Hash\ fraud\ proof}
+\DoxyCodeLine{\ \ \ \ block\_height:\ \ \ u64,\ \ \ \ \ \ \ \ //\ Blocul\ la\ care\ s-\/a\ produs}
+\DoxyCodeLine{\ \ \ \ stake\_before:\ \ \ u64,\ \ \ \ \ \ \ \ //\ SAT\ inainte}
+\DoxyCodeLine{\ \ \ \ penalty\_pct:\ \ \ \ u8,\ \ \ \ \ \ \ \ \ //\ 1-\/100\%}
+\DoxyCodeLine{\ \ \ \ reporter\_addr:\ \ [20]u8,\ \ \ \ \ //\ Cel\ care\ a\ raportat}
+\DoxyCodeLine{\ \ \ \ reporter\_reward:u64,\ \ \ \ \ \ \ \ //\ 10\%\ din\ penalizare}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ SlashReason\ =\ enum(u8)\ \{}
+\DoxyCodeLine{\ \ \ \ DoubleSign\ \ \ \ =\ 1,}
+\DoxyCodeLine{\ \ \ \ ByzantineVote\ =\ 2,}
+\DoxyCodeLine{\ \ \ \ OracleFraud\ \ \ =\ 3,}
+\DoxyCodeLine{\ \ \ \ Downtime\ \ \ \ \ \ =\ 4,}
+\DoxyCodeLine{\ \ \ \ InvalidShard\ \ =\ 5,}
+\DoxyCodeLine{\ \ \ \ MempoolSpam\ \ \ =\ 6,}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11325}{}\doxysubsection{\texorpdfstring{Distributia Stake-\/ului Confiscat}{Distributia Stake-\/ului Confiscat}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11325}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Stake\ confiscat\ de\ la\ validator\ Byzantine:}
+\DoxyCodeLine{\ \ ├──\ 10\%\ →\ Raportator\ (watchdog\ reward)}
+\DoxyCodeLine{\ \ ├──\ 40\%\ →\ Treasury\ DAO\ (fond\ securitate)}
+\DoxyCodeLine{\ \ ├──\ 40\%\ →\ Redistribuit\ catre\ ceilalti\ stakers\ din\ shard}
+\DoxyCodeLine{\ \ └──\ 10\%\ →\ Burn\ (deflatie\ OMNI)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11326}{}\doxysubsection{\texorpdfstring{Ada Spark — Invariant Slashing}{Ada Spark — Invariant Slashing}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11326}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/-\/\ Invariant:\ totalul\ de\ OMNI\ nu\ creste\ niciodata\ din\ slashing}
+\DoxyCodeLine{-\/-\/\ (doar\ redistribuit\ +\ ars)}
+\DoxyCodeLine{procedure\ Apply\_Slashing\ (}
+\DoxyCodeLine{\ \ \ \ Validator\ :\ Validator\_ID;}
+\DoxyCodeLine{\ \ \ \ Penalty\ \ \ :\ OMNI\_SAT;}
+\DoxyCodeLine{\ \ \ \ Treasury\ \ :\ in\ out\ OMNI\_SAT;}
+\DoxyCodeLine{\ \ \ \ Burned\ \ \ \ :\ in\ out\ OMNI\_SAT}
+\DoxyCodeLine{)}
+\DoxyCodeLine{\ \ with\ Post\ =>\ Treasury\ +\ Burned\ =\ Penalty}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ and\ Validator\_Stake(Validator)\ =}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Validator\_Stake(Validator)'Old\ -\/\ Penalty;}
+\DoxyCodeLine{-\/-\/\ Spark\ garanteaza:\ niciun\ SAT\ nu\ apare/dispare\ din\ nimic}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11328}{}\doxysection{\texorpdfstring{18. ROBOTS SI BOTS — SUBSCRIPTII + ARBITRAJ ON-\/\+CHAIN}{18. ROBOTS SI BOTS — SUBSCRIPTII + ARBITRAJ ON-\/\+CHAIN}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11328}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11329}{}\doxysubsection{\texorpdfstring{Tipuri de Bots in Ecosistemul OMNI}{Tipuri de Bots in Ecosistemul OMNI}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11329}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Categoria\ 1\ —\ ARBITRAGE\ BOTS}
+\DoxyCodeLine{\ \ Detecteaza:\ pret\ OMNI/BTC\ diferit\ intre\ DEX\ on-\/chain\ si\ exchange\ off-\/chain}
+\DoxyCodeLine{\ \ Actiune:\ cumpara\ ieftin\ pe\ X,\ vinde\ scump\ pe\ Y\ in\ acelasi\ bloc\ (1s)}
+\DoxyCodeLine{\ \ Profit:\ diferenta\ de\ pret\ minus\ fees\ minus\ gas}
+\DoxyCodeLine{\ \ Protectie\ anti-\/MEV:\ Order\ Commit-\/Reveal\ (pretul\ ascuns\ pana\ la\ confirmare)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Categoria\ 2\ —\ GRID\ TRADING\ BOTS}
+\DoxyCodeLine{\ \ Plaseaza\ ordine\ buy/sell\ la\ niveluri\ fixe\ (grid)}
+\DoxyCodeLine{\ \ DSL:\ grid.set\_range(0.001,\ 0.01\ OMNI)\ grid.set\_levels(20)}
+\DoxyCodeLine{\ \ Ruleaza\ pe:\ OmniBus-\/Connect\ DSL\ Engine\ (Python\ +\ Zig\ backend)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Categoria\ 3\ —\ SUBSCRIPTION\ BOTS}
+\DoxyCodeLine{\ \ Platesc\ automat\ abonamente\ recurente\ on-\/chain}
+\DoxyCodeLine{\ \ Folosesc\ domeniile\ NON-\/TRANSFERABILE\ ca\ "{}acces\ token"{}}
+\DoxyCodeLine{\ \ Ex:\ ob\_f5\_\ (food)\ =\ acces\ la\ serviciu\ restaurant,\ renovat\ lunar}
+\DoxyCodeLine{}
+\DoxyCodeLine{Categoria\ 4\ —\ ORACLE\ BOTS}
+\DoxyCodeLine{\ \ Colecteaza\ preturi\ de\ pe\ N\ exchanges}
+\DoxyCodeLine{\ \ Submitteaza\ on-\/chain\ cu\ BLS\ semnat}
+\DoxyCodeLine{\ \ Recompensati\ cu\ fees\ din\ protocol\ (Oracle\ Fee\ Pool)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Categoria\ 5\ —\ WATCHDOG\ BOTS}
+\DoxyCodeLine{\ \ Monitorizeaza\ validatorii\ pentru\ comportament\ Byzantine}
+\DoxyCodeLine{\ \ Submitteaza\ Fraud\ Proofs\ si\ primesc\ 10\%\ din\ slashing}
+\DoxyCodeLine{\ \ Ruleaza\ continuu,\ cost\ minim\ (doar\ verificare\ semnature)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11330}{}\doxysubsection{\texorpdfstring{Subscriptii On-\/\+Chain cu Domenii PQ}{Subscriptii On-\/\+Chain cu Domenii PQ}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11330}
+Domeniile non-\/transferabile (ob\+\_\+k1\+\_\+, ob\+\_\+f5\+\_\+, ob\+\_\+d5\+\_\+, ob\+\_\+s3\+\_\+) sunt {\bfseries{infinite}} — pot fi delegate pentru acces la servicii:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Flux\ Subscriptie\ (ex:\ ob\_f5\_\ pentru\ serviciu\ food):}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ 1.\ User\ detine\ adresa\ ob\_f5\_XYZ\ (non-\/transferabila,\ a\ lui\ permanent)}
+\DoxyCodeLine{\ \ 2.\ Autorizeaza\ un\ Smart\ Contract\ sa\ debiteze\ X\ OMNI/luna\ din\ ob\_omni\_ABC}
+\DoxyCodeLine{\ \ 3.\ La\ fiecare\ 2,592,000\ blocuri\ (\string~30\ zile),\ contractul:}
+\DoxyCodeLine{\ \ \ \ \ -\/\ Verifica\ ca\ ob\_f5\_XYZ\ e\ activa\ (nedelegata\ altcuiva)}
+\DoxyCodeLine{\ \ \ \ \ -\/\ Debiteaza\ X\ OMNI\ din\ ob\_omni\_ABC\ (transferabila)}
+\DoxyCodeLine{\ \ \ \ \ -\/\ Crediteaza\ Merchant\_Address}
+\DoxyCodeLine{\ \ \ \ \ -\/\ Emite\ Receipt\ NFT\ on-\/chain\ (dovada\ plata)}
+\DoxyCodeLine{\ \ 4.\ Daca\ plata\ esueaza\ →\ accesul\ la\ serviciu\ e\ suspendat\ automat}
+\DoxyCodeLine{}
+\DoxyCodeLine{Avantaje\ vs\ sistemele\ traditionale:}
+\DoxyCodeLine{\ \ ├──\ Fara\ card\ →\ plata\ directa\ on-\/chain}
+\DoxyCodeLine{\ \ ├──\ Fara\ intermediar\ →\ merchant\ primeste\ instant}
+\DoxyCodeLine{\ \ ├──\ Auditabil\ →\ oricine\ verifica\ pe\ blockchain}
+\DoxyCodeLine{\ \ └──\ Non-\/custodial\ →\ userul\ controleaza\ mereu\ fondurile}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11331}{}\doxysubsection{\texorpdfstring{Structura Subscription Contract (Binary, 96 bytes)}{Structura Subscription Contract (Binary, 96 bytes)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11331}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌──────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ Field\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ Size\ \ │\ Description\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├────────────────────┼───────┼──────────────────────────────┤}
+\DoxyCodeLine{│\ Subscriber\_Hash\ \ \ \ │\ 20\ B\ \ │\ ob\_omni\_\ address\ (payer)\ \ \ \ \ │}
+\DoxyCodeLine{│\ Domain\_Token\_Hash\ \ │\ 20\ B\ \ │\ ob\_f5\_\ /\ ob\_k1\_\ /\ etc\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Merchant\_Hash\ \ \ \ \ \ │\ 20\ B\ \ │\ Destinatie\ plata\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Amount\_SAT\ \ \ \ \ \ \ \ \ │\ \ 8\ B\ \ │\ Suma\ per\ ciclu\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Interval\_Blocks\ \ \ \ │\ \ 8\ B\ \ │\ Frecventa\ (ex:\ 2592000\ =\ 30d)│}
+\DoxyCodeLine{│\ Next\_Payment\_Block\ │\ \ 8\ B\ \ │\ Blocul\ urmatorei\ plati\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Domain\_Type\ \ \ \ \ \ \ \ │\ \ 1\ B\ \ │\ 1=love,\ 2=food,\ 3=rent,\ 4=vac│}
+\DoxyCodeLine{│\ Status\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ 1\ B\ \ │\ 0=active,\ 1=paused,\ 2=cancel\ │}
+\DoxyCodeLine{│\ Max\_Payments\ \ \ \ \ \ \ │\ \ 2\ B\ \ │\ 0=infinit,\ N=limitat\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Payments\_Done\ \ \ \ \ \ │\ \ 4\ B\ \ │\ Counter\ plati\ efectuate\ \ \ \ \ \ │}
+\DoxyCodeLine{│\ BLS\_Auth\ \ \ \ \ \ \ \ \ \ \ │\ \ 4\ B\ \ │\ Scurt\ hash\ autorizare\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├────────────────────┼───────┼──────────────────────────────┤}
+\DoxyCodeLine{│\ TOTAL\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ 96\ B\ \ │\ 1\ subscriptie\ =\ 96\ bytes\ \ \ \ \ │}
+\DoxyCodeLine{└──────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11332}{}\doxysubsection{\texorpdfstring{Use Cases per Domeniu Non-\/\+Transferabil}{Use Cases per Domeniu Non-\/\+Transferabil}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11332}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ob\_k1\_\ (omnibus.love\ —\ ML-\/DSA/Dilithium-\/5):}
+\DoxyCodeLine{\ \ →\ Identitate\ digitala\ certificata\ (KYC\ on-\/chain)}
+\DoxyCodeLine{\ \ →\ Semnatura\ legala\ pentru\ contracte}
+\DoxyCodeLine{\ \ →\ Subscriptie\ servicii\ matrimoniale/sociale}
+\DoxyCodeLine{\ \ →\ Vot\ DAO\ (1\ adresa\ =\ 1\ vot,\ non-\/transferabil\ =\ anti-\/sybil)}
+\DoxyCodeLine{}
+\DoxyCodeLine{ob\_f5\_\ (omnibus.food\ —\ Falcon-\/512):}
+\DoxyCodeLine{\ \ →\ Card\ de\ fidelitate\ restaurant\ (puncte\ non-\/transferabile)}
+\DoxyCodeLine{\ \ →\ Subscriptie\ livrare\ mancare\ (Bolt\ Food,\ Glovo\ style)}
+\DoxyCodeLine{\ \ →\ Acces\ club\ gastronomic}
+\DoxyCodeLine{\ \ →\ Voucher\ masa\ companie\ (dat\ de\ angajator,\ folosit\ de\ angajat)}
+\DoxyCodeLine{}
+\DoxyCodeLine{ob\_d5\_\ (omnibus.rent\ —\ SLH-\/DSA/SPHINCS+):}
+\DoxyCodeLine{\ \ →\ Contract\ chirie\ on-\/chain\ (chiriile\ platite\ automat\ in\ OMNI)}
+\DoxyCodeLine{\ \ →\ Acces\ coworking\ space\ (subscriptie\ lunara)}
+\DoxyCodeLine{\ \ →\ Leasing\ echipamente\ (debitat\ automat\ la\ scadenta)}
+\DoxyCodeLine{\ \ →\ Utiliti\ (curent,\ gaz)\ —\ plata\ automata\ recurenta}
+\DoxyCodeLine{}
+\DoxyCodeLine{ob\_s3\_\ (omnibus.vacation\ —\ Falcon-\/Light/AES-\/128):}
+\DoxyCodeLine{\ \ →\ Acumulare\ puncte\ vacanta\ (companii\ aeriene,\ hoteluri)}
+\DoxyCodeLine{\ \ →\ Voucher\ vacanta\ de\ la\ angajator}
+\DoxyCodeLine{\ \ →\ Subscriptie\ servicii\ travel\ (Booking,\ Airbnb)}
+\DoxyCodeLine{\ \ →\ Loyalty\ program\ (punctele\ nu\ se\ pot\ vinde,\ doar\ folosi)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11333}{}\doxysubsection{\texorpdfstring{Arbitraj Bot — Flux Complet (1 secundă)}{Arbitraj Bot — Flux Complet (1 secundă)}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11333}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{t=0.0s:\ Bot\ detecteaza:\ DEX\ OMNI\ =\ 0.001\ BTC/OMNI,\ Coinbase\ =\ 0.00105\ BTC/OMNI}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ Gap:\ +5\%\ →\ profitabil\ dupa\ fees\ (0.25\%\ DEX\ +\ 0.1\%\ transfer)}
+\DoxyCodeLine{}
+\DoxyCodeLine{t=0.1s:\ Bot\ submitteaza\ TX\ atomica:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ 1.\ Cumpara\ 1000\ OMNI\ pe\ DEX\ la\ 0.001\ BTC\ (cost:\ 1\ BTC)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ 2.\ Vinde\ 1000\ OMNI\ pe\ Coinbase\ la\ 0.00105\ BTC\ (primeste:\ 1.05\ BTC)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ Profit:\ 0.05\ BTC\ -\/\ fees\ =\ \string~0.046\ BTC}
+\DoxyCodeLine{}
+\DoxyCodeLine{t=0.5s:\ TX\ confirmata\ in\ micro-\/block\ \#5}
+\DoxyCodeLine{}
+\DoxyCodeLine{t=1.0s:\ TX\ finalizata\ in\ Key-\/Block}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ Profit\ realizat,\ fonduri\ disponibile\ pentru\ urmatorul\ ciclu}
+\DoxyCodeLine{}
+\DoxyCodeLine{Protectie\ anti-\/front-\/running\ (MEV\ protection):}
+\DoxyCodeLine{\ \ →\ Commit-\/Reveal:\ Bot\ trimite\ hash(TX)\ la\ t=0.0s,\ TX\ reala\ la\ t=0.5s}
+\DoxyCodeLine{\ \ →\ Nimeni\ nu\ poate\ vedea\ TX-\/ul\ inainte\ de\ confirmare}
+\DoxyCodeLine{\ \ →\ FIFO\ mempool\ ordering\ in\ OMNI\ (nu\ priority\ gas\ wars)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11335}{}\doxysection{\texorpdfstring{19. MEV PROTECTION — PREVENIREA EXTRACTIEI VALORII}{19. MEV PROTECTION — PREVENIREA EXTRACTIEI VALORII}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11335}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11336}{}\doxysubsection{\texorpdfstring{Ce Este MEV in OMNI}{Ce Este MEV in OMNI}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11336}
+MEV (Maximal Extractable Value) = profitul pe care un validator il poate extrage prin:\+
+\begin{DoxyItemize}
+\item Reordonarea TX-\/urilor in bloc (front-\/running)
+\item Inserarea propriilor TX-\/uri inaintea altora (sandwich attack)
+\item Cenzurarea TX-\/urilor (excludere selectiva)
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11337}{}\doxysubsection{\texorpdfstring{Mecanisme de Protectie OMNI}{Mecanisme de Protectie OMNI}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11337}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1.\ FIFO\ Mempool\ (First\ In,\ First\ Out)}
+\DoxyCodeLine{\ \ \ →\ TX-\/urile\ sunt\ procesate\ in\ ordinea\ sosirii}
+\DoxyCodeLine{\ \ \ →\ Validatorul\ NU\ poate\ reordona\ dupa\ profit}
+\DoxyCodeLine{\ \ \ →\ Implementat\ in\ Zig:\ mempool\ =\ std.ArrayList(TX)\ FIFO\ strict}
+\DoxyCodeLine{}
+\DoxyCodeLine{2.\ Commit-\/Reveal\ Scheme}
+\DoxyCodeLine{\ \ \ Runda\ 1\ (micro-\/block\ N):\ \ \ Submitteaza\ hash(TX\ ||\ salt)}
+\DoxyCodeLine{\ \ \ Runda\ 2\ (micro-\/block\ N+1):\ Reveleaza\ TX\ +\ salt}
+\DoxyCodeLine{\ \ \ →\ Validatorul\ nu\ stie\ continutul\ pana\ la\ Reveal\ →\ no\ front-\/run}
+\DoxyCodeLine{}
+\DoxyCodeLine{3.\ Private\ Mempool\ (optional,\ pentru\ tranzactii\ mari)}
+\DoxyCodeLine{\ \ \ →\ TX\ trimisa\ direct\ catre\ un\ validator\ de\ incredere\ (encrypted)}
+\DoxyCodeLine{\ \ \ →\ Validatorul\ o\ include\ fara\ sa\ o\ difuzeze\ in\ retea}
+\DoxyCodeLine{\ \ \ →\ Similar\ cu\ Flashbots/MEV-\/Boost\ pe\ Ethereum,\ dar\ BFT-\/safe}
+\DoxyCodeLine{}
+\DoxyCodeLine{4.\ Batch\ Auctions\ (pentru\ DEX)}
+\DoxyCodeLine{\ \ \ →\ Toate\ swap-\/urile\ din\ 1\ secunda\ sunt\ executate\ la\ acelasi\ pret\ mediu}
+\DoxyCodeLine{\ \ \ →\ Nimeni\ nu\ poate\ sandwich-\/attack\ in\ acelasi\ lot}
+\DoxyCodeLine{\ \ \ →\ Pretul:\ media\ ponderata\ a\ tuturor\ ordinelor\ din\ Key-\/Block}
+\DoxyCodeLine{}
+\DoxyCodeLine{5.\ Ada\ Spark\ Invariant}
+\DoxyCodeLine{\ \ \ →\ Validatorul\ nu\ poate\ modifica\ ordinea\ TX\ fara\ sa\ invalideaze}
+\DoxyCodeLine{\ \ \ \ \ semnatura\ BLS\ a\ celorlalti\ validatori\ care\ au\ vazut\ aceeasi\ ordine}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11338}{}\doxysubsection{\texorpdfstring{Comparatie MEV Protection}{Comparatie MEV Protection}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11338}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Retea  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}MEV Protection  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metoda  \\
+Bitcoin  &Partial  &FIFO + PoW randomness  \\
+Ethereum  &Partial  &MEV-\/\+Boost (voluntar)  \\
+Solana  &Slab  &Validatori pot reordona liber  \\
+MultiversX  &Bun  &Round-\/robin validators  \\
+{\bfseries{OMNI}}  &{\bfseries{Excelent}}  &{\bfseries{FIFO + Commit-\/\+Reveal + BLS multi-\/sig ordering}}  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11340}{}\doxysection{\texorpdfstring{20. REZUMAT FINAL — STACK COMPLET OMNI 2026}{20. REZUMAT FINAL — STACK COMPLET OMNI 2026}}\label{md_wiki-omnibus_2_o_m_n_i___a_r_c_h_i_t_e_c_t_u_r_e___g_e_n_e_s_i_s_autotoc_md11340}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OMNI\ PROTOCOL\ STACK\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ L5\ —\ APPLICATIONS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ Subscriptii\ PQ\ |\ Arbitrage\ Bots\ |\ Grid\ Bots\ |\ HFT\ DSL\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ Watchdog\ Bots\ \ |\ Oracle\ Bots\ \ \ \ |\ DEX\ \ \ \ \ \ \ |\ Lending\ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ L4\ —\ SMART\ CONTRACTS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ SubscriptionManager\ |\ SimpleDEX\ |\ PriceFeed\ Oracle\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ SlashingContract\ \ \ \ |\ TreasuryDAO\ |\ GovernanceDAO\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ L3\ —\ CONSENSUS\ +\ SECURITY\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ SPoS\ BFT\ (PBFT\ 0.1s)\ |\ Slashing\ |\ MEV\ Protection\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ BLS\ Signature\ Aggregation\ |\ Fraud\ Proofs\ |\ View\ Change\ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ L2\ —\ NETWORK\ +\ SHARDING\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ Micro-\/Blocks\ 0.1s\ |\ Key-\/Blocks\ 1s\ |\ Adaptive\ Sharding\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ P2P\ UDP+FEC\ |\ Compact\ Blocks\ |\ Cross-\/Shard\ Protocol\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ L1\ —\ BLOCKCHAIN\ CORE\ (Zig\ 0.15\ +\ Ada\ Spark)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ BIP32/39\ Real\ |\ Base58Check\ |\ secp256k1\ |\ RIPEMD160\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ Binary\ Storage\ |\ State\ Trie\ |\ Epoch\ Pruning\ |\ DB\ Persist\ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ L0\ —\ CRYPTOGRAPHY\ (Post-\/Quantum)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ ML-\/KEM/Kyber-\/768\ |\ ML-\/DSA/Dilithium-\/5\ |\ Falcon-\/512\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ SLH-\/DSA/SPHINCS+\ |\ Falcon-\/Light\ |\ liboqs\ (C\ FFI)\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────────┘}
+\DoxyCodeLine{}
+\DoxyCodeLine{DOMENII\ PQ:}
+\DoxyCodeLine{\ \ ob\_omni\_\ (777)\ —\ TRANSFERABIL\ \ —\ ML-\/KEM\ —\ Tranzactii\ financiare}
+\DoxyCodeLine{\ \ ob\_k1\_\ \ \ (778)\ —\ NON-\/TRANSF.\ \ \ —\ ML-\/DSA\ —\ Identitate\ +\ Vot\ DAO}
+\DoxyCodeLine{\ \ ob\_f5\_\ \ \ (779)\ —\ NON-\/TRANSF.\ \ \ —\ Falcon\ —\ Food\ subscriptions}
+\DoxyCodeLine{\ \ ob\_d5\_\ \ \ (780)\ —\ NON-\/TRANSF.\ \ \ —\ SLH-\/DSA\ —\ Rent\ +\ Legal\ contracts}
+\DoxyCodeLine{\ \ ob\_s3\_\ \ \ (781)\ —\ NON-\/TRANSF.\ \ \ —\ F-\/Light\ —\ Vacation\ +\ Loyalty}
+\DoxyCodeLine{}
+\DoxyCodeLine{SECURITATE:}
+\DoxyCodeLine{\ \ BFT:\ \ \ \ \ Tolereaza\ f\ <\ N/3\ validatori\ Byzantine\ (PBFT\ adaptat)}
+\DoxyCodeLine{\ \ Oracle:\ \ Median\ din\ N\ surse,\ reject\ outliers,\ BLS\ signed}
+\DoxyCodeLine{\ \ Slashing:\ -\/1\%\ pana\ la\ -\/100\%\ stake\ +\ 10\%\ reward\ raportator}
+\DoxyCodeLine{\ \ MEV:\ \ \ \ \ FIFO\ +\ Commit-\/Reveal\ +\ BLS\ ordering\ +\ Batch\ Auctions}
+\DoxyCodeLine{\ \ Quantum:\ ML-\/KEM\ +\ ML-\/DSA\ +\ Falcon\ +\ SLH-\/DSA\ (NIST\ PQC\ 2024)}
+\DoxyCodeLine{\ \ Math:\ \ \ \ Ada\ Spark\ formal\ verification\ (zero\ runtime\ errors)}
+\DoxyCodeLine{}
+\DoxyCodeLine{PERFORMANTA:}
+\DoxyCodeLine{\ \ Finality:\ 0.1s\ (soft)\ /\ 1s\ (hard)}
+\DoxyCodeLine{\ \ TPS:\ \ \ \ \ \ 2,000\ per\ shard\ →\ scalare\ infinita}
+\DoxyCodeLine{\ \ TX\ Size:\ \ 57-\/124\ bytes\ (BLS\ aggregated)}
+\DoxyCodeLine{\ \ Storage:\ \ \string~1.8\ TB/an\ @\ 1000\ TPS\ (cu\ pruning:\ \string~50\ GB\ validator)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Document generat:\+ 2026-\/03-\/26 \texorpdfstring{$\vert$}{|} Omni\+Bus-\/\+Block\+Chain\+Core wiki-\/omnibus} {\itshape Versiune:\+ 2.\+0 \texorpdfstring{$\vert$}{|} Autor:\+ Claude + Omni\+Bus Team} 

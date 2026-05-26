@@ -1,0 +1,255 @@
+{
+  "mainnet": {
+    "pairs": {
+      "0": {
+        "info": {
+          "pair_id": 0,
+          "base": "OMNI",
+          "quote": "USDC",
+          "maker_chains": [
+            {
+              "chain": "OmniBus",
+              "chain_id": 0,
+              "contract": ""
+            }
+          ],
+          "taker_chains": [
+            {
+              "chain": "Base Sepolia",
+              "chain_id": 84532,
+              "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+            },
+            {
+              "chain": "Sepolia",
+              "chain_id": 11155111,
+              "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+            }
+          ]
+        },
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "1": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "2": {
+        "info": {
+          "pair_id": 2,
+          "base": "LCX",
+          "quote": "USDC",
+          "maker_chains": [
+            {
+              "chain": "LCX Liberty",
+              "chain_id": 76847801,
+              "contract": "a4ad3f9bA14500F6F1d991b0D8F897E0E8eDEfFb"
+            }
+          ],
+          "taker_chains": [
+            {
+              "chain": "Base Sepolia",
+              "chain_id": 84532,
+              "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+            },
+            {
+              "chain": "Sepolia",
+              "chain_id": 11155111,
+              "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+            }
+          ]
+        },
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "3": {
+        "info": {
+          "pair_id": 3,
+          "base": "ETH",
+          "quote": "USDC",
+          "maker_chains": [
+            {
+              "chain": "Sepolia",
+              "chain_id": 11155111,
+              "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+            },
+            {
+              "chain": "Base Sepolia",
+              "chain_id": 84532,
+              "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+            }
+          ],
+          "taker_chains": [
+            {
+              "chain": "Base Sepolia",
+              "chain_id": 84532,
+              "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+            },
+            {
+              "chain": "Sepolia",
+              "chain_id": 11155111,
+              "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+            }
+          ]
+        },
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "4": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "5": {
+        "info": {
+          "pair_id": 5,
+          "base": "OMNI",
+          "quote": "LCX",
+          "maker_chains": [
+            {
+              "chain": "OmniBus",
+              "chain_id": 0,
+              "contract": ""
+            }
+          ],
+          "taker_chains": [
+            {
+              "chain": "LCX Liberty",
+              "chain_id": 76847801,
+              "contract": "a4ad3f9bA14500F6F1d991b0D8F897E0E8eDEfFb"
+            }
+          ]
+        },
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "6": {
+        "info": {
+          "pair_id": 6,
+          "base": "OMNI",
+          "quote": "ETH",
+          "maker_chains": [
+            {
+              "chain": "OmniBus",
+              "chain_id": 0,
+              "contract": ""
+            }
+          ],
+          "taker_chains": [
+            {
+              "chain": "Sepolia",
+              "chain_id": 11155111,
+              "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+            },
+            {
+              "chain": "Base Sepolia",
+              "chain_id": 84532,
+              "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+            }
+          ]
+        },
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      }
+    }
+  },
+  "testnet": {
+    "pairs": {
+      "0": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "1": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "2": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "3": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "4": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "5": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      },
+      "6": {
+        "info": null,
+        "asks_count": 0,
+        "bids_count": 0,
+        "best_ask": null,
+        "best_bid": null,
+        "recent_trades_count": 0,
+        "user_orders_count": 0
+      }
+    }
+  },
+  "loop_p50": 68,
+  "loop_p95": 88,
+  "loop_p99": 330,
+  "loop_max": 330
+}

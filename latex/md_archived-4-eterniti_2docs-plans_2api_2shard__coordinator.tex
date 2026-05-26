@@ -1,0 +1,285 @@
+\chapter{Module:\+ {\ttfamily shard\+\_\+coordinator} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator}{}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator}\index{Module: $<$tt$>$shard\_coordinator$<$/tt$>$@{Module: $<$tt$>$shard\_coordinator$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2963}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2963}%
+
+
+\begin{quote}
+4-\/shard routing — assigns addresses to shards, load balancing, cross-\/shard TX routing. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+shard\+\_\+coordinator.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 268 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 11
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2965}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2965}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2966}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2966}
+
+\begin{DoxyItemize}
+\item \`{}\+Shard\+Stats\`{}{\ttfamily Shard\+Stats}
+\end{DoxyItemize}— Statistici per shard — folosite pentru adaptive sharding
+\begin{DoxyItemize}
+\item \`{}\+Shard\+Coordinator\`{}{\ttfamily Shard\+Coordinator}
+\end{DoxyItemize}— Shard\+Coordinator — rutare adresă→shard + adaptive split/\+merge\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2967}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2967}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2968}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2968}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}get\+Shard\+For\+Address()\`{}{\ttfamily get\+Shard\+For\+Address()}
+\end{DoxyItemize}— Rutare adresă → shard\+\_\+id (EGLD-\/style:\+ hash primului byte) La EGLD:\+ ult...
+\begin{DoxyItemize}
+\item \`{}get\+My\+Shard\+Id()\`{}{\ttfamily get\+My\+Shard\+Id()}
+\end{DoxyItemize}— Returnează shard-\/ul nodului curent (din adresa proprie)
+\begin{DoxyItemize}
+\item \`{}needs\+Split()\`{}{\ttfamily needs\+Split()}
+\end{DoxyItemize}— Adaptive sharding:\+ verifică dacă un shard trebuie split La EGLD:\+ shard...
+\begin{DoxyItemize}
+\item \`{}needs\+Merge()\`{}{\ttfamily needs\+Merge()}
+\end{DoxyItemize}— Adaptive sharding:\+ verifică dacă două shard-\/uri trebuie merged
+\begin{DoxyItemize}
+\item \`{}split\+Shard()\`{}{\ttfamily split\+Shard()}
+\end{DoxyItemize}— Execută split:\+ noul shard primește jumătate din adresele shard-\/ului or...
+\begin{DoxyItemize}
+\item \`{}merge\+Shards()\`{}{\ttfamily merge\+Shards()}
+\end{DoxyItemize}— Execută merge:\+ shard\+\_\+b se dizolvă în shard\+\_\+a
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the shard\+\_\+coordinator module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2970}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2970}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2971}{}\doxysubsection{\texorpdfstring{{\ttfamily Shard\+Stats}}{{\ttfamily Shard\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2971}
+Statistici per shard — folosite pentru adaptive sharding
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+{\ttfamily tx\+\_\+count}  &{\ttfamily u64}  &Tx\+\_\+count  \\
+{\ttfamily capacity\+\_\+pct}  &{\ttfamily u8}  &Capacity\+\_\+pct  \\
+{\ttfamily node\+\_\+count}  &{\ttfamily u16}  &Node\+\_\+count  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 16}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2973}{}\doxysubsection{\texorpdfstring{{\ttfamily Shard\+Coordinator}}{{\ttfamily Shard\+Coordinator}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2973}
+Shard\+Coordinator — rutare adresă→shard + adaptive split/\+merge
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily num\+\_\+shards}  &{\ttfamily u8}  &Num\+\_\+shards  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily shard\+\_\+stats}  &{\ttfamily \+[MAX\+\_\+\+SHARDS]\+Shard\+Stats}  &Shard\+\_\+stats  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 25}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2975}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2975}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily METACHAIN\+\_\+\+SHARD}  &{\ttfamily u8 = 0x\+FF}  &M e t a c h a i n\+\_\+ s h a r d  \\
+{\ttfamily MAX\+\_\+\+SHARDS}  &{\ttfamily u8 = 32}  &M a x\+\_\+ s h a r d s  \\
+{\ttfamily SHARD\+\_\+\+SPLIT\+\_\+\+THRESHOLD}  &{\ttfamily u8 = 80}  &S h a r d\+\_\+ s p l i t\+\_\+ t h r e s h o l d  \\
+{\ttfamily SHARD\+\_\+\+MERGE\+\_\+\+THRESHOLD}  &{\ttfamily u8 = 20}  &S h a r d\+\_\+ m e r g e\+\_\+ t h r e s h o l d  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2977}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2977}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2978}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2978}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ num\_shards:\ u8)\ !ShardCoordinator\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily num\+\_\+shards}  &{\ttfamily u8}  &Num\+\_\+shards  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Shard\+Coordinator}
+
+{\itshape Defined at line 30}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2980}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Shard\+For\+Address()}}{{\ttfamily get\+Shard\+For\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2980}
+Rutare adresă → shard\+\_\+id (EGLD-\/style:\+ hash primului byte) La EGLD:\+ ultimii biți din adresă encoding-\/ează shard-\/ul La Omni\+Bus:\+ SHA256(address)\+[0]\+ \% num\+\_\+shards (mai uniform)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getShardForAddress(self:\ *const\ ShardCoordinator,\ address:\ []const\ u8)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Shard\+Coordinator}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 51}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2982}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+My\+Shard\+Id()}}{{\ttfamily get\+My\+Shard\+Id()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2982}
+Returnează shard-\/ul nodului curent (din adresa proprie)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMyShardId(self:\ *const\ ShardCoordinator,\ my\_address:\ []const\ u8)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Shard\+Coordinator}  &The instance  \\
+{\ttfamily my\+\_\+address}  &{\ttfamily \+[]\+const u8}  &My\+\_\+address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2984}{}\doxysubsection{\texorpdfstring{{\ttfamily needs\+Split()}}{{\ttfamily needs\+Split()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2984}
+Adaptive sharding:\+ verifică dacă un shard trebuie split La EGLD:\+ shard-\/ul cu cel mai mare load se împarte în 2
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ needsSplit(self:\ *const\ ShardCoordinator)\ ?u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Shard\+Coordinator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?u8}
+
+{\itshape Defined at line 98}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2986}{}\doxysubsection{\texorpdfstring{{\ttfamily needs\+Merge()}}{{\ttfamily needs\+Merge()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2986}
+Adaptive sharding:\+ verifică dacă două shard-\/uri trebuie merged
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ needsMerge(self:\ *const\ ShardCoordinator)\ ?[2]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Shard\+Coordinator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[2]\+u8}
+
+{\itshape Defined at line 111}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2988}{}\doxysubsection{\texorpdfstring{{\ttfamily split\+Shard()}}{{\ttfamily split\+Shard()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2988}
+Execută split:\+ noul shard primește jumătate din adresele shard-\/ului original Returneaza ID-\/ul noului shard
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ splitShard(self:\ *ShardCoordinator,\ shard\_id:\ u8)\ !u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Shard\+Coordinator}  &The instance  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u8}
+
+{\itshape Defined at line 132}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2990}{}\doxysubsection{\texorpdfstring{{\ttfamily merge\+Shards()}}{{\ttfamily merge\+Shards()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2990}
+Execută merge:\+ shard\+\_\+b se dizolvă în shard\+\_\+a
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ mergeShards(self:\ *ShardCoordinator,\ shard\_a:\ u8,\ shard\_b:\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Shard\+Coordinator}  &The instance  \\
+{\ttfamily shard\+\_\+a}  &{\ttfamily u8}  &Shard\+\_\+a  \\
+{\ttfamily shard\+\_\+b}  &{\ttfamily u8}  &Shard\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 149}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2992}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2shard__coordinator_autotoc_md2992}
+Performs the print status operation on the shard\+\_\+coordinator module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ ShardCoordinator)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Shard\+Coordinator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 161}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

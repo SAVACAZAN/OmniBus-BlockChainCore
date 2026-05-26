@@ -1,0 +1,2 @@
+const vsize = btc_utils.TxSizeEstimator.estimateP2WPKHSize(inputs, outputs);
+const fee = vsize * fee_rate;

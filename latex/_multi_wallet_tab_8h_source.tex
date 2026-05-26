@@ -1,0 +1,36 @@
+\doxysection{Multi\+Wallet\+Tab.\+h}
+\hypertarget{_multi_wallet_tab_8h_source}{}\label{_multi_wallet_tab_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/MultiWalletTab.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/MultiWalletTab.h}}
+\doxymbox{\hyperlink{_multi_wallet_tab_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QTreeWidget>}}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QComboBox>}}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00009}00009\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00011}\doxymbox{\hyperlink{classomni_1_1_multi_wallet_tab}{00011}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_multi_wallet_tab_a5171a94ce872c69f040f3204d6dafa59}{MultiWalletTab}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00012}00012\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00013}00013\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00014}00014\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_multi_wallet_tab_a5171a94ce872c69f040f3204d6dafa59}{MultiWalletTab}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00016}00016\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{void}\ regenerateAddresses();}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00018}00018\ \ \ \ \ \textcolor{keywordtype}{void}\ onItemClicked(QTreeWidgetItem*\ item,\ \textcolor{keywordtype}{int}\ column);}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00020}00020\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ populateTree();}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00024}00024\ \ \ \ \ QTreeWidget*\ m\_tree\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00025}00025\ \ \ \ \ QLabel*\ m\_summaryLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00026}00026\ \ \ \ \ QLabel*\ m\_addressDetail\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00027}00027\ \ \ \ \ QComboBox*\ m\_addrCountCombo\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00028}00028\ \};}
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{_multi_wallet_tab_8h_source_l00030}00030\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

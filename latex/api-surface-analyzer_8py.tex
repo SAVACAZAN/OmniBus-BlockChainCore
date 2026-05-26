@@ -1,0 +1,61 @@
+\doxysection{tools/\+\+ANALYSIS/\+api-\/surface-\/analyzer.py File Reference}
+\hypertarget{api-surface-analyzer_8py}{}\label{api-surface-analyzer_8py}\index{tools/ANALYSIS/api-\/surface-\/analyzer.py@{tools/ANALYSIS/api-\/surface-\/analyzer.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceapi-surface-analyzer}{api-\/surface-\/analyzer}}
+\item 
+namespace \doxymbox{\hyperlink{namespaceapi}{api}}
+\begin{DoxyCompactList}\small\item\em -\/surface-\/analyzer \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a010d4ecb475a69d1e23c09a66c9e2696}{api-\/surface-\/analyzer.\+analyze\+\_\+file}} (Path filepath)
+\item 
+dict \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ace940b810ca46da937f33202e0dbcf44}{api-\/surface-\/analyzer.\+find\+\_\+unused\+\_\+pub\+\_\+fns}} (list all\+\_\+results)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_aeb5824001ff74ceaf5ba3d434eb18f99}{api-\/surface-\/analyzer.\+print\+\_\+api\+\_\+table}} (list all\+\_\+results)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a15390fdcf04518058852ff17984ce45b}{api-\/surface-\/analyzer.\+print\+\_\+detailed}} (list all\+\_\+results, bool show\+\_\+params)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a1dded4f53cc5945a50e479e7621f9b38}{api-\/surface-\/analyzer.\+print\+\_\+unused}} (dict unused)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a51af30a60f9f02777c6396b8247e356f}{api-\/surface-\/analyzer.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a07754216df3e2ae7708931176b8ce343}{api-\/surface-\/analyzer.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ad4211caa3943bcf620295619c8479025}{api-\/surface-\/analyzer.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a1f937080261074f8c92ec4554f11c4ff}{api-\/surface-\/analyzer.\+DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ac3a40827757877ac9c77dc8c63fd32e6}{api-\/surface-\/analyzer.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a40ad96b30b22877c04e9bad7249a65fb}{api-\/surface-\/analyzer.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a1d859115173577d94b5bc8b3ab975de1}{api-\/surface-\/analyzer.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ad825163d29f0f67a344aca15fcc45176}{api-\/surface-\/analyzer.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_adc4f36c511518bcbc2f140ab85981909}{api-\/surface-\/analyzer.\+MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_aae1845ca18a7204e08833aaebe892bb9}{api-\/surface-\/analyzer.\+WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a30b22930baf65cd532895dc4406877e1}{api-\/surface-\/analyzer.\+BG\+\_\+\+BLUE}} = "{}\textbackslash{}033\+[44m"{}
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a6082aa0bb4948853c5d39112d0c207d7}{api-\/surface-\/analyzer.\+PUB\+\_\+\+FN\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+(?:\+export\textbackslash{}s+)?fn\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{}((\+[\texorpdfstring{$^\wedge$}{\string^})]\+\texorpdfstring{$\ast$}{*})\textbackslash{})\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a5183b8db42adeb403a6671ab33149b23}{api-\/surface-\/analyzer.\+PUB\+\_\+\+CONST\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a3414d3d6add6ab7b7ed5daedd259ba91}{api-\/surface-\/analyzer.\+PUB\+\_\+\+VAR\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+var\textbackslash{}s+(\textbackslash{}w+)\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_ae103d49bc09de05da19f985941fdfe9f}{api-\/surface-\/analyzer.\+PUB\+\_\+\+STRUCT\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}=\textbackslash{}s\texorpdfstring{$\ast$}{*}(?:\+extern\textbackslash{}s+)?struct\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a95f932b4fbbc70ea3e09ac1ebceb5614}{api-\/surface-\/analyzer.\+PUB\+\_\+\+ENUM\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}=\textbackslash{}s\texorpdfstring{$\ast$}{*}enum\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_ac17d9b9830047ecc4f506f5ca9391186}{api-\/surface-\/analyzer.\+IMPORT\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}@import\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{}(\textbackslash{}s\texorpdfstring{$\ast$}{*}"{}(\+[\texorpdfstring{$^\wedge$}{\string^}"{}]\++)"{}\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{})\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a46975ae9d5dd23bacebfef4031b080a2}{api-\/surface-\/analyzer.\+FIELD\+\_\+\+ACCESS\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}\textbackslash{}.(\textbackslash{}w+)\textquotesingle{})
+\end{DoxyCompactItemize}

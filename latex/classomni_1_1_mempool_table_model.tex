@@ -1,0 +1,176 @@
+\doxysection{omni::\+Mempool\+Table\+Model Class Reference}
+\hypertarget{classomni_1_1_mempool_table_model}{}\label{classomni_1_1_mempool_table_model}\index{omni::MempoolTableModel@{omni::MempoolTableModel}}
+
+
+{\ttfamily \+\#include $<$Mempool\+Table\+Model.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Mempool\+Table\+Model:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Mempool\+Table\+Model:\+
+% FIG 1
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ad}{Column}} \{ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9}{Col\+Tx\+Id}}
+, \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b}{Col\+From}}
+, \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada3f7248292f5f5a2d069653c664de5629}{Col\+Amount}}
+, \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada5097d856450e575100e56dd9fe397945}{Col\+Count}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a493f7df3947fa5fcfe95c6e2a51493ef}{Mempool\+Table\+Model}} (QObject \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a6e2d528361cd428fb3d6185eeb95d32f}{row\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a07615ae836a8d0c8b34c8be15319b0f6}{column\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_ac96469416835b53d7c098dc789b612fa}{data}} (const QModel\+Index \&index, int role=Qt::\+\+Display\+Role) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_ae5cafa71be8efb671b0f3e0b2e7da860}{header\+Data}} (int section, Qt::\+\+Orientation orientation, int role=Qt::\+\+Display\+Role) const override
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a9d8fce8681e77c97d47d7c68fcfd4cf9}{add\+Pending\+Tx}} (const QString \&txid, const QString \&from, qint64 amount\+Sat)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a7a24e3482b57507be83af78966323945}{clear}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8h_source_l00009}{9}} of file \doxymbox{\hyperlink{_mempool_table_model_8h_source}{Mempool\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_mempool_table_model_doc-enum-members}
+\Hypertarget{classomni_1_1_mempool_table_model_doc-enum-members}
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ad}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!Column@{Column}}
+\index{Column@{Column}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{Column}{Column}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ad} 
+enum \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ad}{omni::\+\+Mempool\+Table\+Model::\+\+Column}}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColTxId@{ColTxId}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\index{omni::MempoolTableModel@{omni::MempoolTableModel}!ColTxId@{ColTxId}}
+}\Hypertarget{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9}\label{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9} 
+Col\+Tx\+Id&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColFrom@{ColFrom}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\index{omni::MempoolTableModel@{omni::MempoolTableModel}!ColFrom@{ColFrom}}
+}\Hypertarget{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b}\label{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b} 
+Col\+From&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColAmount@{ColAmount}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\index{omni::MempoolTableModel@{omni::MempoolTableModel}!ColAmount@{ColAmount}}
+}\Hypertarget{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada3f7248292f5f5a2d069653c664de5629}\label{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada3f7248292f5f5a2d069653c664de5629} 
+Col\+Amount&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColCount@{ColCount}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\index{omni::MempoolTableModel@{omni::MempoolTableModel}!ColCount@{ColCount}}
+}\Hypertarget{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada5097d856450e575100e56dd9fe397945}\label{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada5097d856450e575100e56dd9fe397945} 
+Col\+Count&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8h_source_l00012}{12}} of file \doxymbox{\hyperlink{_mempool_table_model_8h_source}{Mempool\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_mempool_table_model_doc-constructors}
+\Hypertarget{classomni_1_1_mempool_table_model_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_mempool_table_model_a493f7df3947fa5fcfe95c6e2a51493ef}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!MempoolTableModel@{MempoolTableModel}}
+\index{MempoolTableModel@{MempoolTableModel}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{MempoolTableModel()}{MempoolTableModel()}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_a493f7df3947fa5fcfe95c6e2a51493ef} 
+omni::\+\+Mempool\+Table\+Model::\+\+Mempool\+Table\+Model (\begin{DoxyParamCaption}\item[{QObject \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8cpp_source_l00007}{7}} of file \doxymbox{\hyperlink{_mempool_table_model_8cpp_source}{Mempool\+Table\+Model.\+cpp}}.
+
+
+
+\label{classomni_1_1_mempool_table_model_doc-func-members}
+\Hypertarget{classomni_1_1_mempool_table_model_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_mempool_table_model_a9d8fce8681e77c97d47d7c68fcfd4cf9}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!addPendingTx@{addPendingTx}}
+\index{addPendingTx@{addPendingTx}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{addPendingTx()}{addPendingTx()}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_a9d8fce8681e77c97d47d7c68fcfd4cf9} 
+void omni::\+\+Mempool\+Table\+Model::\+add\+Pending\+Tx (\begin{DoxyParamCaption}\item[{const QString \&}]{txid}{, }\item[{const QString \&}]{from}{, }\item[{qint64}]{amount\+Sat}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8cpp_source_l00064}{64}} of file \doxymbox{\hyperlink{_mempool_table_model_8cpp_source}{Mempool\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_mempool_table_model_a7a24e3482b57507be83af78966323945}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!clear@{clear}}
+\index{clear@{clear}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_a7a24e3482b57507be83af78966323945} 
+void omni::\+\+Mempool\+Table\+Model::\+clear (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8cpp_source_l00076}{76}} of file \doxymbox{\hyperlink{_mempool_table_model_8cpp_source}{Mempool\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_mempool_table_model_a07615ae836a8d0c8b34c8be15319b0f6}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!columnCount@{columnCount}}
+\index{columnCount@{columnCount}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{columnCount()}{columnCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_a07615ae836a8d0c8b34c8be15319b0f6} 
+int omni::\+\+Mempool\+Table\+Model::\+column\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8cpp_source_l00016}{16}} of file \doxymbox{\hyperlink{_mempool_table_model_8cpp_source}{Mempool\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_mempool_table_model_ac96469416835b53d7c098dc789b612fa}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!data@{data}}
+\index{data@{data}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_ac96469416835b53d7c098dc789b612fa} 
+QVariant omni::\+\+Mempool\+Table\+Model::\+data (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{index}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8cpp_source_l00020}{20}} of file \doxymbox{\hyperlink{_mempool_table_model_8cpp_source}{Mempool\+Table\+Model.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classomni_1_1_mempool_table_model_ae5cafa71be8efb671b0f3e0b2e7da860}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!headerData@{headerData}}
+\index{headerData@{headerData}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{headerData()}{headerData()}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_ae5cafa71be8efb671b0f3e0b2e7da860} 
+QVariant omni::\+\+Mempool\+Table\+Model::\+header\+Data (\begin{DoxyParamCaption}\item[{int}]{section}{, }\item[{Qt::\+\+Orientation}]{orientation}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8cpp_source_l00052}{52}} of file \doxymbox{\hyperlink{_mempool_table_model_8cpp_source}{Mempool\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_mempool_table_model_a6e2d528361cd428fb3d6185eeb95d32f}\index{omni::MempoolTableModel@{omni::MempoolTableModel}!rowCount@{rowCount}}
+\index{rowCount@{rowCount}!omni::MempoolTableModel@{omni::MempoolTableModel}}
+\doxysubsubsection{\texorpdfstring{rowCount()}{rowCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_mempool_table_model_a6e2d528361cd428fb3d6185eeb95d32f} 
+int omni::\+\+Mempool\+Table\+Model::\+row\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_mempool_table_model_8cpp_source_l00012}{12}} of file \doxymbox{\hyperlink{_mempool_table_model_8cpp_source}{Mempool\+Table\+Model.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_mempool_table_model_8h}{Mempool\+Table\+Model.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_mempool_table_model_8cpp}{Mempool\+Table\+Model.\+cpp}}\end{DoxyCompactItemize}

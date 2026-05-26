@@ -1,0 +1,301 @@
+\chapter{Module:\+ {\ttfamily prune\+\_\+config} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config}{}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config}\index{Module: $<$tt$>$prune\_config$<$/tt$>$@{Module: $<$tt$>$prune\_config$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2737}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2737}%
+
+
+\begin{quote}
+Pruning configuration — configurable retention (max 10K blocks), auto-\/prune old data, reduce disk usage. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+prune\+\_\+config.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 224 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 6
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2739}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2739}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2740}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2740}
+
+\begin{DoxyItemize}
+\item \`{}\+Prune\+Config\`{}{\ttfamily Prune\+Config}
+\end{DoxyItemize}— Pruning configuration for blockchain size management
+\begin{DoxyItemize}
+\item \`{}\+Prune\+Stats\`{}{\ttfamily Prune\+Stats}
+\end{DoxyItemize}— Pruning statistics
+\begin{DoxyItemize}
+\item \`{}\+Retention\+Policy\`{}{\ttfamily Retention\+Policy}
+\end{DoxyItemize}— Block retention policy\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2741}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2741}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2742}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2742}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}estimate\+Storage\+Size()\`{}{\ttfamily estimate\+Storage\+Size()}
+\end{DoxyItemize}— Get estimated storage size based on config
+\begin{DoxyItemize}
+\item \`{}validate()\`{}{\ttfamily validate()}
+\end{DoxyItemize}— Validate configuration
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the prune\+\_\+config module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}init\+By\+Days()\`{}{\ttfamily init\+By\+Days()}
+\end{DoxyItemize}— Performs the init by days operation on the prune\+\_\+config module.
+\begin{DoxyItemize}
+\item \`{}init\+By\+Checkpoint()\`{}{\ttfamily init\+By\+Checkpoint()}
+\end{DoxyItemize}— Performs the init by checkpoint operation on the prune\+\_\+config module.
+\begin{DoxyItemize}
+\item \`{}should\+Keep\+Block()\`{}{\ttfamily should\+Keep\+Block()}
+\end{DoxyItemize}— Performs the should keep block operation on the prune\+\_\+config module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2744}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2744}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2745}{}\doxysubsection{\texorpdfstring{{\ttfamily Prune\+Config}}{{\ttfamily Prune\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2745}
+Pruning configuration for blockchain size management
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily max\+\_\+blocks\+\_\+to\+\_\+keep}  &{\ttfamily u32}  &Max\+\_\+blocks\+\_\+to\+\_\+keep  \\
+{\ttfamily auto\+\_\+prune\+\_\+enabled}  &{\ttfamily bool}  &Auto\+\_\+prune\+\_\+enabled  \\
+{\ttfamily prune\+\_\+threshold}  &{\ttfamily u32}  &Prune\+\_\+threshold  \\
+{\ttfamily keep\+\_\+days}  &{\ttfamily u32}  &Keep\+\_\+days  \\
+{\ttfamily archive\+\_\+enabled}  &{\ttfamily bool}  &Archive\+\_\+enabled  \\
+{\ttfamily archive\+\_\+path}  &{\ttfamily \+[]\+const u8}  &Archive\+\_\+path  \\
+{\ttfamily compress\+\_\+archived}  &{\ttfamily bool}  &Compress\+\_\+archived  \\
+{\ttfamily keep\+\_\+full\+\_\+history}  &{\ttfamily bool}  &Keep\+\_\+full\+\_\+history  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily max\+\_\+blocks}  &{\ttfamily u32}  &Max\+\_\+blocks  \\
+{\ttfamily keep\+\_\+days}  &{\ttfamily u32}  &Keep\+\_\+days  \\
+{\ttfamily archive\+\_\+enabled}  &{\ttfamily bool}  &Archive\+\_\+enabled  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 4}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2747}{}\doxysubsection{\texorpdfstring{{\ttfamily Prune\+Stats}}{{\ttfamily Prune\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2747}
+Pruning statistics
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily blocks\+\_\+pruned}  &{\ttfamily u32}  &Blocks\+\_\+pruned  \\
+{\ttfamily blocks\+\_\+archived}  &{\ttfamily u32}  &Blocks\+\_\+archived  \\
+{\ttfamily blocks\+\_\+remaining}  &{\ttfamily u32}  &Blocks\+\_\+remaining  \\
+{\ttfamily space\+\_\+freed}  &{\ttfamily u64}  &Space\+\_\+freed  \\
+{\ttfamily archive\+\_\+size}  &{\ttfamily u64}  &Archive\+\_\+size  \\
+{\ttfamily prune\+\_\+count}  &{\ttfamily u32}  &Prune\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 76}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2749}{}\doxysubsection{\texorpdfstring{{\ttfamily Retention\+Policy}}{{\ttfamily Retention\+Policy}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2749}
+Block retention policy
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily strategy}  &{\ttfamily Prune\+Strategy}  &Strategy  \\
+{\ttfamily keep\+\_\+count}  &{\ttfamily u32}  &Keep\+\_\+count  \\
+{\ttfamily keep\+\_\+days}  &{\ttfamily u32}  &Keep\+\_\+days  \\
+{\ttfamily checkpoint\+\_\+height}  &{\ttfamily u32}  &Checkpoint\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 121}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2751}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2751}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Prune\+Strategy}  &{\ttfamily enum \{}  &Prune strategy  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2753}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2753}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2754}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2754}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ PruneConfig\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Prune\+Config}
+
+{\itshape Defined at line 31}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2756}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+Storage\+Size()}}{{\ttfamily estimate\+Storage\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2756}
+Get estimated storage size based on config
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateStorageSize(self:\ *const\ PruneConfig)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Prune\+Config}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2758}{}\doxysubsection{\texorpdfstring{{\ttfamily validate()}}{{\ttfamily validate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2758}
+Validate configuration
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validate(self:\ *const\ PruneConfig)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Prune\+Config}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2760}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2760}
+Performs the print operation on the prune\+\_\+config module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ PruneStats)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Prune\+Stats}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 84}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2762}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2762}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ RetentionPolicy\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Retention\+Policy}
+
+{\itshape Defined at line 127}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2764}{}\doxysubsection{\texorpdfstring{{\ttfamily init\+By\+Days()}}{{\ttfamily init\+By\+Days()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2764}
+Performs the init by days operation on the prune\+\_\+config module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ initByDays(days:\ u32)\ RetentionPolicy\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily days}  &{\ttfamily u32}  &Days  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Retention\+Policy}
+
+{\itshape Defined at line 134}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2766}{}\doxysubsection{\texorpdfstring{{\ttfamily init\+By\+Checkpoint()}}{{\ttfamily init\+By\+Checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2766}
+Performs the init by checkpoint operation on the prune\+\_\+config module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ initByCheckpoint(height:\ u32)\ RetentionPolicy\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u32}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Retention\+Policy}
+
+{\itshape Defined at line 141}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2768}{}\doxysubsection{\texorpdfstring{{\ttfamily should\+Keep\+Block()}}{{\ttfamily should\+Keep\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2prune__config_autotoc_md2768}
+Performs the should keep block operation on the prune\+\_\+config module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ shouldKeepBlock(self:\ *const\ RetentionPolicy,\ block\_height:\ u32,\ total\_blocks:\ u32)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Retention\+Policy}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u32}  &Block\+\_\+height  \\
+{\ttfamily total\+\_\+blocks}  &{\ttfamily u32}  &Total\+\_\+blocks  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 148}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

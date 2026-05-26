@@ -1,0 +1,113 @@
+\doxysection{frontend/\+node\+\_\+modules/\+d3-\/timer Directory Reference}
+\hypertarget{dir_753b8a931a62e995a1458966c0159fb9}{}\label{dir_753b8a931a62e995a1458966c0159fb9}\index{frontend/node\_modules/d3-\/timer Directory Reference@{frontend/node\_modules/d3-\/timer Directory Reference}}
+Directory dependency graph for d3-\/timer:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_753b8a931a62e995a1458966c0159fb9_autotoc_md6020}{}\doxysubsection{\texorpdfstring{d3-\/timer}{d3-\/timer}}\label{dir_753b8a931a62e995a1458966c0159fb9_autotoc_md6020}
+This module provides an efficient queue capable of managing thousands of concurrent animations, while guaranteeing consistent, synchronized timing with concurrent or staged animations. Internally, it uses \href{https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame}{\texttt{request\+Animation\+Frame}} for fluid animation (if available), switching to \href{https://developer.mozilla.org/en-US/docs/Web/API/WindowTimers/setTimeout}{\texttt{set\+Timeout}} for delays longer than 24ms.\hypertarget{dir_753b8a931a62e995a1458966c0159fb9_autotoc_md6021}{}\doxysubsection{\texorpdfstring{Installing}{Installing}}\label{dir_753b8a931a62e995a1458966c0159fb9_autotoc_md6021}
+If you use npm, {\ttfamily npm install d3-\/timer}. You can also download the \href{https://github.com/d3/d3-timer/releases/latest}{\texttt{latest release on Git\+Hub}}. For vanilla HTML in modern browsers, import d3-\/timer from Skypack:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ type="{}module"{}>}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{timer\}\ from\ "{}https://cdn.skypack.dev/d3-\/timer@3"{};}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ t\ =\ timer(callback);}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+
+
+For legacy environments, you can load d3-\/timer’s UMD bundle from an npm-\/based CDN such as js\+Delivr; a {\ttfamily d3} global is exported:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ src="{}https://cdn.jsdelivr.net/npm/d3-\/timer@3"{}></script>}
+\DoxyCodeLine{<script>}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ timer\ =\ d3.timer(callback);}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+\hypertarget{dir_753b8a931a62e995a1458966c0159fb9_autotoc_md6022}{}\doxysubsection{\texorpdfstring{API Reference}{API Reference}}\label{dir_753b8a931a62e995a1458966c0159fb9_autotoc_md6022}
+\label{dir_753b8a931a62e995a1458966c0159fb9_now}%
+\Hypertarget{dir_753b8a931a62e995a1458966c0159fb9_now}%
+\# d3.{\bfseries{now}}() \href{https://github.com/d3/d3-timer/blob/master/src/timer.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Returns the current time as defined by \href{https://developer.mozilla.org/en-US/docs/Web/API/Performance/now}{\texttt{performance.\+now}} if available, and \href{https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date/now}{\texttt{Date.\+now}} if not. The current time is updated at the start of a frame; it is thus consistent during the frame, and any timers scheduled during the same frame will be synchronized. If this method is called outside of a frame, such as in response to a user event, the current time is calculated and then fixed until the next frame, again ensuring consistent timing during event handling.
+
+\label{dir_753b8a931a62e995a1458966c0159fb9_timer}%
+\Hypertarget{dir_753b8a931a62e995a1458966c0159fb9_timer}%
+\# d3.{\bfseries{timer}}({\itshape callback}\+[, {\itshape delay}\+[, {\itshape time}]\+]\+) \href{https://github.com/d3/d3-timer/blob/master/src/timer.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Schedules a new timer, invoking the specified {\itshape callback} repeatedly until the timer is \doxylink{dir_753b8a931a62e995a1458966c0159fb9_timer_stop}{stopped}stopped. An optional numeric {\itshape delay} in milliseconds may be specified to invoke the given {\itshape callback} after a delay; if {\itshape delay} is not specified, it defaults to zero. The delay is relative to the specified {\itshape time} in milliseconds; if {\itshape time} is not specified, it defaults to \doxylink{dir_753b8a931a62e995a1458966c0159fb9_now}{now}now.
+
+The {\itshape callback} is passed the (apparent) {\itshape elapsed} time since the timer became active. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ t\ =\ d3.timer((elapsed)\ =>\ \{}
+\DoxyCodeLine{\ \ console.log(elapsed);}
+\DoxyCodeLine{\ \ if\ (elapsed\ >\ 200)\ t.stop();}
+\DoxyCodeLine{\},\ 150);}
+
+\end{DoxyCode}
+
+
+This produces roughly the following console output:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{3}
+\DoxyCodeLine{25}
+\DoxyCodeLine{48}
+\DoxyCodeLine{65}
+\DoxyCodeLine{85}
+\DoxyCodeLine{106}
+\DoxyCodeLine{125}
+\DoxyCodeLine{146}
+\DoxyCodeLine{167}
+\DoxyCodeLine{189}
+\DoxyCodeLine{209}
+
+\end{DoxyCode}
+
+
+(The exact values may vary depending on your Java\+Script runtime and what else your computer is doing.) Note that the first {\itshape elapsed} time is 3ms:\+ this is the elapsed time since the timer started, not since the timer was scheduled. Here the timer started 150ms after it was scheduled due to the specified delay. The apparent {\itshape elapsed} time may be less than the true {\itshape elapsed} time if the page is backgrounded and \href{https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame}{\texttt{request\+Animation\+Frame}} is paused; in the background, apparent time is frozen.
+
+If \doxylink{dir_753b8a931a62e995a1458966c0159fb9_timer}{timer}timer is called within the callback of another timer, the new timer callback (if eligible as determined by the specified {\itshape delay} and {\itshape time}) will be invoked immediately at the end of the current frame, rather than waiting until the next frame. Within a frame, timer callbacks are guaranteed to be invoked in the order they were scheduled, regardless of their start time.
+
+\label{dir_753b8a931a62e995a1458966c0159fb9_timer_restart}%
+\Hypertarget{dir_753b8a931a62e995a1458966c0159fb9_timer_restart}%
+\# {\itshape timer}.{\bfseries{restart}}({\itshape callback}\+[, {\itshape delay}\+[, {\itshape time}]\+]\+) \href{https://github.com/d3/d3-timer/blob/master/src/timer.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Restart a timer with the specified {\itshape callback} and optional {\itshape delay} and {\itshape time}. This is equivalent to stopping this timer and creating a new timer with the specified arguments, although this timer retains the original invocation priority.
+
+\label{dir_753b8a931a62e995a1458966c0159fb9_timer_stop}%
+\Hypertarget{dir_753b8a931a62e995a1458966c0159fb9_timer_stop}%
+\# {\itshape timer}.{\bfseries{stop}}() \href{https://github.com/d3/d3-timer/blob/master/src/timer.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Stops this timer, preventing subsequent callbacks. This method has no effect if the timer has already stopped.
+
+\label{dir_753b8a931a62e995a1458966c0159fb9_timerFlush}%
+\Hypertarget{dir_753b8a931a62e995a1458966c0159fb9_timerFlush}%
+\# d3.{\bfseries{timer\+Flush}}() \href{https://github.com/d3/d3-timer/blob/master/src/timer.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Immediately invoke any eligible timer callbacks. Note that zero-\/delay timers are normally first executed after one frame (\texorpdfstring{$\sim$}{\string~}17ms). This can cause a brief flicker because the browser renders the page twice:\+ once at the end of the first event loop, then again immediately on the first timer callback. By flushing the timer queue at the end of the first event loop, you can run any zero-\/delay timers immediately and avoid the flicker.
+
+\label{dir_753b8a931a62e995a1458966c0159fb9_timeout}%
+\Hypertarget{dir_753b8a931a62e995a1458966c0159fb9_timeout}%
+\# d3.{\bfseries{timeout}}({\itshape callback}\+[, {\itshape delay}\+[, {\itshape time}]\+]\+) \href{https://github.com/d3/d3-timer/blob/master/src/timeout.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Like \doxylink{dir_753b8a931a62e995a1458966c0159fb9_timer}{timer}timer, except the timer automatically \doxylink{dir_753b8a931a62e995a1458966c0159fb9_timer_stop}{stops}stops on its first callback. A suitable replacement for \href{https://developer.mozilla.org/en-US/docs/Web/API/WindowTimers/setTimeout}{\texttt{set\+Timeout}} that is guaranteed to not run in the background. The {\itshape callback} is passed the elapsed time.
+
+\label{dir_753b8a931a62e995a1458966c0159fb9_interval}%
+\Hypertarget{dir_753b8a931a62e995a1458966c0159fb9_interval}%
+\# d3.{\bfseries{interval}}({\itshape callback}\+[, {\itshape delay}\+[, {\itshape time}]\+]\+) \href{https://github.com/d3/d3-timer/blob/master/src/interval.js}{\texttt{\texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>}}}
+
+Like \doxylink{dir_753b8a931a62e995a1458966c0159fb9_timer}{timer}timer, except the {\itshape callback} is invoked only every {\itshape delay} milliseconds; if {\itshape delay} is not specified, this is equivalent to \doxylink{dir_753b8a931a62e995a1458966c0159fb9_timer}{timer}timer. A suitable replacement for \href{https://developer.mozilla.org/en-US/docs/Web/API/WindowTimers/setInterval}{\texttt{set\+Interval}} that is guaranteed to not run in the background. The {\itshape callback} is passed the elapsed time. 

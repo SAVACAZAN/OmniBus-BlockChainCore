@@ -1,0 +1,328 @@
+\doxysection{archived-\/4-\/eterniti/\+ai-\/opcode-\/research Directory Reference}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612}{}\label{dir_229bde8bb62127fcdf2fc55d1eed4612}\index{archived-\/4-\/eterniti/ai-\/opcode-\/research Directory Reference@{archived-\/4-\/eterniti/ai-\/opcode-\/research Directory Reference}}
+Directory dependency graph for ai-\/opcode-\/research:\+
+% FIG 0
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \doxymbox{\hyperlink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md330}{}\doxysubsection{\texorpdfstring{Omni\+Bus Blockchain -\/ Opcode Registry}{Omni\+Bus Blockchain -\/ Opcode Registry}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md330}
+\begin{quote}
+{\bfseries{Director centralizat pentru toate opcodurile, constantele și protocolul Omni\+Bus Blockchain.}} \end{quote}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md332}{}\doxysubsection{\texorpdfstring{📚 Fișiere în acest director}{📚 Fișiere în acest director}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md332}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}}  &{\bfseries{Referința completă}} -\/ Toate opcodurile, constantele, enum-\/urile și protocoalele  \\
+{\ttfamily \doxylink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py}}  &{\bfseries{Scanner automat}} -\/ Script Python care scanează codebase-\/ul și actualizează \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}  \\
+{\ttfamily README.\+md}  &Acest fișier -\/ Documentație despre cum se folosește directorul  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md334}{}\doxysubsection{\texorpdfstring{🚀 Utilizare rapidă}{🚀 Utilizare rapidă}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md334}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md335}{}\doxysubsubsection{\texorpdfstring{1. Consultarea referinței}{1. Consultarea referinței}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md335}
+Pur și simplu deschide {\ttfamily \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}} și caută ce ai nevoie folosind indexul rapid:\+
+
+
+\begin{DoxyItemize}
+\item Message Types (P2P)Message Types (P2P)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Consensus TypesConsensus Types
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Validator StatusValidator Status
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item RPC MethodsRPC Methods
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item etc.
+\end{DoxyItemize}\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md336}{}\doxysubsubsection{\texorpdfstring{2. Actualizarea automată}{2. Actualizarea automată}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md336}
+Când adaugi noi constante, enum-\/uri sau opcoduri în codebase, rulează:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ claude-\/kimi-\/deep-\/gemini-\/opcodes}
+\DoxyCodeLine{python\ scan\_opcodes.py\ -\/-\/update}
+
+\end{DoxyCode}
+
+
+Acesta va:\+
+\begin{DoxyEnumerate}
+\item Scană toate fișierele {\ttfamily .\doxylink{namespacezig}{zig}} din proiect
+\item Detectează automat constantele publice ({\ttfamily pub const})
+\item Extrage toate enum-\/urile și variantele lor
+\item Identifică message types și magic numbers
+\item Actualizează {\ttfamily \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}} cu informațiile noi
+\end{DoxyEnumerate}\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md337}{}\doxysubsubsection{\texorpdfstring{3. Verificarea diferențelor}{3. Verificarea diferențelor}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md337}
+Înainte de a actualiza, poți vedea ce s-\/a schimbat:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ scan\_opcodes.py\ -\/-\/diff}
+
+\end{DoxyCode}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md338}{}\doxysubsubsection{\texorpdfstring{4. Generare în alt fișier}{4. Generare în alt fișier}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md338}
+Dacă vrei să generezi o versiune nouă fără a suprascrie \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ scan\_opcodes.py\ -\/-\/output\ opcodes\_v2.md}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md340}{}\doxysubsection{\texorpdfstring{📝 Convenții pentru adăugare manuală}{📝 Convenții pentru adăugare manuală}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md340}
+Când adaugi opcoduri noi manual în {\ttfamily \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}}, urmează formatul:\+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md341}{}\doxysubsubsection{\texorpdfstring{Pentru constante:\+}{Pentru constante:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md341}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{|\ \`{}NUME\_CONSTANTA`\ |\ valoare\ |\ Descriere\ scurtă\ |}
+
+\end{DoxyCode}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md342}{}\doxysubsubsection{\texorpdfstring{Pentru enum-\/uri:\+}{Pentru enum-\/uri:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md342}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{|\ Cod\ |\ Nume\ |\ Descriere\ |}
+\DoxyCodeLine{|-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|}
+\DoxyCodeLine{|\ 0\ |\ \`{}varianta\_1`\ |\ Descriere\ |}
+\DoxyCodeLine{|\ 1\ |\ \`{}varianta\_2`\ |\ Descriere\ |}
+
+\end{DoxyCode}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md343}{}\doxysubsubsection{\texorpdfstring{Pentru RPC methods:\+}{Pentru RPC methods:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md343}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{|\ Metodă\ |\ Parametri\ |\ Returnează\ |}
+\DoxyCodeLine{|-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|}
+\DoxyCodeLine{|\ \`{}nume\_metoda`\ |\ \`{}param1,\ param2`\ |\ Descriere\ return\ |}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md345}{}\doxysubsection{\texorpdfstring{🔄 Workflow recomandat}{🔄 Workflow recomandat}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md345}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md346}{}\doxysubsubsection{\texorpdfstring{Când modifici codul Zig:\+}{Când modifici codul Zig:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md346}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Adaugi/\+modifici constante}} în fișierele {\ttfamily .\doxylink{namespacezig}{zig}}
+\item {\bfseries{Rulează scanner-\/ul:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ scan\_opcodes.py\ -\/-\/update}
+
+\end{DoxyCode}
+
+\item {\bfseries{Verifică modificările}} în {\ttfamily \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}}
+\item {\bfseries{Adaugă context manual}} dacă e necesar (descrieri, exemple)
+\item {\bfseries{Comite ambele fișiere}} (cod + opcodes actualizate)
+\end{DoxyEnumerate}\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md347}{}\doxysubsubsection{\texorpdfstring{Când ai nevoie de o constantă:\+}{Când ai nevoie de o constantă:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md347}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Caută în {\ttfamily \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}}}} înainte să definești una nouă
+\item {\bfseries{Verifică dacă există deja}} sub alt nume
+\item {\bfseries{Folosește constanta existentă}} sau definește una nouă cu nume clar
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md349}{}\doxysubsection{\texorpdfstring{🎯 Scopul acestui director}{🎯 Scopul acestui director}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md349}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md350}{}\doxysubsubsection{\texorpdfstring{Problema}{Problema}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md350}
+În proiecte blockchain mari, constantele și opcodurile sunt împrăștiate în zeci de fișiere:\+
+\begin{DoxyItemize}
+\item {\ttfamily core/\+p2p.\+zig} -\/ Message types
+\item {\ttfamily core/\+consensus.\+zig} -\/ Consensus constants
+\item {\ttfamily core/\+staking.\+zig} -\/ Staking parameters
+\item {\ttfamily core/\+finality.\+zig} -\/ Finality constants
+\item etc.
+\end{DoxyItemize}\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md351}{}\doxysubsubsection{\texorpdfstring{Soluția}{Soluția}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md351}
+Acest director oferă:\+
+\begin{DoxyEnumerate}
+\item {\bfseries{Referință unică}} -\/ Toate opcodurile într-\/un singur loc
+\item {\bfseries{Scanare automată}} -\/ Nu mai trebuie să actualizezi manual
+\item {\bfseries{Documentație vie}} -\/ Se sincronizează cu codul automat
+\item {\bfseries{Onboarding rapid}} -\/ Noii dezvoltatori pot înțelege protocolul rapid
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md353}{}\doxysubsection{\texorpdfstring{🤝 Colaborare}{🤝 Colaborare}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md353}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md354}{}\doxysubsubsection{\texorpdfstring{Reguli pentru actualizări manuale:\+}{Reguli pentru actualizări manuale:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md354}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Nu șterge secțiunile generate automat}} -\/ Vor fi regenerate
+\item {\bfseries{Adaugă secțiuni noi pentru context}} -\/ Explicații, exemple, note
+\item {\bfseries{Comite separat}} -\/ Un commit pentru cod, unul pentru opcodes
+\item {\bfseries{Verifică înainte de PR}} -\/ Rulează {\ttfamily -\/-\/diff} să vezi ce s-\/a schimbat
+\end{DoxyEnumerate}\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md355}{}\doxysubsubsection{\texorpdfstring{Când să rulezi scanner-\/ul:\+}{Când să rulezi scanner-\/ul:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md355}
+
+\begin{DoxyItemize}
+\item ✅ După ce adaugi noi constante/\+enum-\/uri
+\item ✅ Înainte de un release major
+\item ✅ Când refactorezi cod cu multe constante
+\item ✅ Periodic (săptămânal) pentru sincronizare
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md357}{}\doxysubsection{\texorpdfstring{📊 Exemple de utilizare}{📊 Exemple de utilizare}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md357}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md358}{}\doxysubsubsection{\texorpdfstring{Exemplu 1:\+ Găsirea rapidă a unui port}{Exemplu 1:\+ Găsirea rapidă a unui port}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md358}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ În\ loc\ să\ cauți\ în\ cod...}
+\DoxyCodeLine{grep\ -\/r\ "{}8333"{}\ core/}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Deschizi\ OPCODES.md\ și\ cauți\ în\ tabela\ "{}Port\ Reference"{}}
+\DoxyCodeLine{\#\ Găsești\ instant:\ Port\ 8333\ =\ P2P\ Network}
+
+\end{DoxyCode}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md359}{}\doxysubsubsection{\texorpdfstring{Exemplu 2:\+ Adăugarea unui Message Type nou}{Exemplu 2:\+ Adăugarea unui Message Type nou}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md359}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ În\ core/network.zig,\ adaugi:}
+\DoxyCodeLine{pub\ const\ MessageType\ =\ enum(u8)\ \{}
+\DoxyCodeLine{\ \ \ \ //\ ...\ existente}
+\DoxyCodeLine{\ \ \ \ new\_feature\ =\ 21,\ \ //\ ←\ Nou}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Rulezi\ scanner-\/ul}
+\DoxyCodeLine{python\ scan\_opcodes.py\ -\/-\/update}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ OPCODES.md\ este\ actualizat\ automat\ cu\ noul\ message\ type}
+
+\end{DoxyCode}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md360}{}\doxysubsubsection{\texorpdfstring{Exemplu 3:\+ Documentarea manuală a unui opcode complex}{Exemplu 3:\+ Documentarea manuală a unui opcode complex}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md360}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\#\ 🔐\ Cryptographic\ Opcodes}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\#\#\ BLS12-\/381\ Operations}
+\DoxyCodeLine{}
+\DoxyCodeLine{|\ Opcode\ |\ Input\ |\ Output\ |\ Descriere\ |}
+\DoxyCodeLine{|-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|}
+\DoxyCodeLine{|\ \`{}OP\_BLS\_SIGN`\ |\ msg,\ sk\ |\ sig\ |\ Semnează\ mesaj\ cu\ BLS\ |}
+\DoxyCodeLine{|\ \`{}OP\_BLS\_VERIFY`\ |\ msg,\ pk,\ sig\ |\ bool\ |\ Verifică\ semnătură\ BLS\ |}
+\DoxyCodeLine{|\ \`{}OP\_BLS\_AGGREGATE`\ |\ sigs[]\ |\ agg\_sig\ |\ Agreghează\ semnături\ |}
+\DoxyCodeLine{}
+\DoxyCodeLine{**Note:**}
+\DoxyCodeLine{-\/\ Toate\ operațiile\ folosesc\ curba\ BLS12-\/381}
+\DoxyCodeLine{-\/\ Semnăturile\ agregate\ sunt\ 96\ bytes}
+\DoxyCodeLine{-\/\ Cheile\ publice\ sunt\ 48\ bytes}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md362}{}\doxysubsection{\texorpdfstring{🛠️ Troubleshooting}{🛠️ Troubleshooting}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md362}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md363}{}\doxysubsubsection{\texorpdfstring{Scanner-\/ul nu găsește constantele mele}{Scanner-\/ul nu găsește constantele mele}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md363}
+Verifică că:\+
+\begin{DoxyEnumerate}
+\item Constantele sunt {\ttfamily pub const} (nu doar {\ttfamily const})
+\item Nu sunt în fișiere excluse ({\ttfamily .zig-\/cache}, {\ttfamily zig-\/out}, etc.)
+\item Sintaxa este corectă Zig
+\end{DoxyEnumerate}\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md364}{}\doxysubsubsection{\texorpdfstring{Vreau să exclud anumite fișiere}{Vreau să exclud anumite fișiere}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md364}
+Editează {\ttfamily \doxylink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py}} și modifică:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{self.excluded\_dirs\ =\ \{\textcolor{stringliteral}{'.git'},\ \textcolor{stringliteral}{'.zig-\/cache'},\ \textcolor{stringliteral}{'zig-\/out'},\ \textcolor{stringliteral}{'nume\_director\_nou'}\}}
+
+\end{DoxyCode}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md365}{}\doxysubsubsection{\texorpdfstring{Output-\/ul nu arată bine în Markdown}{Output-\/ul nu arată bine în Markdown}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md365}
+Verifică că:\+
+\begin{DoxyEnumerate}
+\item Valorile constantelor nu conțin {\ttfamily \texorpdfstring{$\vert$}{|}} (pipe)
+\item Comentariile nu sunt pe multiple linii (scanner-\/ul ia doar prima linie)
+\item Enum-\/urile au sintaxa standard Zig
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md367}{}\doxysubsection{\texorpdfstring{📝 Formatul fișierelor}{📝 Formatul fișierelor}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md367}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md368}{}\doxysubsubsection{\texorpdfstring{OPCODES.\+md}{OPCODES.\+md}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md368}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Titlu\ secțiune}
+\DoxyCodeLine{}
+\DoxyCodeLine{|\ Coloană\ 1\ |\ Coloană\ 2\ |\ Coloană\ 3\ |}
+\DoxyCodeLine{|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|}
+\DoxyCodeLine{|\ Valoare\ 1\ |\ Valoare\ 2\ |\ Valoare\ 3\ |}
+\DoxyCodeLine{}
+\DoxyCodeLine{Descriere\ adițională...}
+
+\end{DoxyCode}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md369}{}\doxysubsubsection{\texorpdfstring{scan\+\_\+opcodes.\+py}{scan\+\_\+opcodes.\+py}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md369}
+Script Python 3.\+8+ cu dependențe:\+
+\begin{DoxyItemize}
+\item {\ttfamily pathlib} (built-\/in)
+\item {\ttfamily re} (built-\/in)
+\item {\ttfamily argparse} (built-\/in)
+\item {\ttfamily dataclasses} (built-\/in)
+\end{DoxyItemize}
+
+{\bfseries{Nu necesită instalare de pachete externe!}}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md371}{}\doxysubsection{\texorpdfstring{🎓 Învățare prin exemple}{🎓 Învățare prin exemple}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md371}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md372}{}\doxysubsubsection{\texorpdfstring{Cum să citești un Message Type din cod:\+}{Cum să citești un Message Type din cod:\+}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md372}
+{\bfseries{Cod Zig:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ MessageType\ =\ enum(u8)\ \{}
+\DoxyCodeLine{\ \ \ \ ping\ =\ 1,\ \ \ \ \ \ \ \ \ \ \ //\ Heartbeat}
+\DoxyCodeLine{\ \ \ \ pong\ =\ 2,\ \ \ \ \ \ \ \ \ \ \ //\ Răspuns\ ping}
+\DoxyCodeLine{\ \ \ \ block\ =\ 7,\ \ \ \ \ \ \ \ \ \ //\ Propagare\ bloc}
+\DoxyCodeLine{\ \ \ \ tx\ =\ 8,\ \ \ \ \ \ \ \ \ \ \ \ \ //\ Propagare\ TX}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+{\bfseries{În \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{|\ Cod\ (u8)\ |\ Nume\ |\ Descriere\ |\ Direcție\ |}
+\DoxyCodeLine{|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|}
+\DoxyCodeLine{|\ 1\ |\ \`{}ping`\ |\ Heartbeat\ +\ height\ exchange\ |\ Bidirecțional\ |}
+\DoxyCodeLine{|\ 2\ |\ \`{}pong`\ |\ Răspuns\ ping\ |\ Bidirecțional\ |}
+\DoxyCodeLine{|\ 7\ |\ \`{}block`\ |\ Propagare\ bloc\ complet\ |\ Bidirecțional\ |}
+\DoxyCodeLine{|\ 8\ |\ \`{}tx`\ |\ Propagare\ tranzacție\ |\ Bidirecțional\ |}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md374}{}\doxysubsection{\texorpdfstring{🔗 Link-\/uri utile}{🔗 Link-\/uri utile}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md374}
+
+\begin{DoxyItemize}
+\item \href{../core/}{\texttt{Codul sursă principal}} -\/ Toate fișierele Zig
+\item \href{../docs/}{\texttt{Documentația tehnică}} -\/ Documentație suplimentară
+\item \href{../test/}{\texttt{Teste}} -\/ Teste pentru verificarea constantelor
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md376}{}\doxysubsection{\texorpdfstring{👥 Autori}{👥 Autori}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md376}
+
+\begin{DoxyItemize}
+\item {\bfseries{Omni\+Bus AI Collective}} -\/ Claude + Kimi + Deep\+Seek + Gemini
+\item {\bfseries{Maintainer:\+}} Echipa Omni\+Bus Core
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md378}{}\doxysubsection{\texorpdfstring{📜 Licență}{📜 Licență}}\label{dir_229bde8bb62127fcdf2fc55d1eed4612_autotoc_md378}
+Acest document și scripturile asociate sunt licențiate sub MIT License. Vezi \href{../LICENSE}{\texttt{LICENSE}} pentru detalii.
+
+\DoxyHorRuler{0}
+
+
+\begin{quote}
+{\bfseries{Ultima actualizare:\+}} 2026-\/03-\/31
+
+{\bfseries{Versiune document:\+}} 1.\+0.\+0
+
+{\bfseries{Versiune scanner:\+}} 1.\+0.\+0 \end{quote}

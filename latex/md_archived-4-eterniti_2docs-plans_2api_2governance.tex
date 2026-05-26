@@ -1,0 +1,249 @@
+\chapter{Module:\+ {\ttfamily governance} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance}{}\label{md_archived-4-eterniti_2docs-plans_2api_2governance}\index{Module: $<$tt$>$governance$<$/tt$>$@{Module: $<$tt$>$governance$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1630}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1630}%
+
+
+\begin{quote}
+On-\/chain governance — proposal creation, voting (for/\+against/\+abstain), quorum (33\%), approval threshold (50\%), veto threshold (33\%), parameter updates. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+governance.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 393 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1632}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1632}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1633}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1633}
+
+\begin{DoxyItemize}
+\item \`{}\+Vote\+Record\`{}{\ttfamily Vote\+Record}
+\end{DoxyItemize}— O inregistrare de vot
+\begin{DoxyItemize}
+\item \`{}\+Governance\+Params\`{}{\ttfamily Governance\+Params}
+\end{DoxyItemize}— Parametrii guvernantei (configurabili ei insisi prin governance!)
+\begin{DoxyItemize}
+\item \`{}\+Proposal\`{}{\ttfamily Proposal}
+\end{DoxyItemize}— O propunere de governance
+\begin{DoxyItemize}
+\item \`{}\+Governance\+Engine\`{}{\ttfamily Governance\+Engine}
+\end{DoxyItemize}— Governance Engine\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1634}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1634}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1635}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1635}
+
+\begin{DoxyItemize}
+\item \`{}is\+Voting\+Active()\`{}{\ttfamily is\+Voting\+Active()}
+\end{DoxyItemize}— Verifica daca propunerea e in perioada de vot
+\begin{DoxyItemize}
+\item \`{}tally\+Result()\`{}{\ttfamily tally\+Result()}
+\end{DoxyItemize}— Calculeaza rezultatul final
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}get\+Proposal()\`{}{\ttfamily get\+Proposal()}
+\end{DoxyItemize}— Get proposal by ID (const)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1637}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1637}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1638}{}\doxysubsection{\texorpdfstring{{\ttfamily Vote\+Record}}{{\ttfamily Vote\+Record}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1638}
+O inregistrare de vot
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily voter\+\_\+address}  &{\ttfamily \+[32]\+u8}  &Voter\+\_\+address  \\
+{\ttfamily vote}  &{\ttfamily Vote}  &Vote  \\
+{\ttfamily voting\+\_\+power}  &{\ttfamily u64}  &Voting\+\_\+power  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 51}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1640}{}\doxysubsection{\texorpdfstring{{\ttfamily Governance\+Params}}{{\ttfamily Governance\+Params}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1640}
+Parametrii guvernantei (configurabili ei insisi prin governance!)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily deposit\+\_\+period\+\_\+blocks}  &{\ttfamily u64}  &Deposit\+\_\+period\+\_\+blocks  \\
+{\ttfamily voting\+\_\+period\+\_\+blocks}  &{\ttfamily u64}  &Voting\+\_\+period\+\_\+blocks  \\
+{\ttfamily min\+\_\+deposit\+\_\+sat}  &{\ttfamily u64}  &Min\+\_\+deposit\+\_\+sat  \\
+{\ttfamily quorum\+\_\+pct}  &{\ttfamily u8}  &Quorum\+\_\+pct  \\
+{\ttfamily threshold\+\_\+pct}  &{\ttfamily u8}  &Threshold\+\_\+pct  \\
+{\ttfamily veto\+\_\+pct}  &{\ttfamily u8}  &Veto\+\_\+pct  \\
+{\ttfamily fee\+\_\+burn\+\_\+pct}  &{\ttfamily u8}  &Fee\+\_\+burn\+\_\+pct  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1642}{}\doxysubsection{\texorpdfstring{{\ttfamily Proposal}}{{\ttfamily Proposal}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1642}
+O propunere de governance
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily id}  &{\ttfamily u64}  &Id  \\
+{\ttfamily proposer}  &{\ttfamily \+[32]\+u8}  &Proposer  \\
+{\ttfamily proposal\+\_\+type}  &{\ttfamily Proposal\+Type}  &Proposal\+\_\+type  \\
+{\ttfamily title}  &{\ttfamily \+[64]\+u8}  &Title  \\
+{\ttfamily title\+\_\+len}  &{\ttfamily u8}  &Title\+\_\+len  \\
+{\ttfamily description}  &{\ttfamily \+[256]\+u8}  &Description  \\
+{\ttfamily desc\+\_\+len}  &{\ttfamily u16}  &Desc\+\_\+len  \\
+{\ttfamily param\+\_\+name}  &{\ttfamily \+[32]\+u8}  &Param\+\_\+name  \\
+{\ttfamily param\+\_\+name\+\_\+len}  &{\ttfamily u8}  &Param\+\_\+name\+\_\+len  \\
+{\ttfamily param\+\_\+new\+\_\+value}  &{\ttfamily u64}  &Param\+\_\+new\+\_\+value  \\
+{\ttfamily deposit\+\_\+sat}  &{\ttfamily u64}  &Deposit\+\_\+sat  \\
+{\ttfamily created\+\_\+block}  &{\ttfamily u64}  &Created\+\_\+block  \\
+{\ttfamily voting\+\_\+start\+\_\+block}  &{\ttfamily u64}  &Voting\+\_\+start\+\_\+block  \\
+{\ttfamily voting\+\_\+end\+\_\+block}  &{\ttfamily u64}  &Voting\+\_\+end\+\_\+block  \\
+{\ttfamily status}  &{\ttfamily Proposal\+Status}  &Status  \\
+{\ttfamily votes\+\_\+yes}  &{\ttfamily u64}  &Votes\+\_\+yes  \\
+{\ttfamily votes\+\_\+no}  &{\ttfamily u64}  &Votes\+\_\+no  \\
+{\ttfamily votes\+\_\+abstain}  &{\ttfamily u64}  &Votes\+\_\+abstain  \\
+{\ttfamily votes\+\_\+veto}  &{\ttfamily u64}  &Votes\+\_\+veto  \\
+{\ttfamily total\+\_\+voted\+\_\+power}  &{\ttfamily u64}  &Total\+\_\+voted\+\_\+power  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1644}{}\doxysubsection{\texorpdfstring{{\ttfamily Governance\+Engine}}{{\ttfamily Governance\+Engine}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1644}
+Governance Engine
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily params}  &{\ttfamily Governance\+Params}  &Params  \\
+{\ttfamily next\+\_\+proposal\+\_\+id}  &{\ttfamily u64}  &Next\+\_\+proposal\+\_\+id  \\
+{\ttfamily proposals}  &{\ttfamily \+[MAX\+\_\+\+PROPOSALS]\+Proposal}  &Proposals  \\
+{\ttfamily proposal\+\_\+count}  &{\ttfamily usize}  &Proposal\+\_\+count  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Governance\+Engine}  &Self  \\
+{\ttfamily proposer}  &{\ttfamily \+[32]\+u8}  &Proposer  \\
+{\ttfamily ptype}  &{\ttfamily Proposal\+Type}  &Ptype  \\
+{\ttfamily title}  &{\ttfamily \+[]\+const u8}  &Title  \\
+{\ttfamily description}  &{\ttfamily \+[]\+const u8}  &Description  \\
+{\ttfamily deposit\+\_\+sat}  &{\ttfamily u64}  &Deposit\+\_\+sat  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 144}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1646}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1646}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Proposal\+Type}  &{\ttfamily enum(u8) \{}  &Proposal type  \\
+{\ttfamily Proposal\+Status}  &{\ttfamily enum(u8) \{}  &Proposal status  \\
+{\ttfamily Vote}  &{\ttfamily enum(u8) \{}  &Vote  \\
+{\ttfamily MAX\+\_\+\+PROPOSALS}  &{\ttfamily usize = 256}  &M a x\+\_\+ p r o p o s a l s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1648}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1648}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1649}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Voting\+Active()}}{{\ttfamily is\+Voting\+Active()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1649}
+Verifica daca propunerea e in perioada de vot
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isVotingActive(self:\ *const\ Proposal,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Proposal}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 115}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1651}{}\doxysubsection{\texorpdfstring{{\ttfamily tally\+Result()}}{{\ttfamily tally\+Result()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1651}
+Calculeaza rezultatul final
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ tallyResult(self:\ *const\ Proposal,\ total\_voting\_power:\ u64,\ params:\ GovernanceParams)\ ProposalStatus\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Proposal}  &The instance  \\
+{\ttfamily total\+\_\+voting\+\_\+power}  &{\ttfamily u64}  &Total\+\_\+voting\+\_\+power  \\
+{\ttfamily params}  &{\ttfamily Governance\+Params}  &Params  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Proposal\+Status}
+
+{\itshape Defined at line 122}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1653}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1653}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(params:\ GovernanceParams)\ GovernanceEngine\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily params}  &{\ttfamily Governance\+Params}  &Params  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Governance\+Engine}
+
+{\itshape Defined at line 150}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1655}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Proposal()}}{{\ttfamily get\+Proposal()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2governance_autotoc_md1655}
+Get proposal by ID (const)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getProposal(self:\ *const\ GovernanceEngine,\ id:\ u64)\ ?*const\ Proposal\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Governance\+Engine}  &The instance  \\
+{\ttfamily id}  &{\ttfamily u64}  &Id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Proposal}
+
+{\itshape Defined at line 247}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

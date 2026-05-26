@@ -1,0 +1,61 @@
+\doxysection{tools/\+\+SECURITY/\+vuln-\/signature-\/updater.py File Reference}
+\hypertarget{vuln-signature-updater_8py}{}\label{vuln-signature-updater_8py}\index{tools/SECURITY/vuln-\/signature-\/updater.py@{tools/SECURITY/vuln-\/signature-\/updater.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacevuln-signature-updater}{vuln-\/signature-\/updater}}
+\item 
+namespace \doxymbox{\hyperlink{namespacevuln}{vuln}}
+\begin{DoxyCompactList}\small\item\em -\/signature-\/updater \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{vuln-\/signature-\/updater.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{vuln-\/signature-\/updater.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{vuln-\/signature-\/updater.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783}{vuln-\/signature-\/updater.\+log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_aedd208f12212a74fc2e1f9e3b38c8ef3}{vuln-\/signature-\/updater.\+sha256\+\_\+file}} (str path)
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a4d048f8b0e84e039f67000ab71a9ea11}{vuln-\/signature-\/updater.\+sha256\+\_\+bytes}} (bytes data)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacevuln-signature-updater_a1cf48343cf1504e5d6355f98edf4a29d}{vuln-\/signature-\/updater.\+load\+\_\+rules}} ()
+\item 
+bool \doxymbox{\hyperlink{namespacevuln-signature-updater_aa58767b86530efeb326f2509c3166744}{vuln-\/signature-\/updater.\+update\+\_\+rules}} (str url)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacevuln-signature-updater_ad6c565526b239ca5273cacebd207bad1}{vuln-\/signature-\/updater.\+scan\+\_\+zig\+\_\+files}} (list\+[dict]\+ rules)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_abaf7bdd99d407b9fcc2c6dd340d92f64}{vuln-\/signature-\/updater.\+list\+\_\+rules}} (list\+[dict]\+ rules)
+\item 
+int \doxymbox{\hyperlink{namespacevuln-signature-updater_a7431cb90017e54fe695b23d4190db046}{vuln-\/signature-\/updater.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a2db11c8a910c2e8c80efd617fbc3c93b}{vuln-\/signature-\/updater.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_ad631b90d5ec85297ac38c647a82b2bd8}{vuln-\/signature-\/updater.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_aacddfce9d00e9daeef32fe34353e5ae2}{vuln-\/signature-\/updater.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a6bca466d63420ebdde1d5d984876e57e}{vuln-\/signature-\/updater.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a2e3b2b512c4653f6a08a9d73c662ffa4}{vuln-\/signature-\/updater.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a955576e0aef87645eab2585457d16f94}{vuln-\/signature-\/updater.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+\doxymbox{\hyperlink{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998}{vuln-\/signature-\/updater.\+SCRIPT\+\_\+\+DIR}} = Path(os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+)))
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{vuln-\/signature-\/updater.\+RULES\+\_\+\+DIR}} = \doxymbox{\hyperlink{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998}{SCRIPT\+\_\+\+DIR}} /\+ "{}rules"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_abb89b783526684978090e4902cc0ad9c}{vuln-\/signature-\/updater.\+CORE\+\_\+\+DIR}} = SCRIPT\+\_\+\+DIR.\+parent.\+parent /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a250633a1defe145192fa04c7a636f50b}{vuln-\/signature-\/updater.\+MANIFEST\+\_\+\+FILE}} = \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{RULES\+\_\+\+DIR}} /\+ "{}manifest.\+json"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a2321a20a75428bc132fcf0e317040144}{vuln-\/signature-\/updater.\+DEFAULT\+\_\+\+RULES\+\_\+\+FILE}} = \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{RULES\+\_\+\+DIR}} /\+ "{}default-\/rules.\+json"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a09afa5d4bb316a23c40d27c19d9ac189}{vuln-\/signature-\/updater.\+DEFAULT\+\_\+\+UPDATE\+\_\+\+URL}} = "{}"{}
+\end{DoxyCompactItemize}

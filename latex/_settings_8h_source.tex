@@ -1,0 +1,37 @@
+\doxysection{Settings.\+h}
+\hypertarget{_settings_8h_source}{}\label{_settings_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/Settings.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/Settings.h}}
+\doxymbox{\hyperlink{_settings_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QSettings>}}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QString>}}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00006}00006\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00008}\doxymbox{\hyperlink{classomni_1_1_settings}{00008}}\ \textcolor{keyword}{class\ }Settings\ \{}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00009}00009\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00010}00010\ \ \ \ \ \textcolor{keyword}{static}\ Settings\&\ \doxymbox{\hyperlink{classomni_1_1_settings_a2067640ae1b069a3a46355c8b72b971c}{instance}}();}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00012}00012\ \ \ \ \ QString\ \doxymbox{\hyperlink{classomni_1_1_settings_a6428d7514c6e68580a6aedb912d65b51}{rpcHost}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00013}00013\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_settings_aaf3b7e49529be4ffba682c4cfc5b5ad9}{rpcPort}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00014}00014\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_settings_ae3fb0f577fbec13ccc464cc7b9fb3328}{wsPort}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00015}00015\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \doxymbox{\hyperlink{classomni_1_1_settings_ad9a51acefd917ef34e6031f73c59756f}{minimizeToTray}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00016}00016\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \doxymbox{\hyperlink{classomni_1_1_settings_a28adb342bafb16bd783db5035f610e2d}{notifyNewBlock}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \doxymbox{\hyperlink{classomni_1_1_settings_a1f4c915897e95df4752244f03711f9b4}{notifyIncomingTx}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00019}00019\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_settings_af9aaf38df47bcc1b857179121a424dd3}{setRpcHost}}(\textcolor{keyword}{const}\ QString\&\ host);}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00020}00020\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_settings_afb70a4da6ed1cadb291f35a83eeb0621}{setRpcPort}}(\textcolor{keywordtype}{int}\ port);}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_settings_a4df6457cc56e6b3eb53a0767579be626}{setWsPort}}(\textcolor{keywordtype}{int}\ port);}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_settings_a51217bf284e9b327fc3d10412ba372a4}{setMinimizeToTray}}(\textcolor{keywordtype}{bool}\ v);}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00023}00023\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_settings_aaa09e7674096c3a6bf2760fcf364b4b2}{setNotifyNewBlock}}(\textcolor{keywordtype}{bool}\ v);}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_settings_a17616ef22833e2cebcffb1f33e0cad08}{setNotifyIncomingTx}}(\textcolor{keywordtype}{bool}\ v);}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00026}00026\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00027}00027\ \ \ \ \ Settings();}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00028}00028\ \ \ \ \ QSettings\ m\_settings;}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00029}00029\ \};}
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{_settings_8h_source_l00031}00031\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

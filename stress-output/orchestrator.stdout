@@ -1,0 +1,55 @@
+[2026-05-10T12:36:47+00:00] === STRESS TEST START ===
+[2026-05-10T12:36:47+00:00] Output dir: c:\Kits work\limaje de programare\1_CORE\BlockChainCore\stress-output
+[2026-05-10T12:36:47+00:00] --- Baseline snapshot ---
+[2026-05-10T12:36:50+00:00] --- Run 1: Chain basics x10 ---
+[2026-05-10T12:39:29+00:00]   [01-chain] reps=10 chains=['mainnet', 'testnet'] -> calls=300 pass=208 fail=77 skip=15 (158.8s)
+[2026-05-10T12:39:40+00:00] --- Run 2: Reputation x20 ---
+[2026-05-10T12:40:03+00:00]   [02-reputation] reps=20 chains=['mainnet', 'testnet'] -> calls=120 pass=60 fail=60 skip=0 (23.4s)
+[2026-05-10T12:40:04+00:00] --- Run 3: Stake/Validators x10 ---
+[2026-05-10T12:40:28+00:00]   [03-stake] reps=10 chains=['mainnet', 'testnet'] -> calls=120 pass=0 fail=120 skip=0 (24.4s)
+[2026-05-10T12:40:29+00:00] --- Run 4: Agents x10 ---
+[2026-05-10T12:40:48+00:00]   [04-agents] reps=10 chains=['mainnet', 'testnet'] -> calls=100 pass=21 fail=79 skip=0 (18.9s)
+[2026-05-10T12:40:48+00:00] --- Run 5: Names x10 ---
+[2026-05-10T12:41:20+00:00]   [05-names] reps=10 chains=['mainnet', 'testnet'] -> calls=160 pass=23 fail=129 skip=8 (32.0s)
+[2026-05-10T12:41:22+00:00] --- Run 6: Exchange x10 ---
+[2026-05-10T12:42:23+00:00]   [06-exchange] reps=10 chains=['mainnet', 'testnet'] -> calls=300 pass=70 fail=150 skip=80 (60.5s)
+[2026-05-10T12:42:23+00:00] --- Run 7: Grid x10 ---
+[2026-05-10T12:42:36+00:00]   [07-grid] reps=10 chains=['mainnet', 'testnet'] -> calls=60 pass=20 fail=40 skip=0 (13.5s)
+[2026-05-10T12:42:36+00:00] --- Run 8: HTLC x10 ---
+[2026-05-10T12:42:58+00:00]   [08-htlc] reps=10 chains=['mainnet', 'testnet'] -> calls=100 pass=0 fail=60 skip=40 (21.5s)
+[2026-05-10T12:42:59+00:00] --- Run 9: Oracle x20 ---
+[2026-05-10T12:43:03+00:00]   [09-oracle-1/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (4.3s)
+[2026-05-10T12:43:08+00:00]   [09-oracle-2/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (4.1s)
+[2026-05-10T12:43:12+00:00]   [09-oracle-3/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (3.9s)
+[2026-05-10T12:43:16+00:00]   [09-oracle-4/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (4.0s)
+[2026-05-10T12:43:20+00:00]   [09-oracle-5/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (3.7s)
+[2026-05-10T12:43:24+00:00]   [09-oracle-6/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (3.6s)
+[2026-05-10T12:43:29+00:00]   [09-oracle-7/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (3.9s)
+[2026-05-10T12:43:32+00:00]   [09-oracle-8/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (3.6s)
+[2026-05-10T12:43:37+00:00]   [09-oracle-9/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (4.0s)
+[2026-05-10T12:43:41+00:00]   [09-oracle-10/10] reps=2 chains=['mainnet', 'testnet'] -> calls=20 pass=10 fail=10 skip=0 (3.6s)
+[2026-05-10T12:43:41+00:00] --- Run 10: Notarize/Sub x5 ---
+[2026-05-10T12:43:47+00:00]   [10-notarize] reps=5 chains=['mainnet', 'testnet'] -> calls=30 pass=0 fail=30 skip=0 (5.6s)
+[2026-05-10T12:43:47+00:00] --- Run 11: Escrow/Channels x5 ---
+[2026-05-10T12:43:54+00:00]   [11-escrow] reps=5 chains=['mainnet', 'testnet'] -> calls=30 pass=10 fail=20 skip=0 (7.2s)
+[2026-05-10T12:43:54+00:00] --- Run 12: Governance x5 ---
+[2026-05-10T12:44:02+00:00]   [12-governance] reps=5 chains=['mainnet', 'testnet'] -> calls=40 pass=5 fail=25 skip=10 (8.5s)
+[2026-05-10T12:44:05+00:00] --- Run 13: Concurrent flood ---
+[2026-05-10T12:44:05+00:00]   flood getblockcount on mainnet: 500 reqs x 30 threads
+[2026-05-10T12:44:10+00:00]   flood done: ok=0 fail=500 rps=94.6 p50=279.7ms p95=553.7ms p99=653.4ms
+[2026-05-10T12:44:10+00:00]   flood getrichlist on mainnet: 200 reqs x 20 threads
+[2026-05-10T12:44:13+00:00]   flood done: ok=0 fail=200 rps=69.9 p50=246.9ms p95=401.6ms p99=510.7ms
+[2026-05-10T12:44:13+00:00]   flood omnibus_getoracleprices on mainnet: 200 reqs x 20 threads
+[2026-05-10T12:44:16+00:00]   flood done: ok=0 fail=200 rps=65.2 p50=256.1ms p95=595.0ms p99=635.7ms
+[2026-05-10T12:44:16+00:00]   flood getblockcount on testnet: 500 reqs x 30 threads
+[2026-05-10T12:44:23+00:00]   flood done: ok=345 fail=155 rps=71.7 p50=290.6ms p95=1030.7ms p99=1688.8ms
+[2026-05-10T12:44:23+00:00]   flood getrichlist on testnet: 200 reqs x 20 threads
+[2026-05-10T12:44:34+00:00]   flood done: ok=20 fail=180 rps=18.3 p50=212.9ms p95=6005.3ms p99=8189.8ms
+[2026-05-10T12:44:34+00:00]   flood omnibus_getoracleprices on testnet: 200 reqs x 20 threads
+[2026-05-10T12:44:37+00:00]   flood done: ok=192 fail=8 rps=57.9 p50=279.7ms p95=747.5ms p99=785.4ms
+[2026-05-10T12:44:40+00:00] --- Run 14: Full method matrix probe ---
+[2026-05-10T12:45:52+00:00]   [14-full-matrix] reps=2 chains=['mainnet', 'testnet'] -> calls=300 pass=96 fail=170 skip=34 (72.7s)
+[2026-05-10T12:45:52+00:00] --- Run 15: Final snapshots ---
+[2026-05-10T12:45:55+00:00] === STRESS TEST END ===
+[2026-05-10T12:45:55+00:00] --- Writing report ---
+[2026-05-10T12:45:55+00:00] Report written to c:\Kits work\limaje de programare\1_CORE\BlockChainCore\STRESS_TEST_REPORT_20260510.md

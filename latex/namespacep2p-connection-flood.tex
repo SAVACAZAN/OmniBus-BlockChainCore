@@ -1,0 +1,251 @@
+\doxysection{p2p-\/connection-\/flood Namespace Reference}
+\hypertarget{namespacep2p-connection-flood}{}\label{namespacep2p-connection-flood}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker}{Connection\+Tracker}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bytes \doxymbox{\hyperlink{namespacep2p-connection-flood_a75153ad03440ea611e9bd63410ea4dc1}{build\+\_\+handshake\+\_\+partial}} ()
+\item 
+\doxymbox{\hyperlink{namespacep2p-connection-flood_a79fc81c86d40cb35ec70b2f1f9f636ad}{connection\+\_\+worker}} (str host, int port, int conn\+\_\+id, \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker}{Connection\+Tracker}} tracker, float hold\+\_\+time)
+\item 
+bool \doxymbox{\hyperlink{namespacep2p-connection-flood_ac3e0867218c0123ec2f970e0909bde46}{check\+\_\+node\+\_\+alive}} (str host, int port)
+\item 
+bool \doxymbox{\hyperlink{namespacep2p-connection-flood_ad6e69a0832edd28626d02f6a888c91f4}{check\+\_\+rpc\+\_\+alive}} (str host)
+\item 
+\doxymbox{\hyperlink{namespacep2p-connection-flood_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_a2c4e6cfde447c888337c6323164d78a3}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_ab56d84e60e309ee6ef86bc9776872056}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_aa8c5de9b5bfb50d242d82b5eebb5abd1}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_af01e1d72fd767e1fe45b41990a920925}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_a99bb462aa0b59a23058933d1799aa819}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_aeb2a771c360b2c0ef91ba69911f1b7a2}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacep2p-connection-flood_a610cdb85f07151a2926051ed0e68a98f}{P2\+P\+\_\+\+PORT}} = 9000
+\item 
+int \doxymbox{\hyperlink{namespacep2p-connection-flood_a6996c4636c28defbd30393fbd2574d81}{RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespacep2p-connection-flood_a3bac28972e950d5b7196566c1948bbd2}{WS\+\_\+\+PORT}} = 8334
+\item 
+int \doxymbox{\hyperlink{namespacep2p-connection-flood_aa32fad72c2ec3b471383d3d3e4977ac6}{SHARDS}} = 4
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_a2d45a398669937d52e858cf029743b0d}{OMNIBUS\+\_\+\+MAGIC}} = b"{}\textbackslash{}x4f\textbackslash{}x4d\textbackslash{}x4e\textbackslash{}x49"{}
+\item 
+str \doxymbox{\hyperlink{namespacep2p-connection-flood_ae2a1bcea373d6e9e794f4210b5314795}{NODE\+\_\+\+BINARY}} = "{}zig-\/out/\+bin/\+\doxymbox{\hyperlink{namespaceomnibus}{omnibus}}-\/node.\+exe"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacep2p-connection-flood_doc-func-members}
+\Hypertarget{namespacep2p-connection-flood_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacep2p-connection-flood_a75153ad03440ea611e9bd63410ea4dc1}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!build\_handshake\_partial@{build\_handshake\_partial}}
+\index{build\_handshake\_partial@{build\_handshake\_partial}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{build\_handshake\_partial()}{build\_handshake\_partial()}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a75153ad03440ea611e9bd63410ea4dc1} 
+ bytes build\+\_\+handshake\+\_\+partial (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Build a partial OmniBus P2P handshake message.
+
+Structure (Bitcoin-inspired):
+    4 bytes: magic (OMNI)
+    12 bytes: command (version\x00...)
+    4 bytes: payload length
+    4 bytes: checksum (first 4 bytes of double-SHA256)
+    ... partial payload (intentionally incomplete)
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00077}{77}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacep2p-connection-flood_ac3e0867218c0123ec2f970e0909bde46}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!check\_node\_alive@{check\_node\_alive}}
+\index{check\_node\_alive@{check\_node\_alive}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{check\_node\_alive()}{check\_node\_alive()}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_ac3e0867218c0123ec2f970e0909bde46} 
+ bool check\+\_\+node\+\_\+alive (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Quick TCP connect to verify node is accepting connections.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00147}{147}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacep2p-connection-flood_ad6e69a0832edd28626d02f6a888c91f4}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!check\_rpc\_alive@{check\_rpc\_alive}}
+\index{check\_rpc\_alive@{check\_rpc\_alive}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{check\_rpc\_alive()}{check\_rpc\_alive()}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_ad6e69a0832edd28626d02f6a888c91f4} 
+ bool check\+\_\+rpc\+\_\+alive (\begin{DoxyParamCaption}\item[{str}]{host}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if RPC port is responding.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00159}{159}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacep2p-connection-flood_a79fc81c86d40cb35ec70b2f1f9f636ad}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!connection\_worker@{connection\_worker}}
+\index{connection\_worker@{connection\_worker}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{connection\_worker()}{connection\_worker()}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a79fc81c86d40cb35ec70b2f1f9f636ad} 
+connection\+\_\+worker (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int}]{conn\+\_\+id}{, }\item[{\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker}{Connection\+Tracker}}}]{tracker}{, }\item[{float}]{hold\+\_\+time}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Open one connection, send partial handshake, hold open.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00099}{99}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{namespacep2p-connection-flood_a51af30a60f9f02777c6396b8247e356f}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!main@{main}}
+\index{main@{main}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00173}{173}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+
+
+\label{namespacep2p-connection-flood_doc-var-members}
+\Hypertarget{namespacep2p-connection-flood_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacep2p-connection-flood_a99bb462aa0b59a23058933d1799aa819}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a99bb462aa0b59a23058933d1799aa819} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_af01e1d72fd767e1fe45b41990a920925}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_af01e1d72fd767e1fe45b41990a920925} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_ab56d84e60e309ee6ef86bc9776872056}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_ab56d84e60e309ee6ef86bc9776872056} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00020}{20}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_ae2a1bcea373d6e9e794f4210b5314795}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!NODE\_BINARY@{NODE\_BINARY}}
+\index{NODE\_BINARY@{NODE\_BINARY}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{NODE\_BINARY}{NODE\_BINARY}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_ae2a1bcea373d6e9e794f4210b5314795} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+NODE\+\_\+\+BINARY = "{}zig-\/out/\+bin/\+\doxymbox{\hyperlink{namespaceomnibus}{omnibus}}-\/node.\+exe"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_a2d45a398669937d52e858cf029743b0d}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!OMNIBUS\_MAGIC@{OMNIBUS\_MAGIC}}
+\index{OMNIBUS\_MAGIC@{OMNIBUS\_MAGIC}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{OMNIBUS\_MAGIC}{OMNIBUS\_MAGIC}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a2d45a398669937d52e858cf029743b0d} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+OMNIBUS\+\_\+\+MAGIC = b"{}\textbackslash{}x4f\textbackslash{}x4d\textbackslash{}x4e\textbackslash{}x49"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_a610cdb85f07151a2926051ed0e68a98f}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!P2P\_PORT@{P2P\_PORT}}
+\index{P2P\_PORT@{P2P\_PORT}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{P2P\_PORT}{P2P\_PORT}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a610cdb85f07151a2926051ed0e68a98f} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+P2\+P\+\_\+\+PORT = 9000}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_a2c4e6cfde447c888337c6323164d78a3}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!RED@{RED}}
+\index{RED@{RED}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a2c4e6cfde447c888337c6323164d78a3} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00019}{19}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_aeb2a771c360b2c0ef91ba69911f1b7a2}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!RESET@{RESET}}
+\index{RESET@{RESET}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_aeb2a771c360b2c0ef91ba69911f1b7a2} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_a6996c4636c28defbd30393fbd2574d81}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!RPC\_PORT@{RPC\_PORT}}
+\index{RPC\_PORT@{RPC\_PORT}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{RPC\_PORT}{RPC\_PORT}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a6996c4636c28defbd30393fbd2574d81} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+RPC\+\_\+\+PORT = 8332}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_aa32fad72c2ec3b471383d3d3e4977ac6}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!SHARDS@{SHARDS}}
+\index{SHARDS@{SHARDS}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{SHARDS}{SHARDS}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_aa32fad72c2ec3b471383d3d3e4977ac6} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+SHARDS = 4}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_a3bac28972e950d5b7196566c1948bbd2}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!WS\_PORT@{WS\_PORT}}
+\index{WS\_PORT@{WS\_PORT}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{WS\_PORT}{WS\_PORT}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_a3bac28972e950d5b7196566c1948bbd2} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+WS\+\_\+\+PORT = 8334}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{namespacep2p-connection-flood_aa8c5de9b5bfb50d242d82b5eebb5abd1}\index{p2p-\/connection-\/flood@{p2p-\/connection-\/flood}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!p2p-\/connection-\/flood@{p2p-\/connection-\/flood}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacep2p-connection-flood_aa8c5de9b5bfb50d242d82b5eebb5abd1} 
+str \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00021}{21}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+

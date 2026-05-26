@@ -1,0 +1,87 @@
+\doxysection{frontend/\+node\+\_\+modules/\+dom-\/helpers Directory Reference}
+\hypertarget{dir_bb1490a6d304ee70ad3d9c4540433eb6}{}\label{dir_bb1490a6d304ee70ad3d9c4540433eb6}\index{frontend/node\_modules/dom-\/helpers Directory Reference@{frontend/node\_modules/dom-\/helpers Directory Reference}}
+Directory dependency graph for dom-\/helpers:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_bb1490a6d304ee70ad3d9c4540433eb6_autotoc_md6469}{}\doxysubsection{\texorpdfstring{dom-\/helpers}{dom-\/helpers}}\label{dir_bb1490a6d304ee70ad3d9c4540433eb6_autotoc_md6469}
+tiny modular DOM lib for ie9+\hypertarget{dir_bb1490a6d304ee70ad3d9c4540433eb6_autotoc_md6470}{}\doxysubsection{\texorpdfstring{Install}{Install}}\label{dir_bb1490a6d304ee70ad3d9c4540433eb6_autotoc_md6470}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ i\ -\/S\ dom-\/helpers}
+
+\end{DoxyCode}
+
+
+Mostly just naive wrappers around common DOM API inconsistencies, Cross browser work is minimal and mostly taken from j\+Query. This library doesn\textquotesingle{}t do a lot to normalize behavior across browsers, it mostly seeks to provide a common interface, and eliminate the need to write the same damn {\ttfamily if (ie9)} statements in every project.
+
+For example {\ttfamily on()} works in all browsers ie9+ but it uses the native event system so actual event oddities will continue to exist. If you need {\bfseries{robust}} cross-\/browser support, use j\+Query. If you are just tired of rewriting:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{if\ (document.addEventListener)}
+\DoxyCodeLine{\ \ return\ (node,\ eventName,\ handler,\ capture)\ =>}
+\DoxyCodeLine{\ \ \ \ node.addEventListener(eventName,\ handler,\ capture\ ||\ false)}
+\DoxyCodeLine{else\ if\ (document.attachEvent)}
+\DoxyCodeLine{\ \ return\ (node,\ eventName,\ handler)\ =>}
+\DoxyCodeLine{\ \ \ \ node.attachEvent('on'\ +\ eventName,\ handler)}
+
+\end{DoxyCode}
+
+
+over and over again, or you need a ok {\ttfamily get\+Computed\+Style} polyfill but don\textquotesingle{}t want to include all of j\+Query, use this.
+
+dom-\/helpers does expect certain, polyfillable, es5 features to be present for which you can use {\ttfamily es5-\/shim} where needed
+
+The real advantage to this collection is that any method can be required individually, meaning bundlers like webpack will only include the exact methods you use. This is great for environments where j\+Query doesn\textquotesingle{}t make sense, such as {\ttfamily React} where you only occasionally need to do direct DOM manipulation.
+
+All methods are exported as a flat namesapce
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ helpers\ =\ require('dom-\/helpers')}
+\DoxyCodeLine{var\ offset\ =\ require('dom-\/helpers/offset')}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ style\ is\ a\ function}
+\DoxyCodeLine{require('dom-\/helpers/css')(node,\ \{\ width:\ '40px'\ \})}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item dom-\/helpers
+\begin{DoxyItemize}
+\item {\ttfamily owner\+Document(element)}:\+ returns the element\textquotesingle{}s document owner
+\item {\ttfamily owner\+Window(element)}:\+ returns the element\textquotesingle{}s document window
+\item {\ttfamily active\+Element}:\+ return focused element safely
+\item {\ttfamily query\+Selector\+All(element, selector)}:\+ optimized qsa, uses {\ttfamily get\+Element\+By\{Id\texorpdfstring{$\vert$}{|}\+Tag\+Name\texorpdfstring{$\vert$}{|}\+Class\+Name\}} if it can.
+\item {\ttfamily contains(container, element)}
+\item {\ttfamily height(element, use\+Client\+Height)}
+\item {\ttfamily width(element, use\+Client\+Width)}
+\item {\ttfamily matches(element, selector)}
+\item {\ttfamily offset(element)} -\/\texorpdfstring{$>$}{>} {\ttfamily \{ top:\+ Number, left:\+ Number, height:\+ Number, width:\+ Number\}}
+\item {\ttfamily offset\+Parent(element)}:\+ return the parent node that the element is offset from
+\item {\ttfamily position(element, \+[offset\+Parent]\+}:\+ return "{}offset"{} of the node to its offset\+Parent, optionally you can specify the offset parent if different than the "{}real"{} one
+\item {\ttfamily scroll\+Top(element, \+[value]\+)}
+\item {\ttfamily scroll\+Left(element, \+[value]\+)}
+\item {\ttfamily scroll\+Parent(element)}
+\item {\ttfamily add\+Class(element, class\+Name)}
+\item {\ttfamily remove\+Class(element, class\+Name)}
+\item {\ttfamily has\+Class(element, class\+Name)}
+\item {\ttfamily toggle\+Class(element, class\+Name)}
+\item {\ttfamily style(element, prop\+Name)} or {\ttfamily style(element, object\+Of\+Prop\+Values)}
+\item {\ttfamily get\+Computed\+Style(element)} -\/\texorpdfstring{$>$}{>} {\ttfamily get\+Property\+Value(name)}
+\item {\ttfamily animate(node, properties, duration, easing, callback)} programmatically start css transitions
+\item {\ttfamily transition\+End(node, handler, \+[duration]\+, \+[padding]\+)} listens for transition end, and ensures that the handler if called even if the transition fails to fire its end event. Will attempt to read duration from the element, otherwise one can be provided
+\item {\ttfamily add\+Event\+Listener(node, event\+Name, handler, \+[options]\+)}:\+
+\item {\ttfamily remove\+Event\+Listener(node, event\+Name, handler, \+[options]\+)}:\+
+\item {\ttfamily listen(node, event\+Name, handler, \+[options]\+)}:\+ wraps {\ttfamily add\+Eventlistener} and returns a function that calls {\ttfamily remove\+Event\+Listener} for you
+\item {\ttfamily filter(selector, fn)}:\+ returns a function handler that only fires when the target matches or is contained in the selector ex:\+ {\ttfamily on(list, \textquotesingle{}click\textquotesingle{}, filter(\textquotesingle{}li \texorpdfstring{$>$}{>} a\textquotesingle{}, handler))}
+\item {\ttfamily request\+Animation\+Frame(cb)} returns an ID for canceling
+\item {\ttfamily cancel\+Animation\+Frame(id)}
+\item {\ttfamily scrollbar\+Size(\+[recalc]\+)} returns the scrollbar\textquotesingle{}s width size in pixels
+\item {\ttfamily scroll\+To(element, \+[scroll\+Parent]\+)} 
+\end{DoxyItemize}
+\end{DoxyItemize}

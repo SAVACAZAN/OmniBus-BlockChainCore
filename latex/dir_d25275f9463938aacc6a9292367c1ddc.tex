@@ -1,0 +1,185 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@jridgewell/\+source-\/map Directory Reference}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc}{}\label{dir_d25275f9463938aacc6a9292367c1ddc}\index{frontend/node\_modules/"@jridgewell/source-\/map Directory Reference@{frontend/node\_modules/"@jridgewell/source-\/map Directory Reference}}
+Directory dependency graph for source-\/map:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4504}{}\doxysubsection{\texorpdfstring{@jridgewell/\+source-\/map}{@jridgewell/\+source-\/map}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4504}
+\begin{quote}
+Packages {\ttfamily @jridgewell/\+trace-\/mapping} and {\ttfamily @jridgewell/\+gen-\/mapping} into the familiar source-\/map API \end{quote}
+
+
+This isn\textquotesingle{}t the full API, but it\textquotesingle{}s the core functionality. This wraps \href{https://github.com/jridgewell/sourcemaps/tree/main/packages/trace-mapping/}{\texttt{@jridgewell/\+trace-\/mapping}} and \href{https://github.com/jridgewell/sourcemaps/tree/main/packages/gen-mapping/}{\texttt{@jridgewell/\+gen-\/mapping}} implementations.\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4505}{}\doxysubsection{\texorpdfstring{Installation}{Installation}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4505}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ @jridgewell/source-\/map}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4506}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4506}
+TODO\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4507}{}\doxysubsubsection{\texorpdfstring{Source\+Map\+Consumer}{Source\+Map\+Consumer}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4507}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ SourceMapConsumer\ \}\ from\ '@jridgewell/source-\/map';}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(\{}
+\DoxyCodeLine{\ \ version:\ 3,}
+\DoxyCodeLine{\ \ names:\ ['foo'],}
+\DoxyCodeLine{\ \ sources:\ ['input.js'],}
+\DoxyCodeLine{\ \ mappings:\ 'AAAAA',}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4508}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+from\+Source\+Map(map\+Generator\+[, map\+Url]\+)}{Source\+Map\+Consumer.\+from\+Source\+Map(map\+Generator\+[, map\+Url]\+)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4508}
+Transforms a {\ttfamily Source\+Map\+Generator} into a {\ttfamily Source\+Map\+Consumer}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smg\ =\ new\ SourceMapGenerator();}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ smc\ =\ SourceMapConsumer.fromSourceMap(map);}
+\DoxyCodeLine{smc.originalPositionFor(\{\ line:\ 1,\ column:\ 0\ \});}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4509}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+original\+Position\+For(generated\+Position)}{Source\+Map\+Consumer.\+prototype.\+original\+Position\+For(generated\+Position)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4509}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(map);}
+\DoxyCodeLine{smc.originalPositionFor(\{\ line:\ 1,\ column:\ 0\ \});}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4510}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+mappings}{Source\+Map\+Consumer.\+prototype.\+mappings}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4510}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(map);}
+\DoxyCodeLine{smc.mappings;\ //\ AAAA}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4511}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+all\+Generated\+Positions\+For(original\+Position)}{Source\+Map\+Consumer.\+prototype.\+all\+Generated\+Positions\+For(original\+Position)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4511}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(map);}
+\DoxyCodeLine{smc.allGeneratedpositionsfor(\{\ line:\ 1,\ column:\ 5,\ source:\ "{}baz.ts"{}\ \});}
+\DoxyCodeLine{//\ [}
+\DoxyCodeLine{//\ \ \ \{\ line:\ 2,\ column:\ 8\ \}}
+\DoxyCodeLine{//\ ]}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4512}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+each\+Mapping(callback\+[, context\+[, order]\+]\+)}{Source\+Map\+Consumer.\+prototype.\+each\+Mapping(callback\+[, context\+[, order]\+]\+)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4512}
+\begin{quote}
+This implementation currently does not support the "{}order"{} parameter. This function can only iterate in Generated order. \end{quote}
+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(map);}
+\DoxyCodeLine{smc.eachMapping((mapping)\ =>\ \{}
+\DoxyCodeLine{//\ \{\ source:\ 'baz.ts',}
+\DoxyCodeLine{//\ \ \ generatedLine:\ 4,}
+\DoxyCodeLine{//\ \ \ generatedColumn:\ 5,}
+\DoxyCodeLine{//\ \ \ originalLine:\ 4,}
+\DoxyCodeLine{//\ \ \ originalColumn:\ 5,}
+\DoxyCodeLine{//\ \ \ name:\ null\ \}}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4513}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+generated\+Position\+For(original\+Position)}{Source\+Map\+Consumer.\+prototype.\+generated\+Position\+For(original\+Position)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4513}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(map);}
+\DoxyCodeLine{smc.generatedPositionFor(\{\ line:\ 1,\ column:\ 5,\ source:\ "{}baz.ts"{}\ \});}
+\DoxyCodeLine{//\ \{\ line:\ 2,\ column:\ 8\ \}}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4514}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+has\+Contents\+Of\+All\+Sources()}{Source\+Map\+Consumer.\+prototype.\+has\+Contents\+Of\+All\+Sources()}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4514}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(map);}
+\DoxyCodeLine{smc.hasContentsOfAllSources();}
+\DoxyCodeLine{//\ true}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4515}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+source\+Content\+For(source\+[, return\+Null\+On\+Missing]\+)}{Source\+Map\+Consumer.\+prototype.\+source\+Content\+For(source\+[, return\+Null\+On\+Missing]\+)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4515}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer(map);}
+\DoxyCodeLine{smc.generatedPositionFor("{}baz.ts"{});}
+\DoxyCodeLine{//\ "{}export\ default\ ..."{}}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4516}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Consumer.\+prototype.\+version}{Source\+Map\+Consumer.\+prototype.\+version}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4516}
+Returns the source map\textquotesingle{}s version\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4517}{}\doxysubsubsection{\texorpdfstring{Source\+Map\+Generator}{Source\+Map\+Generator}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4517}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ SourceMapGenerator\ \}\ from\ '@jridgewell/source-\/map';}
+\DoxyCodeLine{const\ smg\ =\ new\ SourceMapGenerator(\{}
+\DoxyCodeLine{\ \ file:\ 'output.js',}
+\DoxyCodeLine{\ \ sourceRoot:\ 'https://example.com/',}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4518}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Generator.\+from\+Source\+Map(map)}{Source\+Map\+Generator.\+from\+Source\+Map(map)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4518}
+Transform a {\ttfamily Source\+Map\+Consumer} into a {\ttfamily Source\+Map\+Generator}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smc\ =\ new\ SourceMapConsumer();}
+\DoxyCodeLine{const\ smg\ =\ SourceMapGenerator.fromSourceMap(smc);}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4519}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Generator.\+prototype.\+apply\+Source\+Map(source\+Map\+Consumer\+[, source\+File\+[, source\+Map\+Path]\+]\+)}{Source\+Map\+Generator.\+prototype.\+apply\+Source\+Map(source\+Map\+Consumer\+[, source\+File\+[, source\+Map\+Path]\+]\+)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4519}
+\begin{quote}
+This method is not implemented yet \end{quote}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4520}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Generator.\+prototype.\+add\+Mapping(mapping)}{Source\+Map\+Generator.\+prototype.\+add\+Mapping(mapping)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4520}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smg\ =\ new\ SourceMapGenerator();}
+\DoxyCodeLine{smg.addMapping(\{}
+\DoxyCodeLine{\ \ generated:\ \{\ line:\ 1,\ column:\ 0\ \},}
+\DoxyCodeLine{\ \ source:\ 'input.js',}
+\DoxyCodeLine{\ \ original:\ \{\ line:\ 1,\ column:\ 0\ \},}
+\DoxyCodeLine{\ \ name:\ 'foo',}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4521}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Generator.\+prototype.\+set\+Source\+Content(source\+File, source\+Content)}{Source\+Map\+Generator.\+prototype.\+set\+Source\+Content(source\+File, source\+Content)}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4521}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smg\ =\ new\ SourceMapGenerator();}
+\DoxyCodeLine{smg.setSourceContent('input.js',\ 'foobar');}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4522}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Generator.\+prototype.\+to\+JSON()}{Source\+Map\+Generator.\+prototype.\+to\+JSON()}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4522}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smg\ =\ new\ SourceMapGenerator();}
+\DoxyCodeLine{smg.toJSON();\ //\ \{\ version:\ 3,\ names:\ [],\ sources:\ [],\ mappings:\ ''\ \}}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4523}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Generator.\+prototype.\+to\+String()}{Source\+Map\+Generator.\+prototype.\+to\+String()}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4523}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smg\ =\ new\ SourceMapGenerator();}
+\DoxyCodeLine{smg.toJSON();\ //\ "{}\{version:3,names:[],sources:[],mappings:''\}"{}}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4524}{}\doxysubsubsubsection{\texorpdfstring{Source\+Map\+Generator.\+prototype.\+to\+Decoded\+Map()}{Source\+Map\+Generator.\+prototype.\+to\+Decoded\+Map()}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4524}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smg\ =\ new\ SourceMapGenerator();}
+\DoxyCodeLine{smg.toDecodedMap();\ //\ \{\ version:\ 3,\ names:\ [],\ sources:\ [],\ mappings:\ []\ \}}
+
+\end{DoxyCode}
+\hypertarget{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4525}{}\doxysubsection{\texorpdfstring{Known differences with other implementations}{Known differences with other implementations}}\label{dir_d25275f9463938aacc6a9292367c1ddc_autotoc_md4525}
+This implementation has some differences with {\ttfamily source-\/map} and {\ttfamily source-\/map-\/js}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily Source\+Map\+Consumer.\+prototype.\+each\+Mapping()}
+\begin{DoxyItemize}
+\item Does not support the {\ttfamily order} argument
+\end{DoxyItemize}
+\item {\ttfamily Source\+Map\+Generator.\+prototype.\+apply\+Source\+Map()}
+\begin{DoxyItemize}
+\item Not implemented 
+\end{DoxyItemize}
+\end{DoxyItemize}

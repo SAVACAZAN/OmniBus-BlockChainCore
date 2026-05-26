@@ -1,0 +1,147 @@
+\doxysection{test\+\_\+runner.\+Test\+Runner Class Reference}
+\hypertarget{classtest__runner_1_1_test_runner}{}\label{classtest__runner_1_1_test_runner}\index{test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_runner_aee114576556b7fcfbcf783f5f4dea89a}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} \doxymbox{\hyperlink{classtest__runner_1_1_test_runner_ab6e4363dbf78e9347c3de3a48a0787d0}{run\+\_\+build\+\_\+step}} (self, str step, int timeout=120)
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} \doxymbox{\hyperlink{classtest__runner_1_1_test_runner_a57730c05c828999adf2d8ff84a38873f}{run\+\_\+file\+\_\+tests}} (self, Path filepath, int timeout=60)
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} \doxymbox{\hyperlink{classtest__runner_1_1_test_runner_abfe1d3e826f912c251800d3b072cfc35}{run\+\_\+group}} (self, str group\+\_\+name)
+\item 
+List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ \doxymbox{\hyperlink{classtest__runner_1_1_test_runner_a32ed8afbce0f1edc7e914e89ec8f2b5f}{run\+\_\+all}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_runner_aea0fc11468faef94d236a1596bbb8830}{project\+\_\+root}} = project\+\_\+root
+\item 
+list \doxymbox{\hyperlink{classtest__runner_1_1_test_runner_a6e547bea19aca03ec849053cd5d6aeef}{results}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{classtest__runner_1_1_test_runner_a6aacc28f9c9c8c6c9875704bf09f17a8}{TEST\+\_\+\+GROUPS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Rulează testele pentru proiectul OmniBus.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+
+
+\label{classtest__runner_1_1_test_runner_doc-constructors}
+\Hypertarget{classtest__runner_1_1_test_runner_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classtest__runner_1_1_test_runner_aee114576556b7fcfbcf783f5f4dea89a}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_aee114576556b7fcfbcf783f5f4dea89a} 
+test\+\_\+runner.\+Test\+Runner.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00137}{137}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+
+
+\label{classtest__runner_1_1_test_runner_doc-func-members}
+\Hypertarget{classtest__runner_1_1_test_runner_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtest__runner_1_1_test_runner_a32ed8afbce0f1edc7e914e89ec8f2b5f}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!run\_all@{run\_all}}
+\index{run\_all@{run\_all}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{run\_all()}{run\_all()}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_a32ed8afbce0f1edc7e914e89ec8f2b5f} 
+ List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ test\+\_\+runner.\+Test\+Runner.\+run\+\_\+all (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rulează toate grupurile de teste.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00258}{258}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+\Hypertarget{classtest__runner_1_1_test_runner_ab6e4363dbf78e9347c3de3a48a0787d0}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!run\_build\_step@{run\_build\_step}}
+\index{run\_build\_step@{run\_build\_step}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{run\_build\_step()}{run\_build\_step()}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_ab6e4363dbf78e9347c3de3a48a0787d0} 
+ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} test\+\_\+runner.\+Test\+Runner.\+run\+\_\+build\+\_\+step (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{step}{, }\item[{int }]{timeout}{ = {\ttfamily 120}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rulează un build step de test.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00141}{141}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classtest__runner_1_1_test_runner_a57730c05c828999adf2d8ff84a38873f}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!run\_file\_tests@{run\_file\_tests}}
+\index{run\_file\_tests@{run\_file\_tests}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{run\_file\_tests()}{run\_file\_tests()}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_a57730c05c828999adf2d8ff84a38873f} 
+ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} test\+\_\+runner.\+Test\+Runner.\+run\+\_\+file\+\_\+tests (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{, }\item[{int }]{timeout}{ = {\ttfamily 60}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rulează testele pentru un singur fișier.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00202}{202}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{classtest__runner_1_1_test_runner_abfe1d3e826f912c251800d3b072cfc35}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!run\_group@{run\_group}}
+\index{run\_group@{run\_group}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{run\_group()}{run\_group()}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_abfe1d3e826f912c251800d3b072cfc35} 
+ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} test\+\_\+runner.\+Test\+Runner.\+run\+\_\+group (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{group\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rulează un grup de teste.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00243}{243}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+
+
+\label{classtest__runner_1_1_test_runner_doc-variable-members}
+\Hypertarget{classtest__runner_1_1_test_runner_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classtest__runner_1_1_test_runner_aea0fc11468faef94d236a1596bbb8830}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_aea0fc11468faef94d236a1596bbb8830} 
+test\+\_\+runner.\+Test\+Runner.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00138}{138}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{classtest__runner_1_1_test_runner_a6e547bea19aca03ec849053cd5d6aeef}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!results@{results}}
+\index{results@{results}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_a6e547bea19aca03ec849053cd5d6aeef} 
+list test\+\_\+runner.\+Test\+Runner.\+results = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00139}{139}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{classtest__runner_1_1_test_runner_a6aacc28f9c9c8c6c9875704bf09f17a8}\index{test\_runner.TestRunner@{test\_runner.TestRunner}!TEST\_GROUPS@{TEST\_GROUPS}}
+\index{TEST\_GROUPS@{TEST\_GROUPS}!test\_runner.TestRunner@{test\_runner.TestRunner}}
+\doxysubsubsection{\texorpdfstring{TEST\_GROUPS}{TEST\_GROUPS}}
+{\footnotesize\ttfamily \label{classtest__runner_1_1_test_runner_a6aacc28f9c9c8c6c9875704bf09f17a8} 
+dict test\+\_\+runner.\+Test\+Runner.\+TEST\+\_\+\+GROUPS\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{agentscripts_2test__runner_8py}{test\+\_\+runner.\+py}}\end{DoxyCompactItemize}

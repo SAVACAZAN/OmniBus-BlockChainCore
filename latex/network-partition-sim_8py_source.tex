@@ -1,0 +1,243 @@
+\doxysection{network-\/partition-\/sim.py}
+\hypertarget{network-partition-sim_8py_source}{}\label{network-partition-sim_8py_source}\index{tools/EXPLOITS/network-\/partition-\/sim.py@{tools/EXPLOITS/network-\/partition-\/sim.py}}
+\doxymbox{\hyperlink{network-partition-sim_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00001}\doxymbox{\hyperlink{namespacenetwork-partition-sim}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00003}00003\ \textcolor{stringliteral}{network-\/partition-\/sim.py}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00005}00005\ \textcolor{stringliteral}{Simulate\ a\ network\ partition\ on\ a\ BlockChainCore-\/like\ network:}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ 1.\ Launch\ 6\ virtual/minimal\ nodes.}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ 2.\ Partition\ into\ 2\ groups\ of\ 3.}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ 3.\ Each\ group\ mines\ independently.}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ 4.\ Reconnect\ and\ verify:}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ \ \ \ \ \ -\/\ chain\ reorganisation\ correctness}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ \ \ \ -\/\ no\ double-\/spend\ survived}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ \ \ \ -\/\ no\ lost\ transactions}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00014}00014\ \textcolor{stringliteral}{This\ script\ uses\ RPC\ endpoints\ (assumed\ local\ on\ ports\ 18332-\/18337)\ to}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00015}00015\ \textcolor{stringliteral}{orchestrate\ the\ simulation.\ \ It\ can\ also\ run\ in\ pure-\/simulation\ mode\ if}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00016}00016\ \textcolor{stringliteral}{no\ live\ nodes\ are\ available.}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00017}00017\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00018}00018\ \textcolor{stringliteral}{Outputs:\ network-\/partition-\/sim.json}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00019}00019\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00021}00021\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00022}00022\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00023}00023\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00024}00024\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00025}00025\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00026}00026\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00027}00027\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00028}00028\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00030}00030\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00032}\doxymbox{\hyperlink{namespacenetwork-partition-sim_a40b2be6bf320346856dc67a045d8d69a}{00032}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00033}\doxymbox{\hyperlink{namespacenetwork-partition-sim_a7b0113b007a81fcb04b003979336e752}{00033}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00034}\doxymbox{\hyperlink{namespacenetwork-partition-sim_ae24403a97117f507151eef4c61849a8d}{00034}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00035}\doxymbox{\hyperlink{namespacenetwork-partition-sim_ac8fa215aed01183b0101d98224b154eb}{00035}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00036}\doxymbox{\hyperlink{namespacenetwork-partition-sim_ab22ade9f13f93302c5bc1d6b3d27dc5b}{00036}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00039}\doxymbox{\hyperlink{namespacenetwork-partition-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-partition-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00043}\doxymbox{\hyperlink{namespacenetwork-partition-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-partition-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00047}\doxymbox{\hyperlink{namespacenetwork-partition-sim_abf994b8269849d29e07697ea8a840f74}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-partition-sim_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00048}00048\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00051}\doxymbox{\hyperlink{namespacenetwork-partition-sim_adf0e2aa4d06b5ca38e44721821eca783}{00051}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-partition-sim_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00052}00052\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00055}00055\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00056}00056\ \textcolor{comment}{\#\ RPC\ helpers}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00057}00057\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00058}\doxymbox{\hyperlink{namespacenetwork-partition-sim_a9cd2ee08581f517c963ced7121601f90}{00058}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc}{rpc}}(url:\ str,\ method:\ str,\ params:\ Any\ =\ \textcolor{keywordtype}{None},\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},\ timeout:\ float\ =\ 5.0)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00059}00059\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{if}\ params\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}params"{}}]\ =\ params}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ auth=auth,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ data\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}\_error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00070}00070\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00071}00071\ \textcolor{comment}{\#\ Pure\ simulation\ (no\ live\ nodes)}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00072}00072\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00073}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node}{00073}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node}{SimNode}}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00074}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a352620ef1449047d82d6f94f2eccd3b8}{00074}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a352620ef1449047d82d6f94f2eccd3b8}{\_\_init\_\_}}(self,\ node\_id:\ int)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00075}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_ab538617b564b0e57a839a17099e5f886}{00075}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_ab538617b564b0e57a839a17099e5f886}{node\_id}}\ =\ node\_id}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00076}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a39dd478782e3fb639da0051c9a33af88}{00076}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a39dd478782e3fb639da0051c9a33af88}{chain}}:\ list[dict[str,\ Any]]\ =\ [\{\textcolor{stringliteral}{"{}height"{}}:\ 0,\ \textcolor{stringliteral}{"{}hash"{}}:\ f\textcolor{stringliteral}{"{}genesis-\/\{node\_id\}"{}},\ \textcolor{stringliteral}{"{}txs"{}}:\ []\}]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00077}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a39404b86f3a2fb780497284725f49021}{00077}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a39404b86f3a2fb780497284725f49021}{peers}}:\ set[int]\ =\ set()}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00078}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a29d3a578d6f88aa84957243d5592780c}{00078}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a29d3a578d6f88aa84957243d5592780c}{mempool}}:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00080}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_abcffc0d03d320621e680fb1a501b3834}{00080}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_abcffc0d03d320621e680fb1a501b3834}{mine\_block}}(self,\ txs:\ list[dict[str,\ Any]]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ prev\ =\ self.\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a39dd478782e3fb639da0051c9a33af88}{chain}}[-\/1]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ block\ =\ \{}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ prev[\textcolor{stringliteral}{"{}height"{}}]\ +\ 1,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ f\textcolor{stringliteral}{"{}block-\/\{self.node\_id\}-\/\{prev['height']\ +\ 1\}-\/\{random.randint(0,\ 999999)\}"{}},}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}prev"{}}:\ prev[\textcolor{stringliteral}{"{}hash"{}}],}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}txs"{}}:\ txs\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a39dd478782e3fb639da0051c9a33af88}{chain}}.append(block)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ block}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00091}\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a548848c69662d68f3ed0e8b545fcee2b}{00091}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a548848c69662d68f3ed0e8b545fcee2b}{tip}}(self)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node_a39dd478782e3fb639da0051c9a33af88}{chain}}[-\/1]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00095}\doxymbox{\hyperlink{namespacenetwork-partition-sim_aa46ed8750954239ee1a462c9a2989a2a}{00095}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-partition-sim_aa46ed8750954239ee1a462c9a2989a2a}{simulate\_partition}}()\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00096}00096\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Starting\ pure\ simulation\ with\ 6\ nodes\ …"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00097}00097\ \ \ \ \ nodes\ =\ [\doxymbox{\hyperlink{classnetwork-partition-sim_1_1_sim_node}{SimNode}}(i)\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(6)]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00099}00099\ \ \ \ \ \textcolor{comment}{\#\ Fully\ connected\ mesh\ initially}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00100}00100\ \ \ \ \ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ range(6):}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ p\ !=\ n.node\_id:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ n.peers.add(p)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00105}00105\ \ \ \ \ \textcolor{comment}{\#\ Seed\ some\ transactions}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00106}00106\ \ \ \ \ shared\_txs\ =\ [\{\textcolor{stringliteral}{"{}txid"{}}:\ f\textcolor{stringliteral}{"{}tx-\/shared-\/\{i\}"{}},\ \textcolor{stringliteral}{"{}value"{}}:\ 100\}\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(5)]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ n.mempool\ =\ list(shared\_txs)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00110}00110\ \ \ \ \ \textcolor{comment}{\#\ Partition:\ group\ A\ =\ 0,1,2\ \ ;\ group\ B\ =\ 3,4,5}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00111}00111\ \ \ \ \ group\_a\ =\ [0,\ 1,\ 2]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00112}00112\ \ \ \ \ group\_b\ =\ [3,\ 4,\ 5]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00113}00113\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ group\_a:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ nodes[i].peers\ =\ set(group\_a)\ -\/\ \{i\}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ group\_b:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ nodes[i].peers\ =\ set(group\_b)\ -\/\ \{i\}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00118}00118\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Partitioned.\ Mining\ in\ both\ groups\ …"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00119}00119\ \ \ \ \ \textcolor{comment}{\#\ Group\ A\ mines\ 4\ blocks}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00120}00120\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(4):}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ group\_a:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ nodes[i].mine\_block(txs=list(nodes[i].mempool))}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00123}00123\ \ \ \ \ \textcolor{comment}{\#\ Group\ B\ mines\ 6\ blocks\ (longer\ chain)}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00124}00124\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(6):}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ group\_b:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ nodes[i].mine\_block(txs=list(nodes[i].mempool))}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00128}00128\ \ \ \ \ tip\_a\ =\ nodes[group\_a[0]].tip()[\textcolor{stringliteral}{"{}height"{}}]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00129}00129\ \ \ \ \ tip\_b\ =\ nodes[group\_b[0]].tip()[\textcolor{stringliteral}{"{}height"{}}]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00130}00130\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Group\ A\ tip\ height:\ \{tip\_a\},\ Group\ B\ tip\ height:\ \{tip\_b\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00132}00132\ \ \ \ \ \textcolor{comment}{\#\ Reconnect}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00133}00133\ \ \ \ \ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ n.peers\ =\ set(range(6))\ -\/\ \{n.node\_id\}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00136}00136\ \ \ \ \ \textcolor{comment}{\#\ Reconciliation:\ longest\ chain\ wins\ (Group\ B)}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00137}00137\ \ \ \ \ longest\_chain\ =\ max(nodes,\ key=\textcolor{keyword}{lambda}\ n:\ n.tip()[\textcolor{stringliteral}{"{}height"{}}]).chain}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ n.chain\ !=\ longest\_chain:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ n.chain\ =\ list(longest\_chain)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00142}00142\ \ \ \ \ \textcolor{comment}{\#\ Verify\ all\ nodes\ converged}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00143}00143\ \ \ \ \ converged\ =\ all(n.tip()[\textcolor{stringliteral}{"{}height"{}}]\ ==\ longest\_chain[-\/1][\textcolor{stringliteral}{"{}height"{}}]\ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ nodes)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00144}00144\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}All\ nodes\ converged\ to\ longest\ chain"{}})\ \textcolor{keywordflow}{if}\ converged\ \textcolor{keywordflow}{else}\ \doxymbox{\hyperlink{namespacenetwork-partition-sim_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Nodes\ did\ NOT\ converge"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00146}00146\ \ \ \ \ \textcolor{comment}{\#\ Verify\ no\ double-\/spend\ survived\ (no\ conflicting\ tx\ in\ any\ block)}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00147}00147\ \ \ \ \ all\_txs:\ set[str]\ =\ set()}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00148}00148\ \ \ \ \ double\_spends\ =\ 0}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00149}00149\ \ \ \ \ \textcolor{keywordflow}{for}\ block\ \textcolor{keywordflow}{in}\ longest\_chain:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ tx\ \textcolor{keywordflow}{in}\ block[\textcolor{stringliteral}{"{}txs"{}}]:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ tx[\textcolor{stringliteral}{"{}txid"{}}]\ \textcolor{keywordflow}{in}\ all\_txs:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ double\_spends\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ all\_txs.add(tx[\textcolor{stringliteral}{"{}txid"{}}])}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00155}00155\ \ \ \ \ \textcolor{comment}{\#\ Verify\ shared\ transactions\ are\ not\ lost}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00156}00156\ \ \ \ \ lost\_txs\ =\ [tx[\textcolor{stringliteral}{"{}txid"{}}]\ \textcolor{keywordflow}{for}\ tx\ \textcolor{keywordflow}{in}\ shared\_txs\ \textcolor{keywordflow}{if}\ tx[\textcolor{stringliteral}{"{}txid"{}}]\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ all\_txs]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00158}00158\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mode"{}}:\ \textcolor{stringliteral}{"{}simulation"{}},}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}group\_a\_tip"{}}:\ tip\_a,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}group\_b\_tip"{}}:\ tip\_b,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}final\_converged\_height"{}}:\ longest\_chain[-\/1][\textcolor{stringliteral}{"{}height"{}}],}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nodes\_converged"{}}:\ converged,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}double\_spends\_in\_chain"{}}:\ double\_spends,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lost\_transactions"{}}:\ lost\_txs,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00166}00166\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00169}00169\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00170}00170\ \textcolor{comment}{\#\ Live\ RPC\ mode\ (attempt\ against\ real\ nodes)}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00171}00171\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00172}\doxymbox{\hyperlink{namespacenetwork-partition-sim_a3d2dcb9ed343a81e74a3964382f7ab68}{00172}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-partition-sim_a3d2dcb9ed343a81e74a3964382f7ab68}{live\_partition\_test}}(base\_ports:\ list[int],\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00173}00173\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Attempting\ live\ partition\ test\ against\ RPC\ nodes\ …"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00174}00174\ \ \ \ \ urls\ =\ [f\textcolor{stringliteral}{"{}http://127.0.0.1:\{p\}"{}}\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ base\_ports]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00175}00175\ \ \ \ \ infos\ =\ []}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00176}00176\ \ \ \ \ \textcolor{keywordflow}{for}\ url\ \textcolor{keywordflow}{in}\ urls:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(url,\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(info,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ info:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}\ \ \{url\}\ unreachable"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ infos.append(\textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ infos.append(info)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00184}00184\ \ \ \ \ \textcolor{keywordflow}{if}\ any(i\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ infos):}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Some\ nodes\ unreachable;\ falling\ back\ to\ simulation"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacenetwork-partition-sim_aa46ed8750954239ee1a462c9a2989a2a}{simulate\_partition}}()}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00188}00188\ \ \ \ \ \textcolor{comment}{\#\ Capture\ initial\ heights}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00189}00189\ \ \ \ \ initial\_heights\ =\ [i[\textcolor{stringliteral}{"{}blocks"{}}]\ \textcolor{keywordflow}{if}\ isinstance(i,\ dict)\ \textcolor{keywordflow}{else}\ 0\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ infos]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00190}00190\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Initial\ heights:\ \{initial\_heights\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00192}00192\ \ \ \ \ \textcolor{comment}{\#\ In\ a\ real\ setup\ you\ would\ firewall\ nodes\ here.\ \ We\ document\ the\ expected}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00193}00193\ \ \ \ \ \textcolor{comment}{\#\ behavior\ and\ return\ a\ structural\ result.}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00194}00194\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mode"{}}:\ \textcolor{stringliteral}{"{}live\_rpc\_stub"{}},}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}urls"{}}:\ urls,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}initial\_heights"{}}:\ initial\_heights,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}note"{}}:\ \textcolor{stringliteral}{"{}Live\ partition\ requires\ external\ firewall\ /\ network\ namespace\ orchestration."{}},}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00199}00199\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00202}00202\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00203}00203\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00204}00204\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00205}\doxymbox{\hyperlink{namespacenetwork-partition-sim_a7431cb90017e54fe695b23d4190db046}{00205}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenetwork-partition-sim_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00206}00206\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Simulate\ network\ partition."{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00207}00207\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/live"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Try\ live\ RPC\ mode"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00208}00208\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/ports"{}},\ default=\textcolor{stringliteral}{"{}18332,18333,18334,18335,18336,18337"{}},\ help=\textcolor{stringliteral}{"{}Comma-\/separated\ RPC\ ports"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00209}00209\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00210}00210\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00211}00211\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}tools/EXPLOITS/network-\/partition-\/sim.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00212}00212\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00214}00214\ \ \ \ \ ports\ =\ [int(p.strip())\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ args.ports.split(\textcolor{stringliteral}{"{},"{}})]}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00215}00215\ \ \ \ \ auth\ =\ (args.user,\ args.password)\ \textcolor{keywordflow}{if}\ args.user\ \textcolor{keywordflow}{or}\ args.password\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00217}00217\ \ \ \ \ \textcolor{keywordflow}{if}\ args.live:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a3d2dcb9ed343a81e74a3964382f7ab68}{live\_partition\_test}}(ports,\ auth)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacenetwork-partition-sim_aa46ed8750954239ee1a462c9a2989a2a}{simulate\_partition}}()}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00222}00222\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}result"{}}:\ result,}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00225}00225\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00227}00227\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00228}00228\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00229}00229\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00232}00232\ \ \ \ \ \doxymbox{\hyperlink{namespacenetwork-partition-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Partition\ simulation\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00236}00236\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{network-partition-sim_8py_source_l00237}00237\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacenetwork-partition-sim_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

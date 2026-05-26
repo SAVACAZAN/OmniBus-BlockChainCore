@@ -1,0 +1,309 @@
+\doxysection{multi-\/node-\/orchestrator Namespace Reference}
+\hypertarget{namespacemulti-node-orchestrator}{}\label{namespacemulti-node-orchestrator}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Path\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a83b6d2eab1289c096549ebd6e1972798}{find\+\_\+binary}} ()
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a583010000c41f2f33d6e7e52909b9dfb}{save\+\_\+pids}} (list\+[dict]\+ nodes)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}{load\+\_\+pids}} ()
+\item 
+bool \doxymbox{\hyperlink{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}{is\+\_\+pid\+\_\+alive}} (int pid)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a0b0254b591c691fa0aa3dbee44f4ccdb}{kill\+\_\+process}} (int pid)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_acab535141ad8445d72e055682d020c35}{start\+\_\+nodes}} (Path binary, int count, int base\+\_\+port, int rpc\+\_\+base)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3944447296c01e5ecfffcd4451a59a69}{stop\+\_\+nodes}} ()
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d}{status\+\_\+nodes}} ()
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a969eb144360ebcb590d789cbc1a64141}{monitor\+\_\+loop}} (int interval)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_acbb0750f34b7c418fddbecf4b279d47d}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_ac5143606254fae4264adf14db38011c6}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_ae6ee467da10c83bd713dd96886b853c8}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_aeeed312163a648f824b4170e76d0a302}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a5239b03bd55f93a233810749f519367e}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a69fb996a654449881a201d84ce55d75a}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_af3d0f96fef3047a2943ebbed44e893fa}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a22948345a9c99bef4fa6a2873804926c}{MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a813be94e485790479dd01c4b74357cbb}{WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a52a2e0139e1fa1fbb9bf516631a71e8a}{BG\+\_\+\+BLUE}} = "{}\textbackslash{}033\+[44m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3c3e42e9d7f21268af1aa83cbfcec842}{PID\+\_\+\+FILE}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent /\+ "{}.orchestrator-\/pids.\+json"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacemulti-node-orchestrator_doc-func-members}
+\Hypertarget{namespacemulti-node-orchestrator_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacemulti-node-orchestrator_a83b6d2eab1289c096549ebd6e1972798}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!find\_binary@{find\_binary}}
+\index{find\_binary@{find\_binary}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{find\_binary()}{find\_binary()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a83b6d2eab1289c096549ebd6e1972798} 
+ Path \texorpdfstring{$\vert$}{|} None find\+\_\+binary (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Locate omnibus-node binary relative to script location.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!is\_pid\_alive@{is\_pid\_alive}}
+\index{is\_pid\_alive@{is\_pid\_alive}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{is\_pid\_alive()}{is\_pid\_alive()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390} 
+ bool is\+\_\+pid\+\_\+alive (\begin{DoxyParamCaption}\item[{int}]{pid}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if a process is still running.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00067}{67}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacemulti-node-orchestrator_a0b0254b591c691fa0aa3dbee44f4ccdb}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!kill\_process@{kill\_process}}
+\index{kill\_process@{kill\_process}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{kill\_process()}{kill\_process()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a0b0254b591c691fa0aa3dbee44f4ccdb} 
+kill\+\_\+process (\begin{DoxyParamCaption}\item[{int}]{pid}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Kill a process by PID.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00083}{83}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!load\_pids@{load\_pids}}
+\index{load\_pids@{load\_pids}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{load\_pids()}{load\_pids()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5} 
+ list\+[dict]\+ load\+\_\+pids (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Load node info from PID file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00059}{59}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacemulti-node-orchestrator_a51af30a60f9f02777c6396b8247e356f}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!main@{main}}
+\index{main@{main}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00246}{246}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacemulti-node-orchestrator_a969eb144360ebcb590d789cbc1a64141}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!monitor\_loop@{monitor\_loop}}
+\index{monitor\_loop@{monitor\_loop}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{monitor\_loop()}{monitor\_loop()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a969eb144360ebcb590d789cbc1a64141} 
+monitor\+\_\+loop (\begin{DoxyParamCaption}\item[{int}]{interval}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Continuously monitor node status.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00229}{229}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacemulti-node-orchestrator_a583010000c41f2f33d6e7e52909b9dfb}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!save\_pids@{save\_pids}}
+\index{save\_pids@{save\_pids}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{save\_pids()}{save\_pids()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a583010000c41f2f33d6e7e52909b9dfb} 
+save\+\_\+pids (\begin{DoxyParamCaption}\item[{list\+[dict]\+}]{nodes}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Save running node info to PID file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacemulti-node-orchestrator_acab535141ad8445d72e055682d020c35}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!start\_nodes@{start\_nodes}}
+\index{start\_nodes@{start\_nodes}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{start\_nodes()}{start\_nodes()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_acab535141ad8445d72e055682d020c35} 
+start\+\_\+nodes (\begin{DoxyParamCaption}\item[{Path}]{binary}{, }\item[{int}]{count}{, }\item[{int}]{base\+\_\+port}{, }\item[{int}]{rpc\+\_\+base}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Start 1 seed + (count-1) miner nodes.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00100}{100}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!status\_nodes@{status\_nodes}}
+\index{status\_nodes@{status\_nodes}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{status\_nodes()}{status\_nodes()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d} 
+status\+\_\+nodes (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Show status of tracked nodes.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00209}{209}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacemulti-node-orchestrator_a3944447296c01e5ecfffcd4451a59a69}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!stop\_nodes@{stop\_nodes}}
+\index{stop\_nodes@{stop\_nodes}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{stop\_nodes()}{stop\_nodes()}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a3944447296c01e5ecfffcd4451a59a69} 
+stop\+\_\+nodes (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Stop all nodes tracked in PID file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00183}{183}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+
+
+\label{namespacemulti-node-orchestrator_doc-var-members}
+\Hypertarget{namespacemulti-node-orchestrator_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacemulti-node-orchestrator_a52a2e0139e1fa1fbb9bf516631a71e8a}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!BG\_BLUE@{BG\_BLUE}}
+\index{BG\_BLUE@{BG\_BLUE}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{BG\_BLUE}{BG\_BLUE}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a52a2e0139e1fa1fbb9bf516631a71e8a} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+BG\+\_\+\+BLUE = "{}\textbackslash{}033\+[44m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_ac5143606254fae4264adf14db38011c6}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_ac5143606254fae4264adf14db38011c6} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_af3d0f96fef3047a2943ebbed44e893fa}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_af3d0f96fef3047a2943ebbed44e893fa} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_ae6ee467da10c83bd713dd96886b853c8}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!DIM@{DIM}}
+\index{DIM@{DIM}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_ae6ee467da10c83bd713dd96886b853c8} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_a5239b03bd55f93a233810749f519367e}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a5239b03bd55f93a233810749f519367e} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_a22948345a9c99bef4fa6a2873804926c}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!MAGENTA@{MAGENTA}}
+\index{MAGENTA@{MAGENTA}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{MAGENTA}{MAGENTA}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a22948345a9c99bef4fa6a2873804926c} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+MAGENTA = "{}\textbackslash{}033\+[95m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_a3c3e42e9d7f21268af1aa83cbfcec842}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!PID\_FILE@{PID\_FILE}}
+\index{PID\_FILE@{PID\_FILE}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{PID\_FILE}{PID\_FILE}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a3c3e42e9d7f21268af1aa83cbfcec842} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+PID\+\_\+\+FILE = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent /\+ "{}.orchestrator-\/pids.\+json"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_aeeed312163a648f824b4170e76d0a302}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!RED@{RED}}
+\index{RED@{RED}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_aeeed312163a648f824b4170e76d0a302} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_acbb0750f34b7c418fddbecf4b279d47d}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!RESET@{RESET}}
+\index{RESET@{RESET}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_acbb0750f34b7c418fddbecf4b279d47d} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_a813be94e485790479dd01c4b74357cbb}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!WHITE@{WHITE}}
+\index{WHITE@{WHITE}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{WHITE}{WHITE}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a813be94e485790479dd01c4b74357cbb} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+WHITE = "{}\textbackslash{}033\+[97m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+
+\Hypertarget{namespacemulti-node-orchestrator_a69fb996a654449881a201d84ce55d75a}\index{multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!multi-\/node-\/orchestrator@{multi-\/node-\/orchestrator}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacemulti-node-orchestrator_a69fb996a654449881a201d84ce55d75a} 
+str \doxymbox{\hyperlink{namespacemulti}{multi}}-\/\doxymbox{\hyperlink{namespacenode}{node}}-\/orchestrator.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{multi-node-orchestrator_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{multi-node-orchestrator_8py_source}{multi-\/node-\/orchestrator.\+py}}.
+

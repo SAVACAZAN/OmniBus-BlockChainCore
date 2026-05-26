@@ -1,0 +1,153 @@
+\chapter{Plan:\+ Bitcoin Feature Parity — Ce are Bitcoin și ne trebuie și nouă }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y}{}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y}\index{Plan: Bitcoin Feature Parity — Ce are Bitcoin și ne trebuie și nouă@{Plan: Bitcoin Feature Parity — Ce are Bitcoin și ne trebuie și nouă}}
+\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3821}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3821}%
+
+
+{\bfseries{Data:\+}} 2026-\/03-\/30 \texorpdfstring{$\vert$}{|} {\bfseries{Scop:\+}} Omni\+Bus Block\+Chain\+Core trebuie să aibă cel puțin ce are Bitcoin Core pe partea de tranzacții, networking, și consens.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3823}{}\doxysection{\texorpdfstring{CE ARE BITCOIN ȘI NOI AVEM}{CE ARE BITCOIN ȘI NOI AVEM}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3823}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+PoW mining  &SHA256d  &SHA256d  &✅ Real  \\
+Block reward + halving  &50→25→12.5 BTC  &0.\+0083 OMNI, halving 126M  &✅ Real  \\
+Mempool (TX pool)  &Priority by fee  &FIFO + fee  &✅ Real  \\
+UTXO model  &Da  &Nu — account-\/based (ca Ethereum)  &⚠️ Diferit (OK)  \\
+secp256k1 ECDSA signing  &Da  &Da — pur Zig  &✅ Real  \\
+BIP-\/32 HD Wallet  &Da  &Da — HMAC-\/\+SHA512 derivation  &✅ Real  \\
+BIP-\/39 Mnemonic  &Da  &Da — 12/\+24 words  &✅ Real  \\
+Difficulty retarget  &Every 2016 blocks  &Every 2016 blocks  &✅ Real  \\
+Merkle root in block  &Da  &Da  &✅ Real  \\
+Coinbase maturity (100 blocks)  &Da  &Da  &✅ Real  \\
+Dust threshold  &546 sat  &100 sat  &✅ Real  \\
+JSON-\/\+RPC API  &Da  &Da — 19 metode  &✅ Real  \\
+Block explorer (frontend)  &mempool.\+space  &mempool.\+space style  &✅ Real  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3825}{}\doxysection{\texorpdfstring{CE ARE BITCOIN ȘI NE LIPSEȘ\+TE}{CE ARE BITCOIN ȘI NE LIPSEȘ\+TE}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3825}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3826}{}\doxysubsection{\texorpdfstring{B1. UTXO vs Account Model}{B1. UTXO vs Account Model}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3826}
+{\bfseries{Bitcoin:\+}} Fiecare TX consumă UTXOs (Unspent Transaction Outputs) și creează altele noi. Nu există "{}balance"{} — balance se calculează din UTXOs. {\bfseries{Omni\+Bus:\+}} Account-\/based (ca Ethereum) — fiecare adresă are un balance direct. {\bfseries{Decizie:\+}} Păstrăm account model — e mai simplu, mai rapid, și funcționează. Ethereum, Solana, MultiversX toate folosesc account model. Nu e un defect.\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3827}{}\doxysubsection{\texorpdfstring{B2. TX Inputs/\+\+Outputs (UTXO)}{B2. TX Inputs/\+\+Outputs (UTXO)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3827}
+{\bfseries{Bitcoin:\+}} TX are multiple inputs (UTXOs consumate) și multiple outputs (UTXOs create). {\bfseries{Omni\+Bus:\+}} TX are 1 from, 1 to, 1 amount. {\bfseries{Fix necesar:\+}} Adăugăm câmp {\ttfamily fee} explicit + {\ttfamily change\+\_\+address} pentru rest. {\bfseries{Fișiere:\+}} {\ttfamily core/\+transaction.\+zig}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3828}{}\doxysubsection{\texorpdfstring{B3. TX Fee Market}{B3. TX Fee Market}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3828}
+{\bfseries{Bitcoin:\+}} Minerii selectează TX-\/uri cu fee mai mare. Fee = input\+\_\+total -\/ output\+\_\+total. {\bfseries{Omni\+Bus:\+}} FIFO (first in, first out) — nu există prioritizare pe fee. {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item Adaugă {\ttfamily fee\+\_\+sat} câmp în Transaction
+\item Mempool sortare pe fee/\+byte (nu FIFO)
+\item Miner selectează TX-\/uri cu fee maxim (greedy)
+\item {\ttfamily estimatefee} RPC method {\bfseries{Fișiere:\+}} {\ttfamily core/\+transaction.\+zig}, {\ttfamily core/\+mempool.\+zig}, {\ttfamily core/\+rpc\+\_\+server.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3829}{}\doxysubsection{\texorpdfstring{B4. Script System (Bitcoin Script)}{B4. Script System (Bitcoin Script)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3829}
+{\bfseries{Bitcoin:\+}} Fiecare TX are {\ttfamily script\+Pub\+Key} (lock) și {\ttfamily script\+Sig} (unlock). Permite multisig, timelock, etc. {\bfseries{Omni\+Bus:\+}} Doar ECDSA signature pe TX hash. {\bfseries{Fix necesar:\+}} NU implementăm Bitcoin Script complet (prea complex). Dar adăugăm:\+
+\begin{DoxyItemize}
+\item Timelock (TX nu e valid înainte de block X)
+\item Multisig (M-\/of-\/N semnături — deja avem {\ttfamily core/\+multisig.\+zig})
+\item OP\+\_\+\+RETURN (date arbitrare în TX — pentru NFTs, timestamps) {\bfseries{Fișiere:\+}} {\ttfamily core/\+transaction.\+zig} (add locktime, op\+\_\+return fields)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3830}{}\doxysubsection{\texorpdfstring{B5. TX Verification completă}{B5. TX Verification completă}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3830}
+{\bfseries{Bitcoin:\+}} Verifică semnătura ECDSA cu public key din UTXO. {\bfseries{Omni\+Bus:\+}} Verifică doar hash integrity, NU verifică semnătura cu public key (comment:\+ "{}\+Nu putem verifica semnătura fără public key"{}). {\bfseries{Fix necesar CRITIC:\+}}
+\begin{DoxyItemize}
+\item La {\ttfamily sendtransaction}, stochează public key-\/ul sender-\/ului în TX
+\item La {\ttfamily validate\+Transaction}, verifică ECDSA signature cu stored public key
+\item Fără asta, oricine poate falsifica TX-\/uri {\bfseries{Fișiere:\+}} {\ttfamily core/\+transaction.\+zig} (add pub\+\_\+key field), {\ttfamily core/\+blockchain.\+zig} (validate\+Transaction), {\ttfamily core/\+wallet.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3831}{}\doxysubsection{\texorpdfstring{B6. P2P Network Protocol Real}{B6. P2P Network Protocol Real}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3831}
+{\bfseries{Bitcoin:\+}} Gossip protocol — fiecare nod trimite TX-\/uri și blocuri la peers. Bloom filters, compact blocks, inv/\+getdata. {\bfseries{Omni\+Bus:\+}} TCP connect + broadcast\+Block (unidirecțional). P2P inbound nu funcționează pe Windows (F3). {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item Fix recv pe Windows (ws2\+\_\+32) — F3
+\item Implementare mesaje:\+ {\ttfamily inv}, {\ttfamily getdata}, {\ttfamily \doxylink{namespacetx}{tx}}, {\ttfamily \doxylink{namespaceblock}{block}}, {\ttfamily getblocks}, {\ttfamily getheaders}
+\item Gossip:\+ când primești TX/\+block, retransmite la toți peers
+\item Bloom filters pentru SPV (deja avem {\ttfamily core/\+light\+\_\+client.\+zig}) {\bfseries{Fișiere:\+}} {\ttfamily core/\+p2p.\+zig}, {\ttfamily core/\+sync.\+zig}, {\ttfamily core/\+network.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3832}{}\doxysubsection{\texorpdfstring{B7. Block Validation completă}{B7. Block Validation completă}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3832}
+{\bfseries{Bitcoin:\+}} Validează:\+ merkle root, previous\+\_\+hash, difficulty, timestamp, TX-\/uri, coinbase, total fees. {\bfseries{Omni\+Bus:\+}} Validează:\+ hash difficulty, previous\+\_\+hash. NU validează merkle root corect, nu verifică total fees. {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily validate\+Block()} verifică merkle root recalculat
+\item Verifică timestamp (nu în viitor, nu prea vechi)
+\item Verifică total fees = sum(tx.\+fee) și reward \texorpdfstring{$<$}{<}= expected + fees {\bfseries{Fișiere:\+}} {\ttfamily core/\+block.\+zig}, {\ttfamily core/\+blockchain.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3833}{}\doxysubsection{\texorpdfstring{B8. Orphan Blocks /\+ Chain Reorganization}{B8. Orphan Blocks /\+ Chain Reorganization}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3833}
+{\bfseries{Bitcoin:\+}} Când două mineri găsesc block simultan, rețeaua alege chain-\/ul mai lung. Blocurile "{}perdante"{} devin orphans. {\bfseries{Omni\+Bus:\+}} Nu avem chain reorganization — un singur miner minează secvențial. {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily reorg()} — când primim un chain mai lung, facem switch
+\item Orphan block detection
+\item Mempool:\+ TX-\/urile din blocuri invalidate revin în mempool {\bfseries{Fișiere:\+}} {\ttfamily core/\+blockchain.\+zig} (add\+Block, reorg), {\ttfamily core/\+mempool.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3834}{}\doxysubsection{\texorpdfstring{B9. Nonce Management (Anti-\/replay)}{B9. Nonce Management (Anti-\/replay)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3834}
+{\bfseries{Bitcoin:\+}} Nu are nonce (UTXO model previne replay). Ethereum are nonce per account. {\bfseries{Omni\+Bus:\+}} Are nonce dar implementarea e buggy (F6 — nonce setat greșit duce la TX rejection). {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item Nonce strict sequential (expected\+\_\+nonce = last\+\_\+confirmed + pending\+\_\+count)
+\item Mempool tracks pending nonces per address
+\item {\ttfamily getnonce} RPC method {\bfseries{Fișiere:\+}} {\ttfamily core/\+blockchain.\+zig}, {\ttfamily core/\+mempool.\+zig}, {\ttfamily core/\+rpc\+\_\+server.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3835}{}\doxysubsection{\texorpdfstring{B10. Confirmations Count}{B10. Confirmations Count}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3835}
+{\bfseries{Bitcoin:\+}} TX are N confirmations (câte blocuri au fost minate după blocul care conține TX-\/ul). {\bfseries{Omni\+Bus:\+}} TX are doar "{}pending"{} sau "{}confirmed"{} — fără count. {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily gettransaction} returnează {\ttfamily confirmations:\+ current\+\_\+height -\/ tx\+\_\+block\+\_\+height}
+\item Frontend arată confirmations count pe TX {\bfseries{Fișiere:\+}} {\ttfamily core/\+rpc\+\_\+server.\+zig}, {\ttfamily frontend/\+src/\+components/\+blocks/\+\+Block\+Detail.\+tsx}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3836}{}\doxysubsection{\texorpdfstring{B11. Address Balance History}{B11. Address Balance History}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3836}
+{\bfseries{Bitcoin:\+}} {\ttfamily listunspent}, {\ttfamily listtransactions} — istoric complet per adresă. {\bfseries{Omni\+Bus:\+}} {\ttfamily getbalance} returnează doar balance-\/ul curent. Nu avem istoric. {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily getaddresshistory} RPC — toate TX-\/urile per adresă cu timestamps
+\item {\ttfamily listunspent} equivalent (toate incoming TX-\/uri neconsumate) {\bfseries{Fișiere:\+}} {\ttfamily core/\+rpc\+\_\+server.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3837}{}\doxysubsection{\texorpdfstring{B12. Network Discovery (DNS Seeds)}{B12. Network Discovery (DNS Seeds)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3837}
+{\bfseries{Bitcoin:\+}} La pornire, nodurile contactează DNS seeds hardcodate care returnează liste de peers activi. {\bfseries{Omni\+Bus:\+}} Hardcodat seed host ({\ttfamily -\/-\/seed-\/host}). Avem {\ttfamily core/\+bootstrap.\+zig} dar nu DNS real. {\bfseries{Fix necesar:\+}}
+\begin{DoxyItemize}
+\item Lista hardcodată de seed nodes (IP-\/uri)
+\item Peer exchange (PEX) — peers share liste de peers
+\item Kademlia DHT (deja avem {\ttfamily core/\+kademlia\+\_\+dht.\+zig} — integrare) {\bfseries{Fișiere:\+}} {\ttfamily core/\+bootstrap.\+zig}, {\ttfamily core/\+kademlia\+\_\+dht.\+zig}, {\ttfamily core/\+p2p.\+zig}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3839}{}\doxysection{\texorpdfstring{CE ARE BITCOIN ȘI NU NE TREBUIE (by design)}{CE ARE BITCOIN ȘI NU NE TREBUIE (by design)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3839}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}De ce nu  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Alternativa noastră  \\
+Bitcoin Script (complet)  &Prea complex, securitate  &Multisig + Timelock + OP\+\_\+\+RETURN  \\
+Replace-\/\+By-\/\+Fee (RBF)  &Confuz pentru useri  &Fee bump prin TX nouă  \\
+Segregated Witness (Seg\+Wit)  &UTXO-\/specific  &Avem witness\+\_\+data.\+zig (Seg\+Wit-\/style)  \\
+Lightning Network  &Layer 2  &Avem payment\+\_\+channel.\+zig (Hydra L2)  \\
+Taproot/\+\+Schnorr  &Complex  &Avem schnorr.\+zig + multisig.\+zig  \\
+BIP-\/141 (Seg\+Wit addresses)  &UTXO-\/specific  &5 domenii PQ (ob1q (Bech32 nativ), ob\+\_\+k1\+\_\+, etc)  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3841}{}\doxysection{\texorpdfstring{CE AVEM NOI ȘI BITCOIN NU ARE}{CE AVEM NOI ȘI BITCOIN NU ARE}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3841}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin echivalent  \\
+Post-\/\+Quantum Crypto  &5 domenii PQ (ML-\/\+DSA, Falcon, SLH-\/\+DSA)  &Nu  \\
+Sub-\/blocks (0.\+1s soft confirm)  &10 sub-\/blocks per block  &Nu (10 min blocks)  \\
+Metachain + Sharding  &4 sharduri, cross-\/shard  &Nu  \\
+Governance on-\/chain  &Propuneri + voturi  &Nu (BIP off-\/chain)  \\
+Staking + Slashing  &Validator system  &Nu (doar PoW)  \\
+UBI Distribution  &1 OMNI/\+day per beneficiar  &Nu  \\
+DNS Registry on-\/chain  &Domenii descentralizate  &Nu  \\
+Account Guardians  &Recovery mechanism  &Nu  \\
+Omni\+Brain orchestrator  &Auto node-\/type detection  &Nu  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3843}{}\doxysection{\texorpdfstring{ORDINE IMPLEMENTARE RECOMANDATĂ}{ORDINE IMPLEMENTARE RECOMANDATĂ}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3843}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3844}{}\doxysubsection{\texorpdfstring{Sprint 1:\+ TX Engine complet (CRITIC)}{Sprint 1:\+ TX Engine complet (CRITIC)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3844}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{B5}} — TX signature verification cu public key (securitate)
+\item {\bfseries{B3}} — Fee market (mempool sorting, estimatefee)
+\item {\bfseries{B2}} — Fee field + change address în TX
+\item {\bfseries{B9}} — Nonce management corect
+\item {\bfseries{B10}} — Confirmations count
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3845}{}\doxysubsection{\texorpdfstring{Sprint 2:\+ Block Validation}{Sprint 2:\+ Block Validation}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3845}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{B7}} — Block validation completă (merkle, timestamp, fees)
+\item {\bfseries{B4}} — Timelock + OP\+\_\+\+RETURN în TX
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3846}{}\doxysubsection{\texorpdfstring{Sprint 3:\+ Networking}{Sprint 3:\+ Networking}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3846}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{B6}} — P2P protocol real (gossip, inv/\+getdata)
+\item {\bfseries{B12}} — Network discovery (DNS seeds, PEX)
+\item {\bfseries{B8}} — Chain reorganization + orphan blocks
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3847}{}\doxysubsection{\texorpdfstring{Sprint 4:\+ API + UX}{Sprint 4:\+ API + UX}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___b_i_t_c_o_i_n___p_a_r_i_t_y_autotoc_md3847}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{B11}} — Address history, listtransactions
+\item Frontend:\+ confirmation count, fee estimation, TX details 
+\end{DoxyEnumerate}

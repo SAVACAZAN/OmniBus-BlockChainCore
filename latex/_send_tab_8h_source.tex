@@ -1,0 +1,44 @@
+\doxysection{Send\+Tab.\+h}
+\hypertarget{_send_tab_8h_source}{}\label{_send_tab_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/SendTab.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/SendTab.h}}
+\doxymbox{\hyperlink{_send_tab_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QLineEdit>}}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QDoubleSpinBox>}}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00008}00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00010}00010\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00012}\doxymbox{\hyperlink{classomni_1_1_send_tab}{00012}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_send_tab_a3eb65ce48024fae7261bbf49593694da}{SendTab}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00013}00013\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00014}00014\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00015}00015\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_send_tab_a3eb65ce48024fae7261bbf49593694da}{SendTab}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00017}00017\ \textcolor{keyword}{public}\ slots:}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00018}00018\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_send_tab_aadecccf5bf5c53ea47af954d089acebd}{onWalletUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\&\ info);}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00020}00020\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ onSendClicked();}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ onFeeEstimated();}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00024}00024\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00025}00025\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00027}00027\ \ \ \ \ QLineEdit*\ \ \ \ \ \ m\_recipientEdit;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00028}00028\ \ \ \ \ QDoubleSpinBox*\ m\_amountSpin;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00029}00029\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ m\_feeLabel;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00030}00030\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ m\_balanceLabel;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00031}00031\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ m\_statusLabel;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00032}00032\ \ \ \ \ QPushButton*\ \ \ \ m\_sendBtn;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00034}00034\ \ \ \ \ qint64\ m\_estimatedFee\ =\ 1000;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00035}00035\ \ \ \ \ qint64\ m\_currentBalance\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00036}00036\ \};}
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{_send_tab_8h_source_l00038}00038\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

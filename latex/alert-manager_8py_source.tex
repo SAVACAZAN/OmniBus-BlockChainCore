@@ -1,0 +1,256 @@
+\doxysection{alert-\/manager.py}
+\hypertarget{alert-manager_8py_source}{}\label{alert-manager_8py_source}\index{tools/MONITORING/alert-\/manager.py@{tools/MONITORING/alert-\/manager.py}}
+\doxymbox{\hyperlink{alert-manager_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00001}\doxymbox{\hyperlink{namespacealert-manager}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00002}\doxymbox{\hyperlink{namespacealert}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ BlockChainCore\ —\ Alert\ Manager}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00004}00004\ \textcolor{stringliteral}{=======================================}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00005}00005\ \textcolor{stringliteral}{Unified\ health-\/check\ and\ alert\ system\ for\ OmniBus\ blockchain\ nodes.}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00006}00006\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00007}00007\ \textcolor{stringliteral}{Checks\ performed:}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ 1.\ RPC\ reachable\ (JSON-\/RPC\ 2.0\ on\ configured\ port)}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ 2.\ Chain\ growing\ (block\ height\ increasing\ between\ checks)}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ 3.\ Peers\ >\ 0\ (node\ is\ connected\ to\ network)}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ 4.\ Disk\ space\ OK\ (configurable\ threshold)}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00013}00013\ \textcolor{stringliteral}{Severity\ levels:\ \ CRITICAL\ /\ WARNING\ /\ INFO\ /\ OK}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00014}00014\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00015}00015\ \textcolor{stringliteral}{Can\ be\ invoked\ once\ (for\ cron)\ or\ in\ continuous\ mode.}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00016}00016\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00017}00017\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ \ \ python\ alert-\/manager.py}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ \ \ python\ alert-\/manager.py\ -\/-\/host\ 127.0.0.1\ -\/-\/port\ 8332}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00020}00020\ \textcolor{stringliteral}{\ \ \ \ python\ alert-\/manager.py\ -\/-\/config\ thresholds.json\ -\/-\/continuous\ -\/-\/interval\ 60}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00021}00021\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00023}00023\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00024}00024\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00025}00025\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00026}00026\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00027}00027\ \textcolor{keyword}{import}\ shutil}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00028}00028\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00029}00029\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00030}00030\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00031}00031\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00033}00033\ \textcolor{comment}{\#\ ──\ ANSI\ colours\ ─────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00034}\doxymbox{\hyperlink{namespacealert-manager_adff4d2c7848f6e8cc743356b319b681f}{00034}}\ RESET\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00035}\doxymbox{\hyperlink{namespacealert-manager_a8b8a28e8aa1f45ea79f77e18c3903ce4}{00035}}\ BOLD\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00036}\doxymbox{\hyperlink{namespacealert-manager_aa3f8caf25af72e9b2f0527ecaadfa55c}{00036}}\ DIM\ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00037}\doxymbox{\hyperlink{namespacealert-manager_a4b8577cfd8806255a71f2c46d8a69380}{00037}}\ RED\ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00038}\doxymbox{\hyperlink{namespacealert-manager_ac8f13d4fbb27dd29a9e341b76bdea443}{00038}}\ GREEN\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00039}\doxymbox{\hyperlink{namespacealert-manager_a0b13dc7b0131bf0dd796ef62db62c3e7}{00039}}\ YELLOW\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00040}\doxymbox{\hyperlink{namespacealert-manager_a693a2d6603ae65080f93d0cef37c9b12}{00040}}\ CYAN\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00041}\doxymbox{\hyperlink{namespacealert-manager_a37a3b2f28ec27eb1f90ff3da6537bc23}{00041}}\ MAGENTA\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00042}\doxymbox{\hyperlink{namespacealert-manager_aec52119636e645d4fa2ce46c4913060f}{00042}}\ WHITE\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00043}\doxymbox{\hyperlink{namespacealert-manager_adcfccc6aeb85b234e97c428875360c58}{00043}}\ BG\_RED\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[41m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00044}\doxymbox{\hyperlink{namespacealert-manager_a8faa6a1ada36541c1dc40c16d2ef3e67}{00044}}\ BG\_YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[43m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00045}\doxymbox{\hyperlink{namespacealert-manager_a3864079fb9f828141e861ad86431189e}{00045}}\ BG\_GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[42m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00046}\doxymbox{\hyperlink{namespacealert-manager_ab5e51c85f57895c2c5c963bd1f7f4f35}{00046}}\ BG\_CYAN\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[46m"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00048}\doxymbox{\hyperlink{namespacealert-manager_ab85b25056fe6ed6a8505847f7f4a76a8}{00048}}\ SEVERITY\_COLOURS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00049}00049\ \ \ \ \ \textcolor{stringliteral}{"{}CRITICAL"{}}:\ f\textcolor{stringliteral}{"{}\{BG\_RED\}\{WHITE\}\{BOLD\}"{}},}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00050}00050\ \ \ \ \ \textcolor{stringliteral}{"{}WARNING"{}}:\ \ f\textcolor{stringliteral}{"{}\{BG\_YELLOW\}\{WHITE\}\{BOLD\}"{}},}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00051}00051\ \ \ \ \ \textcolor{stringliteral}{"{}INFO"{}}:\ \ \ \ \ f\textcolor{stringliteral}{"{}\{BG\_CYAN\}\{WHITE\}"{}},}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00052}00052\ \ \ \ \ \textcolor{stringliteral}{"{}OK"{}}:\ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{BG\_GREEN\}\{WHITE\}"{}},}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00053}00053\ \}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00055}\doxymbox{\hyperlink{namespacealert-manager_af7bae3dc1b8b71a4cab5876bf90878d7}{00055}}\ DEFAULT\_THRESHOLDS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00056}00056\ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_timeout\_seconds"{}}:\ 5,}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00057}00057\ \ \ \ \ \textcolor{stringliteral}{"{}min\_peers"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00058}00058\ \ \ \ \ \textcolor{stringliteral}{"{}min\_disk\_free\_gb"{}}:\ 1.0,}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00059}00059\ \ \ \ \ \textcolor{stringliteral}{"{}max\_stale\_blocks\_checks"{}}:\ 3,}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00060}00060\ \ \ \ \ \textcolor{stringliteral}{"{}chain\_file"{}}:\ \textcolor{stringliteral}{"{}omnibus-\/chain.dat"{}},}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00061}00061\ \}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00064}\doxymbox{\hyperlink{namespacealert-manager_ae45ada562a188df1687bea37637fa094}{00064}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host:\ str,\ port:\ int,\ method:\ str,\ params=\textcolor{keywordtype}{None},\ timeout:\ int\ =\ 5):}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00065}00065\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}JSON-\/RPC\ 2.0\ call.\ \ Returns\ (result,\ error\_string)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00066}00066\ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00069}00069\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ body=payload,}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ headers=\{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ data\ \textcolor{keywordflow}{and}\ data[\textcolor{stringliteral}{"{}error"{}}]:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None},\ str(data[\textcolor{stringliteral}{"{}error"{}}])}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}}),\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None},\ str(exc)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00084}\doxymbox{\hyperlink{namespacealert-manager_a40755eadcb8bfc93d84b7f2b44d18d50}{00084}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_a40755eadcb8bfc93d84b7f2b44d18d50}{emit\_alert}}(severity:\ str,\ check:\ str,\ message:\ str):}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00085}00085\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ a\ coloured\ alert\ line\ to\ stdout."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00086}00086\ \ \ \ \ ts\ =\ datetime.now().strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M:\%S"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00087}00087\ \ \ \ \ sev\_col\ =\ SEVERITY\_COLOURS.get(severity,\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00088}00088\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}[\{ts\}]\{RESET\}\ \ \{sev\_col\}\ \{severity:8s\}\ \{RESET\}\ \ \{BOLD\}\{check\}\{RESET\}:\ \{message\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00091}\doxymbox{\hyperlink{namespacealert-manager_a09add7af00670d7d14b237f4881f17d6}{00091}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_a09add7af00670d7d14b237f4881f17d6}{check\_rpc\_reachable}}(host:\ str,\ port:\ int,\ timeout:\ int)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00092}00092\ \ \ \ \ alerts\ =\ []}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00093}00093\ \ \ \ \ result,\ err\ =\ \doxymbox{\hyperlink{namespacealert-manager_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00094}00094\ \ \ \ \ \textcolor{keywordflow}{if}\ err:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}CRITICAL"{}},\ \textcolor{stringliteral}{"{}RPC"{}},\ f\textcolor{stringliteral}{"{}Cannot\ reach\ node\ at\ \{host\}:\{port\}\ —\ \{err\}"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00096}00096\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}OK"{}},\ \textcolor{stringliteral}{"{}RPC"{}},\ f\textcolor{stringliteral}{"{}Node\ reachable\ at\ \{host\}:\{port\}"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00098}00098\ \ \ \ \ \textcolor{keywordflow}{return}\ alerts,\ result}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00101}\doxymbox{\hyperlink{namespacealert-manager_abd0292bc0a30bcda274dd62ccf39c535}{00101}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_abd0292bc0a30bcda274dd62ccf39c535}{check\_peers}}(host:\ str,\ port:\ int,\ min\_peers:\ int,\ timeout:\ int)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00102}00102\ \ \ \ \ alerts\ =\ []}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00103}00103\ \ \ \ \ result,\ err\ =\ \doxymbox{\hyperlink{namespacealert-manager_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getnetworkinfo"{}},\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{if}\ err:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}WARNING"{}},\ \textcolor{stringliteral}{"{}Peers"{}},\ f\textcolor{stringliteral}{"{}Cannot\ query\ peers\ —\ \{err\}"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ alerts}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00107}00107\ \ \ \ \ peers\ =\ result.get(\textcolor{stringliteral}{"{}connections"{}},\ 0)\ \textcolor{keywordflow}{if}\ result\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{if}\ peers\ <\ min\_peers:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}WARNING"{}},\ \textcolor{stringliteral}{"{}Peers"{}},\ f\textcolor{stringliteral}{"{}Peer\ count\ \{peers\}\ <\ minimum\ \{min\_peers\}"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00110}00110\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}OK"{}},\ \textcolor{stringliteral}{"{}Peers"{}},\ f\textcolor{stringliteral}{"{}\{peers\}\ connected\ peers"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{return}\ alerts}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00115}\doxymbox{\hyperlink{namespacealert-manager_a0eabef8ad50115256c71939c7b5ee794}{00115}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_a0eabef8ad50115256c71939c7b5ee794}{check\_disk\_space}}(chain\_file:\ str,\ min\_free\_gb:\ float)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00116}00116\ \ \ \ \ alerts\ =\ []}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00117}00117\ \ \ \ \ path\ =\ Path(chain\_file).resolve()}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00118}00118\ \ \ \ \ check\_dir\ =\ path.parent\ \textcolor{keywordflow}{if}\ path.parent.exists()\ \textcolor{keywordflow}{else}\ Path(\textcolor{stringliteral}{"{}."{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ usage\ =\ shutil.disk\_usage(str(check\_dir))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ free\_gb\ =\ usage.free\ /\ (1024\ **\ 3)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ free\_gb\ <\ min\_free\_gb:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}CRITICAL"{}},\ \textcolor{stringliteral}{"{}Disk"{}},\ f\textcolor{stringliteral}{"{}Only\ \{free\_gb:.2f\}\ GB\ free\ (threshold:\ \{min\_free\_gb\}\ GB)"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}OK"{}},\ \textcolor{stringliteral}{"{}Disk"{}},\ f\textcolor{stringliteral}{"{}\{free\_gb:.1f\}\ GB\ free"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}WARNING"{}},\ \textcolor{stringliteral}{"{}Disk"{}},\ f\textcolor{stringliteral}{"{}Cannot\ check\ disk\ space\ —\ \{exc\}"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{return}\ alerts}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00131}\doxymbox{\hyperlink{namespacealert-manager_a8f093ad96d7e01f4c5b0cc301a682a43}{00131}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_a8f093ad96d7e01f4c5b0cc301a682a43}{check\_chain\_growing}}(host,\ port,\ timeout,\ prev\_height)\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00132}00132\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Returns\ (alerts,\ current\_height)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00133}00133\ \ \ \ \ alerts\ =\ []}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00134}00134\ \ \ \ \ result,\ err\ =\ \doxymbox{\hyperlink{namespacealert-manager_ae45ada562a188df1687bea37637fa094}{rpc\_call}}(host,\ port,\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{if}\ err:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ [(\textcolor{stringliteral}{"{}WARNING"{}},\ \textcolor{stringliteral}{"{}Chain"{}},\ \textcolor{stringliteral}{"{}Cannot\ query\ block\ height"{}})],\ prev\_height}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00138}00138\ \ \ \ \ height\ =\ result.get(\textcolor{stringliteral}{"{}blocks"{}},\ 0)\ \textcolor{keywordflow}{if}\ result\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00139}00139\ \ \ \ \ \textcolor{keywordflow}{if}\ prev\_height\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{and}\ height\ <=\ prev\_height:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}WARNING"{}},\ \textcolor{stringliteral}{"{}Chain"{}},\ f\textcolor{stringliteral}{"{}Block\ height\ unchanged\ at\ \{height\}\ —\ node\ may\ not\ be\ mining"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{elif}\ prev\_height\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}OK"{}},\ \textcolor{stringliteral}{"{}Chain"{}},\ f\textcolor{stringliteral}{"{}Chain\ growing:\ \{prev\_height\}\ -\/>\ \{height\}\ (+\{height\ -\/\ prev\_height\}\ blocks)"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ alerts.append((\textcolor{stringliteral}{"{}INFO"{}},\ \textcolor{stringliteral}{"{}Chain"{}},\ f\textcolor{stringliteral}{"{}Initial\ block\ height:\ \{height\}"{}}))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{return}\ alerts,\ height}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00148}\doxymbox{\hyperlink{namespacealert-manager_ae0b381064efc939bd1158ca57a32008b}{00148}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_ae0b381064efc939bd1158ca57a32008b}{load\_config}}(config\_path:\ str\ |\ \textcolor{keywordtype}{None})\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00149}00149\ \ \ \ \ cfg\ =\ dict(DEFAULT\_THRESHOLDS)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{if}\ config\_path\ \textcolor{keywordflow}{and}\ Path(config\_path).exists():}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(config\_path)\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ user\_cfg\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ cfg.update(user\_cfg)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00154}00154\ \ \ \ \ \textcolor{keywordflow}{return}\ cfg}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00157}\doxymbox{\hyperlink{namespacealert-manager_ab1e7510dee788e570cd6b27f72cc4e4f}{00157}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_ab1e7510dee788e570cd6b27f72cc4e4f}{run\_checks}}(host,\ port,\ cfg,\ prev\_height):}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00158}00158\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ all\ checks,\ return\ (all\_alerts,\ new\_height)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00159}00159\ \ \ \ \ timeout\ =\ cfg[\textcolor{stringliteral}{"{}rpc\_timeout\_seconds"{}}]}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00160}00160\ \ \ \ \ all\_alerts\ =\ []}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00162}00162\ \ \ \ \ rpc\_alerts,\ rpc\_result\ =\ \doxymbox{\hyperlink{namespacealert-manager_a09add7af00670d7d14b237f4881f17d6}{check\_rpc\_reachable}}(host,\ port,\ timeout)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00163}00163\ \ \ \ \ all\_alerts.extend(rpc\_alerts)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00165}00165\ \ \ \ \ \textcolor{comment}{\#\ Only\ run\ further\ checks\ if\ RPC\ is\ reachable}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{if}\ rpc\_result\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ all\_alerts.extend(\doxymbox{\hyperlink{namespacealert-manager_abd0292bc0a30bcda274dd62ccf39c535}{check\_peers}}(host,\ port,\ cfg[\textcolor{stringliteral}{"{}min\_peers"{}}],\ timeout))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ chain\_alerts,\ new\_height\ =\ \doxymbox{\hyperlink{namespacealert-manager_a8f093ad96d7e01f4c5b0cc301a682a43}{check\_chain\_growing}}(host,\ port,\ timeout,\ prev\_height)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ all\_alerts.extend(chain\_alerts)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ new\_height\ =\ prev\_height}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00173}00173\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).resolve().parent}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00174}00174\ \ \ \ \ chain\_path\ =\ script\_dir.parent.parent\ /\ cfg[\textcolor{stringliteral}{"{}chain\_file"{}}]}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00175}00175\ \ \ \ \ all\_alerts.extend(\doxymbox{\hyperlink{namespacealert-manager_a0eabef8ad50115256c71939c7b5ee794}{check\_disk\_space}}(str(chain\_path),\ cfg[\textcolor{stringliteral}{"{}min\_disk\_free\_gb"{}}]))}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00177}00177\ \ \ \ \ \textcolor{keywordflow}{return}\ all\_alerts,\ new\_height}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00180}\doxymbox{\hyperlink{namespacealert-manager_a445389ddfffe227dbc6d8add234ced18}{00180}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_a445389ddfffe227dbc6d8add234ced18}{print\_header}}():}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00181}00181\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{BOLD\}\ \ OmniBus\ Alert\ Manager\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00182}00182\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00185}\doxymbox{\hyperlink{namespacealert-manager_a88d1b60263fc7187d788c39a208ee9d8}{00185}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_a88d1b60263fc7187d788c39a208ee9d8}{print\_summary}}(alerts):}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00186}00186\ \ \ \ \ crits\ =\ sum(1\ \textcolor{keywordflow}{for}\ s,\ \_,\ \_\ \textcolor{keywordflow}{in}\ alerts\ \textcolor{keywordflow}{if}\ s\ ==\ \textcolor{stringliteral}{"{}CRITICAL"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00187}00187\ \ \ \ \ warns\ =\ sum(1\ \textcolor{keywordflow}{for}\ s,\ \_,\ \_\ \textcolor{keywordflow}{in}\ alerts\ \textcolor{keywordflow}{if}\ s\ ==\ \textcolor{stringliteral}{"{}WARNING"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00188}00188\ \ \ \ \ oks\ \ \ =\ sum(1\ \textcolor{keywordflow}{for}\ s,\ \_,\ \_\ \textcolor{keywordflow}{in}\ alerts\ \textcolor{keywordflow}{if}\ s\ ==\ \textcolor{stringliteral}{"{}OK"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00189}00189\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00190}00190\ \ \ \ \ parts\ =\ []}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00191}00191\ \ \ \ \ \textcolor{keywordflow}{if}\ crits:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{"{}\{RED\}\{crits\}\ critical\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00193}00193\ \ \ \ \ \textcolor{keywordflow}{if}\ warns:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ parts.append(f\textcolor{stringliteral}{"{}\{YELLOW\}\{warns\}\ warnings\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00195}00195\ \ \ \ \ parts.append(f\textcolor{stringliteral}{"{}\{GREEN\}\{oks\}\ ok\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00196}00196\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Summary:\ \{',\ '.join(parts)\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{return}\ crits}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00200}\doxymbox{\hyperlink{namespacealert-manager_a51af30a60f9f02777c6396b8247e356f}{00200}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacealert-manager_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00201}00201\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Alert\ Manager\ —\ unified\ node\ health\ checks"{}},}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ epilog=(}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Config\ JSON\ example:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\ \ \{"{}rpc\_timeout\_seconds"{}:\ 5,\ "{}min\_peers"{}:\ 2,\ "{}min\_disk\_free\_gb"{}:\ 5.0\}\(\backslash\)n\(\backslash\)n'}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Examples:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ alert-\/manager.py\ -\/-\/host\ 127.0.0.1\ -\/-\/port\ 8332\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ alert-\/manager.py\ -\/-\/continuous\ -\/-\/interval\ 60\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ alert-\/manager.py\ -\/-\/config\ /etc/omnibus/alerts.json"{}}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00212}00212\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00213}00213\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Node\ RPC\ host\ (default:\ 127.0.0.1)"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00214}00214\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=8332,\ help=\textcolor{stringliteral}{"{}Node\ RPC\ port\ (default:\ 8332)"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00215}00215\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/config"{}},\ default=\textcolor{keywordtype}{None},\ help=\textcolor{stringliteral}{"{}Path\ to\ thresholds\ JSON\ config\ file"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00216}00216\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/continuous"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Run\ continuously\ instead\ of\ once"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00217}00217\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/interval"{}},\ type=int,\ default=60,\ help=\textcolor{stringliteral}{"{}Check\ interval\ in\ seconds\ for\ continuous\ mode\ (default:\ 60)"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00218}00218\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00220}00220\ \ \ \ \ cfg\ =\ \doxymbox{\hyperlink{namespacealert-manager_ae0b381064efc939bd1158ca57a32008b}{load\_config}}(args.config)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00222}00222\ \ \ \ \ \textcolor{keywordflow}{if}\ args.config\ \textcolor{keywordflow}{and}\ Path(args.config).exists():}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\ \ Loaded\ config\ from\ \{args.config\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00225}00225\ \ \ \ \ prev\_height\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00227}00227\ \ \ \ \ \textcolor{keywordflow}{if}\ args.continuous:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}Running\ in\ continuous\ mode\ (interval:\ \{args.interval\}s).\ Ctrl+C\ to\ stop.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacealert-manager_a445389ddfffe227dbc6d8add234ced18}{print\_header}}()}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alerts,\ prev\_height\ =\ \doxymbox{\hyperlink{namespacealert-manager_ab1e7510dee788e570cd6b27f72cc4e4f}{run\_checks}}(args.host,\ args.port,\ cfg,\ prev\_height)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ sev,\ check,\ msg\ \textcolor{keywordflow}{in}\ alerts:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacealert-manager_a40755eadcb8bfc93d84b7f2b44d18d50}{emit\_alert}}(sev,\ check,\ msg)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacealert-manager_a88d1b60263fc7187d788c39a208ee9d8}{print\_summary}}(alerts)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(args.interval)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{YELLOW\}Alert\ manager\ stopped.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(0)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00240}00240\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacealert-manager_a445389ddfffe227dbc6d8add234ced18}{print\_header}}()}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ alerts,\ \_\ =\ \doxymbox{\hyperlink{namespacealert-manager_ab1e7510dee788e570cd6b27f72cc4e4f}{run\_checks}}(args.host,\ args.port,\ cfg,\ prev\_height)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ sev,\ check,\ msg\ \textcolor{keywordflow}{in}\ alerts:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacealert-manager_a40755eadcb8bfc93d84b7f2b44d18d50}{emit\_alert}}(sev,\ check,\ msg)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ crits\ =\ \doxymbox{\hyperlink{namespacealert-manager_a88d1b60263fc7187d788c39a208ee9d8}{print\_summary}}(alerts)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ sys.exit(2\ \textcolor{keywordflow}{if}\ crits\ >\ 0\ \textcolor{keywordflow}{else}\ 0)}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00249}00249\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{alert-manager_8py_source_l00250}00250\ \ \ \ \ \doxymbox{\hyperlink{namespacealert-manager_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

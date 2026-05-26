@@ -1,0 +1,537 @@
+\chapter{Module:\+ {\ttfamily binary\+\_\+codec} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec}{}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec}\index{Module: $<$tt$>$binary\_codec$<$/tt$>$@{Module: $<$tt$>$binary\_codec$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md782}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md782}%
+
+
+\begin{quote}
+Binary serialization — varint encoding, 93\% compression ratio, block/\+\+TX serialization for network and storage. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+binary\+\_\+codec.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 258 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 18 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 5
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md784}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md784}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md785}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md785}
+
+\begin{DoxyItemize}
+\item \`{}\+Varint\`{}{\ttfamily Varint}
+\end{DoxyItemize}— Varint encoding -\/ variable-\/length integers Saves space:\+ 255 needs 1 byte, not 4
+\begin{DoxyItemize}
+\item \`{}\+Binary\+Encoder\`{}{\ttfamily Binary\+Encoder}
+\end{DoxyItemize}— Binary encoder for sub-\/blocks
+\begin{DoxyItemize}
+\item \`{}\+Binary\+Decoder\`{}{\ttfamily Binary\+Decoder}
+\end{DoxyItemize}— Binary decoder for sub-\/blocks\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md786}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md786}
+
+\begin{DoxyItemize}
+\item 2 constants defined2 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md787}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md787}
+
+\begin{DoxyItemize}
+\item \`{}encode\+U64()\`{}{\ttfamily encode\+U64()}
+\end{DoxyItemize}— Encode u64 as varint
+\begin{DoxyItemize}
+\item \`{}decode\+U64()\`{}{\ttfamily decode\+U64()}
+\end{DoxyItemize}— Decode varint back to u64
+\begin{DoxyItemize}
+\item \`{}encode\+U32()\`{}{\ttfamily encode\+U32()}
+\end{DoxyItemize}— Encode u32 as varint
+\begin{DoxyItemize}
+\item \`{}decode\+U32()\`{}{\ttfamily decode\+U32()}
+\end{DoxyItemize}— Decode varint to u32
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}encode\+Sub\+Block()\`{}{\ttfamily encode\+Sub\+Block()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}encode\+Transaction()\`{}{\ttfamily encode\+Transaction()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}encode\+Var\+U32()\`{}{\ttfamily encode\+Var\+U32()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}encode\+Var\+U64()\`{}{\ttfamily encode\+Var\+U64()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}get\+Bytes()\`{}{\ttfamily get\+Bytes()}
+\end{DoxyItemize}— Returns the current bytes.
+\begin{DoxyItemize}
+\item \`{}get\+Size()\`{}{\ttfamily get\+Size()}
+\end{DoxyItemize}— Returns the current size.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}read\+U8()\`{}{\ttfamily read\+U8()}
+\end{DoxyItemize}— Performs the read u8 operation on the binary\+\_\+codec module.
+\begin{DoxyItemize}
+\item \`{}read\+Bytes()\`{}{\ttfamily read\+Bytes()}
+\end{DoxyItemize}— Performs the read bytes operation on the binary\+\_\+codec module.
+\begin{DoxyItemize}
+\item \`{}read\+Var\+U32()\`{}{\ttfamily read\+Var\+U32()}
+\end{DoxyItemize}— Performs the read var u32 operation on the binary\+\_\+codec module.
+\begin{DoxyItemize}
+\item \`{}read\+Var\+U64()\`{}{\ttfamily read\+Var\+U64()}
+\end{DoxyItemize}— Performs the read var u64 operation on the binary\+\_\+codec module.
+\begin{DoxyItemize}
+\item \`{}is\+End\+Of\+Data()\`{}{\ttfamily is\+End\+Of\+Data()}
+\end{DoxyItemize}— Checks whether the end of data condition is true.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md789}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md789}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md790}{}\doxysubsection{\texorpdfstring{{\ttfamily Varint}}{{\ttfamily Varint}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md790}
+Varint encoding -\/ variable-\/length integers Saves space:\+ 255 needs 1 byte, not 4
+
+{\itshape Defined at line 10}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md792}{}\doxysubsection{\texorpdfstring{{\ttfamily Binary\+Encoder}}{{\ttfamily Binary\+Encoder}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md792}
+Binary encoder for sub-\/blocks
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacebuffer}{buffer}}  &{\ttfamily std.\+array\+\_\+list.\+Managed(u8)}  &Buffer  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 72}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md794}{}\doxysubsection{\texorpdfstring{{\ttfamily Binary\+Decoder}}{{\ttfamily Binary\+Decoder}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md794}
+Binary decoder for sub-\/blocks
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+{\ttfamily offset}  &{\ttfamily usize}  &Offset  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 156}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md796}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md796}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Sub\+Block}  &{\ttfamily sub\+\_\+block\+\_\+mod.\+Sub\+Block}  &Sub block  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md798}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md798}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md799}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+U64()}}{{\ttfamily encode\+U64()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md799}
+Encode u64 as varint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeU64(value:\ u64)\ ![9]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily value}  &{\ttfamily u64}  &Value  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[9]\+u8}
+
+{\itshape Defined at line 12}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md801}{}\doxysubsection{\texorpdfstring{{\ttfamily decode\+U64()}}{{\ttfamily decode\+U64()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md801}
+Decode varint back to u64
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decodeU64(data:\ []const\ u8)\ ![2]usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[2]\+usize}
+
+{\itshape Defined at line 30}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md803}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+U32()}}{{\ttfamily encode\+U32()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md803}
+Encode u32 as varint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeU32(value:\ u32)\ ![5]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily value}  &{\ttfamily u32}  &Value  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[5]\+u8}
+
+{\itshape Defined at line 47}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md805}{}\doxysubsection{\texorpdfstring{{\ttfamily decode\+U32()}}{{\ttfamily decode\+U32()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md805}
+Decode varint to u32
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decodeU32(data:\ []const\ u8)\ ![2]usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[2]\+usize}
+
+{\itshape Defined at line 65}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md807}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md807}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ BinaryEncoder\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Binary\+Encoder}
+
+{\itshape Defined at line 76}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md809}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Sub\+Block()}}{{\ttfamily encode\+Sub\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md809}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeSubBlock(self:\ *BinaryEncoder,\ sub:\ *const\ SubBlock)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Encoder}  &The instance  \\
+{\ttfamily sub}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Sub\+Block}  &Sub  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 83}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md811}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Transaction()}}{{\ttfamily encode\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md811}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeTransaction(self:\ *BinaryEncoder,\ tx:\ *const\ Transaction)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Encoder}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 106}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md813}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Var\+U32()}}{{\ttfamily encode\+Var\+U32()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md813}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeVarU32(self:\ *BinaryEncoder,\ value:\ u32)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Encoder}  &The instance  \\
+{\ttfamily value}  &{\ttfamily u32}  &Value  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 122}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md815}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Var\+U64()}}{{\ttfamily encode\+Var\+U64()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md815}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeVarU64(self:\ *BinaryEncoder,\ value:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Encoder}  &The instance  \\
+{\ttfamily value}  &{\ttfamily u64}  &Value  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 128}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md817}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Bytes()}}{{\ttfamily get\+Bytes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md817}
+Returns the current bytes.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBytes(self:\ *const\ BinaryEncoder)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Binary\+Encoder}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 142}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md819}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Size()}}{{\ttfamily get\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md819}
+Returns the current size.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getSize(self:\ *const\ BinaryEncoder)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Binary\+Encoder}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 146}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md821}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md821}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *BinaryEncoder)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Encoder}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 150}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md823}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md823}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(data:\ []const\ u8)\ BinaryDecoder\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Binary\+Decoder}
+
+{\itshape Defined at line 160}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md825}{}\doxysubsection{\texorpdfstring{{\ttfamily read\+U8()}}{{\ttfamily read\+U8()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md825}
+Performs the read u8 operation on the binary\+\_\+codec module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ readU8(self:\ *BinaryDecoder)\ !u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Decoder}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u8}
+
+{\itshape Defined at line 167}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md827}{}\doxysubsection{\texorpdfstring{{\ttfamily read\+Bytes()}}{{\ttfamily read\+Bytes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md827}
+Performs the read bytes operation on the binary\+\_\+codec module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ readBytes(self:\ *BinaryDecoder,\ comptime\ len:\ usize)\ ![len]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Decoder}  &The instance  \\
+{\ttfamily comptime len}  &{\ttfamily usize}  &Comptime len  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[len]\+u8}
+
+{\itshape Defined at line 174}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md829}{}\doxysubsection{\texorpdfstring{{\ttfamily read\+Var\+U32()}}{{\ttfamily read\+Var\+U32()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md829}
+Performs the read var u32 operation on the binary\+\_\+codec module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ readVarU32(self:\ *BinaryDecoder)\ !u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Decoder}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u32}
+
+{\itshape Defined at line 182}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md831}{}\doxysubsection{\texorpdfstring{{\ttfamily read\+Var\+U64()}}{{\ttfamily read\+Var\+U64()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md831}
+Performs the read var u64 operation on the binary\+\_\+codec module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ readVarU64(self:\ *BinaryDecoder)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Binary\+Decoder}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 188}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md833}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+End\+Of\+Data()}}{{\ttfamily is\+End\+Of\+Data()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2binary__codec_autotoc_md833}
+Checks whether the end of data condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isEndOfData(self:\ *const\ BinaryDecoder)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Binary\+Decoder}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 194}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

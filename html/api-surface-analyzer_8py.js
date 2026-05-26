@@ -1,0 +1,26 @@
+var api_surface_analyzer_8py =
+[
+    [ "api-surface-analyzer.analyze_file", "namespaceapi-surface-analyzer.html#a010d4ecb475a69d1e23c09a66c9e2696", null ],
+    [ "api-surface-analyzer.find_unused_pub_fns", "namespaceapi-surface-analyzer.html#ace940b810ca46da937f33202e0dbcf44", null ],
+    [ "api-surface-analyzer.main", "namespaceapi-surface-analyzer.html#a51af30a60f9f02777c6396b8247e356f", null ],
+    [ "api-surface-analyzer.print_api_table", "namespaceapi-surface-analyzer.html#aeb5824001ff74ceaf5ba3d434eb18f99", null ],
+    [ "api-surface-analyzer.print_detailed", "namespaceapi-surface-analyzer.html#a15390fdcf04518058852ff17984ce45b", null ],
+    [ "api-surface-analyzer.print_unused", "namespaceapi-surface-analyzer.html#a1dded4f53cc5945a50e479e7621f9b38", null ],
+    [ "api-surface-analyzer.BG_BLUE", "namespaceapi-surface-analyzer.html#a30b22930baf65cd532895dc4406877e1", null ],
+    [ "api-surface-analyzer.BOLD", "namespaceapi-surface-analyzer.html#ad4211caa3943bcf620295619c8479025", null ],
+    [ "api-surface-analyzer.CYAN", "namespaceapi-surface-analyzer.html#ad825163d29f0f67a344aca15fcc45176", null ],
+    [ "api-surface-analyzer.DIM", "namespaceapi-surface-analyzer.html#a1f937080261074f8c92ec4554f11c4ff", null ],
+    [ "api-surface-analyzer.FIELD_ACCESS_RE", "namespaceapi-surface-analyzer.html#a46975ae9d5dd23bacebfef4031b080a2", null ],
+    [ "api-surface-analyzer.GREEN", "namespaceapi-surface-analyzer.html#a40ad96b30b22877c04e9bad7249a65fb", null ],
+    [ "api-surface-analyzer.IMPORT_RE", "namespaceapi-surface-analyzer.html#ac17d9b9830047ecc4f506f5ca9391186", null ],
+    [ "api-surface-analyzer.MAGENTA", "namespaceapi-surface-analyzer.html#adc4f36c511518bcbc2f140ab85981909", null ],
+    [ "api-surface-analyzer.PUB_CONST_RE", "namespaceapi-surface-analyzer.html#a5183b8db42adeb403a6671ab33149b23", null ],
+    [ "api-surface-analyzer.PUB_ENUM_RE", "namespaceapi-surface-analyzer.html#a95f932b4fbbc70ea3e09ac1ebceb5614", null ],
+    [ "api-surface-analyzer.PUB_FN_RE", "namespaceapi-surface-analyzer.html#a6082aa0bb4948853c5d39112d0c207d7", null ],
+    [ "api-surface-analyzer.PUB_STRUCT_RE", "namespaceapi-surface-analyzer.html#ae103d49bc09de05da19f985941fdfe9f", null ],
+    [ "api-surface-analyzer.PUB_VAR_RE", "namespaceapi-surface-analyzer.html#a3414d3d6add6ab7b7ed5daedd259ba91", null ],
+    [ "api-surface-analyzer.RED", "namespaceapi-surface-analyzer.html#ac3a40827757877ac9c77dc8c63fd32e6", null ],
+    [ "api-surface-analyzer.RESET", "namespaceapi-surface-analyzer.html#a07754216df3e2ae7708931176b8ce343", null ],
+    [ "api-surface-analyzer.WHITE", "namespaceapi-surface-analyzer.html#aae1845ca18a7204e08833aaebe892bb9", null ],
+    [ "api-surface-analyzer.YELLOW", "namespaceapi-surface-analyzer.html#a1d859115173577d94b5bc8b3ab975de1", null ]
+];

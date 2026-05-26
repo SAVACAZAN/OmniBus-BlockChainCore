@@ -1,0 +1,23 @@
+\doxysection{vuln Namespace Reference}
+\hypertarget{namespacevuln}{}\label{namespacevuln}\index{vuln@{vuln}}
+
+
+-\/signature-\/updater  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/signature-\/updater 
+
+\begin{DoxyVerb}vuln-signature-updater.py — OmniBus BlockChainCore Vulnerability Rule Manager
+
+Auto-updater and scanner for vulnerability detection rules:
+  --update   Download/update rules from a manifest URL (or local git)
+  --check    Load rules and scan core/*.zig for pattern matches
+  --list     List all loaded rules with severity
+
+Rules are stored in tools/SECURITY/rules/ as JSON files.
+Each rule: {id, version, pattern (regex), severity, description, affected_modules, fix_suggestion}
+\end{DoxyVerb}
+ 

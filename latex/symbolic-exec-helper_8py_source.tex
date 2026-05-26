@@ -1,0 +1,363 @@
+\doxysection{symbolic-\/exec-\/helper.py}
+\hypertarget{symbolic-exec-helper_8py_source}{}\label{symbolic-exec-helper_8py_source}\index{tools/EXPLOITS/symbolic-\/exec-\/helper.py@{tools/EXPLOITS/symbolic-\/exec-\/helper.py}}
+\doxymbox{\hyperlink{symbolic-exec-helper_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00001}\doxymbox{\hyperlink{namespacesymbolic-exec-helper}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00002}\doxymbox{\hyperlink{namespacesymbolic}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ Lightweight\ Symbolic\ Execution\ Helper.}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00004}00004\ \textcolor{stringliteral}{No\ angr\ dependency.\ \ Performs\ static\ analysis\ on\ core/*.zig\ source\ files,}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00005}00005\ \textcolor{stringliteral}{scanning\ for:}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Unchecked\ arithmetic\ (missing\ @addWithOverflow,\ @mulWithOverflow)}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Array\ indexing\ without\ bounds\ checks}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Integer\ truncation\ (u64\ -\/>\ u32,\ u256\ -\/>\ u64,\ etc.)}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Potential\ null\ pointer\ dereference\ (optional\ unwrap\ without\ check)}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00011}00011\ \textcolor{stringliteral}{Reports\ suspicious\ patterns\ with\ file:line\ references.}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00012}00012\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00014}00014\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00015}00015\ \textcolor{keyword}{import}\ glob}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00016}00016\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00017}00017\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00018}00018\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00021}00021\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00022}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_ae4da3a2fb61b22ac5923cd0df54613d1}{00022}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00023}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_ab78079862698e0086feeeb82506b0cf5}{00023}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00024}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a846c8a70a83fb53a20774861562247e6}{00024}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00025}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a32e4a736845e3a641754746404699a53}{00025}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00026}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a0f4cc33a8a9a3acc5252abe48547b25c}{00026}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00027}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a594b270ce7311c088f48405d13ff3ac2}{00027}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00029}00029\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore\ layout}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00030}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a5837f3992678c418ea31ccab40a2b0b7}{00030}}\ CORE\_DIR\ =\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00031}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a8e4760902ab1615e9618e4d4cf03731f}{00031}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00032}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_aef6ade7dca8ccc0042965e0391f8804c}{00032}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00033}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_ab07044aa7a9d62583490ffc3fb2f9b0b}{00033}}\ SUB\_BLOCKS\ =\ 10\ \ \textcolor{comment}{\#\ 10\ x\ 0.1s}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00036}00036\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00037}00037\ \textcolor{comment}{\#\ Pattern\ definitions}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00038}00038\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00039}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{00039}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00040}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_aa76742117d0cba02a0774d46615bdce3}{00040}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_aa76742117d0cba02a0774d46615bdce3}{\_\_init\_\_}}(self,\ file:\ str,\ line:\ int,\ severity:\ str,\ category:\ str,\ detail:\ str):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00041}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a09e091ecd2dd51ae978bc85412fd8072}{00041}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a09e091ecd2dd51ae978bc85412fd8072}{file}}\ =\ file}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00042}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a950cdf29e42a2d2500d657f3f942ed1b}{00042}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a950cdf29e42a2d2500d657f3f942ed1b}{line}}\ =\ line}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00043}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a3fe33dc1a8c7b1a6d575ca0f809ee389}{00043}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a3fe33dc1a8c7b1a6d575ca0f809ee389}{severity}}\ =\ severity\ \ \textcolor{comment}{\#\ HIGH,\ MEDIUM,\ LOW}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00044}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a7b16666efe36e7d0f4efe887e59873f4}{00044}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a7b16666efe36e7d0f4efe887e59873f4}{category}}\ =\ category}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00045}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a67d44274c669d456450dae82e1374dde}{00045}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a67d44274c669d456450dae82e1374dde}{detail}}\ =\ detail}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00047}\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_ac996100ad6248b6134f9a041f8825cea}{00047}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_ac996100ad6248b6134f9a041f8825cea}{to\_dict}}(self):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}file"{}}:\ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a09e091ecd2dd51ae978bc85412fd8072}{file}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}line"{}}:\ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a950cdf29e42a2d2500d657f3f942ed1b}{line}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}severity"{}}:\ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a3fe33dc1a8c7b1a6d575ca0f809ee389}{severity}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}category"{}}:\ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a7b16666efe36e7d0f4efe887e59873f4}{category}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}detail"{}}:\ self.\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding_a67d44274c669d456450dae82e1374dde}{detail}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00057}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a9551731fab8bdc01c2fe8d558a45166d}{00057}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a9551731fab8bdc01c2fe8d558a45166d}{scan\_unchecked\_arithmetic}}(filepath:\ str,\ lines:\ list)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00058}00058\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ arithmetic\ operations\ that\ might\ overflow\ without\ @addWithOverflow."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00059}00059\ \ \ \ \ findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00060}00060\ \ \ \ \ \textcolor{comment}{\#\ Patterns:\ a\ +\ b,\ a\ *\ b,\ a\ -\/\ b\ on\ integer\ types\ without\ overflow\ check}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00061}00061\ \ \ \ \ arith\_pattern\ =\ re.compile(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'(\(\backslash\)w+)\(\backslash\)s*([+\(\backslash\)-\/*])\(\backslash\)s*(\(\backslash\)w+)\(\backslash\)s*;'}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00063}00063\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00064}00064\ \ \ \ \ overflow\_funcs\ =\ \{\textcolor{stringliteral}{"{}@addWithOverflow"{}},\ \textcolor{stringliteral}{"{}@subWithOverflow"{}},\ \textcolor{stringliteral}{"{}@mulWithOverflow"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}@shlWithOverflow"{}},\ \textcolor{stringliteral}{"{}math.add"{}},\ \textcolor{stringliteral}{"{}math.mul"{}},\ \textcolor{stringliteral}{"{}math.sub"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}std.math.add"{}},\ \textcolor{stringliteral}{"{}std.math.mul"{}}\}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00068}00068\ \ \ \ \ \textcolor{comment}{\#\ Track\ which\ functions\ use\ overflow-\/safe\ ops}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00069}00069\ \ \ \ \ in\_function\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00070}00070\ \ \ \ \ func\_has\_overflow\_check\ =\ set()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Track\ function\ boundaries}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ fn\_match\ =\ re.match(\textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?fn\(\backslash\)s+(\(\backslash\)w+)'},\ stripped)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ fn\_match:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ in\_function\ =\ fn\_match.group(1)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ if\ line\ uses\ overflow-\/safe\ builtin}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ func\ \textcolor{keywordflow}{in}\ overflow\_funcs:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ func\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ in\_function:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ func\_has\_overflow\_check.add(in\_function)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Look\ for\ raw\ arithmetic\ on\ variables\ that\ look\ like\ they\ could\ overflow}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ arith\_pattern.search(stripped):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Skip\ if\ it's\ in\ a\ comptime\ context\ or\ test}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}comptime"{}}\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}test\ "{}}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Skip\ comments}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{"{}//"{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Skip\ if\ the\ line\ has\ an\ overflow\ check}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ has\_check\ =\ any(f\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ overflow\_funcs)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ has\_check\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ stripped.startswith(\textcolor{stringliteral}{"{}const\ "{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ for\ integer\ type\ context\ (look\ at\ surrounding\ lines)}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ context\ =\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines[max(0,\ i-\/5):i+2])}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ any(t\ \textcolor{keywordflow}{in}\ context\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}u64"{}},\ \textcolor{stringliteral}{"{}u128"{}},\ \textcolor{stringliteral}{"{}u256"{}},\ \textcolor{stringliteral}{"{}u32"{}},\ \textcolor{stringliteral}{"{}usize"{}},\ \textcolor{stringliteral}{"{}i64"{}}]):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}MEDIUM"{}},\ \textcolor{stringliteral}{"{}unchecked\_arithmetic"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Arithmetic\ without\ overflow\ check:\ \{stripped[:80]\}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{return}\ findings}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00108}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a0fa40cba7adbff4b38618116fd8ebdf7}{00108}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a0fa40cba7adbff4b38618116fd8ebdf7}{scan\_array\_bounds}}(filepath:\ str,\ lines:\ list)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00109}00109\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ array/slice\ indexing\ without\ apparent\ bounds\ checks."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00110}00110\ \ \ \ \ findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00111}00111\ \ \ \ \ \textcolor{comment}{\#\ Pattern:\ arr[expr]\ where\ expr\ is\ not\ a\ literal\ small\ number}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00112}00112\ \ \ \ \ index\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'(\(\backslash\)w+)\(\backslash\)[([\string^\(\backslash\)]]+)\(\backslash\)]'})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00114}00114\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{"{}//"{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ matches\ =\ index\_pattern.finditer(stripped)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ matches:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ arr\_name\ =\ m.group(1)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ index\_expr\ =\ m.group(2)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Skip\ known\ safe\ patterns}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ index\_expr\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}0"{}},\ \textcolor{stringliteral}{"{}1"{}},\ \textcolor{stringliteral}{"{}2"{}},\ \textcolor{stringliteral}{"{}3"{}},\ \textcolor{stringliteral}{"{}i"{}},\ \textcolor{stringliteral}{"{}j"{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ arr\_name\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}comptime"{}},\ \textcolor{stringliteral}{"{}std"{}},\ \textcolor{stringliteral}{"{}mem"{}},\ \textcolor{stringliteral}{"{}builtin"{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ if\ bounds\ check\ exists\ in\ nearby\ lines}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ context\_start\ =\ max(0,\ i\ -\/\ 5)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ context\ =\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines[context\_start:i])}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ has\_bounds\_check\ =\ any(kw\ \textcolor{keywordflow}{in}\ context\ \textcolor{keywordflow}{for}\ kw\ \textcolor{keywordflow}{in}\ [}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{index\_expr\}\ <\ "{}},\ f\textcolor{stringliteral}{"{}\{index\_expr\}\ <="{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}len"{}},\ f\textcolor{stringliteral}{"{}if\ (\{index\_expr\}"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}@min("{}},\ f\textcolor{stringliteral}{"{}@max("{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}assert(\{index\_expr\}"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ ])}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ has\_bounds\_check\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ index\_expr.isdigit():}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}HIGH"{}},\ \textcolor{stringliteral}{"{}unbounded\_array\_access"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Array\ access\ without\ visible\ bounds\ check:\ \{arr\_name\}[\{index\_expr\}]"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00146}00146\ \ \ \ \ \textcolor{keywordflow}{return}\ findings}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00149}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a79701abad4915526d80f39b62706fe65}{00149}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a79701abad4915526d80f39b62706fe65}{scan\_integer\_truncation}}(filepath:\ str,\ lines:\ list)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00150}00150\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ potential\ integer\ truncation:\ casting\ wider\ to\ narrower\ type."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00151}00151\ \ \ \ \ findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00152}00152\ \ \ \ \ \textcolor{comment}{\#\ Zig\ cast\ pattern:\ @intCast(u32,\ value\_u64)\ or\ @truncate}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00153}00153\ \ \ \ \ intcast\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'@intCast\(\backslash\)s*\(\backslash\)(\(\backslash\)s*(u\(\backslash\)d+|i\(\backslash\)d+)'})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00154}00154\ \ \ \ \ truncate\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'@truncate\(\backslash\)s*\(\backslash\)(\(\backslash\)s*(u\(\backslash\)d+|i\(\backslash\)d+)'})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00156}00156\ \ \ \ \ \textcolor{comment}{\#\ Also\ catch:\ var\ x:\ u32\ =\ @intCast(some\_u64\_value)}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00157}00157\ \ \ \ \ type\_widths\ =\ \{}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}u8"{}}:\ 8,\ \textcolor{stringliteral}{"{}u16"{}}:\ 16,\ \textcolor{stringliteral}{"{}u32"{}}:\ 32,\ \textcolor{stringliteral}{"{}u64"{}}:\ 64,\ \textcolor{stringliteral}{"{}u128"{}}:\ 128,\ \textcolor{stringliteral}{"{}u256"{}}:\ 256,}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}i8"{}}:\ 8,\ \textcolor{stringliteral}{"{}i16"{}}:\ 16,\ \textcolor{stringliteral}{"{}i32"{}}:\ 32,\ \textcolor{stringliteral}{"{}i64"{}}:\ 64,\ \textcolor{stringliteral}{"{}i128"{}}:\ 128,}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}usize"{}}:\ 64,}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00161}00161\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00163}00163\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{"{}//"{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ @truncate\ is\ always\ potentially\ dangerous}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ trunc\_match\ =\ truncate\_pattern.search(stripped)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ trunc\_match:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ target\_type\ =\ trunc\_match.group(1)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}MEDIUM"{}},\ \textcolor{stringliteral}{"{}integer\_truncation"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}@truncate\ to\ \{target\_type\}:\ data\ loss\ possible\ —\ \{stripped[:80]\}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ @intCast\ to\ smaller\ type}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ cast\_match\ =\ intcast\_pattern.search(stripped)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ cast\_match:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ target\_type\ =\ cast\_match.group(1)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ target\_width\ =\ type\_widths.get(target\_type,\ 0)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ if\ source\ is\ wider\ (look\ for\ variable\ type\ in\ context)}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ context\ =\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines[max(0,\ i-\/10):i])}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ src\_type,\ src\_width\ \textcolor{keywordflow}{in}\ type\_widths.items():}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ src\_type\ \textcolor{keywordflow}{in}\ context\ \textcolor{keywordflow}{and}\ src\_width\ >\ target\_width:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}HIGH"{}},\ \textcolor{stringliteral}{"{}integer\_truncation"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}@intCast\ to\ \{target\_type\}\ (likely\ from\ \{src\_type\}):\ "{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}truncation\ risk\ —\ \{stripped[:60]\}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00193}00193\ \ \ \ \ \textcolor{keywordflow}{return}\ findings}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00196}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_ae8ac8de92781110d16953436ed717716}{00196}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesymbolic-exec-helper_ae8ac8de92781110d16953436ed717716}{scan\_null\_dereference}}(filepath:\ str,\ lines:\ list)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00197}00197\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ optional\ unwrap\ (.?)\ without\ null\ check."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00198}00198\ \ \ \ \ findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00200}00200\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{"{}//"{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ .?\ unwrap\ without\ orelse}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}.?"{}}\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}orelse"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}if\ "{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ if\ there's\ an\ if-\/check\ in\ surrounding\ context}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ context\ =\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines[max(0,\ i-\/3):i])}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}if\ ("{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ context\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}orelse"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ context:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}MEDIUM"{}},\ \textcolor{stringliteral}{"{}unchecked\_optional\_unwrap"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Optional\ unwrap\ .?\ without\ null\ guard:\ \{stripped[:80]\}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ unreachable\ after\ optional\ access}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}unreachable"{}}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ context\ =\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines[max(0,\ i-\/2):i])}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}.?"{}}\ \textcolor{keywordflow}{in}\ context\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}orelse"{}}\ \textcolor{keywordflow}{in}\ context:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}LOW"{}},\ \textcolor{stringliteral}{"{}unreachable\_after\_optional"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}unreachable\ used\ as\ optional\ fallback\ —\ consider\ orelse"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00223}00223\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00224}00224\ \ \ \ \ \textcolor{keywordflow}{return}\ findings}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00225}00225\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00227}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a434ab3287d64a00d2a79f4227a908b75}{00227}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a434ab3287d64a00d2a79f4227a908b75}{scan\_crypto\_weaknesses}}(filepath:\ str,\ lines:\ list)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00228}00228\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Crypto-\/specific:\ look\ for\ hardcoded\ keys,\ weak\ RNG,\ timing-\/unsafe\ compares."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00229}00229\ \ \ \ \ findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00230}00230\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00231}00231\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{"{}//"{}}):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Hardcoded\ hex\ that\ looks\ like\ a\ key\ (64+\ hex\ chars)}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ hex\_match\ =\ re.search(\textcolor{stringliteral}{r'"{}([0-\/9a-\/fA-\/F]\{64,\})"{}'},\ stripped)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ hex\_match\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}test"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ filepath.lower():}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}HIGH"{}},\ \textcolor{stringliteral}{"{}hardcoded\_secret"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Possible\ hardcoded\ key/secret:\ \{hex\_match.group(1)[:32]\}..."{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00243}00243\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ std.rand\ instead\ of\ std.crypto.random}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}std.rand"{}}\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}crypto"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}HIGH"{}},\ \textcolor{stringliteral}{"{}weak\_rng"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Using\ std.rand\ (not\ cryptographic):\ \{stripped[:80]\}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Non-\/constant-\/time\ comparison\ for\ crypto}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}std.mem.eql"{}}\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}=="{}}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ context\ =\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines[max(0,\ i-\/5):i+1])}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ any(kw\ \textcolor{keywordflow}{in}\ context.lower()\ \textcolor{keywordflow}{for}\ kw\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}signature"{}},\ \textcolor{stringliteral}{"{}hmac"{}},\ \textcolor{stringliteral}{"{}hash"{}},\ \textcolor{stringliteral}{"{}digest"{}},\ \textcolor{stringliteral}{"{}secret"{}}]):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}timingSafeEqual"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ context\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}crypto.utils.timingSafeEql"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ context:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\doxymbox{\hyperlink{classsymbolic-exec-helper_1_1_finding}{Finding}}(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath,\ i,\ \textcolor{stringliteral}{"{}HIGH"{}},\ \textcolor{stringliteral}{"{}timing\_unsafe\_compare"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Non-\/constant-\/time\ comparison\ in\ crypto\ context:\ \{stripped[:80]\}"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00261}00261\ \ \ \ \ \textcolor{keywordflow}{return}\ findings}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00263}00263\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00264}\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a51af30a60f9f02777c6396b8247e356f}{00264}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesymbolic-exec-helper_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00265}00265\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ Symbolic\ Execution\ Helper\ (static\ analysis)"{}}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00267}00267\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00268}00268\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/dir"{}},\ \textcolor{stringliteral}{"{}-\/d"{}},\ default=CORE\_DIR,}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Directory\ to\ scan\ (default:\ \{CORE\_DIR\})"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00270}00270\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/severity"{}},\ \textcolor{stringliteral}{"{}-\/s"{}},\ default=\textcolor{stringliteral}{"{}LOW"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ choices=[\textcolor{stringliteral}{"{}LOW"{}},\ \textcolor{stringliteral}{"{}MEDIUM"{}},\ \textcolor{stringliteral}{"{}HIGH"{}}],}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Minimum\ severity\ to\ report\ (default:\ LOW)"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00273}00273\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00274}00274\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00276}00276\ \ \ \ \ severity\_order\ =\ \{\textcolor{stringliteral}{"{}LOW"{}}:\ 0,\ \textcolor{stringliteral}{"{}MEDIUM"{}}:\ 1,\ \textcolor{stringliteral}{"{}HIGH"{}}:\ 2\}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00277}00277\ \ \ \ \ min\_severity\ =\ severity\_order[args.severity]}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00279}00279\ \ \ \ \ \textcolor{comment}{\#\ Find\ all\ .zig\ files}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00280}00280\ \ \ \ \ scan\_dir\ =\ args.dir}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00281}00281\ \ \ \ \ zig\_files\ =\ glob.glob(os.path.join(scan\_dir,\ \textcolor{stringliteral}{"{}**"{}},\ \textcolor{stringliteral}{"{}*.zig"{}}),\ recursive=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00283}00283\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Try\ from\ project\ root}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ project\_root\ =\ os.path.dirname(os.path.dirname(os.path.abspath(\_\_file\_\_)))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ scan\_dir\ =\ os.path.join(project\_root,\ args.dir)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ zig\_files\ =\ glob.glob(os.path.join(scan\_dir,\ \textcolor{stringliteral}{"{}**"{}},\ \textcolor{stringliteral}{"{}*.zig"{}}),\ recursive=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00289}00289\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\ No\ .zig\ files\ found\ in\ \{scan\_dir\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}\ \ \ \ \ \ \ Searched\ also:\ \{args.dir\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ sys.exit(0)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00294}00294\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00295}00295\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ Static\ Analysis"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00296}00296\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Scanning:\ \{scan\_dir\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00297}00297\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Files\ found:\ \{len(zig\_files)\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00298}00298\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Min\ severity:\ \{args.severity\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00299}00299\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00301}00301\ \ \ \ \ all\_findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00302}00302\ \ \ \ \ scanners\ =\ [}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Unchecked\ arithmetic"{}},\ scan\_unchecked\_arithmetic),}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Array\ bounds"{}},\ scan\_array\_bounds),}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Integer\ truncation"{}},\ scan\_integer\_truncation),}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Null\ dereference"{}},\ scan\_null\_dereference),}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Crypto\ weaknesses"{}},\ scan\_crypto\_weaknesses),}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00308}00308\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00309}00309\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00310}00310\ \ \ \ \ \textcolor{keywordflow}{for}\ filepath\ \textcolor{keywordflow}{in}\ sorted(zig\_files):}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lines\ =\ f.readlines()}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[ERROR]\ Cannot\ read\ \{filepath\}:\ \{exc\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00317}00317\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ scanner\_name,\ scanner\_fn\ \textcolor{keywordflow}{in}\ scanners:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ findings\ =\ scanner\_fn(filepath,\ lines)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ finding\ \textcolor{keywordflow}{in}\ findings:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ severity\_order[finding.severity]\ >=\ min\_severity:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ all\_findings.append(finding)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00323}00323\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00324}00324\ \ \ \ \ \textcolor{comment}{\#\ Sort\ by\ severity\ (HIGH\ first)\ then\ file}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00325}00325\ \ \ \ \ all\_findings.sort(key=\textcolor{keyword}{lambda}\ f:\ (-\/severity\_order[f.severity],\ f.file,\ f.line))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00327}00327\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ output\ =\ \{}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tool"{}}:\ \textcolor{stringliteral}{"{}OmniBus\ symbolic-\/exec-\/helper"{}},}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00330}00330\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}files\_scanned"{}}:\ len(zig\_files),}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00331}00331\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}findings\_count"{}}:\ len(all\_findings),}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}findings"{}}:\ [f.to\_dict()\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ all\_findings],}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ print(json.dumps(output,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00335}00335\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00336}00336\ \ \ \ \ \ \ \ \ sev\_colors\ =\ \{\textcolor{stringliteral}{"{}HIGH"{}}:\ RED,\ \textcolor{stringliteral}{"{}MEDIUM"{}}:\ YELLOW,\ \textcolor{stringliteral}{"{}LOW"{}}:\ CYAN\}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00337}00337\ \ \ \ \ \ \ \ \ by\_severity\ =\ \{\textcolor{stringliteral}{"{}HIGH"{}}:\ 0,\ \textcolor{stringliteral}{"{}MEDIUM"{}}:\ 0,\ \textcolor{stringliteral}{"{}LOW"{}}:\ 0\}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ all\_findings:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00340}00340\ \ \ \ \ \ \ \ \ \ \ \ \ by\_severity[f.severity]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ \ \ \ \ color\ =\ sev\_colors[f.severity]}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}[\{f.severity:6s\}]\ \{f.file\}:\{f.line\}\ —\ \{f.category\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \{f.detail\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00344}00344\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ SUMMARY:\ \{len(zig\_files)\}\ files\ scanned,\ \{len(all\_findings)\}\ findings"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00347}00347\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ HIGH:\ \ \ \{RED\}\{by\_severity['HIGH']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00348}00348\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ MEDIUM:\ \{YELLOW\}\{by\_severity['MEDIUM']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00349}00349\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ LOW:\ \ \ \ \{CYAN\}\{by\_severity['LOW']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00351}00351\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00352}00352\ \ \ \ \ \textcolor{comment}{\#\ Static\ analysis\ findings\ are\ informational\ —\ exit\ 0\ to\ indicate\ scan\ completed}}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00353}00353\ \ \ \ \ sys.exit(0)}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00354}00354\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00355}00355\ }
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00356}00356\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{symbolic-exec-helper_8py_source_l00357}00357\ \ \ \ \ \doxymbox{\hyperlink{namespacesymbolic-exec-helper_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

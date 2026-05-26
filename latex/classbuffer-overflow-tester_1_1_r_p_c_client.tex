@@ -1,0 +1,146 @@
+\doxysection{buffer-\/overflow-\/tester.RPCClient Class Reference}
+\hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client}{}\label{classbuffer-overflow-tester_1_1_r_p_c_client}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a607e384ac17057dffbed793d5740e4ba}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str host, int port, int timeout=10)
+\item 
+tuple\+[int, str]\+ \doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a311111c7c173513abcc00dd6174776af}{send\+\_\+raw}} (self, bytes\texorpdfstring{$\vert$}{|}str body, int\texorpdfstring{$\vert$}{|}None timeout=None)
+\item 
+tuple\+[int, str]\+ \doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a1ab240660d594a1a87ef26da7df6f1d5}{call}} (self, str method, list\texorpdfstring{$\vert$}{|}dict\texorpdfstring{$\vert$}{|}None params=None, int\texorpdfstring{$\vert$}{|}None timeout=None)
+\item 
+bool \doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a286de21090677d4966ecb8b7ebf90f06}{is\+\_\+alive}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a96ff29411bd802b720b4934a7a8444bc}{host}} = host
+\item 
+\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a3576e48803821ad0394701863b31d345}{port}} = port
+\item 
+\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a6688d01d17d4edceaf211112775b887a}{timeout}} = timeout
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a915aee0817369df57866ede27c55ab03}{\+\_\+id}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Minimal JSON-RPC 2.0 client using stdlib http.client.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+
+
+\label{classbuffer-overflow-tester_1_1_r_p_c_client_doc-constructors}
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a607e384ac17057dffbed793d5740e4ba}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a607e384ac17057dffbed793d5740e4ba} 
+\doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int }]{timeout}{ = {\ttfamily 10}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+
+
+\label{classbuffer-overflow-tester_1_1_r_p_c_client_doc-func-members}
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a1ab240660d594a1a87ef26da7df6f1d5}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!call@{call}}
+\index{call@{call}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{call()}{call()}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a1ab240660d594a1a87ef26da7df6f1d5} 
+ tuple\+[int, str]\+ \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+call (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{method}{, }\item[{list \texorpdfstring{$\vert$}{|} dict \texorpdfstring{$\vert$}{|} None }]{params}{ = {\ttfamily None}, }\item[{int \texorpdfstring{$\vert$}{|} None }]{timeout}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Send a JSON-RPC 2.0 request.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a286de21090677d4966ecb8b7ebf90f06}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!is\_alive@{is\_alive}}
+\index{is\_alive@{is\_alive}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{is\_alive()}{is\_alive()}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a286de21090677d4966ecb8b7ebf90f06} 
+ bool \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+is\+\_\+alive (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if node is responding.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00086}{86}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a311111c7c173513abcc00dd6174776af}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!send\_raw@{send\_raw}}
+\index{send\_raw@{send\_raw}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{send\_raw()}{send\_raw()}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a311111c7c173513abcc00dd6174776af} 
+ tuple\+[int, str]\+ \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+send\+\_\+raw (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{bytes \texorpdfstring{$\vert$}{|} str}]{body}{, }\item[{int \texorpdfstring{$\vert$}{|} None }]{timeout}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Send raw bytes to RPC endpoint, return (status_code, body).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+
+
+\label{classbuffer-overflow-tester_1_1_r_p_c_client_doc-variable-members}
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a915aee0817369df57866ede27c55ab03}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!\_id@{\_id}}
+\index{\_id@{\_id}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{\_id}{\_id}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a915aee0817369df57866ede27c55ab03} 
+int \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+\_\+id = 0\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a96ff29411bd802b720b4934a7a8444bc}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!host@{host}}
+\index{host@{host}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{host}{host}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a96ff29411bd802b720b4934a7a8444bc} 
+\doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+host = host}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a3576e48803821ad0394701863b31d345}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!port@{port}}
+\index{port@{port}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{port}{port}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a3576e48803821ad0394701863b31d345} 
+\doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+port = port}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{classbuffer-overflow-tester_1_1_r_p_c_client_a6688d01d17d4edceaf211112775b887a}\index{buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}!timeout@{timeout}}
+\index{timeout@{timeout}!buffer-\/overflow-\/tester.RPCClient@{buffer-\/overflow-\/tester.RPCClient}}
+\doxysubsubsection{\texorpdfstring{timeout}{timeout}}
+{\footnotesize\ttfamily \label{classbuffer-overflow-tester_1_1_r_p_c_client_a6688d01d17d4edceaf211112775b887a} 
+\doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RPCClient.\+timeout = timeout}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+EXPLOITS/\+\doxymbox{\hyperlink{buffer-overflow-tester_8py}{buffer-\/overflow-\/tester.\+py}}\end{DoxyCompactItemize}

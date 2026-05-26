@@ -14,6 +14,63 @@
 ///   - Adrese: [42]u8 EVM hex (0x + 40 hex chars)
 const std = @import("std");
 const Sha256 = std.crypto.hash.sha2.Sha256;
+const Keccak256 = std.crypto.hash.sha3.Keccak256;
+const Ecdsa = std.crypto.sign.ecdsa.EcdsaSecp256k1Sha256;
+
+/// secp256k1 order n and n/2 (for low-S enforcement, mirrors evm_signer.zig).
+const SECP_N_HALF: [32]u8 = .{
+    0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0x5D, 0x57, 0x6E, 0x73, 0x57, 0xA4, 0x50, 0x1D,
+    0xDF, 0xE9, 0x2F, 0x46, 0x68, 0x1B, 0x20, 0xA0,
+};
+const SECP_N: [32]u8 = .{
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
+    0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
+    0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41,
+};
+
+fn isHighS(s: [32]u8) bool {
+    for (s, SECP_N_HALF) |a, b| {
+        if (a < b) return false;
+        if (a > b) return true;
+    }
+    return false; // s == n/2 → low
+}
+
+fn subFromN(s: [32]u8) [32]u8 {
+    var out: [32]u8 = undefined;
+    var borrow: i32 = 0;
+    var i: usize = 32;
+    while (i > 0) {
+        i -= 1;
+        const d: i32 = @as(i32, SECP_N[i]) - @as(i32, s[i]) - borrow;
+        if (d < 0) {
+            out[i] = @intCast(d + 256);
+            borrow = 1;
+        } else {
+            out[i] = @intCast(d);
+            borrow = 0;
+        }
+    }
+    return out;
+}
+
+/// keccak256("submitSettlement(bytes32,bytes,uint256[],bytes32[][])") first 4 bytes.
+/// Computed at comptime from the canonical Solidity signature so the selector
+/// cannot drift from the contract ABI. Verified manually: 0x97e95e0f.
+fn computeSubmitSettlementSelector() [4]u8 {
+    @setEvalBranchQuota(100_000);
+    var raw: [32]u8 = undefined;
+    var h = Keccak256.init(.{});
+    h.update("submitSettlement(bytes32,bytes,uint256[],bytes32[][])");
+    h.final(&raw);
+    return raw[0..4].*;
+}
+
+/// Canonical 4-byte function selector for the Liberty Chain settlement entry.
+pub const SUBMIT_SETTLEMENT_SELECTOR: [4]u8 = computeSubmitSettlementSelector();
 
 // --- CONSTANTE ---------------------------------------------------------------
 
@@ -293,25 +350,48 @@ pub const SettlementSubmitter = struct {
         return hasher.finalResult();
     }
 
-    /// Semneaza merkle root-ul cu cheia privata a minerului.
-    /// Placeholder: SHA256(privkey ++ merkle_root) — in productie se foloseste secp256k1.
-    pub fn signMerkleRoot(self: *SettlementSubmitter, miner_privkey: [32]u8) void {
+    /// Semneaza merkle root-ul cu cheia privata a minerului folosind ECDSA
+    /// secp256k1 peste keccak256(merkle_root) — exact forma pe care contractul
+    /// EVM o validează cu `ecrecover(keccak256(root), v, r, s)`.
+    ///
+    /// Signature layout (65 bytes): r[32] || s[32] || v[1].
+    /// v este pus la 27 ca placeholder — caller-ul (relayer) trebuie să
+    /// încerce și v=28 dacă revertul EVM zice "wrong signer". Recuperarea v
+    /// offline cere ECC point recovery (~200 linii) pe care le evităm aici
+    /// din aceeași rațiune ca în evm_signer.zig.
+    ///
+    /// Returnează error.InvalidPrivateKey / error.SignFailed dacă privkey-ul
+    /// e degenerat (0 sau >= n); status rămâne .merkle_built în acel caz.
+    pub fn signMerkleRoot(
+        self: *SettlementSubmitter,
+        miner_privkey: [32]u8,
+    ) error{InvalidPrivateKey, SignFailed}!void {
         if (self.current_batch.status != .merkle_built) return;
 
-        var hasher = Sha256.init(.{});
-        hasher.update(&miner_privkey);
-        hasher.update(&self.current_batch.merkle_root);
-        const sig_hash = hasher.finalResult();
+        // EVM convention: hash to sign is keccak256(merkle_root). The
+        // contract recomputes the same hash before calling ecrecover.
+        var msg_hash: [32]u8 = undefined;
+        var k = Keccak256.init(.{});
+        k.update(&self.current_batch.merkle_root);
+        k.final(&msg_hash);
 
-        // r = first 32 bytes of hash, s = SHA256(hash), v = 27
-        @memcpy(self.current_batch.miner_signature[0..32], &sig_hash);
+        const sk = Ecdsa.SecretKey.fromBytes(miner_privkey) catch return error.InvalidPrivateKey;
+        const kp = Ecdsa.KeyPair.fromSecretKey(sk) catch return error.InvalidPrivateKey;
+        const sig = kp.signPrehashed(msg_hash, null) catch return error.SignFailed;
+        const sig_bytes = sig.toBytes();
 
-        var s_hasher = Sha256.init(.{});
-        s_hasher.update(&sig_hash);
-        const s_hash = s_hasher.finalResult();
-        @memcpy(self.current_batch.miner_signature[32..64], &s_hash);
+        var r: [32]u8 = undefined;
+        var s: [32]u8 = undefined;
+        @memcpy(&r, sig_bytes[0..32]);
+        @memcpy(&s, sig_bytes[32..64]);
 
-        self.current_batch.miner_signature[64] = 27; // v = 27
+        // Low-S canonical form (Ethereum mempool / EIP-2 strict).
+        if (isHighS(s)) s = subFromN(s);
+
+        @memcpy(self.current_batch.miner_signature[0..32], &r);
+        @memcpy(self.current_batch.miner_signature[32..64], &s);
+        self.current_batch.miner_signature[64] = 27; // parity placeholder; caller retries 28 on revert
+
         self.current_batch.signature_valid = true;
         self.current_batch.status = .signed;
     }
@@ -339,12 +419,11 @@ pub const SettlementSubmitter = struct {
 
         var pos: usize = 0;
 
-        // Function selector: keccak256("submitSettlement(bytes32,bytes,uint256[],bytes32[][])") first 4 bytes
-        // Hardcoded selector: 0xa1b2c3d4 (placeholder — real one computed from Solidity ABI)
-        buf[pos] = 0xa1;
-        buf[pos + 1] = 0xb2;
-        buf[pos + 2] = 0xc3;
-        buf[pos + 3] = 0xd4;
+        // Function selector: keccak256("submitSettlement(bytes32,bytes,uint256[],bytes32[][])")
+        // first 4 bytes = 0x97e95e0f. Computed at comptime from the canonical
+        // Solidity signature (see SUBMIT_SETTLEMENT_SELECTOR above) so any
+        // change to the contract ABI surfaces at build time, not at submit.
+        @memcpy(buf[pos .. pos + 4], &SUBMIT_SETTLEMENT_SELECTOR);
         pos += 4;
 
         // merkle root (32 bytes)
@@ -670,7 +749,7 @@ test "sign merkle root" {
     sub.buildMerkleTree();
 
     const privkey = [_]u8{0xAB} ** 32;
-    sub.signMerkleRoot(privkey);
+    try sub.signMerkleRoot(privkey);
 
     try std.testing.expectEqual(BatchStatus.signed, sub.current_batch.status);
     try std.testing.expect(sub.current_batch.signature_valid);
@@ -691,7 +770,7 @@ test "batch status transitions" {
     sub.buildMerkleTree();
     try std.testing.expectEqual(BatchStatus.merkle_built, sub.current_batch.status);
 
-    sub.signMerkleRoot([_]u8{0x01} ** 32);
+    try sub.signMerkleRoot([_]u8{0x01} ** 32);
     try std.testing.expectEqual(BatchStatus.signed, sub.current_batch.status);
 
     sub.markSubmitted();
@@ -705,7 +784,7 @@ test "reset batch clears state" {
     var sub = SettlementSubmitter.init();
     try sub.addFill(testFill(1, 100_000, 25_000_000));
     sub.buildMerkleTree();
-    sub.signMerkleRoot([_]u8{0x01} ** 32);
+    try sub.signMerkleRoot([_]u8{0x01} ** 32);
 
     try std.testing.expectEqual(@as(u32, 1), sub.current_batch.fill_count);
     try std.testing.expectEqual(BatchStatus.signed, sub.current_batch.status);
@@ -723,14 +802,14 @@ test "batch history tracking" {
     // Submit two batches
     try sub.addFill(testFill(1, 100_000, 25_000_000));
     sub.buildMerkleTree();
-    sub.signMerkleRoot([_]u8{0x01} ** 32);
+    try sub.signMerkleRoot([_]u8{0x01} ** 32);
     sub.markSubmitted();
     const root1 = sub.current_batch.merkle_root;
     sub.resetBatch();
 
     try sub.addFill(testFill(2, 200_000, 26_000_000));
     sub.buildMerkleTree();
-    sub.signMerkleRoot([_]u8{0x02} ** 32);
+    try sub.signMerkleRoot([_]u8{0x02} ** 32);
     sub.markSubmitted();
     sub.resetBatch();
 
@@ -759,7 +838,7 @@ test "isReady after sign" {
     // Not ready — only merkle_built
     try std.testing.expect(!sub.isReady());
 
-    sub.signMerkleRoot([_]u8{0x01} ** 32);
+    try sub.signMerkleRoot([_]u8{0x01} ** 32);
 
     // Now ready
     try std.testing.expect(sub.isReady());
@@ -770,16 +849,17 @@ test "buildCalldata produces valid output" {
     try sub.addFill(testFill(1001, 500_000, 30_000_000));
     try sub.addFill(testFill(1002, 600_000, 31_000_000));
     sub.buildMerkleTree();
-    sub.signMerkleRoot([_]u8{0xAB} ** 32);
+    try sub.signMerkleRoot([_]u8{0xAB} ** 32);
 
     var buf: [4096]u8 = undefined;
     const calldata = try sub.buildCalldata(&buf);
 
-    // Check function selector
-    try std.testing.expectEqual(@as(u8, 0xa1), calldata[0]);
-    try std.testing.expectEqual(@as(u8, 0xb2), calldata[1]);
-    try std.testing.expectEqual(@as(u8, 0xc3), calldata[2]);
-    try std.testing.expectEqual(@as(u8, 0xd4), calldata[3]);
+    // Check function selector — keccak256("submitSettlement(bytes32,bytes,uint256[],bytes32[][])")[:4]
+    // = 0x97e95e0f, derived at comptime in SUBMIT_SETTLEMENT_SELECTOR.
+    try std.testing.expectEqual(@as(u8, 0x97), calldata[0]);
+    try std.testing.expectEqual(@as(u8, 0xe9), calldata[1]);
+    try std.testing.expectEqual(@as(u8, 0x5e), calldata[2]);
+    try std.testing.expectEqual(@as(u8, 0x0f), calldata[3]);
 
     // Check merkle root is at offset 4
     try std.testing.expect(std.mem.eql(u8, calldata[4..36], &sub.current_batch.merkle_root));
@@ -789,6 +869,48 @@ test "buildCalldata produces valid output" {
 
     // Total length should be > 0
     try std.testing.expect(calldata.len > 101);
+}
+
+test "signMerkleRoot produces verifiable ECDSA over keccak256(merkle_root)" {
+    // Sign with a known privkey, then independently recompute the
+    // expected sig path: the resulting (r,s) must verify against the
+    // pubkey derived from the same privkey, over the keccak256 of the
+    // batch's merkle root. Locks the signature path from drifting back
+    // into the SHA256-placeholder regime.
+    const Kec = std.crypto.hash.sha3.Keccak256;
+
+    var sub = SettlementSubmitter.init();
+    try sub.addFill(testFill(1, 1_000, 50_000));
+    sub.buildMerkleTree();
+    const privkey: [32]u8 = @splat(0x42);
+    try sub.signMerkleRoot(privkey);
+
+    // Recompute the EVM-style digest the signer claims to have signed.
+    var digest: [32]u8 = undefined;
+    var h = Kec.init(.{});
+    h.update(&sub.current_batch.merkle_root);
+    h.final(&digest);
+
+    // Reconstruct the public key independently from privkey.
+    const sk = try Ecdsa.SecretKey.fromBytes(privkey);
+    const kp = try Ecdsa.KeyPair.fromSecretKey(sk);
+
+    // Pull (r,s) out of the 65-byte sig; verify against the prehash.
+    const sig_bytes: [64]u8 = sub.current_batch.miner_signature[0..64].*;
+    const sig = Ecdsa.Signature.fromBytes(sig_bytes);
+    try sig.verifyPrehashed(digest, kp.public_key);
+
+    // The placeholder used to set v = 27 and write SHA256(privkey||root)
+    // into r. Make sure r is no longer that legacy value.
+    var legacy = std.crypto.hash.sha2.Sha256.init(.{});
+    legacy.update(&privkey);
+    legacy.update(&sub.current_batch.merkle_root);
+    var legacy_r: [32]u8 = undefined;
+    legacy.final(&legacy_r);
+    try std.testing.expect(!std.mem.eql(u8, sub.current_batch.miner_signature[0..32], &legacy_r));
+
+    // v stays at 27 as documented (parity placeholder for caller retry).
+    try std.testing.expectEqual(@as(u8, 27), sub.current_batch.miner_signature[64]);
 }
 
 test "getStats returns correct values" {
@@ -801,7 +923,7 @@ test "getStats returns correct values" {
     try std.testing.expectEqual(@as(u64, 0), stats.total_submitted);
 
     sub.buildMerkleTree();
-    sub.signMerkleRoot([_]u8{0x01} ** 32);
+    try sub.signMerkleRoot([_]u8{0x01} ** 32);
     sub.markSubmitted();
 
     const stats2 = sub.getStats();
@@ -814,7 +936,7 @@ test "markFailed increments counter" {
     var sub = SettlementSubmitter.init();
     try sub.addFill(testFill(1, 100_000, 25_000_000));
     sub.buildMerkleTree();
-    sub.signMerkleRoot([_]u8{0x01} ** 32);
+    try sub.signMerkleRoot([_]u8{0x01} ** 32);
     sub.markSubmitted();
     sub.markFailed();
 

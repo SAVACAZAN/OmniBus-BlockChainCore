@@ -1,0 +1,209 @@
+\chapter{Next Session Plan — Slot Calendar + SPARK Sub-\/\+Block Consensus }
+\hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n}{}\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n}\index{Next Session Plan — Slot Calendar + SPARK Sub-\/Block Consensus@{Next Session Plan — Slot Calendar + SPARK Sub-\/Block Consensus}}
+\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md84}%
+\Hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md84}%
+
+
+{\bfseries{Sesiunea curentă (28 Apr 2026)}} a livrat fundațiile clock-\/ului unic:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily core/\+orchestrator.\+zig} — Atomic\+Clock + Time\+Orchestrator + clock\+Score60s + RDTSC + binary\+Spectrum (16 unit tests, all pass)
+\item Mining loop folosește {\ttfamily g\+\_\+clock.\+now\+Ms()} peste tot (slot-\/leader, stabilizer, burst smoothing)
+\item {\ttfamily ws\+\_\+exchange\+\_\+feed} wired la {\ttfamily \&g\+\_\+clock} prin {\ttfamily set\+Clock()}
+\item Stabilizer raportează {\ttfamily clock\+\_\+score = X/\+100} + bit-\/spectrum live la fiecare 60s
+\end{DoxyItemize}
+
+{\bfseries{Rezultat măsurat pe VPS testnet:\+}}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metric  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Sesiunea anterioară  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Sesiunea aceasta  \\
+Block rate  &15/\+min  &{\bfseries{48/\+min}}  \\
+Best block  &unknown  &{\bfseries{76ms}}  \\
+p50 latency  &unknown  &{\bfseries{231ms}}  \\
+Sub-\/1s blocks  &0\%  &{\bfseries{88\%}}  \\
+Sub-\/100ms blocks  &0\%  &{\bfseries{5\%}}  \\
+Clock score  &n/\+a  &{\bfseries{61-\/100/\+100}} (vizibil VPS jitter)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Commits pushed (gitea + vps):\+}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily aab28fa} — slot-\/leader fixes + stabilizer
+\item {\ttfamily 162131a} — orchestrator integration (Step 1+2)
+\item {\ttfamily b363095} — sleep eliminated + clock\+Score60s + burst smoothing (Step 4)
+\item {\ttfamily 0606de8} — RDTSC + binary spectrum + ws-\/feed clock (Step 5)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md86}{}\doxysection{\texorpdfstring{Pentru sesiunea următoare}{Pentru sesiunea următoare}}\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md86}
+\hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md87}{}\doxysubsection{\texorpdfstring{1. Pre-\/\+Computed Slot Calendar (Solana Po\+H-\/style)}{1. Pre-\/\+Computed Slot Calendar (Solana Po\+H-\/style)}}\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md87}
+{\bfseries{Conceptul}} — la t=now, generăm map-\/ul pentru next 60 slots:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ SlotEntry\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ slot\_id:\ u64,}
+\DoxyCodeLine{\ \ \ \ leader:\ ?Validator,\ \ \ \ \ \ \ \ \ //\ deterministic\ via\ leaderForSlot()}
+\DoxyCodeLine{\ \ \ \ expected\_arrival\_ms:\ i64,\ \ \ \ //\ now\ +\ N\ ×\ 1000}
+\DoxyCodeLine{\ \ \ \ placeholder\_hash:\ [32]u8,\ \ \ \ //\ empty\ until\ block\ lands}
+\DoxyCodeLine{\ \ \ \ state:\ enum\ \{\ future,\ in\_flight,\ finalized,\ missed\ \},}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ SlotCalendar\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ entries:\ [60]SlotEntry,}
+\DoxyCodeLine{\ \ \ \ head:\ usize,\ //\ ring\ buffer}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+{\bfseries{De ce ajută:\+}}
+
+
+\begin{DoxyEnumerate}
+\item Frontend poate afișa "{}next leader:\+ ob1qzhrauq0x in 2.\+3s"{}
+\item Future-\/block pool — TX-\/uri marcate cu {\ttfamily target\+\_\+slot=N} intră direct în slot-\/ul corect
+\item Pre-\/warmed signature template — leader-\/ul își pre-\/semnează block header gol
+\item Anti-\/fork:\+ ceilalți validatori știu deja cine ar trebui să livreze fiecare slot
+\end{DoxyEnumerate}
+
+{\bfseries{Effort estimat:\+}} 1-\/2 ore pentru read-\/only calendar + log; 1 zi cu future-\/block pool; 3-\/5 zile cu pre-\/warmed signature templates.
+
+{\bfseries{Riscuri}} (din discuția anterioară):\+
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Risc  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Mitigare  \\
+Reorg invalidează slots pre-\/computate  &Pre-\/compute doar slot-\/uri \texorpdfstring{$>$}{>}= 6 confirmations din tip  \\
+Leader change la governance TX  &Calendar regenerat după fiecare governance TX  \\
+Memory pressure  &Cap fix max 60 slot-\/uri viitoare  \\
+Timing attack — TX cu target\+\_\+slot distant  &Window limit max 10s în viitor + fee per slot  \\
+Determinism break  &Tot calendar-\/ul vine din {\ttfamily slot\+\_\+id + tip\+\_\+hash + validator\+\_\+set}  \\
+\end{DoxyTable}
+\hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md88}{}\doxysubsection{\texorpdfstring{2. SPARK Sub-\/\+Block Consensus (viziunea ta)}{2. SPARK Sub-\/\+Block Consensus (viziunea ta)}}\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md88}
+{\bfseries{Idee centrală}} — cele 10 sub-\/blocks devin {\bfseries{10 layere de validare paralelă}}, nu sleep:\+
+
+\begin{quote}
+"{}\+Cine ajunge primul să mineze + alți noduri verifică în 10 sub-\/blocks dacă block-\/ul e  conform Ada SPARK consensus (balanță reală, no double spend, etc.)"{} \end{quote}
+
+
+{\bfseries{Layout sub-\/blocks:\+}}
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Sub-\/block  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Verificare Ada SPARK  \\
+\#1  &TX batch + well-\/formed check  \\
+\#2  &UTXO existence (sender chiar are coin-\/uri)  \\
+\#3  &No double-\/spend (UTXO not already spent)  \\
+\#4  &Signature verify (ECDSA + Schnorr + PQ)  \\
+\#5  &Nonce monotonic  \\
+\#6  &Aggregate balance constraint (sum\+\_\+in = sum\+\_\+out + fee)  \\
+\#7  &Smart contract state (dacă există)  \\
+\#8  &Cross-\/shard receipts  \\
+\#9  &Reputation /\+ trust score check  \\
+\#10  &Final merkle root + commit  \\
+\end{DoxyTable}
+
+
+{\bfseries{Ada SPARK contract example:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{procedure\ Verify\_Block\ (B\ :\ Block;\ OK\ :\ out\ Boolean)}
+\DoxyCodeLine{\ \ \ with\ Pre\ \ =>\ Is\_Well\_Formed\ (B),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ Post\ =>\ OK\ =\ (No\_Double\_Spend\ (B)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ and\ All\_Balances\_Valid\ (B)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ and\ All\_Signatures\_Valid\ (B)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ and\ Nonces\_Monotonic\ (B));}
+
+\end{DoxyCode}
+
+
+SPARK demonstrează la {\bfseries{build-\/time}}:\+
+
+
+\begin{DoxyItemize}
+\item Funcția nu poate da fals positive (toate condițiile verificate)
+\item Nu există overflow în calcul balanțelor
+\item Nu există race conditions
+\end{DoxyItemize}
+
+{\bfseries{Voting protocol:\+}}
+
+
+\begin{DoxyItemize}
+\item Fiecare sub-\/block produce ATTEST/\+\+REJECT cu signature
+\item 6 din 10 ATTEST → block finalizat cu high trust
+\item 5/\+10 → low trust mode, ținut în limbo
+\item \texorpdfstring{$<$}{<}5/\+10 → REJECT, leader pierde reputation
+\end{DoxyItemize}
+
+{\bfseries{Late arriver}} (alt block competitor în același slot):\+
+
+
+\begin{DoxyItemize}
+\item Acceptăm dar cu penalty pe reputation, sau reject după check
+\item Low trust mode = block valid dar nu poate fi cu count \texorpdfstring{$>$}{>}= K confirmations până nu trece audit ulterior
+\end{DoxyItemize}
+
+{\bfseries{Effort:\+}}
+
+
+\begin{DoxyItemize}
+\item Faza A (sub-\/block voting protocol în Zig):\+ 3-\/5 zile
+\item Faza B (Ada SPARK linkage la Zig prin C ABI):\+ 1 săpt
+\item Faza C (low-\/trust mode + reputation penalty):\+ 1 săpt
+\end{DoxyItemize}
+
+Avem deja {\bfseries{300+ fișiere Ada SPARK}} în {\ttfamily 1\+\_\+\+CORE/\+refs/\+ada-\/spark/\+ada 300 files/\+code/\+} care urmează același pattern (database, audit, balances) — pot fi adaptate pentru block verification.\hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md89}{}\doxysubsection{\texorpdfstring{3. Detalii tehnice per platform pentru clock}{3. Detalii tehnice per platform pentru clock}}\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md89}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Platform  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Clock primar  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Latency  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Resolution  \\
+Linux VPS (acum)  &{\ttfamily std.\+time.\+milli\+Timestamp()}  &\texorpdfstring{$\sim$}{\string~}50-\/200ns  &1ns  \\
+Linux upgrade  &{\ttfamily std.\+posix.\+clock\+\_\+gettime(\+CLOCK\+\_\+\+MONOTONIC)} via v\+DSO  &\texorpdfstring{$\sim$}{\string~}50ns  &1ns  \\
+Windows dev  &{\ttfamily Query\+Performance\+Counter}  &\texorpdfstring{$\sim$}{\string~}80ns  &\texorpdfstring{$\sim$}{\string~}100ns  \\
+Baremetal x86\+\_\+64  &{\ttfamily rdtscp} inline ASM  &\texorpdfstring{$\sim$}{\string~}10ns  &\texorpdfstring{$\sim$}{\string~}0.3ns @ 3GHz  \\
+Baremetal ARM  &{\ttfamily cntvct\+\_\+el0} inline ASM  &\texorpdfstring{$\sim$}{\string~}10ns  &depends on counter freq  \\
+\end{DoxyTable}
+
+
+Verificare formală via Ada SPARK pentru contracte (monotonic guaranteed, no overflow, drift bounded).\hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md90}{}\doxysubsection{\texorpdfstring{4. UI spectrum visualizer}{4. UI spectrum visualizer}}\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md90}
+Endpoint nou RPC {\ttfamily clock\+\_\+spectrum} care livrează la frontend bit-\/pattern-\/ul ultimilor 1000 ticks → vizualizare în UI ca spectrum analyzer:\+
+
+
+\begin{DoxyItemize}
+\item High bits stabile = sistem sănătos
+\item Broken bit patterns = scheduler pause /\+ frequency scaling /\+ hypervisor migration
+\end{DoxyItemize}
+
+Util pentru a documenta vizual de ce baremetal e necesar pentru sub-\/100ms latency consistent.
+
+\DoxyHorRuler{0}
+\hypertarget{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md92}{}\doxysection{\texorpdfstring{Order of operations recomandat pentru sesiunea următoare}{Order of operations recomandat pentru sesiunea următoare}}\label{md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n_autotoc_md92}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Slot calendar read-\/only}} (1-\/2 ore) — log "{}next 10 slots, leader X, expected arrival Y"{}
+\item {\bfseries{Spectrum RPC endpoint}} (1-\/2 ore) — frontend să poată afișa în timp real
+\item {\bfseries{Future-\/block pool}} (1 zi) — TX cu {\ttfamily target\+\_\+slot} intră direct în slot
+\item {\bfseries{Sub-\/block voting protocol}} (3-\/5 zile) — 10 ATTEST/\+\+REJECT votes per slot
+\item {\bfseries{Ada SPARK linkage}} (1 săpt) — C ABI între Zig și Ada
+\item {\bfseries{Low-\/trust mode}} (1 săpt) — reputation penalty + delayed finality
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Ultima zonă pe explorer (28 Apr 2026 \texorpdfstring{$\sim$}{\string~}19:\+30 UTC):\+}}
+
+
+\begin{DoxyItemize}
+\item Block height:\+ \texorpdfstring{$\sim$}{\string~}58\+\_\+300+
+\item Miner activ:\+ {\ttfamily ob1qw6zh\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}tqxlvl} (VPS)
+\item PC {\ttfamily ob1qzhrauq0x} offline
+\item Clock score variabil 61-\/100 (VPS jitter)
+\item Burst smoothing 100ms activ 
+\end{DoxyItemize}

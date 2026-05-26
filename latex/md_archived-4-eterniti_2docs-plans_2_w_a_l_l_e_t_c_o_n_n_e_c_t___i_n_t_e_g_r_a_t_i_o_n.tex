@@ -1,0 +1,179 @@
+\chapter{Integrare Wallet\+Connect v2 pentru Omni\+Bus }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n}{}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n}\index{Integrare WalletConnect v2 pentru OmniBus@{Integrare WalletConnect v2 pentru OmniBus}}
+\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3869}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3869}%
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3870}{}\doxysection{\texorpdfstring{Ce este Wallet\+Connect?}{Ce este Wallet\+Connect?}}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3870}
+Protocol standard pentru conectare wallet-\/d\+App, folosit de 65.\+000+ aplicații. Suportă:\+
+\begin{DoxyItemize}
+\item QR code scanning
+\item Deep linking
+\item Chain-\/agnostic (funcționează cu orice blockchain)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3871}{}\doxysection{\texorpdfstring{Implementare Omni\+Bus}{Implementare Omni\+Bus}}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3871}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3872}{}\doxysubsection{\texorpdfstring{1. Provider Wallet\+Connect}{1. Provider Wallet\+Connect}}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3872}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ core/walletconnect\_provider.zig}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ std\ =\ @import("{}std"{});}
+\DoxyCodeLine{const\ ws\ =\ @import("{}ws\_server.zig"{});}
+\DoxyCodeLine{const\ rpc\ =\ @import("{}rpc\_server.zig"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{///\ WalletConnect\ v2\ Provider\ pentru\ OmniBus}
+\DoxyCodeLine{pub\ const\ WalletConnectProvider\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ allocator:\ std.mem.Allocator,}
+\DoxyCodeLine{\ \ \ \ rpc\_server:\ *rpc.RPCServer,}
+\DoxyCodeLine{\ \ \ \ ws\_server:\ *ws.WSServer,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ const\ SUPPORTED\_CHAINS\ =\ [\_]struct\ \{\ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ chainId:\ []const\ u8,\ \ //\ eip155:777}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ name:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ rpcUrl:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ \}\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .\{\ .chainId\ =\ "{}eip155:777"{},\ .name\ =\ "{}OmniBus\ Mainnet"{},\ .rpcUrl\ =\ "{}https://rpc.omnibus.network"{}\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .\{\ .chainId\ =\ "{}eip155:778"{},\ .name\ =\ "{}OmniBus\ Testnet"{},\ .rpcUrl\ =\ "{}https://testnet.omnibus.network"{}\ \},}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ ///\ Inițializează\ sesiune\ WalletConnect}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ createSession(self:\ *WalletConnectProvider)\ !SessionProposal\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ uri\ =\ try\ std.fmt.allocPrint(self.allocator,\ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ "{}wc:????@2?relay-\/protocol=irn\&symKey=????"{},\ .\{\});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ SessionProposal\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ .uri\ =\ uri,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ .qr\_code\ =\ try\ generateQR(uri),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ .chains\ =\ \&SUPPORTED\_CHAINS,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ ///\ Handler\ pentru\ cereri\ de\ la\ wallet}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ handleRequest(self:\ *WalletConnectProvider,\ request:\ WCRequest)\ !WCResponse\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ switch\ (request.method)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ .eth\_sendTransaction\ =>\ |tx|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ Convertește\ TX\ EVM\ în\ TX\ OmniBus}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ omni\_tx\ =\ try\ self.evmToOmniTx(tx);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ result\ =\ try\ self.rpc\_server.sendTransaction(omni\_tx);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ WCResponse\{\ .tx\_hash\ =\ result.txid\ \};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ .eth\_sign\ =>\ |params|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ Semnează\ mesaj\ cu\ cheia\ wallet-\/ului}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ try\ self.signMessage(params);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ .personal\_sign\ =>\ |params|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ try\ self.personalSign(params);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ .eth\_getBalance\ =>\ |address|\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ balance\ =\ try\ self.rpc\_server.getBalance(address);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ WCResponse\{\ .balance\ =\ balance\ \};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{///\ Structuri\ WC}
+\DoxyCodeLine{pub\ const\ WCRequest\ =\ union(enum)\ \{}
+\DoxyCodeLine{\ \ \ \ eth\_sendTransaction:\ EvmTransaction,}
+\DoxyCodeLine{\ \ \ \ eth\_sign:\ SignParams,}
+\DoxyCodeLine{\ \ \ \ personal\_sign:\ PersonalSignParams,}
+\DoxyCodeLine{\ \ \ \ eth\_getBalance:\ []const\ u8,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ EvmTransaction\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ from:\ []const\ u8,\ \ \ \ \ \ //\ 0x...}
+\DoxyCodeLine{\ \ \ \ to:\ []const\ u8,\ \ \ \ \ \ \ \ //\ 0x...}
+\DoxyCodeLine{\ \ \ \ value:\ []const\ u8,\ \ \ \ \ //\ hex\ wei}
+\DoxyCodeLine{\ \ \ \ data:\ ?[]const\ u8,\ \ \ \ \ //\ hex\ data\ (op\_return)}
+\DoxyCodeLine{\ \ \ \ gas:\ ?[]const\ u8,\ \ \ \ \ \ //\ hex}
+\DoxyCodeLine{\ \ \ \ gasPrice:\ ?[]const\ u8,\ //\ hex}
+\DoxyCodeLine{\ \ \ \ nonce:\ []const\ u8,\ \ \ \ \ //\ hex}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3873}{}\doxysubsection{\texorpdfstring{2. Wallet-\/uri suportate prin Wallet\+Connect}{2. Wallet-\/uri suportate prin Wallet\+Connect}}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3873}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Wallet  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Platformă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Suport PQ  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Observații  \\
+Trust Wallet  &i\+OS/\+\+Android  &✅ Indirect  &Cel mai popular mobile wallet  \\
+Rainbow  &i\+OS/\+\+Android  &✅ Indirect  &Design excelent  \\
+Meta\+Mask Mobile  &i\+OS/\+\+Android  &✅ Indirect  &Standardul industry  \\
+Zerion  &i\+OS/\+\+Android  &✅ Indirect  &De\+Fi focus  \\
+Argent  &i\+OS/\+\+Android  &✅ Indirect  &Smart wallet  \\
+Gnosis Safe  &Web/\+\+Mobile  &✅ Indirect  &Multi-\/sig  \\
+Coinbase Wallet  &i\+OS/\+\+Android  &✅ Indirect  &Exchange integrat  \\
+im\+Token  &i\+OS/\+\+Android  &✅ Indirect  &Popular în Asia  \\
+Token\+Pocket  &i\+OS/\+\+Android  &✅ Indirect  &Multi-\/chain  \\
+Math Wallet  &i\+OS/\+\+Android  &✅ Indirect  &Multi-\/chain  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3874}{}\doxysubsection{\texorpdfstring{3. Configurare Omni\+Bus în Wallet\+Connect Cloud}{3. Configurare Omni\+Bus în Wallet\+Connect Cloud}}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3874}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}name"{}:\ "{}OmniBus\ Network"{},}
+\DoxyCodeLine{\ \ "{}chains"{}:\ ["{}eip155:777"{},\ "{}eip155:778"{},\ "{}eip155:779"{},\ "{}eip155:780"{},\ "{}eip155:781"{}],}
+\DoxyCodeLine{\ \ "{}rpc"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}777"{}:\ "{}https://rpc.omnibus.network"{},}
+\DoxyCodeLine{\ \ \ \ "{}778"{}:\ "{}https://rpc.omnibus.network"{},}
+\DoxyCodeLine{\ \ \ \ "{}779"{}:\ "{}https://rpc.omnibus.network"{},}
+\DoxyCodeLine{\ \ \ \ "{}780"{}:\ "{}https://rpc.omnibus.network"{},}
+\DoxyCodeLine{\ \ \ \ "{}781"{}:\ "{}https://rpc.omnibus.network"{}}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}nativeCurrency"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}name"{}:\ "{}OmniBus"{},}
+\DoxyCodeLine{\ \ \ \ "{}symbol"{}:\ "{}OMNI"{},}
+\DoxyCodeLine{\ \ \ \ "{}decimals"{}:\ 9}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}features"{}:\ ["{}send"{},\ "{}receive"{},\ "{}swap"{}],}
+\DoxyCodeLine{\ \ "{}postQuantum"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}enabled"{}:\ true,}
+\DoxyCodeLine{\ \ \ \ "{}algorithms"{}:\ ["{}ML-\/DSA-\/87"{},\ "{}Falcon-\/512"{},\ "{}SLH-\/DSA-\/256s"{}]}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3875}{}\doxysubsection{\texorpdfstring{4. Flow utilizator}{4. Flow utilizator}}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3875}
+
+\begin{DoxyEnumerate}
+\item Utilizatorul deschide d\+App Omni\+Bus
+\item Apasă "{}\+Connect Wallet"{}
+\item Se generează QR code /\+ deep link
+\item Utilizatorul scanează cu Trust Wallet /\+ Meta\+Mask Mobile
+\item Wallet-\/ul arată cererea de conectare
+\item Utilizatorul confirmă
+\item d\+App poate trimite tranzacții spre semnare
+\end{DoxyEnumerate}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Exemplu\ integrare\ în\ frontend\ dApp}
+\DoxyCodeLine{import\ \{\ EthereumProvider\ \}\ from\ '@walletconnect/ethereum-\/provider';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ provider\ =\ await\ EthereumProvider.init(\{}
+\DoxyCodeLine{\ \ projectId:\ 'OMNIBUS\_PROJECT\_ID',}
+\DoxyCodeLine{\ \ chains:\ [777,\ 778,\ 779,\ 780,\ 781],\ //\ OmniBus\ chains}
+\DoxyCodeLine{\ \ showQrModal:\ true,}
+\DoxyCodeLine{\ \ methods:\ ['eth\_sendTransaction',\ 'eth\_sign',\ 'personal\_sign'],}
+\DoxyCodeLine{\ \ events:\ ['chainChanged',\ 'accountsChanged'],}
+\DoxyCodeLine{\});}
+\DoxyCodeLine{}
+\DoxyCodeLine{await\ provider.enable();}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Trimite\ tranzacție}
+\DoxyCodeLine{const\ tx\ =\ await\ provider.request(\{}
+\DoxyCodeLine{\ \ method:\ 'eth\_sendTransaction',}
+\DoxyCodeLine{\ \ params:\ [\{}
+\DoxyCodeLine{\ \ \ \ from:\ provider.accounts[0],}
+\DoxyCodeLine{\ \ \ \ to:\ '0x...',\ //\ adresă\ destinatar}
+\DoxyCodeLine{\ \ \ \ value:\ '0x...',\ //\ în\ wei}
+\DoxyCodeLine{\ \ \ \ data:\ '0x...'\ //\ op\_return\ opțional}
+\DoxyCodeLine{\ \ \}]}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3876}{}\doxysection{\texorpdfstring{Avantaje Wallet\+Connect}{Avantaje Wallet\+Connect}}\label{md_archived-4-eterniti_2docs-plans_2_w_a_l_l_e_t_c_o_n_n_e_c_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3876}
+
+\begin{DoxyItemize}
+\item ✅ Funcționează cu toate wallet-\/urile mobile populare
+\item ✅ Nu necesită modificări în wallet-\/uri existente
+\item ✅ Securitate prin encriptare end-\/to-\/end
+\item ✅ QR code + deep linking
+\item ✅ Standard industry (65.\+000+ d\+Apps) 
+\end{DoxyItemize}

@@ -1,0 +1,174 @@
+\doxysection{omnibus-\/dashboard.py}
+\hypertarget{omnibus-dashboard_8py_source}{}\label{omnibus-dashboard_8py_source}\index{scripts/cross/omnibus-\/dashboard.py@{scripts/cross/omnibus-\/dashboard.py}}
+\doxymbox{\hyperlink{omnibus-dashboard_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00001}\doxymbox{\hyperlink{namespaceomnibus-dashboard}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00002}\doxymbox{\hyperlink{namespaceomnibus}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00003}00003\ \textcolor{stringliteral}{omnibus-\/dashboard.py}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00005}00005\ \textcolor{stringliteral}{Text-\/based\ dashboard\ displaying\ the\ status\ of\ the\ entire\ OmniBus\ ecosystem:}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ BlockChainCore\ node\ (block\ height,\ peers,\ hashrate,\ mempool)}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ aweb3\ Liberty\ (block\ number,\ gas\ price,\ net\ version)}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Bridge\ status\ (last\ sync\ height,\ pending\ transfers)}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Recent\ alerts}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00011}00011\ \textcolor{stringliteral}{Refreshes\ every\ N\ seconds\ (default\ 10)\ or\ runs\ once.}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00013}00013\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ python\ omnibus-\/dashboard.py\ -\/-\/refresh\ 10}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00015}00015\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00017}00017\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00020}00020\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00023}00023\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00024}00024\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00026}00026\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00028}\doxymbox{\hyperlink{namespaceomnibus-dashboard_af8bafb41272706f01d8fe395240bcd5a}{00028}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00029}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a1ca7e296463f760b03eccb42f2f1121d}{00029}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00030}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a02ef0789f9905792a51d8df83e02b058}{00030}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00031}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a67fab4f53d6235025cc9e225707825d1}{00031}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00032}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a44324003ab3d4d1f29fb08712eedaf4c}{00032}}\ MAGENTA\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00033}\doxymbox{\hyperlink{namespaceomnibus-dashboard_abd75f4aeb1e75761c296264907d70af3}{00033}}\ WHITE\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00034}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a3302e3f046b1b8c0ba64192a0e8e5bb1}{00034}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00037}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{00037}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{rpc\_json}}(url:\ str,\ method:\ str,\ params:\ Any\ =\ \textcolor{keywordtype}{None},\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ timeout:\ float\ =\ 8.0)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00039}00039\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{if}\ params\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}params"{}}]\ =\ params}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00042}00042\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ auth=auth,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.json().get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00045}00045\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}\_error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00049}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a1d9b9fb9d0a77ea879e370675876a013}{00049}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus-dashboard_a1d9b9fb9d0a77ea879e370675876a013}{fetch\_zig\_stats}}(url:\ str,\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00050}00050\ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{rpc\_json}}(url,\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00051}00051\ \ \ \ \ net\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{rpc\_json}}(url,\ \textcolor{stringliteral}{"{}getnetworkinfo"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00052}00052\ \ \ \ \ mem\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{rpc\_json}}(url,\ \textcolor{stringliteral}{"{}getmempoolinfo"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(info,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ info:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}down"{}},\ \textcolor{stringliteral}{"{}error"{}}:\ info[\textcolor{stringliteral}{"{}\_error"{}}]\}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}up"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blocks"{}}:\ info.get(\textcolor{stringliteral}{"{}blocks"{}}),}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}headers"{}}:\ info.get(\textcolor{stringliteral}{"{}headers"{}}),}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty"{}}:\ info.get(\textcolor{stringliteral}{"{}difficulty"{}}),}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peers"{}}:\ net.get(\textcolor{stringliteral}{"{}connections"{}})\ \textcolor{keywordflow}{if}\ isinstance(net,\ dict)\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mempool\_txs"{}}:\ mem.get(\textcolor{stringliteral}{"{}size"{}})\ \textcolor{keywordflow}{if}\ isinstance(mem,\ dict)\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00062}00062\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00065}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a3c1361d054fefc92d98a3a2d57f7afd8}{00065}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus-dashboard_a3c1361d054fefc92d98a3a2d57f7afd8}{fetch\_eth\_stats}}(url:\ str)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00066}00066\ \ \ \ \ block\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{rpc\_json}}(url,\ \textcolor{stringliteral}{"{}eth\_blockNumber"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00067}00067\ \ \ \ \ gas\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{rpc\_json}}(url,\ \textcolor{stringliteral}{"{}eth\_gasPrice"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00068}00068\ \ \ \ \ netv\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a2c1bfd28114ed0dbac40335e7a390f97}{rpc\_json}}(url,\ \textcolor{stringliteral}{"{}net\_version"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(block,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ block:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}down"{}},\ \textcolor{stringliteral}{"{}error"{}}:\ block[\textcolor{stringliteral}{"{}\_error"{}}]\}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}up"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block\_number"{}}:\ block,}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gas\_price"{}}:\ gas,}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}net\_version"{}}:\ netv,}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00076}00076\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00079}\doxymbox{\hyperlink{namespaceomnibus-dashboard_ada564ffa6bc568a52afe9915ef46c351}{00079}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus-dashboard_ada564ffa6bc568a52afe9915ef46c351}{draw\_bar}}(label:\ str,\ value:\ int,\ maximum:\ int,\ width:\ int\ =\ 30)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{if}\ maximum\ <=\ 0:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ filled\ =\ 0}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00082}00082\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ filled\ =\ int((value\ /\ maximum)\ *\ width)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00084}00084\ \ \ \ \ bar\ =\ \textcolor{stringliteral}{"{}█"{}}\ *\ filled\ +\ \textcolor{stringliteral}{"{}░"{}}\ *\ (width\ -\/\ filled)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}\{label:12\}\ [\{bar\}]\ \{value\}/\{maximum\}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00088}\doxymbox{\hyperlink{namespaceomnibus-dashboard_ab052d9550db1a5e1929400da5ae3ab30}{00088}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus-dashboard_ab052d9550db1a5e1929400da5ae3ab30}{clear\_screen}}()\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00089}00089\ \ \ \ \ os.system(\textcolor{stringliteral}{"{}cls"{}}\ \textcolor{keywordflow}{if}\ os.name\ ==\ \textcolor{stringliteral}{"{}nt"{}}\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}clear"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00092}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a9256d967970d3925cabd7094a10c20ff}{00092}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus-dashboard_a9256d967970d3925cabd7094a10c20ff}{render}}(zig\_rpc:\ str,\ eth\_rpc:\ str,\ zig\_auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00093}00093\ \ \ \ \ lines:\ list[str]\ =\ []}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00094}00094\ \ \ \ \ now\ =\ datetime.now(timezone.utc).strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M:\%S\ UTC"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00095}00095\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\{MAGENTA\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00096}00096\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\{WHITE\}\ \ OMNIBUS\ ECOSYSTEM\ DASHBOARD\{RESET\}\ \ \ \ \ \ \ \ \ \ \{now\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00097}00097\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\{MAGENTA\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00099}00099\ \ \ \ \ \textcolor{comment}{\#\ Zig\ node}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00100}00100\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}►\ BlockChainCore\ (Zig)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00101}00101\ \ \ \ \ zig\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a1d9b9fb9d0a77ea879e370675876a013}{fetch\_zig\_stats}}(zig\_rpc,\ zig\_auth)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00102}00102\ \ \ \ \ \textcolor{keywordflow}{if}\ zig.get(\textcolor{stringliteral}{"{}status"{}})\ ==\ \textcolor{stringliteral}{"{}up"{}}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}●\ UP\{RESET\}\ \ \ Blocks:\ \{zig.get('blocks')\}\ /\ Headers:\ \{zig.get('headers')\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ Difficulty:\ \{zig.get('difficulty')\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ Peers:\ \{zig.get('peers')\}\ \ \ Mempool:\ \{zig.get('mempool\_txs')\}\ tx"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \{RED\}●\ DOWN\{RESET\}\ \{zig.get('error')\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00109}00109\ \ \ \ \ \textcolor{comment}{\#\ ETH\ node}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00110}00110\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}►\ aweb3\ Liberty\ (Solidity)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00111}00111\ \ \ \ \ eth\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a3c1361d054fefc92d98a3a2d57f7afd8}{fetch\_eth\_stats}}(eth\_rpc)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{if}\ eth.get(\textcolor{stringliteral}{"{}status"{}})\ ==\ \textcolor{stringliteral}{"{}up"{}}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}●\ UP\{RESET\}\ \ \ Block:\ \{eth.get('block\_number')\}\ \ \ Net:\ \{eth.get('net\_version')\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ Gas\ Price:\ \{eth.get('gas\_price')\}\ wei"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \{RED\}●\ DOWN\{RESET\}\ \{eth.get('error')\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00118}00118\ \ \ \ \ \textcolor{comment}{\#\ Bridge\ /\ overall}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00119}00119\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}►\ Bridge\ /\ Cross-\/Chain\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00120}00120\ \ \ \ \ bridge\_healthy\ =\ zig.get(\textcolor{stringliteral}{"{}status"{}})\ ==\ \textcolor{stringliteral}{"{}up"{}}\ \textcolor{keywordflow}{and}\ eth.get(\textcolor{stringliteral}{"{}status"{}})\ ==\ \textcolor{stringliteral}{"{}up"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{if}\ bridge\_healthy:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}●\ Healthy\{RESET\}\ Both\ chains\ reachable"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00123}00123\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}●\ Degraded\{RESET\}\ One\ or\ both\ chains\ unreachable"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00126}00126\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\(\backslash\)n\{MAGENTA\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00127}00127\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00130}\doxymbox{\hyperlink{namespaceomnibus-dashboard_a7431cb90017e54fe695b23d4190db046}{00130}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus-dashboard_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00131}00131\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ ecosystem\ dashboard."{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00132}00132\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ help=\textcolor{stringliteral}{"{}BlockChainCore\ RPC"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00133}00133\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/eth-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8545"{}},\ help=\textcolor{stringliteral}{"{}aweb3\ /\ Liberty\ RPC"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00134}00134\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Zig\ RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00135}00135\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Zig\ RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00136}00136\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/refresh"{}},\ type=int,\ default=0,\ help=\textcolor{stringliteral}{"{}Refresh\ interval\ in\ seconds\ (0\ =\ run\ once)"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00137}00137\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Optional\ static\ JSON\ output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00138}00138\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00140}00140\ \ \ \ \ zig\_auth\ =\ (args.zig\_user,\ args.zig\_password)\ \textcolor{keywordflow}{if}\ args.zig\_user\ \textcolor{keywordflow}{or}\ args.zig\_password\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00142}00142\ \ \ \ \ \textcolor{keywordflow}{if}\ args.refresh\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceomnibus-dashboard_ab052d9550db1a5e1929400da5ae3ab30}{clear\_screen}}()}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(\doxymbox{\hyperlink{namespaceomnibus-dashboard_a9256d967970d3925cabd7094a10c20ff}{render}}(args.zig\_rpc,\ args.eth\_rpc,\ zig\_auth))}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(args.refresh)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)nDashboard\ stopped."{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00151}00151\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ output\ =\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a9256d967970d3925cabd7094a10c20ff}{render}}(args.zig\_rpc,\ args.eth\_rpc,\ zig\_auth)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ print(output)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.output:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Also\ emit\ a\ machine-\/readable\ snapshot}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ snapshot\ =\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}zig"{}}:\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a1d9b9fb9d0a77ea879e370675876a013}{fetch\_zig\_stats}}(args.zig\_rpc,\ zig\_auth),}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}eth"{}}:\ \doxymbox{\hyperlink{namespaceomnibus-dashboard_a3c1361d054fefc92d98a3a2d57f7afd8}{fetch\_eth\_stats}}(args.eth\_rpc),}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(snapshot,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)nSnapshot\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00164}00164\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00167}00167\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{omnibus-dashboard_8py_source_l00168}00168\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespaceomnibus-dashboard_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

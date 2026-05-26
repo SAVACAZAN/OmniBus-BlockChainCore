@@ -1,0 +1,123 @@
+[92m=== OmniBus JSON-RPC Tester  (https://omnibusblockchain.cc:8443/api-mainnet) ===[0m
+[96m
+--- Core (12 methods) ---[0m
+[92m  [PASS] getblockchaininfo                        {"blocks": 30335, "difficulty": 4, "chain": "omnibus-mainnet", "mempool_size": 0[0m
+[92m  [PASS] getblockcount                            30335[0m
+[92m  [PASS] getbestblockhash                         "00004d7f50b914f18e06264cb8fb356d0500cdd9f90d020d43a5ec752699087b"[0m
+[92m  [PASS] getblock                                 {"hash": "0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d80", "he[0m
+[93m  [SKIP] getrawmempool                            not implemented: Method not found[0m
+[92m  [PASS] getmempoolinfo                           {"size": 0, "bytes": 0}[0m
+[92m  [PASS] getpeerinfo                              [][0m
+[92m  [PASS] getnetworkinfo                           {"chain": "omnibus-mainnet", "version": "1.0.0", "blockHeight": 30336, "blockRew[0m
+[92m  [PASS] getnonce                                 {"address": "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0", "nonce": 0, "chainNonc[0m
+[92m  [PASS] getbalance                               {"address": "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0", "balance": 0, "balance[0m
+[92m  [PASS] getrichlist                              {"entries": [{"rank": 1, "address": "ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl"[0m
+[92m  [PASS] listunspent                              {"address": "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0", "utxos": [], "total": [0m
+[96m
+--- Stake (9 methods) ---[0m
+[91m  [FAIL] getstake                                 Missing: address[0m
+[92m  [PASS] getstakers                               {"stakers": [{"address": "ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl", "amount_s[0m
+[92m  [PASS] getvalidators                            {"count": 1, "validators": [{"address": "ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqx[0m
+[92m  [PASS] getvalidatorsv2                          {"total_validators": 0, "active_count": 0, "slashed_count": 0, "current_slot_lea[0m
+[91m  [FAIL] validator_heartbeat                      Missing: from[0m
+[92m  [PASS] getslashevents                           {"events": []}[0m
+[91m  [FAIL] become_validator                         Missing: from[0m
+[91m  [FAIL] stake                                    Missing: from[0m
+[91m  [FAIL] unstake                                  Missing: from[0m
+[96m
+--- Agents (7 methods) ---[0m
+[92m  [PASS] getagents                                {"agents": []}[0m
+[92m  [PASS] agent_list                               {"count": 0, "agents": []}[0m
+[92m  [PASS] getagent                                 null[0m
+[91m  [FAIL] agent_register                           Missing: from[0m
+[91m  [FAIL] agent_unregister                         Missing: from[0m
+[92m  [PASS] agent_edit                               {"status": "ok"}[0m
+[92m  [PASS] agent_follow                             {"status": "ok"}[0m
+[96m
+--- Reputation (2 methods) ---[0m
+[92m  [PASS] getreputation                            {"address": "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0", "cups": {"love": "0.00[0m
+[92m  [PASS] getreputationtop                         {"count": 1, "total": 1, "entries": [{"rank": 1, "address": "ob1qw6zhsqg29aht23f[0m
+[96m
+--- Names (11 methods) ---[0m
+[92m  [PASS] resolvename                              {"name": "savacazan", "tld": "omnibus", "fullLabel": "savacazan.omnibus", "addre[0m
+[92m  [PASS] reverseresolvename                       {"address": "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0", "name": null, "found":[0m
+[91m  [FAIL] registername                             signature and publicKey required (signed mode)[0m
+[91m  [FAIL] transfername                             Name not found[0m
+[91m  [FAIL] renewname                                Name not found[0m
+[92m  [PASS] ns_listTlds                              [{"tld": "omnibus", "fee_sat": 5000000000, "fee_omni": "5", "category": "persona[0m
+[93m  [SKIP] ns_getensfee                             not implemented: Method not found[0m
+[92m  [PASS] ns_yearTiers                             [{"years": 1, "multiplier": 1.0, "per_year_pct": 100}, {"years": 2, "multiplier"[0m
+[92m  [PASS] ns_stats                                 {"total_active": 0, "total_expired": 0, "by_category": {"personal": 0, "bank": 0[0m
+[93m  [SKIP] ns_getNamesByCategory                    not implemented: Method not found[0m
+[91m  [FAIL] ns_expiringSoon                          Missing param: address[0m
+[96m
+--- Notarize (4 methods) ---[0m
+[91m  [FAIL] notarizedoc                              Missing: from[0m
+[91m  [FAIL] verifynotarize                           Missing: doc_hash[0m
+[91m  [FAIL] revokenotarize                           Missing: from[0m
+[91m  [FAIL] getnotarizations                         Missing: address[0m
+[96m
+--- Subscriptions (3 methods) ---[0m
+[91m  [FAIL] sub_create                               Missing: from[0m
+[91m  [FAIL] sub_cancel                               Missing: from[0m
+[91m  [FAIL] getsubscriptions                         transport: non-json[0m
+[96m
+--- Escrow (6 methods) ---[0m
+[91m  [FAIL] escrow_create                            Missing: from[0m
+[91m  [FAIL] escrow_release                           Missing: from[0m
+[91m  [FAIL] escrow_refund                            Missing: from[0m
+[91m  [FAIL] escrow_dispute                           Missing: from[0m
+[92m  [PASS] getescrow                                null[0m
+[91m  [FAIL] getescrows                               transport: non-json[0m
+[96m
+--- Channels (4 methods) ---[0m
+[91m  [FAIL] openchannel                              party_b must be 66-char hex[0m
+[91m  [FAIL] channelpay                               Missing channel_id[0m
+[91m  [FAIL] closechannel                             Missing channel_id[0m
+[92m  [PASS] getchannels                              {"summary": {"total_channels": 0, "open": 0, "closing": 0, "settled": 0, "disput[0m
+[96m
+--- Multisig (2 methods) ---[0m
+[91m  [FAIL] createmultisig                           Invalid M (threshold): must be 1-16[0m
+[91m  [FAIL] sendmultisig                             Missing param: multisig_address[0m
+[96m
+--- Oracle (5 methods) ---[0m
+[92m  [PASS] omnibus_getexchangefeed                  {"prices": [{"exchange": "Coinbase", "pair": "BTC/USD", "bidMicroUsd": 808858000[0m
+[92m  [PASS] omnibus_getallprices                     {"prices": [{"exchange": "Kraken", "pair": "USDC/EUR", "bidMicroUsd": 848900, "a[0m
+[92m  [PASS] omnibus_getarbitrage                     {"opportunities": [{"pair": "LCX/USD", "buyAt": "Kraken", "buyAskMicroUsd": 3773[0m
+[92m  [PASS] omnibus_getoracleprices                  [][0m
+[92m  [PASS] omnibus_getoraclepolicy                  {"warn_pct": 2.0, "reject_pct": 5.0, "fillgap_pct": 10.0, "enabled": true}[0m
+[96m
+--- Grid (4 methods) ---[0m
+[92m  [PASS] grid_create                              {"grid_id": 1, "pair_id": 0, "levels_generated": 10, "buy_orders": 5, "sell_orde[0m
+[91m  [FAIL] grid_cancel                              Missing owner[0m
+[92m  [PASS] grid_list                                [{"grid_id": 1, "pair_id": 0, "owner": "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9z[0m
+[91m  [FAIL] grid_status                              Grid not found[0m
+[96m
+--- Exchange (5 methods) ---[0m
+[92m  [PASS] exchange_listPairs                       [{"id": 0, "base": "OMNI", "quote": "USDC", "label": "OMNI/USDC"}, {"id": 1, "ba[0m
+[92m  [PASS] exchange_pairInfo                        {"pair_id": 0, "base": "OMNI", "quote": "USDC", "maker_chains": [{"chain": "Omni[0m
+[93m  [SKIP] exchange_listOrders                      not implemented: Method not found[0m
+[92m  [PASS] exchange_getUserOrders                   [][0m
+[93m  [SKIP] exchange_getRecentTrades                 not implemented: Method not found[0m
+[96m
+--- HTLC/Bridge (10 methods) ---[0m
+[91m  [FAIL] htlc_init                                missing receiver[0m
+[91m  [FAIL] htlc_claim                               missing htlc_id[0m
+[91m  [FAIL] htlc_refund                              missing htlc_id[0m
+[91m  [FAIL] bridge_lock                              Missing param: amount_sat[0m
+[91m  [FAIL] bridge_settle                            Missing param: nonce[0m
+[91m  [FAIL] swap_open                                Missing param: order_id[0m
+[91m  [FAIL] swap_lockMaker                           Missing param: swap_id[0m
+[91m  [FAIL] swap_lockTaker                           Missing param: swap_id[0m
+[91m  [FAIL] swap_proveSettle                         Missing param: swap_id[0m
+[93m  [SKIP] swap_refund                              not implemented: Method not found[0m
+[96m
+--- Error Handling ---[0m
+[92m  [PASS] invalid method returns error[0m
+[96m
+--- Summary ---[0m
+[92m  PASS: 40[0m
+[93m  SKIP: 6[0m
+[91m  FAIL: 39[0m
+[92m
+Report written to stress-output/rpc-tester-mainnet.json[0m

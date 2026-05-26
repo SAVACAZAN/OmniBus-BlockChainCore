@@ -1,0 +1,814 @@
+\chapter{Module:\+ {\ttfamily payment\+\_\+channel} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel}{}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel}\index{Module: $<$tt$>$payment\_channel$<$/tt$>$@{Module: $<$tt$>$payment\_channel$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2579}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2579}%
+
+
+\begin{quote}
+Lightning-\/style Layer 2 — open/\+close channels, HTLC (Hash Time-\/\+Locked Contracts), off-\/chain payments, cooperative/\+unilateral close. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+payment\+\_\+channel.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 984 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 25 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 27
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2581}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2581}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2582}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2582}
+
+\begin{DoxyItemize}
+\item \`{}\+Channel\+Update\`{}{\ttfamily Channel\+Update}
+\end{DoxyItemize}— Channel\+Update — signed off-\/chain state between two parties. Both parties must si...
+\begin{DoxyItemize}
+\item \`{}\+Settle\+Tx\`{}{\ttfamily Settle\+Tx}
+\end{DoxyItemize}— Settle\+Tx — on-\/chain settlement transaction pair. When a channel closes, two on-\/c...
+\begin{DoxyItemize}
+\item \`{}\+HTLC\`{}{\ttfamily HTLC}
+\end{DoxyItemize}— HTLC — Hash Time Lock Contract (for multi-\/hop routing) A sends to B conditional ...
+\begin{DoxyItemize}
+\item \`{}\+Payment\+Channel\`{}{\ttfamily Payment\+Channel}
+\end{DoxyItemize}— Payment\+Channel — bidirectional off-\/chain payment channel between two parties.
+
+U...
+\begin{DoxyItemize}
+\item \`{}\+Channel\+Manager\`{}{\ttfamily Channel\+Manager}
+\end{DoxyItemize}— Channel\+Manager — fixed-\/size registry of payment channels. No dynamic allocation ...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2583}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2583}
+
+\begin{DoxyItemize}
+\item 6 constants defined6 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2584}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2584}
+
+\begin{DoxyItemize}
+\item \`{}hash()\`{}{\ttfamily hash()}
+\end{DoxyItemize}— Compute deterministic hash of this state update (for on-\/chain verifica...
+\begin{DoxyItemize}
+\item \`{}verify()\`{}{\ttfamily verify()}
+\end{DoxyItemize}— Verify that both signatures are non-\/zero (placeholder for real sig ver...
+\begin{DoxyItemize}
+\item \`{}total\+Balance()\`{}{\ttfamily total\+Balance()}
+\end{DoxyItemize}— Performs the total balance operation on the payment\+\_\+channel module.
+\begin{DoxyItemize}
+\item \`{}from\+Update()\`{}{\ttfamily from\+Update()}
+\end{DoxyItemize}— Generate deterministic TX hashes from channel state
+\begin{DoxyItemize}
+\item \`{}reveal()\`{}{\ttfamily reveal()}
+\end{DoxyItemize}— Check if preimage unlocks the HTLC
+\begin{DoxyItemize}
+\item \`{}is\+Expired()\`{}{\ttfamily is\+Expired()}
+\end{DoxyItemize}— Checks whether the expired condition is true.
+\begin{DoxyItemize}
+\item \`{}open()\`{}{\ttfamily open()}
+\end{DoxyItemize}— Open a new payment channel between two parties. Both parties lock fund...
+\begin{DoxyItemize}
+\item \`{}open\+With\+Id()\`{}{\ttfamily open\+With\+Id()}
+\end{DoxyItemize}— Open with explicit channel\+\_\+id (deterministic, for testing)
+\begin{DoxyItemize}
+\item \`{}pay()\`{}{\ttfamily pay()}
+\end{DoxyItemize}— Off-\/chain payment:\+ transfer amount from one party to the other. Both p...
+\begin{DoxyItemize}
+\item \`{}cooperative\+Close()\`{}{\ttfamily cooperative\+Close()}
+\end{DoxyItemize}— Cooperative close:\+ both parties agree on final state, no dispute neede...
+\begin{DoxyItemize}
+\item \`{}unilateral\+Close()\`{}{\ttfamily unilateral\+Close()}
+\end{DoxyItemize}— Unilateral close:\+ one party submits their latest signed state. Starts ...
+\begin{DoxyItemize}
+\item \`{}dispute()\`{}{\ttfamily dispute()}
+\end{DoxyItemize}— Dispute:\+ counterparty submits a state with higher sequence\+\_\+num. Return...
+\begin{DoxyItemize}
+\item \`{}settle()\`{}{\ttfamily settle()}
+\end{DoxyItemize}— Settle:\+ finalize the channel on-\/chain after dispute window expires. Ca...
+\begin{DoxyItemize}
+\item \`{}add\+HTLC()\`{}{\ttfamily add\+HTLC()}
+\end{DoxyItemize}— Add an HTLC to this channel (for multi-\/hop routing)
+\begin{DoxyItemize}
+\item \`{}reveal\+HTLC()\`{}{\ttfamily reveal\+HTLC()}
+\end{DoxyItemize}— Reveal preimage for an HTLC (unlocks payment)
+\begin{DoxyItemize}
+\item \`{}current\+Update()\`{}{\ttfamily current\+Update()}
+\end{DoxyItemize}— Get the current state as a Channel\+Update
+\begin{DoxyItemize}
+\item \`{}get\+Channel\+Id\+Hex()\`{}{\ttfamily get\+Channel\+Id\+Hex()}
+\end{DoxyItemize}— Format channel\+\_\+id as hex string into provided buffer
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}open\+Channel()\`{}{\ttfamily open\+Channel()}
+\end{DoxyItemize}— Open a new channel and add it to the registry. Returns a pointer to th...
+\begin{DoxyItemize}
+\item \`{}find\+Channel()\`{}{\ttfamily find\+Channel()}
+\end{DoxyItemize}— Find a channel by its ID. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}close\+Channel()\`{}{\ttfamily close\+Channel()}
+\end{DoxyItemize}— Close a channel (cooperative close). Returns the settlement TX.
+\begin{DoxyItemize}
+\item \`{}get\+All\+Channels()\`{}{\ttfamily get\+All\+Channels()}
+\end{DoxyItemize}— Get a slice of all channels (active and inactive).
+\begin{DoxyItemize}
+\item \`{}count\+By\+State()\`{}{\ttfamily count\+By\+State()}
+\end{DoxyItemize}— Count channels in a specific state.
+\begin{DoxyItemize}
+\item \`{}get\+Total\+Locked\+Sat()\`{}{\ttfamily get\+Total\+Locked\+Sat()}
+\end{DoxyItemize}— Get total SAT locked across all open/\+closing channels.
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the payment\+\_\+channel module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2586}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2586}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2587}{}\doxysubsection{\texorpdfstring{{\ttfamily Channel\+Update}}{{\ttfamily Channel\+Update}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2587}
+Channel\+Update — signed off-\/chain state between two parties. Both parties must sign each update. Higher sequence\+\_\+num = newer state.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily channel\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Channel\+\_\+id  \\
+{\ttfamily sequence\+\_\+num}  &{\ttfamily u64}  &Sequence\+\_\+num  \\
+{\ttfamily balance\+\_\+a}  &{\ttfamily u64}  &Balance\+\_\+a  \\
+{\ttfamily balance\+\_\+b}  &{\ttfamily u64}  &Balance\+\_\+b  \\
+{\ttfamily sig\+\_\+a}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+a  \\
+{\ttfamily sig\+\_\+b}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 35}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2589}{}\doxysubsection{\texorpdfstring{{\ttfamily Settle\+Tx}}{{\ttfamily Settle\+Tx}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2589}
+Settle\+Tx — on-\/chain settlement transaction pair. When a channel closes, two on-\/chain TXs are created:\+ tx\+\_\+hash\+\_\+a:\+ returns A\textquotesingle{}s final balance to A\textquotesingle{}s address tx\+\_\+hash\+\_\+b:\+ returns B\textquotesingle{}s final balance to B\textquotesingle{}s address
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily channel\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Channel\+\_\+id  \\
+{\ttfamily final\+\_\+balance\+\_\+a}  &{\ttfamily u64}  &Final\+\_\+balance\+\_\+a  \\
+{\ttfamily final\+\_\+balance\+\_\+b}  &{\ttfamily u64}  &Final\+\_\+balance\+\_\+b  \\
+{\ttfamily settle\+\_\+block}  &{\ttfamily u64}  &Settle\+\_\+block  \\
+{\ttfamily tx\+\_\+hash\+\_\+a}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash\+\_\+a  \\
+{\ttfamily tx\+\_\+hash\+\_\+b}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 99}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2591}{}\doxysubsection{\texorpdfstring{{\ttfamily HTLC}}{{\ttfamily HTLC}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2591}
+HTLC — Hash Time Lock Contract (for multi-\/hop routing) A sends to B conditional on revealing a secret (preimage)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily htlc\+\_\+id}  &{\ttfamily u32}  &Htlc\+\_\+id  \\
+{\ttfamily hash\+\_\+lock}  &{\ttfamily \+[32]\+u8}  &Hash\+\_\+lock  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+{\ttfamily timeout\+\_\+block}  &{\ttfamily u64}  &Timeout\+\_\+block  \\
+{\ttfamily revealed}  &{\ttfamily bool}  &Revealed  \\
+{\ttfamily preimage}  &{\ttfamily \+[32]\+u8}  &Preimage  \\
+{\ttfamily preimage\+\_\+set}  &{\ttfamily bool}  &Preimage\+\_\+set  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 141}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2593}{}\doxysubsection{\texorpdfstring{{\ttfamily Payment\+Channel}}{{\ttfamily Payment\+Channel}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2593}
+Payment\+Channel — bidirectional off-\/chain payment channel between two parties.
+
+Uses fixed-\/size arrays (no dynamic allocation after init) for bare-\/metal compat. Each channel holds up to MAX\+\_\+\+HTLCS\+\_\+\+PER\+\_\+\+CHANNEL pending HTLCs.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily channel\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Channel\+\_\+id  \\
+{\ttfamily party\+\_\+a}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+a  \\
+{\ttfamily party\+\_\+b}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+b  \\
+{\ttfamily balance\+\_\+a}  &{\ttfamily u64}  &Balance\+\_\+a  \\
+{\ttfamily balance\+\_\+b}  &{\ttfamily u64}  &Balance\+\_\+b  \\
+{\ttfamily total\+\_\+locked}  &{\ttfamily u64}  &Total\+\_\+locked  \\
+{\ttfamily sequence\+\_\+num}  &{\ttfamily u64}  &Sequence\+\_\+num  \\
+{\ttfamily state}  &{\ttfamily Channel\+State}  &State  \\
+{\ttfamily funding\+\_\+tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Funding\+\_\+tx\+\_\+hash  \\
+{\ttfamily timeout\+\_\+blocks}  &{\ttfamily u64}  &Timeout\+\_\+blocks  \\
+{\ttfamily created\+\_\+at}  &{\ttfamily i64}  &Created\+\_\+at  \\
+{\ttfamily close\+\_\+block}  &{\ttfamily u64}  &Close\+\_\+block  \\
+{\ttfamily pending\+\_\+close\+\_\+update}  &{\ttfamily ?Channel\+Update}  &Pending\+\_\+close\+\_\+update  \\
+{\ttfamily htlcs}  &{\ttfamily \+[MAX\+\_\+\+HTLCS\+\_\+\+PER\+\_\+\+CHANNEL]\+HTLC}  &Htlcs  \\
+{\ttfamily htlc\+\_\+count}  &{\ttfamily u8}  &Htlc\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 175}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2595}{}\doxysubsection{\texorpdfstring{{\ttfamily Channel\+Manager}}{{\ttfamily Channel\+Manager}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2595}
+Channel\+Manager — fixed-\/size registry of payment channels. No dynamic allocation — holds up to MAX\+\_\+\+CHANNELS channels in a flat array. Thread-\/safe via mutex for concurrent RPC access.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily channels}  &{\ttfamily \+[MAX\+\_\+\+CHANNELS]\+Payment\+Channel}  &Channels  \\
+{\ttfamily channel\+\_\+count}  &{\ttfamily u8}  &Channel\+\_\+count  \\
+{\ttfamily mutex}  &{\ttfamily std.\+Thread.\+Mutex}  &Mutex  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 455}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2597}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2597}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily DISPUTE\+\_\+\+WINDOW\+\_\+\+BLOCKS}  &{\ttfamily u64 = 144}  &D i s p u t e\+\_\+ w i n d o w\+\_\+ b l o c k s  \\
+{\ttfamily MAX\+\_\+\+CHANNEL\+\_\+\+AMOUNT}  &{\ttfamily u64 = 21\+\_\+000\+\_\+000 \texorpdfstring{$\ast$}{*} 1\+\_\+000\+\_\+000\+\_\+000}  &M a x\+\_\+ c h a n n e l\+\_\+ a m o u n t  \\
+{\ttfamily MAX\+\_\+\+CHANNELS}  &{\ttfamily usize = 64}  &M a x\+\_\+ c h a n n e l s  \\
+{\ttfamily MAX\+\_\+\+HTLCS\+\_\+\+PER\+\_\+\+CHANNEL}  &{\ttfamily usize = 16}  &M a x\+\_\+ h t l c s\+\_\+ p e r\+\_\+ c h a n n e l  \\
+{\ttfamily SAT\+\_\+\+PER\+\_\+\+OMNI}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000}  &S a t\+\_\+ p e r\+\_\+ o m n i  \\
+{\ttfamily Channel\+State}  &{\ttfamily enum(u8) \{}  &Channel state  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2599}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2599}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2600}{}\doxysubsection{\texorpdfstring{{\ttfamily hash()}}{{\ttfamily hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2600}
+Compute deterministic hash of this state update (for on-\/chain verification). Hash covers channel\+\_\+id + sequence + balances — signatures are NOT included (they authenticate the hash, not the other way around).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hash(self:\ *const\ ChannelUpdate)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Channel\+Update}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2602}{}\doxysubsection{\texorpdfstring{{\ttfamily verify()}}{{\ttfamily verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2602}
+Verify that both signatures are non-\/zero (placeholder for real sig verification). In production this would verify ECDSA/\+\+Schnorr sigs against pk\+\_\+a and pk\+\_\+b. For now:\+ checks that at least one byte of each sig is non-\/zero, and that the update hash matches what was signed.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verify(self:\ *const\ ChannelUpdate,\ pk\_a:\ [33]u8,\ pk\_b:\ [33]u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Channel\+Update}  &The instance  \\
+{\ttfamily pk\+\_\+a}  &{\ttfamily \+[33]\+u8}  &Pk\+\_\+a  \\
+{\ttfamily pk\+\_\+b}  &{\ttfamily \+[33]\+u8}  &Pk\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 69}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2604}{}\doxysubsection{\texorpdfstring{{\ttfamily total\+Balance()}}{{\ttfamily total\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2604}
+Performs the total balance operation on the payment\+\_\+channel module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ totalBalance(self:\ *const\ ChannelUpdate)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Channel\+Update}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 90}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2606}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Update()}}{{\ttfamily from\+Update()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2606}
+Generate deterministic TX hashes from channel state
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromUpdate(update:\ *const\ ChannelUpdate,\ settle\_block:\ u64)\ SettleTx\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily update}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Channel\+Update}  &Update  \\
+{\ttfamily settle\+\_\+block}  &{\ttfamily u64}  &Settle\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Settle\+Tx}
+
+{\itshape Defined at line 108}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2608}{}\doxysubsection{\texorpdfstring{{\ttfamily reveal()}}{{\ttfamily reveal()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2608}
+Check if preimage unlocks the HTLC
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ reveal(self:\ *HTLC,\ pre:\ [32]u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+HTLC}  &The instance  \\
+{\ttfamily pre}  &{\ttfamily \+[32]\+u8}  &Pre  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2610}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Expired()}}{{\ttfamily is\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2610}
+Checks whether the expired condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isExpired(self:\ *const\ HTLC,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const HTLC}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 166}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2612}{}\doxysubsection{\texorpdfstring{{\ttfamily open()}}{{\ttfamily open()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2612}
+Open a new payment channel between two parties. Both parties lock funds on-\/chain; initial off-\/chain balances = deposits.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ open(party\_a:\ [33]u8,\ party\_b:\ [33]u8,\ amount\_a:\ u64,\ amount\_b:\ u64)\ error\{ExceedsMaxAmount,ZeroDeposit\}!PaymentChannel\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily party\+\_\+a}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+a  \\
+{\ttfamily party\+\_\+b}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+b  \\
+{\ttfamily amount\+\_\+a}  &{\ttfamily u64}  &Amount\+\_\+a  \\
+{\ttfamily amount\+\_\+b}  &{\ttfamily u64}  &Amount\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 198}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2614}{}\doxysubsection{\texorpdfstring{{\ttfamily open\+With\+Id()}}{{\ttfamily open\+With\+Id()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2614}
+Open with explicit channel\+\_\+id (deterministic, for testing)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ openWithId(channel\_id:\ [32]u8,\ party\_a:\ [33]u8,\ party\_b:\ [33]u8,\ amount\_a:\ u64,\ amount\_b:\ u64)\ error\{ExceedsMaxAmount,ZeroDeposit\}!PaymentChannel\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily channel\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Channel\+\_\+id  \\
+{\ttfamily party\+\_\+a}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+a  \\
+{\ttfamily party\+\_\+b}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+b  \\
+{\ttfamily amount\+\_\+a}  &{\ttfamily u64}  &Amount\+\_\+a  \\
+{\ttfamily amount\+\_\+b}  &{\ttfamily u64}  &Amount\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 247}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2616}{}\doxysubsection{\texorpdfstring{{\ttfamily pay()}}{{\ttfamily pay()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2616}
+Off-\/chain payment:\+ transfer amount from one party to the other. Both parties must sign the new state. Sequence number increments atomically. Total balance is conserved (invariant:\+ balance\+\_\+a + balance\+\_\+b == total\+\_\+locked).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pay(self:\ *PaymentChannel,\ from\_a\_to\_b:\ bool,\ amount:\ u64,\ sig\_a:\ [64]u8,\ sig\_b:\ [64]u8)\ error\{\ ChannelNotOpen,\ InsufficientBalance,\ BalanceMismatch\ \}!ChannelUpdate\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Payment\+Channel}  &The instance  \\
+{\ttfamily from\+\_\+a\+\_\+to\+\_\+b}  &{\ttfamily bool}  &From\+\_\+a\+\_\+to\+\_\+b  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+{\ttfamily sig\+\_\+a}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+a  \\
+{\ttfamily sig\+\_\+b}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 280}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2618}{}\doxysubsection{\texorpdfstring{{\ttfamily cooperative\+Close()}}{{\ttfamily cooperative\+Close()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2618}
+Cooperative close:\+ both parties agree on final state, no dispute needed. Returns a Settle\+Tx with the final on-\/chain transactions.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ cooperativeClose(self:\ *PaymentChannel,\ sig\_a:\ [64]u8,\ sig\_b:\ [64]u8)\ error\{ChannelNotOpen\}!SettleTx\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Payment\+Channel}  &The instance  \\
+{\ttfamily sig\+\_\+a}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+a  \\
+{\ttfamily sig\+\_\+b}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 321}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2620}{}\doxysubsection{\texorpdfstring{{\ttfamily unilateral\+Close()}}{{\ttfamily unilateral\+Close()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2620}
+Unilateral close:\+ one party submits their latest signed state. Starts the dispute window — counterparty has timeout\+\_\+blocks to submit newer state.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ unilateralClose(self:\ *PaymentChannel,\ submitted\_state:\ ChannelUpdate,\ current\_block:\ u64)\ error\{\ ChannelNotOpen,\ InvalidChannelId,\ BalanceMismatch\ \}!SettleTx\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Payment\+Channel}  &The instance  \\
+{\ttfamily submitted\+\_\+state}  &{\ttfamily Channel\+Update}  &Submitted\+\_\+state  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 341}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2622}{}\doxysubsection{\texorpdfstring{{\ttfamily dispute()}}{{\ttfamily dispute()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2622}
+Dispute:\+ counterparty submits a state with higher sequence\+\_\+num. Returns true if the dispute was successful (newer state accepted).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ dispute(self:\ *PaymentChannel,\ newer\_state:\ ChannelUpdate)\ error\{\ ChannelNotClosing,\ InvalidChannelId,\ StateNotNewer,\ BalanceMismatch\ \}!bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Payment\+Channel}  &The instance  \\
+{\ttfamily newer\+\_\+state}  &{\ttfamily Channel\+Update}  &Newer\+\_\+state  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 364}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2624}{}\doxysubsection{\texorpdfstring{{\ttfamily settle()}}{{\ttfamily settle()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2624}
+Settle:\+ finalize the channel on-\/chain after dispute window expires. Can be called after closing or disputed state, once timeout has passed.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ settle(self:\ *PaymentChannel,\ current\_block:\ u64)\ error\{\ ChannelNotClosable,\ DisputeWindowActive\ \}!SettleTx\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Payment\+Channel}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 386}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2626}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+HTLC()}}{{\ttfamily add\+HTLC()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2626}
+Add an HTLC to this channel (for multi-\/hop routing)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addHTLC(self:\ *PaymentChannel,\ hash\_lock:\ [32]u8,\ amount\_sat:\ u64,\ timeout\_block:\ u64)\ error\{\ ChannelNotOpen,\ TooManyHTLCs\ \}!u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Payment\+Channel}  &The instance  \\
+{\ttfamily hash\+\_\+lock}  &{\ttfamily \+[32]\+u8}  &Hash\+\_\+lock  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+{\ttfamily timeout\+\_\+block}  &{\ttfamily u64}  &Timeout\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 409}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2628}{}\doxysubsection{\texorpdfstring{{\ttfamily reveal\+HTLC()}}{{\ttfamily reveal\+HTLC()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2628}
+Reveal preimage for an HTLC (unlocks payment)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ revealHTLC(self:\ *PaymentChannel,\ htlc\_id:\ u32,\ preimage:\ [32]u8)\ error\{\ HTLCNotFound,\ InvalidPreimage\ \}!void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Payment\+Channel}  &The instance  \\
+{\ttfamily htlc\+\_\+id}  &{\ttfamily u32}  &Htlc\+\_\+id  \\
+{\ttfamily preimage}  &{\ttfamily \+[32]\+u8}  &Preimage  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily error}
+
+{\itshape Defined at line 427}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2630}{}\doxysubsection{\texorpdfstring{{\ttfamily current\+Update()}}{{\ttfamily current\+Update()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2630}
+Get the current state as a Channel\+Update
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ currentUpdate(self:\ *const\ PaymentChannel)\ ChannelUpdate\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Payment\+Channel}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Channel\+Update}
+
+{\itshape Defined at line 435}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2632}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Channel\+Id\+Hex()}}{{\ttfamily get\+Channel\+Id\+Hex()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2632}
+Format channel\+\_\+id as hex string into provided buffer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getChannelIdHex(self:\ *const\ PaymentChannel,\ buf:\ []u8)\ []u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Payment\+Channel}  &The instance  \\
+{\ttfamily buf}  &{\ttfamily \+[]\+u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+u8}
+
+{\itshape Defined at line 447}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2634}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2634}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ ChannelManager\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Channel\+Manager}
+
+{\itshape Defined at line 460}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2636}{}\doxysubsection{\texorpdfstring{{\ttfamily open\+Channel()}}{{\ttfamily open\+Channel()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2636}
+Open a new channel and add it to the registry. Returns a pointer to the newly created channel.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ openChannel(self:\ *ChannelManager,\ party\_a:\ [33]u8,\ party\_b:\ [33]u8,\ amount\_a:\ u64,\ amount\_b:\ u64)\ !*PaymentChannel\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Channel\+Manager}  &The instance  \\
+{\ttfamily party\+\_\+a}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+a  \\
+{\ttfamily party\+\_\+b}  &{\ttfamily \+[33]\+u8}  &Party\+\_\+b  \\
+{\ttfamily amount\+\_\+a}  &{\ttfamily u64}  &Amount\+\_\+a  \\
+{\ttfamily amount\+\_\+b}  &{\ttfamily u64}  &Amount\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\texorpdfstring{$\ast$}{*}\+Payment\+Channel}
+
+{\itshape Defined at line 470}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2638}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Channel()}}{{\ttfamily find\+Channel()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2638}
+Find a channel by its ID. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findChannel(self:\ *ChannelManager,\ channel\_id:\ [32]u8)\ ?*PaymentChannel\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Channel\+Manager}  &The instance  \\
+{\ttfamily channel\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Channel\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}\+Payment\+Channel}
+
+{\itshape Defined at line 484}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2640}{}\doxysubsection{\texorpdfstring{{\ttfamily close\+Channel()}}{{\ttfamily close\+Channel()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2640}
+Close a channel (cooperative close). Returns the settlement TX.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ closeChannel(self:\ *ChannelManager,\ channel\_id:\ [32]u8,\ sig\_a:\ [64]u8,\ sig\_b:\ [64]u8)\ !SettleTx\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Channel\+Manager}  &The instance  \\
+{\ttfamily channel\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Channel\+\_\+id  \\
+{\ttfamily sig\+\_\+a}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+a  \\
+{\ttfamily sig\+\_\+b}  &{\ttfamily \+[64]\+u8}  &Sig\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Settle\+Tx}
+
+{\itshape Defined at line 492}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2642}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+All\+Channels()}}{{\ttfamily get\+All\+Channels()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2642}
+Get a slice of all channels (active and inactive).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAllChannels(self:\ *ChannelManager)\ []PaymentChannel\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Channel\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+Payment\+Channel}
+
+{\itshape Defined at line 501}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2644}{}\doxysubsection{\texorpdfstring{{\ttfamily count\+By\+State()}}{{\ttfamily count\+By\+State()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2644}
+Count channels in a specific state.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ countByState(self:\ *const\ ChannelManager,\ target\_state:\ ChannelState)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Channel\+Manager}  &The instance  \\
+{\ttfamily target\+\_\+state}  &{\ttfamily Channel\+State}  &Target\+\_\+state  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 506}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2646}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Total\+Locked\+Sat()}}{{\ttfamily get\+Total\+Locked\+Sat()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2646}
+Get total SAT locked across all open/\+closing channels.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTotalLockedSat(self:\ *const\ ChannelManager)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Channel\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 515}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2648}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2payment__channel_autotoc_md2648}
+Performs the print status operation on the payment\+\_\+channel module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ ChannelManager)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Channel\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 525}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

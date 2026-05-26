@@ -1,0 +1,190 @@
+\doxysection{unified-\/health-\/check Namespace Reference}
+\hypertarget{namespaceunified-health-check}{}\label{namespaceunified-health-check}\index{unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespaceunified-health-check_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceunified-health-check_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceunified-health-check_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceunified-health-check_a8827e587bc8b38ab920fe11a76de7aa1}{check\+\_\+zig\+\_\+node}} (str url, tuple\+[str, str]\+\texorpdfstring{$\vert$}{|}None auth=None)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceunified-health-check_a3bea94fd81e873b15c66703b48e0c390}{check\+\_\+eth\+\_\+node}} (str url)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceunified-health-check_a9771031822e1161114b3dbba489fc032}{check\+\_\+eth\+\_\+net\+\_\+version}} (str url)
+\item 
+int \doxymbox{\hyperlink{namespaceunified-health-check_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceunified-health-check_a3571c8742056f6908ce8c52234f7b0c2}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceunified-health-check_a032ca73738fab1ec6fd6e9206368890c}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceunified-health-check_ade001ce0bc83165688e69ee9fbaf2643}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceunified-health-check_a30f2515d5a238a202c1679fae5cb6b24}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceunified-health-check_a956b873fbf9e9a3b6d9be87676917b08}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespaceunified-health-check_doc-func-members}
+\Hypertarget{namespaceunified-health-check_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceunified-health-check_a9771031822e1161114b3dbba489fc032}\index{unified-\/health-\/check@{unified-\/health-\/check}!check\_eth\_net\_version@{check\_eth\_net\_version}}
+\index{check\_eth\_net\_version@{check\_eth\_net\_version}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{check\_eth\_net\_version()}{check\_eth\_net\_version()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a9771031822e1161114b3dbba489fc032} 
+ dict\+[str, Any]\+ check\+\_\+eth\+\_\+net\+\_\+version (\begin{DoxyParamCaption}\item[{str}]{url}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceunified-health-check_a3bea94fd81e873b15c66703b48e0c390}\index{unified-\/health-\/check@{unified-\/health-\/check}!check\_eth\_node@{check\_eth\_node}}
+\index{check\_eth\_node@{check\_eth\_node}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{check\_eth\_node()}{check\_eth\_node()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a3bea94fd81e873b15c66703b48e0c390} 
+ dict\+[str, Any]\+ check\+\_\+eth\+\_\+node (\begin{DoxyParamCaption}\item[{str}]{url}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00067}{67}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceunified-health-check_a8827e587bc8b38ab920fe11a76de7aa1}\index{unified-\/health-\/check@{unified-\/health-\/check}!check\_zig\_node@{check\_zig\_node}}
+\index{check\_zig\_node@{check\_zig\_node}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{check\_zig\_node()}{check\_zig\_node()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a8827e587bc8b38ab920fe11a76de7aa1} 
+ dict\+[str, Any]\+ check\+\_\+zig\+\_\+node (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{tuple\+[str, str]\+ \texorpdfstring{$\vert$}{|} None }]{auth}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceunified-health-check_abf994b8269849d29e07697ea8a840f74}\index{unified-\/health-\/check@{unified-\/health-\/check}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceunified-health-check_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{unified-\/health-\/check@{unified-\/health-\/check}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{unified-\/health-\/check@{unified-\/health-\/check}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceunified-health-check_adf0e2aa4d06b5ca38e44721821eca783}\index{unified-\/health-\/check@{unified-\/health-\/check}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+\Hypertarget{namespaceunified-health-check_a7431cb90017e54fe695b23d4190db046}\index{unified-\/health-\/check@{unified-\/health-\/check}!main@{main}}
+\index{main@{main}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00094}{94}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+
+
+\label{namespaceunified-health-check_doc-var-members}
+\Hypertarget{namespaceunified-health-check_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceunified-health-check_a30f2515d5a238a202c1679fae5cb6b24}\index{unified-\/health-\/check@{unified-\/health-\/check}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a30f2515d5a238a202c1679fae5cb6b24} 
+str \doxymbox{\hyperlink{namespaceunified}{unified}}-\/health-\/check.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+\Hypertarget{namespaceunified-health-check_a3571c8742056f6908ce8c52234f7b0c2}\index{unified-\/health-\/check@{unified-\/health-\/check}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a3571c8742056f6908ce8c52234f7b0c2} 
+str \doxymbox{\hyperlink{namespaceunified}{unified}}-\/health-\/check.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+\Hypertarget{namespaceunified-health-check_a032ca73738fab1ec6fd6e9206368890c}\index{unified-\/health-\/check@{unified-\/health-\/check}!RED@{RED}}
+\index{RED@{RED}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a032ca73738fab1ec6fd6e9206368890c} 
+str \doxymbox{\hyperlink{namespaceunified}{unified}}-\/health-\/check.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+\Hypertarget{namespaceunified-health-check_a956b873fbf9e9a3b6d9be87676917b08}\index{unified-\/health-\/check@{unified-\/health-\/check}!RESET@{RESET}}
+\index{RESET@{RESET}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_a956b873fbf9e9a3b6d9be87676917b08} 
+str \doxymbox{\hyperlink{namespaceunified}{unified}}-\/health-\/check.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+
+\Hypertarget{namespaceunified-health-check_ade001ce0bc83165688e69ee9fbaf2643}\index{unified-\/health-\/check@{unified-\/health-\/check}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!unified-\/health-\/check@{unified-\/health-\/check}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespaceunified-health-check_ade001ce0bc83165688e69ee9fbaf2643} 
+str \doxymbox{\hyperlink{namespaceunified}{unified}}-\/health-\/check.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{unified-health-check_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{unified-health-check_8py_source}{unified-\/health-\/check.\+py}}.
+

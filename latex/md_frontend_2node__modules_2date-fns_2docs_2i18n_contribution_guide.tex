@@ -1,0 +1,945 @@
+\chapter{I18n Contribution Guide }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide}{}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide}\index{I18n Contribution Guide@{I18n Contribution Guide}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6342}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6342}%
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6343}{}\doxysection{\texorpdfstring{Table of Contents}{Table of Contents}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6343}
+
+\begin{DoxyItemize}
+\item Adding a new localeAdding a new locale
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item Choosing a directory name for a localeChoosing a directory name for a locale
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item index.jsindex.\+js
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item localizelocalize
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item localize.ordinal\+Numberlocalize.\+ordinal\+Number
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item localize.era and using build\+Localize\+Fn functionlocalize.\+era and using build\+Localize\+Fn function
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item Formatting localizersFormatting localizers
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item localize.quarterlocalize.\+quarter
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item localize.monthlocalize.\+month
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item localize.daylocalize.\+day
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item localize.day\+Periodlocalize.\+day\+Period
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item format\+Longformat\+Long
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item format\+Long.date\+Formatsformat\+Long.\+date\+Formats
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item format\+Long.time\+Formatsformat\+Long.\+time\+Formats
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item format\+Long.date\+Time\+Formatsformat\+Long.\+date\+Time\+Formats
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item format\+Relativeformat\+Relative
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item matchmatch
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item format\+Distanceformat\+Distance
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item \doxylink{dir_59425e443f801f1f2fd8bbe4959a3ccf}{Tests}Tests
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item Creating a locale with the same language as another localeCreating a locale with the same language as another locale
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6344}{}\doxysection{\texorpdfstring{Adding a new locale}{Adding a new locale}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6344}
+To add a new locale:\+
+
+
+\begin{DoxyItemize}
+\item Choose a directory name for itChoose a directory name for it
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item Copy the content of an existing locale (e.\+g. {\ttfamily en-\/\+US}) into the newly created directory.
+\item Replace the values in the content with yours file-\/by-\/file. Use \href{https://www.unicode.org/cldr/charts/32/summary/root.html}{\texttt{CLDR data}} as a point of reference which values to choose.
+\end{DoxyItemize}
+
+All locales contain a number of properties:\+
+
+
+\begin{DoxyItemize}
+\item \`{}format\+Distance\`{}{\ttfamily format\+Distance}
+\end{DoxyItemize}— distance localizer function used by {\ttfamily format\+Distance} and {\ttfamily format\+Distance\+Strict}.
+\begin{DoxyItemize}
+\item \`{}format\+Long\`{}{\ttfamily format\+Long}
+\end{DoxyItemize}— contains long date localizer functions used by {\ttfamily format} and {\ttfamily format\+Relative}.
+\begin{DoxyItemize}
+\item \`{}format\+Relative\`{}{\ttfamily format\+Relative}
+\end{DoxyItemize}— relative date localizer function used by {\ttfamily format\+Relative}.
+\begin{DoxyItemize}
+\item \`{}localize\`{}{\ttfamily localize}
+\end{DoxyItemize}— contains functions, which localize the various date values. Required by {\ttfamily format} and {\ttfamily format\+Relative}.
+\begin{DoxyItemize}
+\item \`{}match\`{}{\ttfamily match}
+\end{DoxyItemize}— contains functions to parse date values. Required by {\ttfamily parse}.
+\begin{DoxyItemize}
+\item \`{}options\`{}{\ttfamily options}
+\end{DoxyItemize}— contains the index of the first day of the week for functions such as {\ttfamily start\+Of\+Week}, and the value which determines the first week of the year for functions like {\ttfamily set\+Week}.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6345}{}\doxysubsection{\texorpdfstring{Choosing a directory name for a locale}{Choosing a directory name for a locale}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6345}
+Use the four letter code for the directory name (e.\+g. {\ttfamily en-\/\+GB}),
+
+Use the two/\+three letter code:\+
+
+
+\begin{DoxyItemize}
+\item if the language code and the country code are the same (e.\+g. {\ttfamily pt} instead of {\ttfamily pt-\/\+PT}).
+\item if the language is used in only one country (e.\+g. {\ttfamily fil} instead of {\ttfamily fil-\/\+PH}).
+\item if all countries who use the language also use the same regional standards:\+ the first day of the week, the week numbering (see:\+ \href{https://en.wikipedia.org/wiki/Week\#Week_numbering}{\texttt{https:\+/\+/\+en.\+wikipedia.\+org/\+wiki/\+\+Week\+\#\+Week\+\_\+numbering}}), calendar date format (see:\+ \href{https://en.wikipedia.org/wiki/Calendar_date}{\texttt{https:\+/\+/\+en.\+wikipedia.\+org/\+wiki/\+\+Calendar\+\_\+date}}) and date representation (see:\+ \href{https://en.wikipedia.org/wiki/Date_and_time_representation_by_country}{\texttt{https:\+/\+/\+en.\+wikipedia.\+org/\+wiki/\+\+Date\+\_\+and\+\_\+time\+\_\+representation\+\_\+by\+\_\+country}} and:\+ \href{https://en.wikipedia.org/wiki/Date_format_by_country}{\texttt{https:\+/\+/\+en.\+wikipedia.\+org/\+wiki/\+\+Date\+\_\+format\+\_\+by\+\_\+country}}) (e.\+g. {\ttfamily ca} instead of {\ttfamily ca-\/\+ES} and {\ttfamily ca-\/\+AD}).
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6346}{}\doxysubsection{\texorpdfstring{index.\+js}{index.\+js}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6346}
+Locale\textquotesingle{}s {\ttfamily index.\+js} is where all the properties of the locale are combined in a single file, documented in JSDoc format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ formatDistance\ from\ './\_lib/formatDistance/index.js'}
+\DoxyCodeLine{import\ formatLong\ from\ './\_lib/formatLong/index.js'}
+\DoxyCodeLine{import\ formatRelative\ from\ './\_lib/formatRelative/index.js'}
+\DoxyCodeLine{import\ localize\ from\ './\_lib/localize/index.js'}
+\DoxyCodeLine{import\ match\ from\ './\_lib/match/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{/**}
+\DoxyCodeLine{\ *\ @type\ \{Locale\}}
+\DoxyCodeLine{\ *\ @category\ Locales}
+\DoxyCodeLine{\ *}
+\DoxyCodeLine{\ *\ //\ Name\ of\ the\ locale.}
+\DoxyCodeLine{\ *\ //\ Inside\ the\ parentheses\ -\/\ name\ of\ the\ country\ -\/\ if\ the\ locale\ uses\ the\ four\ letter\ code,\ e.g.\ en-\/US,\ fr-\/CA\ or\ pt-\/BR.}
+\DoxyCodeLine{\ *\ @summary\ English\ locale\ (United\ States).}
+\DoxyCodeLine{\ *}
+\DoxyCodeLine{\ *\ //\ Name\ of\ the\ language\ (used\ by\ https://date-\/fns.org/\ website)}
+\DoxyCodeLine{\ *\ @language\ English}
+\DoxyCodeLine{\ *}
+\DoxyCodeLine{\ *\ //\ ISO\ 639-\/2\ code.\ See\ the\ list\ here:}
+\DoxyCodeLine{\ *\ //\ https://www.loc.gov/standards/iso639-\/2/php/code\_list.php}
+\DoxyCodeLine{\ *\ //\ Used\ by\ https://date-\/fns.org/\ to\ detect\ the\ list\ of\ the\ countries\ that\ uses\ the\ language.}
+\DoxyCodeLine{\ *\ @iso-\/639-\/2\ eng}
+\DoxyCodeLine{\ *}
+\DoxyCodeLine{\ *\ //\ Authors\ of\ the\ locale\ (including\ anyone\ who\ corrected\ or\ fixed\ the\ locale)}
+\DoxyCodeLine{\ *\ @author\ Sasha\ Koss\ [@kossnocorp]\{@link\ https://github.com/kossnocorp\}}
+\DoxyCodeLine{\ *\ @author\ Lesha\ Koss\ [@leshakoss]\{@link\ https://github.com/leshakoss\}}
+\DoxyCodeLine{\ */}
+\DoxyCodeLine{var\ locale\ =\ \{}
+\DoxyCodeLine{\ \ code:\ 'en',}
+\DoxyCodeLine{\ \ formatDistance:\ formatDistance,}
+\DoxyCodeLine{\ \ formatLong:\ formatLong,}
+\DoxyCodeLine{\ \ formatRelative:\ formatRelative,}
+\DoxyCodeLine{\ \ localize:\ localize,}
+\DoxyCodeLine{\ \ match:\ match,}
+\DoxyCodeLine{\ \ options:\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Index\ of\ the\ first\ day\ of\ the\ week.}
+\DoxyCodeLine{\ \ \ \ //\ Sunday\ is\ 0,\ Monday\ is\ 1,\ Saturday\ is\ 6.}
+\DoxyCodeLine{\ \ \ \ weekStartsOn:\ 0,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Nth\ of\ January\ which\ is\ always\ in\ the\ first\ week\ of\ the\ year.\ See:}
+\DoxyCodeLine{\ \ \ \ //\ https://en.wikipedia.org/wiki/Week\#Week\_numbering}
+\DoxyCodeLine{\ \ \ \ //\ http://www.pjh2.de/datetime/weeknumber/wnd.php?l=en}
+\DoxyCodeLine{\ \ \ \ firstWeekContainsDate:\ 1}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ locale}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6347}{}\doxysubsection{\texorpdfstring{localize}{localize}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6347}
+Put this object in {\ttfamily \+\_\+lib/\+localize/\+index.\+js} inside your locale directory. Contains a number of functions for used by {\ttfamily format}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ ordinalNumber,}
+\DoxyCodeLine{\ \ era,}
+\DoxyCodeLine{\ \ quarter,}
+\DoxyCodeLine{\ \ month,}
+\DoxyCodeLine{\ \ day,}
+\DoxyCodeLine{\ \ dayPeriod}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ localize}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6348}{}\doxysubsubsection{\texorpdfstring{localize.\+ordinal\+Number}{localize.\+ordinal\+Number}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6348}
+Function that takes a numeric argument and returns a string with ordinal number:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{function\ ordinalNumber\ (dirtyNumber,\ dirtyOptions)\ \{}
+\DoxyCodeLine{\ \ var\ number\ =\ Number(dirtyNumber)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ var\ rem100\ =\ number\ \%\ 100}
+\DoxyCodeLine{\ \ if\ (rem100\ >\ 20\ ||\ rem100\ <\ 10)\ \{}
+\DoxyCodeLine{\ \ \ \ switch\ (rem100\ \%\ 10)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ case\ 1:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ number\ +\ 'st'}
+\DoxyCodeLine{\ \ \ \ \ \ case\ 2:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ number\ +\ 'nd'}
+\DoxyCodeLine{\ \ \ \ \ \ case\ 3:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ number\ +\ 'rd'}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ return\ number\ +\ 'th'}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ ordinalNumber:\ ordinalNumber,}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+If the form of the ordinal number depends on the grammatical case (or other grammatical structures), use {\ttfamily options.\+unit} argument which could be one of the values \textquotesingle{}year\textquotesingle{}, \textquotesingle{}quarter\textquotesingle{}, \textquotesingle{}month\textquotesingle{}, \textquotesingle{}week\textquotesingle{}, \textquotesingle{}date\textquotesingle{}, \textquotesingle{}day\+Of\+Year\textquotesingle{}, \textquotesingle{}day\textquotesingle{}, \textquotesingle{}hour\textquotesingle{}, \textquotesingle{}minute\textquotesingle{} or \textquotesingle{}second\textquotesingle{}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}ru`\ locale:}
+\DoxyCodeLine{function\ ordinalNumber\ (dirtyNumber,\ dirtyOptions)\ \{}
+\DoxyCodeLine{\ \ var\ options\ =\ dirtyOptions\ ||\ \{\}}
+\DoxyCodeLine{\ \ var\ unit\ =\ String(options.unit)}
+\DoxyCodeLine{\ \ var\ suffix}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ if\ (unit\ ===\ 'date')\ \{}
+\DoxyCodeLine{\ \ \ \ suffix\ =\ '-\/е'}
+\DoxyCodeLine{\ \ \}\ else\ if\ (unit\ ===\ 'week'\ ||\ unit\ ===\ 'minute'\ ||\ unit\ ===\ 'second')\ \{}
+\DoxyCodeLine{\ \ \ \ suffix\ =\ '-\/я'}
+\DoxyCodeLine{\ \ \}\ else\ \{}
+\DoxyCodeLine{\ \ \ \ suffix\ =\ '-\/й'}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ dirtyNumber\ +\ suffix}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6349}{}\doxysubsubsection{\texorpdfstring{localize.\+era and using build\+Localize\+Fn function}{localize.\+era and using build\+Localize\+Fn function}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6349}
+Localizes a numeric era. Takes either 0 or 1 as the first argument. As with many of the {\ttfamily localize} functions, they can be generated by built-\/in {\ttfamily build\+Localize\+Fn} function.
+
+From the CLDR chart, use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1771}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Eras\textquotesingle{}}} values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{import\ buildLocalizeFn\ from\ '../../../\_lib/buildLocalizeFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ eraValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ ['B',\ 'A'],}
+\DoxyCodeLine{\ \ abbreviated:\ ['BC',\ 'AD'],}
+\DoxyCodeLine{\ \ wide:\ ['Before\ Christ',\ 'Anno\ Domini']}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ era:\ buildLocalizeFn(\{}
+\DoxyCodeLine{\ \ \ \ values:\ eraValues,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'wide'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ localize}
+
+\end{DoxyCode}
+
+
+General usage of the function:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ result\ =\ locale.localize.era(1,\ \{width:\ 'abbreviated'\})}
+\DoxyCodeLine{//=>\ 'AD'}
+
+\end{DoxyCode}
+
+
+If {\ttfamily width} is not provided or the {\ttfamily values} object does not contain values for the provided width, {\ttfamily default\+Width} will be used. {\ttfamily default\+Width} should indicate the longest form of the localized value. The same is true for all other {\ttfamily localize} functions. {\ttfamily width} for {\ttfamily localize.\+era} function could be either \textquotesingle{}narrow\textquotesingle{}, \textquotesingle{}abbreviated\textquotesingle{} or \textquotesingle{}wide\textquotesingle{}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ result\ =\ locale.localize.era(1,\ \{width:\ 'foobar'\})}
+\DoxyCodeLine{//=>\ 'Anno\ Domini'}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6350}{}\doxysubsubsection{\texorpdfstring{Formatting localizers}{Formatting localizers}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6350}
+For some languages, there is a difference between "{}stand-\/alone"{} localizers and "{}formatting"{} localizers. "{}\+Stand-\/alone"{} means that the resulting value should make grammatical sense without context. "{}\+Formatting"{} means that the resulting value should be declined using the grammar rules of the language as if the value was a part of a date. For example, for languages with grammatical cases, the stand-\/alone month could be in the nominative case ("{}\+January"{}), and the formatting month could decline as a part of the phrase "{}1st of January"{}. In this case, use parameters {\ttfamily formatting\+Values} and {\ttfamily default\+Formatting\+Width} of {\ttfamily build\+Localize\+Fn} function.
+
+Any localizer could be stand-\/alone and formatting. Check the CLDR chart for the unit to see if stand-\/alone and formatting values are different for a certain unit. If there\textquotesingle{}s no difference (usually it happens in languages without grammatical cases), parameters {\ttfamily formatting\+Values} and {\ttfamily default\+Formatting\+Width} are not needed.
+
+In this example, in Russian language a stand-\/alone month is in the nominative case ("{}январь"{}), and formatting month is in the genitive case ("{}января"{} as in "{}1-\/е января"{}). Notice the different endings:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}ru`\ locale:}
+\DoxyCodeLine{var\ monthValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ ['Я',\ 'Ф',\ 'М',\ 'А',\ 'М',\ 'И',\ 'И',\ 'А',\ 'С',\ 'О',\ 'Н',\ 'Д'],}
+\DoxyCodeLine{\ \ abbreviated:\ ['янв.',\ 'фев.',\ 'март',\ 'апр.',\ 'май',\ 'июнь',\ 'июль',\ 'авг.',\ 'сент.',\ 'окт.',\ 'нояб.',\ 'дек.'],}
+\DoxyCodeLine{\ \ wide:\ ['январь',\ 'февраль',\ 'март',\ 'апрель',\ 'май',\ 'июнь',\ 'июль',\ 'август',\ 'сентябрь',\ 'октябрь',\ 'ноябрь',\ 'декабрь']}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{var\ formattingMonthValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ ['Я',\ 'Ф',\ 'М',\ 'А',\ 'М',\ 'И',\ 'И',\ 'А',\ 'С',\ 'О',\ 'Н',\ 'Д'],}
+\DoxyCodeLine{\ \ abbreviated:\ ['янв.',\ 'фев.',\ 'мар.',\ 'апр.',\ 'мая',\ 'июн.',\ 'июл.',\ 'авг.',\ 'сент.',\ 'окт.',\ 'нояб.',\ 'дек.'],}
+\DoxyCodeLine{\ \ wide:\ ['января',\ 'февраля',\ 'марта',\ 'апреля',\ 'мая',\ 'июня',\ 'июля',\ 'августа',\ 'сентября',\ 'октября',\ 'ноября',\ 'декабря']}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ month:\ buildLocalizeFn(\{}
+\DoxyCodeLine{\ \ \ \ values:\ monthValues,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'wide',}
+\DoxyCodeLine{\ \ \ \ formattingValues:\ formattingMonthValues,}
+\DoxyCodeLine{\ \ \ \ defaultFormattingWidth:\ 'wide'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ localize}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6351}{}\doxysubsubsection{\texorpdfstring{localize.\+quarter}{localize.\+quarter}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6351}
+Localizes a quarter. Takes 1, 2, 3 or 4 as the first argument. {\ttfamily width} could be either \textquotesingle{}narrow\textquotesingle{}, \textquotesingle{}abbreviated\textquotesingle{} or \textquotesingle{}wide\textquotesingle{}. From the CLDR chart, use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1781}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Quarters\textquotesingle{}}} values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{import\ buildLocalizeFn\ from\ '../../../\_lib/buildLocalizeFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ quarterValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ ['1',\ '2',\ '3',\ '4'],}
+\DoxyCodeLine{\ \ abbreviated:\ ['Q1',\ 'Q2',\ 'Q3',\ 'Q4'],}
+\DoxyCodeLine{\ \ wide:\ ['1st\ quarter',\ '2nd\ quarter',\ '3rd\ quarter',\ '4th\ quarter']}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ quarter:\ buildLocalizeFn(\{}
+\DoxyCodeLine{\ \ \ \ values:\ quarterValues,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'wide',}
+\DoxyCodeLine{\ \ \ \ argumentCallback:\ function\ (quarter)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ Number(quarter)\ -\/\ 1}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ localize}
+
+\end{DoxyCode}
+
+
+Note the usage of {\ttfamily argument\+Callback} here. It converts the value passed into {\ttfamily localize.\+quarter} function (one of 1, 2, 3 or 4) into the index of the values array inside {\ttfamily quarter\+Values} (one of 0, 1, 2 or 3).\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6352}{}\doxysubsubsection{\texorpdfstring{localize.\+month}{localize.\+month}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6352}
+Localizes a month. Takes numbers between 0 (for January) and 11 (for December). {\ttfamily width} could be either \textquotesingle{}narrow\textquotesingle{}, \textquotesingle{}abbreviated\textquotesingle{} or \textquotesingle{}wide\textquotesingle{}. From the CLDR chart, use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1793}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Months\textquotesingle{}}} values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{import\ buildLocalizeFn\ from\ '../../../\_lib/buildLocalizeFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ monthValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ ['J',\ 'F',\ 'M',\ 'A',\ 'M',\ 'J',\ 'J',\ 'A',\ 'S',\ 'O',\ 'N',\ 'D'],}
+\DoxyCodeLine{\ \ abbreviated:\ ['Jan',\ 'Feb',\ 'Mar',\ 'Apr',\ 'May',\ 'Jun',\ 'Jul',\ 'Aug',\ 'Sep',\ 'Oct',\ 'Nov',\ 'Dec'],}
+\DoxyCodeLine{\ \ wide:\ ['January',\ 'February',\ 'March',\ 'April',\ 'May',\ 'June',\ 'July',\ 'August',\ 'September',\ 'October',\ 'November',\ 'December']}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ month:\ buildLocalizeFn(\{}
+\DoxyCodeLine{\ \ \ \ values:\ monthValues,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'wide'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ localize}
+
+\end{DoxyCode}
+
+
+{\bfseries{NOTE}}:\+ in English, the names of days of the week and months are capitalized. Check if the same is true for the language you\textquotesingle{}re working on. Generally, formatted dates should look like they are in the middle of a sentence, e.\+g. in Spanish language the weekdays and months should be in the lowercase:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}es`\ locale:}
+\DoxyCodeLine{var\ monthValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ ['E',\ 'F',\ 'M',\ 'A',\ 'M',\ 'J',\ 'J',\ 'A',\ 'S',\ 'O',\ 'N',\ 'D'],}
+\DoxyCodeLine{\ \ abbreviated:\ ['ene.',\ 'feb.',\ 'mar.',\ 'abr.',\ 'may.',\ 'jun.',\ 'jul.',\ 'ago.',\ 'sep.',\ 'oct.',\ 'nov.',\ 'dic.'],}
+\DoxyCodeLine{\ \ wide:\ ['enero',\ 'febrero',\ 'marzo',\ 'abril',\ 'mayo',\ 'junio',\ 'julio',\ 'agosto',\ 'septiembre',\ 'octubre',\ 'noviembre',\ 'diciembre']}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\ttfamily month\+Values.\+narrow} are usually capitalized in every language. Check the CLDR chart for your language.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6353}{}\doxysubsubsection{\texorpdfstring{localize.\+day}{localize.\+day}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6353}
+Localizes a week day. Takes numbers between 0 (for Sunday) and 6 (for Saturday). {\ttfamily width} could be either \textquotesingle{}narrow\textquotesingle{}, \textquotesingle{}short\textquotesingle{}, \textquotesingle{}abbreviated\textquotesingle{} or \textquotesingle{}wide\textquotesingle{}. From the CLDR chart, use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1829}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Days\textquotesingle{}}} values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{import\ buildLocalizeFn\ from\ '../../../\_lib/buildLocalizeFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ dayValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ ['S',\ 'M',\ 'T',\ 'W',\ 'T',\ 'F',\ 'S'],}
+\DoxyCodeLine{\ \ short:\ ['Su',\ 'Mo',\ 'Tu',\ 'We',\ 'Th',\ 'Fr',\ 'Sa'],}
+\DoxyCodeLine{\ \ abbreviated:\ ['Sun',\ 'Mon',\ 'Tue',\ 'Wed',\ 'Thu',\ 'Fri',\ 'Sat'],}
+\DoxyCodeLine{\ \ wide:\ ['Sunday',\ 'Monday',\ 'Tuesday',\ 'Wednesday',\ 'Thursday',\ 'Friday',\ 'Saturday']}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ day:\ buildLocalizeFn(\{}
+\DoxyCodeLine{\ \ \ \ values:\ dayValues,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'wide'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ localize}
+
+\end{DoxyCode}
+
+
+{\bfseries{NOTE}}:\+ the rules of capitalization from {\ttfamily localize.\+month} are also true for {\ttfamily localize.\+day}.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6354}{}\doxysubsubsection{\texorpdfstring{localize.\+day\+Period}{localize.\+day\+Period}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6354}
+Localizes a certain day period. Could take one of these strings as the argument:\+ \textquotesingle{}am\textquotesingle{}, \textquotesingle{}pm\textquotesingle{}, \textquotesingle{}midnight\textquotesingle{}, \textquotesingle{}noon\textquotesingle{}, \textquotesingle{}morning\textquotesingle{}, \textquotesingle{}afternoon\textquotesingle{}, \textquotesingle{}evening\textquotesingle{}, \textquotesingle{}night\textquotesingle{}. {\ttfamily width} could be either \textquotesingle{}narrow\textquotesingle{}, \textquotesingle{}abbreviated\textquotesingle{} or \textquotesingle{}wide\textquotesingle{}. From the CLDR chart, use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1857}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Day periods\textquotesingle{}}} values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{import\ buildLocalizeFn\ from\ '../../../\_lib/buildLocalizeFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ dayPeriodValues\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ \{}
+\DoxyCodeLine{\ \ \ \ am:\ 'a',}
+\DoxyCodeLine{\ \ \ \ pm:\ 'p',}
+\DoxyCodeLine{\ \ \ \ midnight:\ 'mi',}
+\DoxyCodeLine{\ \ \ \ noon:\ 'n',}
+\DoxyCodeLine{\ \ \ \ morning:\ 'in\ the\ morning',}
+\DoxyCodeLine{\ \ \ \ afternoon:\ 'in\ the\ afternoon',}
+\DoxyCodeLine{\ \ \ \ evening:\ 'in\ the\ evening',}
+\DoxyCodeLine{\ \ \ \ night:\ 'at\ night'}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ abbreviated:\ \{}
+\DoxyCodeLine{\ \ \ \ am:\ 'AM',}
+\DoxyCodeLine{\ \ \ \ pm:\ 'PM',}
+\DoxyCodeLine{\ \ \ \ midnight:\ 'midnight',}
+\DoxyCodeLine{\ \ \ \ noon:\ 'noon',}
+\DoxyCodeLine{\ \ \ \ morning:\ 'in\ the\ morning',}
+\DoxyCodeLine{\ \ \ \ afternoon:\ 'in\ the\ afternoon',}
+\DoxyCodeLine{\ \ \ \ evening:\ 'in\ the\ evening',}
+\DoxyCodeLine{\ \ \ \ night:\ 'at\ night'}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ wide:\ \{}
+\DoxyCodeLine{\ \ \ \ am:\ 'a.m.',}
+\DoxyCodeLine{\ \ \ \ pm:\ 'p.m.',}
+\DoxyCodeLine{\ \ \ \ midnight:\ 'midnight',}
+\DoxyCodeLine{\ \ \ \ noon:\ 'noon',}
+\DoxyCodeLine{\ \ \ \ morning:\ 'in\ the\ morning',}
+\DoxyCodeLine{\ \ \ \ afternoon:\ 'in\ the\ afternoon',}
+\DoxyCodeLine{\ \ \ \ evening:\ 'in\ the\ evening',}
+\DoxyCodeLine{\ \ \ \ night:\ 'at\ night'}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ localize\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ dayPeriod:\ buildLocalizeFn(\{}
+\DoxyCodeLine{\ \ \ \ values:\ dayPeriodValues,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'wide'}
+\DoxyCodeLine{\ \ \})}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ localize}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6355}{}\doxysubsection{\texorpdfstring{format\+Long}{format\+Long}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6355}
+Put this object in {\ttfamily \+\_\+lib/\+format\+Long/\+index.\+js} inside your locale directory. Locale date formats written in {\ttfamily format} token string format. See the list of tokens:\+ \href{https://date-fns.org/docs/format}{\texttt{https:\+/\+/\+date-\/fns.\+org/\+docs/\+format}} Use \href{https://en.wikipedia.org/wiki/Date_format_by_country}{\texttt{https:\+/\+/\+en.\+wikipedia.\+org/\+wiki/\+\+Date\+\_\+format\+\_\+by\+\_\+country}} and CLDR chart as the reference.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6356}{}\doxysubsubsection{\texorpdfstring{format\+Long.\+date\+Formats}{format\+Long.\+date\+Formats}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6356}
+Use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1901}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Formats -\/ Standard -\/ Date Formats\textquotesingle{}}} values from the CLDR chart as a reference.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale}
+\DoxyCodeLine{import\ buildFormatLongFn\ from\ '../../../\_lib/buildFormatLongFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ dateFormats\ =\ \{}
+\DoxyCodeLine{\ \ full:\ 'EEEE,\ MMMM\ do,\ y',}
+\DoxyCodeLine{\ \ long:\ 'MMMM\ do,\ y',}
+\DoxyCodeLine{\ \ medium:\ 'MMM\ d,\ y',}
+\DoxyCodeLine{\ \ short:\ 'MM/dd/yyyy'}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ formatLong\ =\ \{}
+\DoxyCodeLine{\ \ date:\ buildFormatLongFn(\{}
+\DoxyCodeLine{\ \ \ \ formats:\ dateFormats,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'full'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ formatLong}
+
+\end{DoxyCode}
+
+
+{\ttfamily date\+Formats.\+long} usually contains the longest form of writing the year, the month, and the day of the month. Use ordinal day of the month (\textquotesingle{}do\textquotesingle{} token) where applicable (date-\/fns, unlike CLDR supports ordinal numbers).
+
+{\ttfamily date\+Formats.\+full} contains the same but with the day of the week.
+
+{\ttfamily date\+Formats.\+medium} contains the same values as {\ttfamily date\+Formats.\+long}, but with short form of month and non-\/ordinal day.
+
+{\ttfamily date\+Formats.\+short} usually contains a strictly numerical form of the date. Pay attention to the order of units (big-\/, little-\/ or middle-\/endian)\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6357}{}\doxysubsubsection{\texorpdfstring{format\+Long.\+time\+Formats}{format\+Long.\+time\+Formats}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6357}
+Use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1906}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Formats -\/ Standard -\/ Time Formats\textquotesingle{}}} values from the CLDR chart as a reference.
+
+Use some variation of \textquotesingle{}h:\+mm aa\textquotesingle{} for 12-\/hour clock locales or \textquotesingle{}H:\+mm\textquotesingle{} for 24-\/hour clock locales. Use the local time separator.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale}
+\DoxyCodeLine{import\ buildFormatLongFn\ from\ '../../../\_lib/buildFormatLongFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ timeFormats\ =\ \{}
+\DoxyCodeLine{\ \ full:\ 'h:mm:ss\ a\ zzzz',}
+\DoxyCodeLine{\ \ long:\ 'h:mm:ss\ a\ z',}
+\DoxyCodeLine{\ \ medium:\ 'h:mm:ss\ a',}
+\DoxyCodeLine{\ \ short:\ 'h:mm\ a'}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ formatLong\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ time:\ buildFormatLongFn(\{}
+\DoxyCodeLine{\ \ \ \ formats:\ timeFormats,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'full'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ formatLong}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6358}{}\doxysubsubsection{\texorpdfstring{format\+Long.\+date\+Time\+Formats}{format\+Long.\+date\+Time\+Formats}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6358}
+Use \href{https://www.unicode.org/cldr/charts/32/summary/en.html\#1910}{\texttt{\textquotesingle{}Date \& Time\textquotesingle{}/\+\textquotesingle{}Gregorian\textquotesingle{}/\+\textquotesingle{}Formats -\/ Standard -\/ Date \& Time Combination Formats\textquotesingle{}}} values from the CLDR chart.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale}
+\DoxyCodeLine{import\ buildFormatLongFn\ from\ '../../../\_lib/buildFormatLongFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ dateTimeFormats\ =\ \{}
+\DoxyCodeLine{\ \ full:\ "{}\{\{date\}\}\ 'at'\ \{\{time\}\}"{},}
+\DoxyCodeLine{\ \ long:\ "{}\{\{date\}\}\ 'at'\ \{\{time\}\}"{},}
+\DoxyCodeLine{\ \ medium:\ '\{\{date\}\},\ \{\{time\}\}',}
+\DoxyCodeLine{\ \ short:\ '\{\{date\}\},\ \{\{time\}\}'}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ formatLong\ =\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\ \ dateTime:\ buildFormatLongFn(\{}
+\DoxyCodeLine{\ \ \ \ formats:\ dateTimeFormats,}
+\DoxyCodeLine{\ \ \ \ defaultWidth:\ 'full'}
+\DoxyCodeLine{\ \ \})}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ formatLong}
+
+\end{DoxyCode}
+
+
+\textquotesingle{}\{\{date\}\}\textquotesingle{} and \textquotesingle{}\{\{time\}\}\textquotesingle{} from the strings will be replaced with the date and time respectively.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6359}{}\doxysubsection{\texorpdfstring{format\+Relative}{format\+Relative}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6359}
+Put this function in {\ttfamily \+\_\+lib/\+format\+Relative/\+index.\+js} inside your locale directory. Relative date formats written in {\ttfamily format} token string format. See the list of tokens:\+ \href{https://date-fns.org/docs/format}{\texttt{https:\+/\+/\+date-\/fns.\+org/\+docs/\+format}}. Has to process {\ttfamily last\+Week}, {\ttfamily yesterday}, {\ttfamily today}, {\ttfamily tomorrow}, {\ttfamily next\+Week} and {\ttfamily other} tokens.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale}
+\DoxyCodeLine{var\ formatRelativeLocale\ =\ \{}
+\DoxyCodeLine{\ \ lastWeek:\ "{}'last'\ eeee\ 'at'\ p"{},}
+\DoxyCodeLine{\ \ yesterday:\ "{}'yesterday\ at'\ p"{},}
+\DoxyCodeLine{\ \ today:\ "{}'today\ at'\ p"{},}
+\DoxyCodeLine{\ \ tomorrow:\ "{}'tomorrow\ at'\ p"{},}
+\DoxyCodeLine{\ \ nextWeek:\ "{}eeee\ 'at'\ p"{},}
+\DoxyCodeLine{\ \ other:\ 'P'}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ function\ formatRelative\ (token,\ date,\ baseDate,\ options)\ \{}
+\DoxyCodeLine{\ \ return\ formatRelativeLocale[token]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+You can use {\ttfamily date} and {\ttfamily base\+Date} supplied to the function for the difficult situations (e.\+g. grammatical genders and cases of the days of the week) Both {\ttfamily date} and {\ttfamily base\+Date} are converted to UTC timezone, which means that you should use UTC methods to take the date values (i.\+e. {\ttfamily date.\+get\+UTCDay()} instead of {\ttfamily date.\+get\+Day()}). You can use UTC functions from {\ttfamily src/\+\+\_\+lib} in date-\/fns root directory if they are available. Don\textquotesingle{}t forget to pass {\ttfamily options} object to them! Example is below. Note the different grammatical case for weekdays (accusative instead of nominative) and declension of word "{}прошлый"{} which depends on the grammatical gender of the weekday:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}ru`\ locale}
+\DoxyCodeLine{import\ isSameUTCWeek\ from\ '../../../../\_lib/isSameUTCWeek/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ accusativeWeekdays\ =\ ['воскресенье',\ 'понедельник',\ 'вторник',\ 'среду',\ 'четверг',\ 'пятницу',\ 'субботу']}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ lastWeek\ (day)\ \{}
+\DoxyCodeLine{\ \ var\ weekday\ =\ accusativeWeekdays[day]}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ switch\ (day)\ \{}
+\DoxyCodeLine{\ \ \ \ case\ 0:}
+\DoxyCodeLine{\ \ \ \ \ \ return\ "{}'в\ прошлое\ "{}\ +\ weekday\ +\ "{}\ в'\ p"{}}
+\DoxyCodeLine{\ \ \ \ case\ 1:}
+\DoxyCodeLine{\ \ \ \ case\ 2:}
+\DoxyCodeLine{\ \ \ \ case\ 4:}
+\DoxyCodeLine{\ \ \ \ \ \ return\ "{}'в\ прошлый\ "{}\ +\ weekday\ +\ "{}\ в'\ p"{}}
+\DoxyCodeLine{\ \ \ \ case\ 3:}
+\DoxyCodeLine{\ \ \ \ case\ 5:}
+\DoxyCodeLine{\ \ \ \ case\ 6:}
+\DoxyCodeLine{\ \ \ \ \ \ return\ "{}'в\ прошлую\ "{}\ +\ weekday\ +\ "{}\ в'\ p"{}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ thisWeek\ (day)\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ nextWeek\ (day)\ \{}
+\DoxyCodeLine{\ \ //\ ...}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ formatRelativeLocale\ =\ \{}
+\DoxyCodeLine{\ \ lastWeek:\ function\ (date,\ baseDate,\ options)\ \{}
+\DoxyCodeLine{\ \ \ \ var\ day\ =\ date.getUTCDay()}
+\DoxyCodeLine{\ \ \ \ if\ (isSameUTCWeek(date,\ baseDate,\ options))\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ thisWeek(day)}
+\DoxyCodeLine{\ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ lastWeek(day)}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ yesterday:\ "{}'вчера\ в'\ p"{},}
+\DoxyCodeLine{\ \ today:\ "{}'сегодня\ в'\ p"{},}
+\DoxyCodeLine{\ \ tomorrow:\ "{}'завтра\ в'\ p"{},}
+\DoxyCodeLine{\ \ nextWeek:\ function\ (date,\ baseDate,\ options)\ \{}
+\DoxyCodeLine{\ \ \ \ var\ day\ =\ date.getUTCDay()}
+\DoxyCodeLine{\ \ \ \ if\ (isSameUTCWeek(date,\ baseDate,\ options))\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ thisWeek(day)}
+\DoxyCodeLine{\ \ \ \ \}\ else\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ nextWeek(day)}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ other:\ 'P'}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ function\ formatRelative\ (token,\ date,\ baseDate,\ options)\ \{}
+\DoxyCodeLine{\ \ var\ format\ =\ formatRelativeLocale[token]}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ if\ (typeof\ format\ ===\ 'function')\ \{}
+\DoxyCodeLine{\ \ \ \ return\ format(date,\ baseDate,\ options)}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ format}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6360}{}\doxysubsection{\texorpdfstring{match}{match}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6360}
+Put this object in {\ttfamily \+\_\+lib/\+match/\+index.\+js} inside your locale directory. Contains the functions used by {\ttfamily parse} to parse a localized value:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{import\ buildMatchPatternFn\ from\ '../../../\_lib/buildMatchPatternFn/index.js'}
+\DoxyCodeLine{import\ buildMatchFn\ from\ '../../../\_lib/buildMatchFn/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ matchOrdinalNumberPattern\ =\ /\string^(\(\backslash\)d+)(th|st|nd|rd)?/i}
+\DoxyCodeLine{var\ parseOrdinalNumberPattern\ =\ /\(\backslash\)d+/i}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ matchEraPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^(b|a)/i,}
+\DoxyCodeLine{\ \ abbreviated:\ /\string^(b\(\backslash\).?\(\backslash\)s?c\(\backslash\).?|b\(\backslash\).?\(\backslash\)s?c\(\backslash\).?\(\backslash\)s?e\(\backslash\).?|a\(\backslash\).?\(\backslash\)s?d\(\backslash\).?|c\(\backslash\).?\(\backslash\)s?e\(\backslash\).?)/i,}
+\DoxyCodeLine{\ \ wide:\ /\string^(before\ christ|before\ common\ era|anno\ domini|common\ era)/i}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{var\ parseEraPatterns\ =\ \{}
+\DoxyCodeLine{\ \ any:\ [/\string^b/i,\ /\string^(a|c)/i]}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ matchQuarterPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^[1234]/i,}
+\DoxyCodeLine{\ \ abbreviated:\ /\string^q[1234]/i,}
+\DoxyCodeLine{\ \ wide:\ /\string^[1234](th|st|nd|rd)?\ quarter/i}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{var\ parseQuarterPatterns\ =\ \{}
+\DoxyCodeLine{\ \ any:\ [/1/i,\ /2/i,\ /3/i,\ /4/i]}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ matchMonthPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^[jfmasond]/i,}
+\DoxyCodeLine{\ \ abbreviated:\ /\string^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i,}
+\DoxyCodeLine{\ \ wide:\ /\string^(january|february|march|april|may|june|july|august|september|october|november|december)/i}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{var\ parseMonthPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ [/\string^j/i,\ /\string^f/i,\ /\string^m/i,\ /\string^a/i,\ /\string^m/i,\ /\string^j/i,\ /\string^j/i,\ /\string^a/i,\ /\string^s/i,\ /\string^o/i,\ /\string^n/i,\ /\string^d/i],}
+\DoxyCodeLine{\ \ any:\ [/\string^ja/i,\ /\string^f/i,\ /\string^mar/i,\ /\string^ap/i,\ /\string^may/i,\ /\string^jun/i,\ /\string^jul/i,\ /\string^au/i,\ /\string^s/i,\ /\string^o/i,\ /\string^n/i,\ /\string^d/i]}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ matchDayPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^[smtwf]/i,}
+\DoxyCodeLine{\ \ short:\ /\string^(su|mo|tu|we|th|fr|sa)/i,}
+\DoxyCodeLine{\ \ abbreviated:\ /\string^(sun|mon|tue|wed|thu|fri|sat)/i,}
+\DoxyCodeLine{\ \ wide:\ /\string^(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/i}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{var\ parseDayPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ [/\string^s/i,\ /\string^m/i,\ /\string^t/i,\ /\string^w/i,\ /\string^t/i,\ /\string^f/i,\ /\string^s/i],}
+\DoxyCodeLine{\ \ any:\ [/\string^su/i,\ /\string^m/i,\ /\string^tu/i,\ /\string^w/i,\ /\string^th/i,\ /\string^f/i,\ /\string^sa/i]}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ matchDayPeriodPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^(a|p|mi|n|(in\ the|at)\ (morning|afternoon|evening|night))/i,}
+\DoxyCodeLine{\ \ any:\ /\string^([ap]\(\backslash\).?\(\backslash\)s?m\(\backslash\).?|midnight|noon|(in\ the|at)\ (morning|afternoon|evening|night))/i}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{var\ parseDayPeriodPatterns\ =\ \{}
+\DoxyCodeLine{\ \ any:\ \{}
+\DoxyCodeLine{\ \ \ \ am:\ /\string^a/i,}
+\DoxyCodeLine{\ \ \ \ pm:\ /\string^p/i,}
+\DoxyCodeLine{\ \ \ \ midnight:\ /\string^mi/i,}
+\DoxyCodeLine{\ \ \ \ noon:\ /\string^no/i,}
+\DoxyCodeLine{\ \ \ \ morning:\ /morning/i,}
+\DoxyCodeLine{\ \ \ \ afternoon:\ /afternoon/i,}
+\DoxyCodeLine{\ \ \ \ evening:\ /evening/i,}
+\DoxyCodeLine{\ \ \ \ night:\ /night/i}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ match\ =\ \{}
+\DoxyCodeLine{\ \ ordinalNumber:\ buildMatchPatternFn(\{}
+\DoxyCodeLine{\ \ \ \ matchPattern:\ matchOrdinalNumberPattern,}
+\DoxyCodeLine{\ \ \ \ parsePattern:\ parseOrdinalNumberPattern,}
+\DoxyCodeLine{\ \ \ \ valueCallback:\ function\ (value)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ parseInt(value,\ 10)}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ era:\ buildMatchFn(\{}
+\DoxyCodeLine{\ \ \ \ matchPatterns:\ matchEraPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultMatchWidth:\ 'wide',}
+\DoxyCodeLine{\ \ \ \ parsePatterns:\ parseEraPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultParseWidth:\ 'any'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ quarter:\ buildMatchFn(\{}
+\DoxyCodeLine{\ \ \ \ matchPatterns:\ matchQuarterPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultMatchWidth:\ 'wide',}
+\DoxyCodeLine{\ \ \ \ parsePatterns:\ parseQuarterPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultParseWidth:\ 'any',}
+\DoxyCodeLine{\ \ \ \ valueCallback:\ function\ (index)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ index\ +\ 1}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ month:\ buildMatchFn(\{}
+\DoxyCodeLine{\ \ \ \ matchPatterns:\ matchMonthPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultMatchWidth:\ 'wide',}
+\DoxyCodeLine{\ \ \ \ parsePatterns:\ parseMonthPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultParseWidth:\ 'any'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ day:\ buildMatchFn(\{}
+\DoxyCodeLine{\ \ \ \ matchPatterns:\ matchDayPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultMatchWidth:\ 'wide',}
+\DoxyCodeLine{\ \ \ \ parsePatterns:\ parseDayPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultParseWidth:\ 'any'}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ dayPeriod:\ buildMatchFn(\{}
+\DoxyCodeLine{\ \ \ \ matchPatterns:\ matchDayPeriodPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultMatchWidth:\ 'any',}
+\DoxyCodeLine{\ \ \ \ parsePatterns:\ parseDayPeriodPatterns,}
+\DoxyCodeLine{\ \ \ \ defaultParseWidth:\ 'any'}
+\DoxyCodeLine{\ \ \})}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ match}
+
+\end{DoxyCode}
+
+
+These functions mirror those in {\ttfamily localize}.
+
+For {\ttfamily match\+Patterns} the patterns should match the whole meaningful word for the parsed value (which will be cut from the string in the process of parsing). {\ttfamily parse\+Patterns} contains patterns to detect one of the values from the result of {\ttfamily match\+Patterns} Note that the patterns for {\ttfamily parse\+Patterns} don\textquotesingle{}t necessary contain the whole word:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{var\ parseDayPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ [/\string^s/i,\ /\string^m/i,\ /\string^t/i,\ /\string^w/i,\ /\string^t/i,\ /\string^f/i,\ /\string^s/i],}
+\DoxyCodeLine{\ \ any:\ [/\string^su/i,\ /\string^m/i,\ /\string^tu/i,\ /\string^w/i,\ /\string^th/i,\ /\string^f/i,\ /\string^sa/i]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+but only the bare minimum to parse the value.
+
+Also note that all patterns have "{}case-\/insensitive"{} flags to match as much arbitrary user input as possible. For the same reason, try to match any variation of diacritical marks:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}eo`\ locale:}
+\DoxyCodeLine{var\ matchDayPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^[dlmĵjvs]/i,}
+\DoxyCodeLine{\ \ short:\ /\string^(di|lu|ma|me|(ĵ|jx|jh|j)a|ve|sa)/i,}
+\DoxyCodeLine{\ \ abbreviated:\ /\string^(dim|lun|mar|mer|(ĵ|jx|jh|j)a(ŭ|ux|uh|u)|ven|sab)/i,}
+\DoxyCodeLine{\ \ wide:\ /\string^(diman(ĉ|cx|ch|c)o|lundo|mardo|merkredo|(ĵ|jx|jh|j)a(ŭ|ux|uh|u)do|vendredo|sabato)/i}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{var\ parseDayPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ [/\string^d/i,\ /\string^l/i,\ /\string^m/i,\ /\string^m/i,\ /\string^(j|ĵ)/i,\ /\string^v/i,\ /\string^s/i],}
+\DoxyCodeLine{\ \ any:\ [/\string^d/i,\ /\string^l/i,\ /\string^ma/i,\ /\string^me/i,\ /\string^(j|ĵ)/i,\ /\string^v/i,\ /\string^s/i]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Here, for the word "{}dimanĉo"{} the functions will match also "{}dimancxo"{}, "{}dimancho"{} and even grammatically incorrect "{}dimanco"{}.
+
+Try to match any possible way of writing the word. Don\textquotesingle{}t forget the grammatical cases:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}ru`\ locale:}
+\DoxyCodeLine{var\ matchMonthPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^[яфмаисонд]/i,}
+\DoxyCodeLine{\ \ abbreviated:\ /\string^(янв|фев|март?|апр|ма[йя]|июн[ья]?|июл[ья]?|авг|сент?|окт|нояб?|дек)/i,}
+\DoxyCodeLine{\ \ wide:\ /\string^(январ[ья]|феврал[ья]|марта?|апрел[ья]|ма[йя]|июн[ья]|июл[ья]|августа?|сентябр[ья]|октябр[ья]|октябр[ья]|ноябр[ья]|декабр[ья])/i}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+and variations of short weekdays and months:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}ru`\ locale:}
+\DoxyCodeLine{var\ matchDayPatterns\ =\ \{}
+\DoxyCodeLine{\ \ narrow:\ /\string^[впсч]/i,}
+\DoxyCodeLine{\ \ short:\ /\string^(вс|во|пн|по|вт|ср|чт|че|пт|пя|сб|су)\(\backslash\).?/i,}
+\DoxyCodeLine{\ \ abbreviated:\ /\string^(вск|вос|пнд|пон|втр|вто|срд|сре|чтв|чет|птн|пят|суб).?/i,}
+\DoxyCodeLine{\ \ wide:\ /\string^(воскресень[ея]|понедельника?|вторника?|сред[аы]|четверга?|пятниц[аы]|суббот[аы])/i}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+(here, the {\ttfamily abbreviated} pattern will match both {\ttfamily вск} and {\ttfamily вос} as the short of {\ttfamily воскресенье} \{Sunday\})
+
+In {\ttfamily match.\+ordinal\+Number} match ordinal numbers as well as non-\/ordinal numbers:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}en-\/US`\ locale:}
+\DoxyCodeLine{var\ matchOrdinalNumberPattern\ =\ /\string^(\(\backslash\)d+)(th|st|nd|rd)?/i}
+
+\end{DoxyCode}
+
+
+Don\textquotesingle{}t forget the grammatical genders:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ \`{}ru`\ locale:}
+\DoxyCodeLine{var\ matchOrdinalNumberPattern\ =\ /\string^(\(\backslash\)d+)(-\/?(е|я|й|ое|ье|ая|ья|ый|ой|ий|ый))?/i}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6361}{}\doxysubsection{\texorpdfstring{format\+Distance}{format\+Distance}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6361}
+{\ttfamily format\+Distance} property of locale is a function which takes three arguments:\+ token passed by date-\/fns\textquotesingle{} {\ttfamily format\+Distance} function (e.\+g. \textquotesingle{}less\+Than\+XMinutes\textquotesingle{}), a number of units to be displayed by the function (e.\+g. {\ttfamily locale.\+format\+Distance(\textquotesingle{}less\+Than\+XMinutes\textquotesingle{}, 5)} would display localized \textquotesingle{}less than 5 minutes\textquotesingle{}) and object with options.
+
+Your best guess is to copy {\ttfamily format\+Distance} property from another locale and change the values.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6362}{}\doxysubsection{\texorpdfstring{Tests}{Tests}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6362}
+To test locales we use snapshots. See \href{https://github.com/date-fns/date-fns/blob/master/src/locale/en-US/snapshot.md}{\texttt{{\ttfamily en-\/\+US} snapshot}} for an example.
+
+To generate snapshots, run {\ttfamily yarn locale-\/snapshots}. The snapshot for the locale you\textquotesingle{}re working on will appear in the root locale directory (e.\+g. {\ttfamily src/\+locales/\+ru/\+snapshot.\+md}).
+
+Once you are done with the locale, generate the snapshot and review the output values.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6363}{}\doxysection{\texorpdfstring{Creating a locale with the same language as another locale}{Creating a locale with the same language as another locale}}\label{md_frontend_2node__modules_2date-fns_2docs_2i18n_contribution_guide_autotoc_md6363}
+Import the locale properties already implemented for the language, but replace unique properties.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Same\ as\ en-\/US}
+\DoxyCodeLine{import\ formatDistance\ from\ '../en-\/US/\_lib/formatDistance/index.js'}
+\DoxyCodeLine{import\ formatRelative\ from\ '../en-\/US/\_lib/formatRelative/index.js'}
+\DoxyCodeLine{import\ localize\ from\ '../en-\/US/\_lib/localize/index.js'}
+\DoxyCodeLine{import\ match\ from\ '../en-\/US/\_lib/match/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Unique\ for\ en-\/GB}
+\DoxyCodeLine{import\ formatLong\ from\ './\_lib/formatLong/index.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{/**}
+\DoxyCodeLine{\ *\ @type\ \{Locale\}}
+\DoxyCodeLine{\ *\ @category\ Locales}
+\DoxyCodeLine{\ *\ @summary\ English\ locale\ (United\ Kingdom).}
+\DoxyCodeLine{\ *\ @language\ English}
+\DoxyCodeLine{\ *\ @iso-\/639-\/2\ eng}
+\DoxyCodeLine{\ *\ @author\ John\ Doe\ [@example]\{@link\ https://github.com/example\}}
+\DoxyCodeLine{\ */}
+\DoxyCodeLine{var\ locale\ =\ \{}
+\DoxyCodeLine{\ \ formatDistance:\ formatDistance,}
+\DoxyCodeLine{\ \ formatLong:\ formatLong,}
+\DoxyCodeLine{\ \ formatRelative:\ formatRelative,}
+\DoxyCodeLine{\ \ localize:\ localize,}
+\DoxyCodeLine{\ \ match:\ match,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Unique\ for\ en-\/GB}
+\DoxyCodeLine{\ \ options:\ \{}
+\DoxyCodeLine{\ \ \ \ weekStartsOn:\ 1,}
+\DoxyCodeLine{\ \ \ \ firstWeekContainsDate:\ 4}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ locale}
+
+\end{DoxyCode}
+ 

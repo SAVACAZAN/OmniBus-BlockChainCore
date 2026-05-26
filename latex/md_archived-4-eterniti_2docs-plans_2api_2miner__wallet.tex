@@ -1,0 +1,382 @@
+\chapter{Module:\+ {\ttfamily miner\+\_\+wallet} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet}{}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet}\index{Module: $<$tt$>$miner\_wallet$<$/tt$>$@{Module: $<$tt$>$miner\_wallet$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2085}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2085}%
+
+
+\begin{quote}
+Miner-\/specific wallet — coinbase TX creation, reward tracking, miner key management. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+miner\+\_\+wallet.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 449 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 12 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 8
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2087}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2087}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2088}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2088}
+
+\begin{DoxyItemize}
+\item \`{}\+Miner\+Wallet\`{}{\ttfamily Miner\+Wallet}
+\end{DoxyItemize}— Miner\+Wallet — a lightweight wallet for virtual miners in the pool. Each miner ge...
+\begin{DoxyItemize}
+\item \`{}\+Miner\+Wallet\+Pool\`{}{\ttfamily Miner\+Wallet\+Pool}
+\end{DoxyItemize}— Global miner wallet pool — stores real key pairs for each virtual miner. Thread-\/...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2089}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2089}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2090}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2090}
+
+\begin{DoxyItemize}
+\item \`{}from\+Mnemonic()\`{}{\ttfamily from\+Mnemonic()}
+\end{DoxyItemize}— Derive a Miner\+Wallet from a BIP-\/39 mnemonic. Uses BIP-\/32 path m/\+44\textquotesingle{}/\+77...
+\begin{DoxyItemize}
+\item \`{}from\+Random()\`{}{\ttfamily from\+Random()}
+\end{DoxyItemize}— Generate a Miner\+Wallet from a random private key (no mnemonic). Addres...
+\begin{DoxyItemize}
+\item \`{}get\+Address()\`{}{\ttfamily get\+Address()}
+\end{DoxyItemize}— Get address as a slice.
+\begin{DoxyItemize}
+\item \`{}get\+Pubkey\+Hex()\`{}{\ttfamily get\+Pubkey\+Hex()}
+\end{DoxyItemize}— Get public key hex as a slice.
+\begin{DoxyItemize}
+\item \`{}wipe\+Key()\`{}{\ttfamily wipe\+Key()}
+\end{DoxyItemize}— Securely wipe private key from memory.
+\begin{DoxyItemize}
+\item \`{}register\+With\+Random\+Key()\`{}{\ttfamily register\+With\+Random\+Key()}
+\end{DoxyItemize}— Register a miner with a random key pair (no mnemonic provided).
+\begin{DoxyItemize}
+\item \`{}find\+By\+Address()\`{}{\ttfamily find\+By\+Address()}
+\end{DoxyItemize}— Look up a miner wallet by address. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}get\+Miner\+For\+Block()\`{}{\ttfamily get\+Miner\+For\+Block()}
+\end{DoxyItemize}— Get miner address for a given block (round-\/robin, same as old Miner\+Poo...
+\begin{DoxyItemize}
+\item \`{}register()\`{}{\ttfamily register()}
+\end{DoxyItemize}— Register a miner in the pool (address only — for backward compat). Als...
+\begin{DoxyItemize}
+\item \`{}update\+Balance()\`{}{\ttfamily update\+Balance()}
+\end{DoxyItemize}— Update cached balance for a miner wallet.
+\begin{DoxyItemize}
+\item \`{}pick\+Auto\+Tx\+Pair()\`{}{\ttfamily pick\+Auto\+Tx\+Pair()}
+\end{DoxyItemize}— Pick two miners with balance \texorpdfstring{$>$}{>} threshold for auto-\/\+TX. Returns (sender\+\_\+...
+\begin{DoxyItemize}
+\item \`{}get\+Wallet\+At()\`{}{\ttfamily get\+Wallet\+At()}
+\end{DoxyItemize}— Get wallet at index (for auto-\/\+TX). Caller must hold no lock.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2092}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2092}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2093}{}\doxysubsection{\texorpdfstring{{\ttfamily Miner\+Wallet}}{{\ttfamily Miner\+Wallet}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2093}
+Miner\+Wallet — a lightweight wallet for virtual miners in the pool. Each miner gets a real secp256k1 key pair and can sign transactions. Unlike the full Wallet (which derives 5 PQ domains), Miner\+Wallet only derives the primary OMNI key (coin\+\_\+type 777) for minimal overhead.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[64]\+u8}  &Address  \\
+{\ttfamily address\+\_\+len}  &{\ttfamily u8}  &Address\+\_\+len  \\
+{\ttfamily private\+\_\+key}  &{\ttfamily \+[32]\+u8}  &Private\+\_\+key  \\
+{\ttfamily balance\+\_\+cache}  &{\ttfamily u64}  &Balance\+\_\+cache  \\
+{\ttfamily has\+\_\+mnemonic}  &{\ttfamily bool}  &Has\+\_\+mnemonic  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 16}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2095}{}\doxysubsection{\texorpdfstring{{\ttfamily Miner\+Wallet\+Pool}}{{\ttfamily Miner\+Wallet\+Pool}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2095}
+Global miner wallet pool — stores real key pairs for each virtual miner. Thread-\/safe:\+ accessed from RPC thread (registration) and mining loop (auto-\/\+TX).
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily wallets}  &{\ttfamily \+[MAX]\+Miner\+Wallet}  &Wallets  \\
+{\ttfamily count}  &{\ttfamily usize}  &Count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 150}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2097}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2097}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MAX}  &{\ttfamily usize = 256}  &M a x  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2099}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2099}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2100}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Mnemonic()}}{{\ttfamily from\+Mnemonic()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2100}
+Derive a Miner\+Wallet from a BIP-\/39 mnemonic. Uses BIP-\/32 path m/\+44\textquotesingle{}/\+777\textquotesingle{}/\+0\textquotesingle{}/\+0/\+0 (OMNI primary).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromMnemonic(mnemonic:\ []const\ u8,\ address\_slice:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !MinerWallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mnemonic}  &{\ttfamily \+[]\+const u8}  &Mnemonic  \\
+{\ttfamily address\+\_\+slice}  &{\ttfamily \+[]\+const u8}  &Address\+\_\+slice  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Miner\+Wallet}
+
+{\itshape Defined at line 35}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2102}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Random()}}{{\ttfamily from\+Random()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2102}
+Generate a Miner\+Wallet from a random private key (no mnemonic). Address is derived from the public key using Hash160.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromRandom(address\_slice:\ []const\ u8)\ !MinerWallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily address\+\_\+slice}  &{\ttfamily \+[]\+const u8}  &Address\+\_\+slice  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Miner\+Wallet}
+
+{\itshape Defined at line 66}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2104}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address()}}{{\ttfamily get\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2104}
+Get address as a slice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ MinerWallet)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 103}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2106}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Pubkey\+Hex()}}{{\ttfamily get\+Pubkey\+Hex()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2106}
+Get public key hex as a slice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPubkeyHex(self:\ *const\ MinerWallet)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 108}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2108}{}\doxysubsection{\texorpdfstring{{\ttfamily wipe\+Key()}}{{\ttfamily wipe\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2108}
+Securely wipe private key from memory.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ wipeKey(self:\ *MinerWallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 141}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2110}{}\doxysubsection{\texorpdfstring{{\ttfamily register\+With\+Random\+Key()}}{{\ttfamily register\+With\+Random\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2110}
+Register a miner with a random key pair (no mnemonic provided).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ registerWithRandomKey(self:\ *MinerWalletPool,\ address:\ []const\ u8)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet\+Pool}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 185}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2112}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+By\+Address()}}{{\ttfamily find\+By\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2112}
+Look up a miner wallet by address. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findByAddress(self:\ *MinerWalletPool,\ address:\ []const\ u8)\ ?*const\ MinerWallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet\+Pool}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Miner\+Wallet}
+
+{\itshape Defined at line 204}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2114}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Miner\+For\+Block()}}{{\ttfamily get\+Miner\+For\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2114}
+Get miner address for a given block (round-\/robin, same as old Miner\+Pool).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMinerForBlock(self:\ *MinerWalletPool,\ block\_num:\ u32,\ fallback:\ []const\ u8)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet\+Pool}  &The instance  \\
+{\ttfamily block\+\_\+num}  &{\ttfamily u32}  &Block\+\_\+num  \\
+{\ttfamily fallback}  &{\ttfamily \+[]\+const u8}  &Fallback  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 216}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2116}{}\doxysubsection{\texorpdfstring{{\ttfamily register()}}{{\ttfamily register()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2116}
+Register a miner in the pool (address only — for backward compat). Also used when the old Miner\+Pool.\+register() path is called. Uses random key derivation since no mnemonic is available.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ register(self:\ *MinerWalletPool,\ addr:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet\+Pool}  &The instance  \\
+{\ttfamily addr}  &{\ttfamily \+[]\+const u8}  &Addr  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 227}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2118}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Balance()}}{{\ttfamily update\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2118}
+Update cached balance for a miner wallet.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateBalance(self:\ *MinerWalletPool,\ address:\ []const\ u8,\ balance:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet\+Pool}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily balance}  &{\ttfamily u64}  &Balance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 232}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2120}{}\doxysubsection{\texorpdfstring{{\ttfamily pick\+Auto\+Tx\+Pair()}}{{\ttfamily pick\+Auto\+Tx\+Pair()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2120}
+Pick two miners with balance \texorpdfstring{$>$}{>} threshold for auto-\/\+TX. Returns (sender\+\_\+index, receiver\+\_\+index) or null if not enough funded miners.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pickAutoTxPair(self:\ *MinerWalletPool,\ min\_balance:\ u64)\ ?struct\ \{\ sender:\ usize,\ receiver:\ usize\ \}\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet\+Pool}  &The instance  \\
+{\ttfamily min\+\_\+balance}  &{\ttfamily u64}  &Min\+\_\+balance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?struct}
+
+{\itshape Defined at line 246}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2122}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Wallet\+At()}}{{\ttfamily get\+Wallet\+At()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__wallet_autotoc_md2122}
+Get wallet at index (for auto-\/\+TX). Caller must hold no lock.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getWalletAt(self:\ *MinerWalletPool,\ index:\ usize)\ ?MinerWallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet\+Pool}  &The instance  \\
+{\ttfamily index}  &{\ttfamily usize}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Miner\+Wallet}
+
+{\itshape Defined at line 275}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

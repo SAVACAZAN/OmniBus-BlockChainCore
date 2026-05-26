@@ -1,0 +1,158 @@
+\doxysection{frontend/\+node\+\_\+modules/\+react-\/smooth Directory Reference}
+\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093}{}\label{dir_e85456502af301a1c7189eb9e7dcf093}\index{frontend/node\_modules/react-\/smooth Directory Reference@{frontend/node\_modules/react-\/smooth Directory Reference}}
+Directory dependency graph for react-\/smooth:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8037}{}\doxysubsection{\texorpdfstring{react-\/smooth}{react-\/smooth}}\label{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8037}
+react-\/smooth is a animation library work on React.
+
+\href{https://badge.fury.io/js/react-smooth}{\texttt{}} \href{https://travis-ci.org/recharts/react-smooth}{\texttt{}} \href{https://www.npmjs.com/package/react-smooth}{\texttt{}} \href{https://gitter.im/recharts/react-smooth?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge}{\texttt{}}\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8038}{}\doxysubsection{\texorpdfstring{install}{install}}\label{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8038}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ -\/-\/save\ react-\/smooth}
+
+\end{DoxyCode}
+\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8039}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8039}
+simple animation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<Animate\ to="{}0"{}\ from="{}1"{}\ attributeName="{}opacity"{}>}
+\DoxyCodeLine{\ \ <div\ />}
+\DoxyCodeLine{</Animate>}
+
+\end{DoxyCode}
+ steps animation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ steps\ =\ [\{}
+\DoxyCodeLine{\ \ style:\ \{}
+\DoxyCodeLine{\ \ \ \ opacity:\ 0,}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ duration:\ 400,}
+\DoxyCodeLine{\},\ \{}
+\DoxyCodeLine{\ \ style:\ \{}
+\DoxyCodeLine{\ \ \ \ opacity:\ 1,}
+\DoxyCodeLine{\ \ \ \ transform:\ 'translate(0,\ 0)',}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ duration:\ 1000,}
+\DoxyCodeLine{\},\ \{}
+\DoxyCodeLine{\ \ style:\ \{}
+\DoxyCodeLine{\ \ \ \ transform:\ 'translate(100px,\ 100px)',}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ duration:\ 1200,}
+\DoxyCodeLine{\}];}
+\DoxyCodeLine{}
+\DoxyCodeLine{<Animate\ steps=\{steps\}>}
+\DoxyCodeLine{\ \ <div\ />}
+\DoxyCodeLine{</Animate>}
+
+\end{DoxyCode}
+ children can be a function
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<Animate\ from=\{\{\ opacity:\ 0\ \}\}}
+\DoxyCodeLine{\ \ to=\{\{\ opacity:\ 1\ \}\}}
+\DoxyCodeLine{\ \ easing="{}ease-\/in"{}}
+\DoxyCodeLine{\ \ >}
+\DoxyCodeLine{\ \ \{}
+\DoxyCodeLine{\ \ \ \ (\{\ opacity\ \})\ =>\ <div\ style=\{\{\ opacity\ \}\}></div>}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{</Animate>}
+
+\end{DoxyCode}
+
+
+you can configure js timing function
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ easing\ =\ configureBezier(0.1,\ 0.1,\ 0.5,\ 0.8);}
+\DoxyCodeLine{const\ easing\ =\ configureSpring(\{\ stiff:\ 170,\ damping:\ 20\ \});}
+
+\end{DoxyCode}
+
+
+group animation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ appear\ =\ \{}
+\DoxyCodeLine{\ \ from:\ 0,}
+\DoxyCodeLine{\ \ to:\ 1,}
+\DoxyCodeLine{\ \ attributeName:\ 'opacity',}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ leave\ =\ \{}
+\DoxyCodeLine{\ \ steps:\ [\{}
+\DoxyCodeLine{\ \ \ \ style:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ transform:\ 'translateX(0)',}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \},\ \{}
+\DoxyCodeLine{\ \ \ \ duration:\ 1000,}
+\DoxyCodeLine{\ \ \ \ style:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ transform:\ 'translateX(300)',}
+\DoxyCodeLine{\ \ \ \ \ \ height:\ 50,}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \},\ \{}
+\DoxyCodeLine{\ \ \ \ duration:\ 2000,}
+\DoxyCodeLine{\ \ \ \ style:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ height:\ 0,}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \}]}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{<AnimateGroup\ appear=\{appear\}\ leave=\{leave\}>}
+\DoxyCodeLine{\ \ \{\ list\ \}}
+\DoxyCodeLine{</AnimateGroup>}
+\DoxyCodeLine{}
+\DoxyCodeLine{/*}
+\DoxyCodeLine{\ *\ \ @description:\ add\ compatible\ prefix\ in\ style}
+\DoxyCodeLine{\ *}
+\DoxyCodeLine{\ *\ \ style\ =\ \{\ transform:\ xxx,\ ...others\ \};}
+\DoxyCodeLine{\ *}
+\DoxyCodeLine{\ *\ \ translatedStyle\ =\ \{}
+\DoxyCodeLine{\ *\ \ \ \ WebkitTransform:\ xxx,}
+\DoxyCodeLine{\ *\ \ \ \ MozTransform:\ xxx,}
+\DoxyCodeLine{\ *\ \ \ \ OTransform:\ xxx,}
+\DoxyCodeLine{\ *\ \ \ \ msTransform:\ xxx,}
+\DoxyCodeLine{\ *\ \ \ \ ...others,}
+\DoxyCodeLine{\ *\ \ \};}
+\DoxyCodeLine{\ */}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ translatedStyle\ =\ translateStyle(style);}
+
+\end{DoxyCode}
+\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8040}{}\doxysubsection{\texorpdfstring{API}{API}}\label{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8040}
+\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8041}{}\doxysubsubsection{\texorpdfstring{Animate}{Animate}}\label{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8041}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{bg=\tableheadbgcolor,font=\bfseries}name&\SetCell{bg=\tableheadbgcolor,font=\bfseries}type&\SetCell{bg=\tableheadbgcolor,font=\bfseries}default&\SetCell{bg=\tableheadbgcolor,font=\bfseries}description\\
+from&string or object&\textquotesingle{}\textquotesingle{}&set the initial style of the children\\
+to&string or object&\textquotesingle{}\textquotesingle{}&set the final style of the children\\
+can\+Begin&boolean&true&whether the animation is start\\
+begin&number&0&animation delay time\\
+duration&number&1000&animation duration\\
+steps&array&\+[]\+&animation keyframes\\
+on\+Animation\+End&function&() =\texorpdfstring{$>$}{>} null&called when animation finished\\
+attribute\+Name&string&\textquotesingle{}\textquotesingle{}&style property\\
+easing&string&\textquotesingle{}ease\textquotesingle{}&the animation timing function, support css timing function temporary\\
+is\+Active&boolean&true&whether the animation is active\\
+children&element&&support only child temporary\\
+\end{DoxyTable}
+\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8042}{}\doxysubsubsection{\texorpdfstring{Animate\+Group}{Animate\+Group}}\label{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8042}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{bg=\tableheadbgcolor,font=\bfseries}name&\SetCell{bg=\tableheadbgcolor,font=\bfseries}type&\SetCell{bg=\tableheadbgcolor,font=\bfseries}default&\SetCell{bg=\tableheadbgcolor,font=\bfseries}description\\
+appear&object&undefined&configure element appear animation\\
+enter&object&undefined&configure element appear animation\\
+leave&object&undefined&configure element appear animation\\
+\end{DoxyTable}
+\hypertarget{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8043}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_e85456502af301a1c7189eb9e7dcf093_autotoc_md8043}
+\href{http://opensource.org/licenses/MIT}{\texttt{MIT}}
+
+Copyright (c) 2015-\/2021 Recharts Group 

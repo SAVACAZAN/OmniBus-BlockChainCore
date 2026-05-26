@@ -52,6 +52,45 @@ Build expects `liboqs.a` at:
 
 ---
 
+## Command Line Interface
+
+OmniBus ships with `omnibus-cli` — a pure-stdlib Zig CLI that gives terminal /
+scripting access to the same chain-state views the React frontend renders
+(balance, stake, reputation, daily breakdown, validator list, sanity check).
+Source: [`core/cli_audit.zig`](core/cli_audit.zig). Build target produced by
+`zig build install` → `zig-out/bin/omnibus-cli(.exe)`.
+
+```sh
+# Local node
+omnibus-cli health
+omnibus-cli balance ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0
+omnibus-cli stake   ob1q...zp0
+omnibus-cli daily   ob1q...zp0 30
+omnibus-cli verify  ob1q...zp0          # exit 1 on chain-vs-history mismatch
+
+# Public testnet (HTTPS via curl)
+omnibus-cli --remote --chain testnet health
+omnibus-cli --remote --chain testnet stakers 20
+
+# JSON output for scripting / jq pipelines
+omnibus-cli --json daily ob1q...zp0 7 \
+  | jq '.result.transactions[] | select(.kind=="coinbase")'
+```
+
+Subcommands: `balance`, `stake`, `reputation`, `daily`, `validators`,
+`stakers`, `health`, `history`, `verify`. The CLI is read-only — signed flows
+(staking, swap, name register, agent register) go through aweb3 or raw
+RPC `curl`. See:
+
+- [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md) — full reference (flags, RPCs, JSON shapes)
+- [`docs/CLI_TUTORIAL.md`](docs/CLI_TUTORIAL.md) — step-by-step tutorials în română
+- [`docs/CLI_COOKBOOK.md`](docs/CLI_COOKBOOK.md) — copy-paste recipes (CSV export, watchers, alerts)
+- [`docs/cli/omnibus-cli.1`](docs/cli/omnibus-cli.1) — Linux man page (nroff)
+- [`scripts/install-cli.sh`](scripts/install-cli.sh) — one-shot installer (binary + man + completion)
+- [`scripts/completion/`](scripts/completion/) — bash, zsh, fish completions
+
+---
+
 ## Address taxonomy (canonical — `STATUS/MASTER_RULES_PQ_OMNI.md`)
 
 OmniBus uses two parallel address families:

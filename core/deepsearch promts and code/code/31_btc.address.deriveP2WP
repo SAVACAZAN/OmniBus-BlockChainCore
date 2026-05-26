@@ -1,0 +1,4 @@
+var builder = btc.tx_builder.TxBuilder.init(allocator);
+const result = try builder.build(utxos, outputs, change_address, change_script, fee_rate);
+try builder.sign(&result.tx, utxos, private_keys);
+const raw_tx = try result.tx.serialize();

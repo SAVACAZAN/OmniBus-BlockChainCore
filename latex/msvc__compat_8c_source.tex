@@ -1,0 +1,18 @@
+\doxysection{msvc\+\_\+compat.\+c}
+\hypertarget{msvc__compat_8c_source}{}\label{msvc__compat_8c_source}\index{evm/msvc\_compat.c@{evm/msvc\_compat.c}}
+\doxymbox{\hyperlink{msvc__compat_8c}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00001}00001\ \textcolor{comment}{/*\ MSVC\ compatibility\ shims\ for\ Zig\ (MinGW\ ABI)\ consuming\ a\ Rust\ MSVC\ staticlib.}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00002}00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00003}00003\ \textcolor{comment}{\ *\ The\ Rust\ toolchain\ on\ x86\_64-\/pc-\/windows-\/msvc\ emits\ references\ to\ \_fltused}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00004}00004\ \textcolor{comment}{\ *\ (a\ flag\ indicating\ the\ binary\ uses\ floating-\/point)\ and\ to\ MSVC\ math/runtime}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00005}00005\ \textcolor{comment}{\ *\ helpers\ that\ the\ GNU/MinGW\ lld-\/link\ toolchain\ shipped\ with\ Zig\ does\ not}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00006}00006\ \textcolor{comment}{\ *\ provide.\ We\ define\ them\ here\ as\ minimal\ stubs\ so\ the\ link\ succeeds.}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00007}00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00008}00008\ \textcolor{comment}{\ *\ Compile\ with:\ zig\ cc\ -\/target\ x86\_64-\/windows-\/gnu\ -\/c\ msvc\_compat.c}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00009}00009\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00011}00011\ \textcolor{comment}{/*\ \_fltused\ is\ just\ a\ flag;\ MSVC\ sets\ it\ to\ 0x9875,\ value\ irrelevant.\ */}}
+\DoxyCodeLine{\Hypertarget{msvc__compat_8c_source_l00012}\doxymbox{\hyperlink{msvc__compat_8c_a4cf04c7a2389a90415c8032ce5e58e50}{00012}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{msvc__compat_8c_a4cf04c7a2389a90415c8032ce5e58e50}{\_fltused}}\ =\ 0x9875;}
+
+\end{DoxyCode}

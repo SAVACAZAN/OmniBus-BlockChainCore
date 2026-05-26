@@ -1,0 +1,56 @@
+\doxysection{frontend/\+node\+\_\+modules/\+loose-\/envify Directory Reference}
+\hypertarget{dir_841e07cccb2e703c4662cd45432f0479}{}\label{dir_841e07cccb2e703c4662cd45432f0479}\index{frontend/node\_modules/loose-\/envify Directory Reference@{frontend/node\_modules/loose-\/envify Directory Reference}}
+Directory dependency graph for loose-\/envify:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7323}{}\doxysubsection{\texorpdfstring{loose-\/envify}{loose-\/envify}}\label{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7323}
+\href{https://travis-ci.org/zertosh/loose-envify}{\texttt{}}
+
+Fast (and loose) selective {\ttfamily process.\+env} replacer using \href{https://github.com/lydell/js-tokens}{\texttt{js-\/tokens}} instead of an AST. Works just like \href{https://github.com/hughsk/envify}{\texttt{envify}} but much faster.\hypertarget{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7324}{}\doxysubsection{\texorpdfstring{Gotchas}{Gotchas}}\label{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7324}
+
+\begin{DoxyItemize}
+\item Doesn\textquotesingle{}t handle broken syntax.
+\item Doesn\textquotesingle{}t look inside embedded expressions in template strings.
+\begin{DoxyItemize}
+\item {\bfseries{this won\textquotesingle{}t work:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{console.log(`the\ current\ env\ is\ \$\{process.env.NODE\_ENV\}`);}
+
+\end{DoxyCode}
+
+\end{DoxyItemize}
+\item Doesn\textquotesingle{}t replace oddly-\/spaced or oddly-\/commented expressions.
+\begin{DoxyItemize}
+\item {\bfseries{this won\textquotesingle{}t work:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{console.log(process./*won't*/env./*work*/NODE\_ENV);}
+
+\end{DoxyCode}
+
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7325}{}\doxysubsection{\texorpdfstring{Usage/\+\+Options}{Usage/\+\+Options}}\label{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7325}
+loose-\/envify has the exact same interface as \href{https://github.com/hughsk/envify}{\texttt{envify}}, including the CLI.\hypertarget{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7326}{}\doxysubsection{\texorpdfstring{Benchmark}{Benchmark}}\label{dir_841e07cccb2e703c4662cd45432f0479_autotoc_md7326}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{envify:}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \$\ for\ i\ in\ \{1..5\};\ do\ node\ bench/bench.js\ 'envify';\ done}
+\DoxyCodeLine{\ \ 708ms}
+\DoxyCodeLine{\ \ 727ms}
+\DoxyCodeLine{\ \ 791ms}
+\DoxyCodeLine{\ \ 719ms}
+\DoxyCodeLine{\ \ 720ms}
+\DoxyCodeLine{}
+\DoxyCodeLine{loose-\/envify:}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \$\ for\ i\ in\ \{1..5\};\ do\ node\ bench/bench.js\ '../';\ done}
+\DoxyCodeLine{\ \ 51ms}
+\DoxyCodeLine{\ \ 52ms}
+\DoxyCodeLine{\ \ 52ms}
+\DoxyCodeLine{\ \ 52ms}
+\DoxyCodeLine{\ \ 52ms}
+
+\end{DoxyCode}
+ 

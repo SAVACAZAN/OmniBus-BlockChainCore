@@ -1,0 +1,317 @@
+\chapter{Module:\+ {\ttfamily crypto} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto}{}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto}\index{Module: $<$tt$>$crypto$<$/tt$>$@{Module: $<$tt$>$crypto$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1384}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1384}%
+
+
+\begin{quote}
+Cryptographic primitives — SHA-\/256, SHA-\/256d (double hash), HMAC-\/\+SHA256, AES-\/256 encryption/\+decryption for key protection. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+crypto.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 185 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 11 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 6
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1386}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1386}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1387}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1387}
+
+\begin{DoxyItemize}
+\item \doxylink{namespacecrypto}{\`{}\+Crypto\`{}}{\ttfamily Crypto}
+\end{DoxyItemize}— Cryptographic primitives for Omni\+Bus blockchain\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1388}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1388}
+
+\begin{DoxyItemize}
+\item \doxylink{namespacesha256}{\`{}sha256()\`{}}{\ttfamily \doxylink{namespacesha256}{sha256()}}
+\end{DoxyItemize}— SHA-\/256 hash
+\begin{DoxyItemize}
+\item \`{}sha256d()\`{}{\ttfamily sha256d()}
+\end{DoxyItemize}— SHA-\/256 double hash (Bitcoin style)
+\begin{DoxyItemize}
+\item \`{}hmac\+Sha256()\`{}{\ttfamily hmac\+Sha256()}
+\end{DoxyItemize}— HMAC-\/\+SHA256
+\begin{DoxyItemize}
+\item \`{}hmac\+Sha512()\`{}{\ttfamily hmac\+Sha512()}
+\end{DoxyItemize}— HMAC-\/\+SHA512 (BIP32 standard)
+\begin{DoxyItemize}
+\item \`{}ripemd160()\`{}{\ttfamily ripemd160()}
+\end{DoxyItemize}— RIPEMD-\/160 (for Bitcoin addresses) Simplified -\/ returns first 20 bytes...
+\begin{DoxyItemize}
+\item \`{}bytes\+To\+Hex()\`{}{\ttfamily bytes\+To\+Hex()}
+\end{DoxyItemize}— Convert bytes to hex string
+\begin{DoxyItemize}
+\item \`{}hex\+To\+Bytes()\`{}{\ttfamily hex\+To\+Bytes()}
+\end{DoxyItemize}— Convert hex string to bytes
+\begin{DoxyItemize}
+\item \`{}random\+Bytes()\`{}{\ttfamily random\+Bytes()}
+\end{DoxyItemize}— Random number generation
+\begin{DoxyItemize}
+\item \`{}encrypt\+AES256()\`{}{\ttfamily encrypt\+AES256()}
+\end{DoxyItemize}— AES-\/256-\/\+GCM encryption — real AEAD, nu XOR Output:\+ \+[nonce:\+12]\+\+[tag:\+16]\+\+[...
+\begin{DoxyItemize}
+\item \`{}decrypt\+AES256()\`{}{\ttfamily decrypt\+AES256()}
+\end{DoxyItemize}— AES-\/256-\/\+GCM decryption — returneaza \+[32]\+u8 plaintext sau error.\+Authent...
+\begin{DoxyItemize}
+\item \`{}is\+Strong\+Password()\`{}{\ttfamily is\+Strong\+Password()}
+\end{DoxyItemize}— Verify password strength
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1390}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1390}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1391}{}\doxysubsection{\texorpdfstring{{\ttfamily Crypto}}{{\ttfamily Crypto}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1391}
+Cryptographic primitives for Omni\+Bus blockchain
+
+{\itshape Defined at line 4}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1393}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1393}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1394}{}\doxysubsection{\texorpdfstring{{\ttfamily sha256()}}{{\ttfamily sha256()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1394}
+SHA-\/256 hash
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sha256(data:\ []const\ u8)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 6}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1396}{}\doxysubsection{\texorpdfstring{{\ttfamily sha256d()}}{{\ttfamily sha256d()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1396}
+SHA-\/256 double hash (Bitcoin style)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sha256d(data:\ []const\ u8)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 15}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1398}{}\doxysubsection{\texorpdfstring{{\ttfamily hmac\+Sha256()}}{{\ttfamily hmac\+Sha256()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1398}
+HMAC-\/\+SHA256
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hmacSha256(key:\ []const\ u8,\ message:\ []const\ u8)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 25}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1400}{}\doxysubsection{\texorpdfstring{{\ttfamily hmac\+Sha512()}}{{\ttfamily hmac\+Sha512()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1400}
+HMAC-\/\+SHA512 (BIP32 standard)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hmacSha512(key:\ []const\ u8,\ message:\ []const\ u8)\ [64]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[64]\+u8}
+
+{\itshape Defined at line 33}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1402}{}\doxysubsection{\texorpdfstring{{\ttfamily ripemd160()}}{{\ttfamily ripemd160()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1402}
+RIPEMD-\/160 (for Bitcoin addresses) Simplified -\/ returns first 20 bytes of SHA256 for now
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ ripemd160(data:\ []const\ u8)\ [20]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[20]\+u8}
+
+{\itshape Defined at line 42}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1404}{}\doxysubsection{\texorpdfstring{{\ttfamily bytes\+To\+Hex()}}{{\ttfamily bytes\+To\+Hex()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1404}
+Convert bytes to hex string
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ bytesToHex(bytes:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bytes}  &{\ttfamily \+[]\+const u8}  &Bytes  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 50}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1406}{}\doxysubsection{\texorpdfstring{{\ttfamily hex\+To\+Bytes()}}{{\ttfamily hex\+To\+Bytes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1406}
+Convert hex string to bytes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hexToBytes(hex:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily hex}  &{\ttfamily \+[]\+const u8}  &Hex  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 63}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1408}{}\doxysubsection{\texorpdfstring{{\ttfamily random\+Bytes()}}{{\ttfamily random\+Bytes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1408}
+Random number generation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ randomBytes(buffer:\ []u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacebuffer}{buffer}}  &{\ttfamily \+[]\+u8}  &Buffer  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1410}{}\doxysubsection{\texorpdfstring{{\ttfamily encrypt\+AES256()}}{{\ttfamily encrypt\+AES256()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1410}
+AES-\/256-\/\+GCM encryption — real AEAD, nu XOR Output:\+ \+[nonce:\+12]\+\+[tag:\+16]\+\+[ciphertext:\+plaintext.\+len]\+ — max plaintext 32 bytes Returneaza buffer de 12+16+32 = 60 bytes (plaintext padding 0 la 32 daca mai scurt)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encryptAES256(plaintext:\ []const\ u8,\ key:\ [32]u8)\ ![60]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily plaintext}  &{\ttfamily \+[]\+const u8}  &Plaintext  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[32]\+u8}  &Key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[60]\+u8}
+
+{\itshape Defined at line 85}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1412}{}\doxysubsection{\texorpdfstring{{\ttfamily decrypt\+AES256()}}{{\ttfamily decrypt\+AES256()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1412}
+AES-\/256-\/\+GCM decryption — returneaza \+[32]\+u8 plaintext sau error.\+Authentication\+Failed
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decryptAES256(ciphertext:\ [60]u8,\ key:\ [32]u8)\ ![32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily ciphertext}  &{\ttfamily \+[60]\+u8}  &Ciphertext  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[32]\+u8}  &Key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[32]\+u8}
+
+{\itshape Defined at line 110}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1414}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Strong\+Password()}}{{\ttfamily is\+Strong\+Password()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2crypto_autotoc_md1414}
+Verify password strength
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isStrongPassword(password:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily password}  &{\ttfamily \+[]\+const u8}  &Password  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 125}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

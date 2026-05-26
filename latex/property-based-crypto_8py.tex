@@ -1,0 +1,74 @@
+\doxysection{tools/\+\+SECURITY/\+property-\/based-\/crypto.py File Reference}
+\hypertarget{property-based-crypto_8py}{}\label{property-based-crypto_8py}\index{tools/SECURITY/property-\/based-\/crypto.py@{tools/SECURITY/property-\/based-\/crypto.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classproperty-based-crypto_1_1_stats}{property-\/based-\/crypto.\+Stats}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceproperty-based-crypto}{property-\/based-\/crypto}}
+\item 
+namespace \doxymbox{\hyperlink{namespaceproperty}{property}}
+\begin{DoxyCompactList}\small\item\em -\/based-\/crypto \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bytes \doxymbox{\hyperlink{namespaceproperty-based-crypto_aa2a0b0aaf5450e14de51acbd4dcd4dd7}{property-\/based-\/crypto.\+sha256}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespaceproperty-based-crypto_a6f1759e66e7265068efadd6e05c02f97}{property-\/based-\/crypto.\+double\+\_\+sha256}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespaceproperty-based-crypto_a6e83d5fcc814d9442fcba84b6f3e2277}{property-\/based-\/crypto.\+hmac\+\_\+sha512}} (bytes key, bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespaceproperty-based-crypto_a5d0ed117e4cf88458827b24ff19872d3}{property-\/based-\/crypto.\+random\+\_\+privkey}} ()
+\item 
+tuple \doxymbox{\hyperlink{namespaceproperty-based-crypto_aa5da2087d6596b0c030aa90ea62a98fb}{property-\/based-\/crypto.\+bip32\+\_\+master}} (bytes seed)
+\item 
+tuple \doxymbox{\hyperlink{namespaceproperty-based-crypto_a0720f1540c86622117df4fa266742bfa}{property-\/based-\/crypto.\+bip32\+\_\+derive\+\_\+child}} (bytes parent\+\_\+key, bytes parent\+\_\+chain, int index)
+\item 
+tuple \doxymbox{\hyperlink{namespaceproperty-based-crypto_a496d2ca1cc25e5597408d47d19a52727}{property-\/based-\/crypto.\+bip32\+\_\+derive\+\_\+path}} (bytes seed, list path)
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_acf9b08b2e7b36099a5898ee3f369137a}{property-\/based-\/crypto.\+test\+\_\+sign\+\_\+verify\+\_\+roundtrip}} (\doxymbox{\hyperlink{classproperty-based-crypto_1_1_stats}{Stats}} stats, int iterations)
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_abcdbacd96c51d11af6cfdbc16ae51afa}{property-\/based-\/crypto.\+test\+\_\+verify\+\_\+wrong\+\_\+message}} (\doxymbox{\hyperlink{classproperty-based-crypto_1_1_stats}{Stats}} stats, int iterations)
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_af95c6415e24770e7dc06205f2d565961}{property-\/based-\/crypto.\+test\+\_\+verify\+\_\+wrong\+\_\+key}} (\doxymbox{\hyperlink{classproperty-based-crypto_1_1_stats}{Stats}} stats, int iterations)
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_a50c7e2ddb34e88d0b2d9dbc70eabae87}{property-\/based-\/crypto.\+test\+\_\+corrupted\+\_\+signature}} (\doxymbox{\hyperlink{classproperty-based-crypto_1_1_stats}{Stats}} stats, int iterations)
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_a9f6bfa5edad40ffd0454502e473f849d}{property-\/based-\/crypto.\+test\+\_\+double\+\_\+sha256\+\_\+deterministic}} (\doxymbox{\hyperlink{classproperty-based-crypto_1_1_stats}{Stats}} stats, int iterations)
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_ab2c5b0a4c199b6ee25bd64c27071883b}{property-\/based-\/crypto.\+test\+\_\+bip32\+\_\+path\+\_\+consistency}} (\doxymbox{\hyperlink{classproperty-based-crypto_1_1_stats}{Stats}} stats, int iterations)
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_a51af30a60f9f02777c6396b8247e356f}{property-\/based-\/crypto.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceproperty-based-crypto_a4a03950cc8adbc1fd488dfd5c405ab6b}{property-\/based-\/crypto.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceproperty-based-crypto_a5ebd9c5c711abc402d124a4468031725}{property-\/based-\/crypto.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceproperty-based-crypto_a9d4e296fc924e84139cbc95f14a1ecca}{property-\/based-\/crypto.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceproperty-based-crypto_a2276dd56ee03703cacd34584d25a3f52}{property-\/based-\/crypto.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceproperty-based-crypto_a1d6b7c03f0fbb6d86f55c5892a575a51}{property-\/based-\/crypto.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceproperty-based-crypto_afef307b2b0251a4e8717e5586b242e7a}{property-\/based-\/crypto.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespaceproperty-based-crypto_afdbf3e75eae8cd3fc121b6b4d02d617d}{property-\/based-\/crypto.\+RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespaceproperty-based-crypto_af9bfe59f1b34f29b1ef26509afb36c14}{property-\/based-\/crypto.\+MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespaceproperty-based-crypto_a30640ff878811099956b376e60748168}{property-\/based-\/crypto.\+SAT}} = int(1e9)
+\item 
+int \doxymbox{\hyperlink{namespaceproperty-based-crypto_a86f202ec229fc6f462e4624bcc83836a}{property-\/based-\/crypto.\+BLOCK\+\_\+\+REWARD}} = 50
+\item 
+int \doxymbox{\hyperlink{namespaceproperty-based-crypto_a62cd87f380fa03a9b31d05aa38cdb476}{property-\/based-\/crypto.\+HALVING\+\_\+\+INTERVAL}} = 210\+\_\+000
+\item 
+int \doxymbox{\hyperlink{namespaceproperty-based-crypto_a3f04fda8d1ff6579f373ec90164ae65b}{property-\/based-\/crypto.\+SECP256\+K1\+\_\+N}} = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6\+AF48\+A03\+BBFD25\+E8\+CD0364141
+\item 
+bool \doxymbox{\hyperlink{namespaceproperty-based-crypto_a86b58a4f6a1db37cb477884e7d273b37}{property-\/based-\/crypto.\+HAS\+\_\+\+COINCURVE}} = True
+\end{DoxyCompactItemize}

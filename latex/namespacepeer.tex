@@ -1,0 +1,25 @@
+\doxysection{peer Namespace Reference}
+\hypertarget{namespacepeer}{}\label{namespacepeer}\index{peer@{peer}}
+
+
+-\/behavior-\/learner  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/behavior-\/learner 
+
+\begin{DoxyVerb}peer-behavior-learner.py
+
+Learn from peer scoring history to identify malicious patterns and
+ optimize peer scoring weights.
+
+Scans:
+  - core/peer_scoring.zig (if present) for constants / weights
+  - tools/LEARNING/data/peer-scores.jsonl for historical records
+  - RPC getpeerinfo for live peer data
+
+Outputs: peer-behavior-model.json
+\end{DoxyVerb}
+ 

@@ -1,0 +1,173 @@
+\doxysection{omni::\+Miner\+Table\+Model Class Reference}
+\hypertarget{classomni_1_1_miner_table_model}{}\label{classomni_1_1_miner_table_model}\index{omni::MinerTableModel@{omni::MinerTableModel}}
+
+
+{\ttfamily \+\#include $<$Miner\+Table\+Model.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Miner\+Table\+Model:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Miner\+Table\+Model:\+
+% FIG 1
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6}{Column}} \{ \newline
+\doxymbox{\hyperlink{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6aa09d6ea09ec854c4a1f47011e7311544}{Col\+Address}}
+, \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a8b2c7bfc29fc9a9e619642edd8e21490}{Col\+Blocks\+Mined}}
+, \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a67b6b36f7ab93c0475482d3ec785f930}{Col\+Total\+Reward}}
+, \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a1a80ff86426dc08b31d5571745f635fd}{Col\+Balance}}
+, \newline
+\doxymbox{\hyperlink{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a47c62ccd80d6a0639ca7d79f402ed23b}{Col\+Count}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_miner_table_model_a3702916e7e9aa90bc3a9bb2c69e74399}{Miner\+Table\+Model}} (QObject \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a057675f20ebaa038fa1a286441a8cb13}{row\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a0157146f6506e6a1d3683f1dd9687c28}{column\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a1a4eefb597b5fb028fc1dd1ebbe84d29}{data}} (const QModel\+Index \&index, int role=Qt::\+\+Display\+Role) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a653259b0b0ad9cec6d9e0fe5f15386dc}{header\+Data}} (int section, Qt::\+\+Orientation orientation, int role=Qt::\+\+Display\+Role) const override
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a406744cf2ebee7c089bf552342eec66e}{set\+Miners}} (const QList$<$ \doxymbox{\hyperlink{structomni_1_1_miner_info}{Miner\+Info}} $>$ \&miners)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8h_source_l00009}{9}} of file \doxymbox{\hyperlink{_miner_table_model_8h_source}{Miner\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_miner_table_model_doc-enum-members}
+\Hypertarget{classomni_1_1_miner_table_model_doc-enum-members}
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6}\index{omni::MinerTableModel@{omni::MinerTableModel}!Column@{Column}}
+\index{Column@{Column}!omni::MinerTableModel@{omni::MinerTableModel}}
+\doxysubsubsection{\texorpdfstring{Column}{Column}}
+{\footnotesize\ttfamily \label{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6} 
+enum \doxymbox{\hyperlink{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6}{omni::\+\+Miner\+Table\+Model::\+\+Column}}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColAddress@{ColAddress}!omni::MinerTableModel@{omni::MinerTableModel}}
+\index{omni::MinerTableModel@{omni::MinerTableModel}!ColAddress@{ColAddress}}
+}\Hypertarget{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6aa09d6ea09ec854c4a1f47011e7311544}\label{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6aa09d6ea09ec854c4a1f47011e7311544} 
+Col\+Address&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColBlocksMined@{ColBlocksMined}!omni::MinerTableModel@{omni::MinerTableModel}}
+\index{omni::MinerTableModel@{omni::MinerTableModel}!ColBlocksMined@{ColBlocksMined}}
+}\Hypertarget{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a8b2c7bfc29fc9a9e619642edd8e21490}\label{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a8b2c7bfc29fc9a9e619642edd8e21490} 
+Col\+Blocks\+Mined&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColTotalReward@{ColTotalReward}!omni::MinerTableModel@{omni::MinerTableModel}}
+\index{omni::MinerTableModel@{omni::MinerTableModel}!ColTotalReward@{ColTotalReward}}
+}\Hypertarget{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a67b6b36f7ab93c0475482d3ec785f930}\label{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a67b6b36f7ab93c0475482d3ec785f930} 
+Col\+Total\+Reward&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColBalance@{ColBalance}!omni::MinerTableModel@{omni::MinerTableModel}}
+\index{omni::MinerTableModel@{omni::MinerTableModel}!ColBalance@{ColBalance}}
+}\Hypertarget{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a1a80ff86426dc08b31d5571745f635fd}\label{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a1a80ff86426dc08b31d5571745f635fd} 
+Col\+Balance&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColCount@{ColCount}!omni::MinerTableModel@{omni::MinerTableModel}}
+\index{omni::MinerTableModel@{omni::MinerTableModel}!ColCount@{ColCount}}
+}\Hypertarget{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a47c62ccd80d6a0639ca7d79f402ed23b}\label{classomni_1_1_miner_table_model_a73566ec716f73054bad69f64bed0d3c6a47c62ccd80d6a0639ca7d79f402ed23b} 
+Col\+Count&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8h_source_l00012}{12}} of file \doxymbox{\hyperlink{_miner_table_model_8h_source}{Miner\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_miner_table_model_doc-constructors}
+\Hypertarget{classomni_1_1_miner_table_model_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_miner_table_model_a3702916e7e9aa90bc3a9bb2c69e74399}\index{omni::MinerTableModel@{omni::MinerTableModel}!MinerTableModel@{MinerTableModel}}
+\index{MinerTableModel@{MinerTableModel}!omni::MinerTableModel@{omni::MinerTableModel}}
+\doxysubsubsection{\texorpdfstring{MinerTableModel()}{MinerTableModel()}}
+{\footnotesize\ttfamily \label{classomni_1_1_miner_table_model_a3702916e7e9aa90bc3a9bb2c69e74399} 
+omni::\+\+Miner\+Table\+Model::\+\+Miner\+Table\+Model (\begin{DoxyParamCaption}\item[{QObject \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8cpp_source_l00007}{7}} of file \doxymbox{\hyperlink{_miner_table_model_8cpp_source}{Miner\+Table\+Model.\+cpp}}.
+
+
+
+\label{classomni_1_1_miner_table_model_doc-func-members}
+\Hypertarget{classomni_1_1_miner_table_model_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_miner_table_model_a0157146f6506e6a1d3683f1dd9687c28}\index{omni::MinerTableModel@{omni::MinerTableModel}!columnCount@{columnCount}}
+\index{columnCount@{columnCount}!omni::MinerTableModel@{omni::MinerTableModel}}
+\doxysubsubsection{\texorpdfstring{columnCount()}{columnCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_miner_table_model_a0157146f6506e6a1d3683f1dd9687c28} 
+int omni::\+\+Miner\+Table\+Model::\+column\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8cpp_source_l00016}{16}} of file \doxymbox{\hyperlink{_miner_table_model_8cpp_source}{Miner\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_miner_table_model_a1a4eefb597b5fb028fc1dd1ebbe84d29}\index{omni::MinerTableModel@{omni::MinerTableModel}!data@{data}}
+\index{data@{data}!omni::MinerTableModel@{omni::MinerTableModel}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}}
+{\footnotesize\ttfamily \label{classomni_1_1_miner_table_model_a1a4eefb597b5fb028fc1dd1ebbe84d29} 
+QVariant omni::\+\+Miner\+Table\+Model::\+data (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{index}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8cpp_source_l00020}{20}} of file \doxymbox{\hyperlink{_miner_table_model_8cpp_source}{Miner\+Table\+Model.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classomni_1_1_miner_table_model_a653259b0b0ad9cec6d9e0fe5f15386dc}\index{omni::MinerTableModel@{omni::MinerTableModel}!headerData@{headerData}}
+\index{headerData@{headerData}!omni::MinerTableModel@{omni::MinerTableModel}}
+\doxysubsubsection{\texorpdfstring{headerData()}{headerData()}}
+{\footnotesize\ttfamily \label{classomni_1_1_miner_table_model_a653259b0b0ad9cec6d9e0fe5f15386dc} 
+QVariant omni::\+\+Miner\+Table\+Model::\+header\+Data (\begin{DoxyParamCaption}\item[{int}]{section}{, }\item[{Qt::\+\+Orientation}]{orientation}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8cpp_source_l00057}{57}} of file \doxymbox{\hyperlink{_miner_table_model_8cpp_source}{Miner\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_miner_table_model_a057675f20ebaa038fa1a286441a8cb13}\index{omni::MinerTableModel@{omni::MinerTableModel}!rowCount@{rowCount}}
+\index{rowCount@{rowCount}!omni::MinerTableModel@{omni::MinerTableModel}}
+\doxysubsubsection{\texorpdfstring{rowCount()}{rowCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_miner_table_model_a057675f20ebaa038fa1a286441a8cb13} 
+int omni::\+\+Miner\+Table\+Model::\+row\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8cpp_source_l00012}{12}} of file \doxymbox{\hyperlink{_miner_table_model_8cpp_source}{Miner\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_miner_table_model_a406744cf2ebee7c089bf552342eec66e}\index{omni::MinerTableModel@{omni::MinerTableModel}!setMiners@{setMiners}}
+\index{setMiners@{setMiners}!omni::MinerTableModel@{omni::MinerTableModel}}
+\doxysubsubsection{\texorpdfstring{setMiners()}{setMiners()}}
+{\footnotesize\ttfamily \label{classomni_1_1_miner_table_model_a406744cf2ebee7c089bf552342eec66e} 
+void omni::\+\+Miner\+Table\+Model::\+set\+Miners (\begin{DoxyParamCaption}\item[{const QList$<$ \doxymbox{\hyperlink{structomni_1_1_miner_info}{Miner\+Info}} $>$ \&}]{miners}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_miner_table_model_8cpp_source_l00070}{70}} of file \doxymbox{\hyperlink{_miner_table_model_8cpp_source}{Miner\+Table\+Model.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_miner_table_model_8h}{Miner\+Table\+Model.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_miner_table_model_8cpp}{Miner\+Table\+Model.\+cpp}}\end{DoxyCompactItemize}

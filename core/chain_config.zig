@@ -77,6 +77,25 @@ pub const BRIDGE_MAX_DAILY_SAT: u64 = 1_000_000_000_000;
 /// Window in blocks for the rolling-day limit. With 1s blocks: 86400.
 pub const BRIDGE_DAILY_WINDOW_BLOCKS: u64 = 86_400;
 
+// ─── PQ deterministic signing (FAZA 6 feature flag) ──────────────────────────
+//
+// When `true`, `wallet.signWithAllPQDomains` derives PQ keypairs deterministically
+// from the BIP-39 master seed via `bip32_wallet.derivePQSeed` (HKDF-SHA512). Same
+// mnemonic always recovers the same PQ keys → soulbound badges survive restore.
+//
+// When `false` (current mainnet default), legacy non-deterministic behavior is
+// preserved: `pq_crypto.generateKeyPair()` returns random keys on every call.
+// This is the broken-but-shipped behavior — keeping it the default avoids a
+// silent consensus change on mainnet nodes that don't recompile.
+//
+// Flipping this to `true` on a chain with existing PQ-derived state is a
+// HARD FORK. Migration path: `core/pq_migrate_consensus.zig` defines a
+// `pq_migrate_v1` consensus TX type that binds old_pubkey → new_pubkey with
+// a self-signed proof-of-ownership. See `PQ_MIGRATION_PLAN.md` at repo root.
+//
+// Test/regtest builds typically override this to `true` via comptime injection.
+pub const PQ_DETERMINISTIC_SIGNING: bool = false;
+
 /// Minimum signatures required to unlock from the bridge vault.
 /// Default: 3 of N. Lecția Kelp DAO (1/1 DVN forjat = $292M): never trust
 /// a single relayer. Lecția Ronin: 5/9 with all keys on same infra was
@@ -159,7 +178,15 @@ pub const ChainConfig = struct {
             .chain_id = .mainnet,
             .name = "omnibus-mainnet",
             .magic = NetworkMagic.MAINNET,
-            .genesis_hash = "0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d80",
+            // Canonical genesis hash = SHA256( fmt("{0}{1743000000}{prev_64_zeros}{0}")
+            //                                  ++ merkle_root[32]=zero
+            //                                  ++ prices_root[32]=zero )
+            // i.e. Block.calculateHash() applied to the genesis block in
+            // genesis.zig:buildBlockchain. Cross-network collision with testnet
+            // is intentional and safe — the P2P handshake's chain_magic ("OMNI"
+            // vs "TEST") separates the networks before any block is exchanged.
+            // Locked by the "canonical genesis hash matches calculateHash" test.
+            .genesis_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
             .genesis_timestamp = 1_743_000_000,
             .p2p_port = 8333,
             .rpc_port = 8332,
@@ -181,7 +208,9 @@ pub const ChainConfig = struct {
             .chain_id = .testnet,
             .name = "omnibus-testnet",
             .magic = NetworkMagic.TESTNET,
-            .genesis_hash = "0000000000000000000000000000000000000000000000000000000000000001",
+            // Same canonical genesis hash as mainnet (see note there); chain
+            // separation is enforced by NetworkMagic, not by the genesis hash.
+            .genesis_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
             .genesis_timestamp = 1_743_000_000,
             .p2p_port = 18333,
             .rpc_port = 18332,
@@ -203,7 +232,7 @@ pub const ChainConfig = struct {
             .chain_id = .devnet,
             .name = "omnibus-devnet",
             .magic = NetworkMagic.DEVNET,
-            .genesis_hash = "0000000000000000000000000000000000000000000000000000000000000003",
+            .genesis_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
             .genesis_timestamp = 1_743_000_000,
             .p2p_port = 38333,
             .rpc_port = 38332,
@@ -225,7 +254,7 @@ pub const ChainConfig = struct {
             .chain_id = .regtest,
             .name = "omnibus-regtest",
             .magic = NetworkMagic.REGTEST,
-            .genesis_hash = "0000000000000000000000000000000000000000000000000000000000000000",
+            .genesis_hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
             .genesis_timestamp = 1_743_000_000,
             .p2p_port = 28333,
             .rpc_port = 28332,
@@ -296,15 +325,17 @@ pub const ChainConfig = struct {
 /// rejected outright — no amount of cumulative work can rewrite history
 /// past these points. Founder signs these in each release.
 const MAINNET_CHECKPOINTS = [_]Checkpoint{
-    .{ .height = 0, .hash = "0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d80".*, .timestamp = 1_743_000_000 },
+    .{ .height = 0, .hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982".*, .timestamp = 1_743_000_000 },
 };
 
 /// Testnet checkpoints — kept short, refreshed each release. Last verified
 /// height is the highest block both VPS seeds + founder PC observed at
 /// release time. Mostly to anchor the chain before the reorg logic ships.
+/// Height-46000 checkpoint dropped: belongs to the pre-canonical-genesis chain
+/// that was wiped on the 2026-05-18 reset; refresh after the new chain mines
+/// past a stable height.
 const TESTNET_CHECKPOINTS = [_]Checkpoint{
-    .{ .height = 0,     .hash = "0000000000000000000000000000000000000000000000000000000000000001".*, .timestamp = 1_743_000_000 },
-    .{ .height = 46000, .hash = "015132990a0bd128f4063330f30fb99f6a56ebf723923067e776a9b6d64a09fb".*, .timestamp = 1_745_700_000 },
+    .{ .height = 0, .hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982".*, .timestamp = 1_743_000_000 },
 };
 
 /// Gas estimation for transaction fees

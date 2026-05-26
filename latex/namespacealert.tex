@@ -1,0 +1,32 @@
+\doxysection{alert Namespace Reference}
+\hypertarget{namespacealert}{}\label{namespacealert}\index{alert@{alert}}
+
+
+-\/manager  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/manager 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Alert Manager
+=======================================
+Unified health-check and alert system for OmniBus blockchain nodes.
+
+Checks performed:
+  1. RPC reachable (JSON-RPC 2.0 on configured port)
+  2. Chain growing (block height increasing between checks)
+  3. Peers > 0 (node is connected to network)
+  4. Disk space OK (configurable threshold)
+
+Severity levels:  CRITICAL / WARNING / INFO / OK
+
+Can be invoked once (for cron) or in continuous mode.
+
+Usage:
+    python alert-manager.py
+    python alert-manager.py --host 127.0.0.1 --port 8332
+    python alert-manager.py --config thresholds.json --continuous --interval 60
+\end{DoxyVerb}
+ 

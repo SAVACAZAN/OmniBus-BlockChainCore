@@ -1,0 +1,988 @@
+\chapter{Module:\+ {\ttfamily staking} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking}{}\label{md_archived-4-eterniti_2docs-plans_2api_2staking}\index{Module: $<$tt$>$staking$<$/tt$>$@{Module: $<$tt$>$staking$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3037}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3037}%
+
+
+\begin{quote}
+Proof-\/of-\/\+Stake validator system — deposit/\+withdraw stake, slashing for equivocation and downtime, unbonding period (7 days), minimum stake enforcement. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+staking.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 1087 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 29 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 24
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3039}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3039}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3040}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3040}
+
+\begin{DoxyItemize}
+\item \`{}\+Slash\+Evidence\`{}{\ttfamily Slash\+Evidence}
+\end{DoxyItemize}— Cryptographic evidence that a validator cheated. For double\+\_\+sign:\+ two different ...
+\begin{DoxyItemize}
+\item \`{}\+Slash\+Result\`{}{\ttfamily Slash\+Result}
+\end{DoxyItemize}— Result of processing slash evidence
+\begin{DoxyItemize}
+\item \`{}\+Slash\+Record\`{}{\ttfamily Slash\+Record}
+\end{DoxyItemize}— Persistent record of a slashing event
+\begin{DoxyItemize}
+\item \`{}\+Validator\`{}{\ttfamily Validator}
+\end{DoxyItemize}— A validator in the staking system
+\begin{DoxyItemize}
+\item \`{}\+Delegation\`{}{\ttfamily Delegation}
+\end{DoxyItemize}— Delegation record
+\begin{DoxyItemize}
+\item \`{}\+Staking\+Engine\`{}{\ttfamily Staking\+Engine}
+\end{DoxyItemize}— Staking Engine — manages the validator set
+\begin{DoxyItemize}
+\item \`{}\+Slash\+History\+Result\`{}{\ttfamily Slash\+History\+Result}
+\end{DoxyItemize}— Result container for slash history queries (fixed-\/size, no allocation)
+\begin{DoxyItemize}
+\item \`{}\+Validator\+Info\`{}{\ttfamily Validator\+Info}
+\end{DoxyItemize}— Validator info summary for RPC responses\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3041}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3041}
+
+\begin{DoxyItemize}
+\item 17 constants defined17 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3042}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3042}
+
+\begin{DoxyItemize}
+\item \`{}get\+Validator\+Address()\`{}{\ttfamily get\+Validator\+Address()}
+\end{DoxyItemize}— Returns the current validator address.
+\begin{DoxyItemize}
+\item \`{}get\+Reporter\+Address()\`{}{\ttfamily get\+Reporter\+Address()}
+\end{DoxyItemize}— Returns the current reporter address.
+\begin{DoxyItemize}
+\item \`{}get\+Reason()\`{}{\ttfamily get\+Reason()}
+\end{DoxyItemize}— Returns the current reason.
+\begin{DoxyItemize}
+\item \`{}rejected()\`{}{\ttfamily rejected()}
+\end{DoxyItemize}— Performs the rejected operation on the staking module.
+\begin{DoxyItemize}
+\item \`{}get\+Validator()\`{}{\ttfamily get\+Validator()}
+\end{DoxyItemize}— Returns the current validator.
+\begin{DoxyItemize}
+\item \`{}get\+Reporter()\`{}{\ttfamily get\+Reporter()}
+\end{DoxyItemize}— Returns the current reporter.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}uptime\+Pct()\`{}{\ttfamily uptime\+Pct()}
+\end{DoxyItemize}— Uptime percentage (0-\/100)
+\begin{DoxyItemize}
+\item \`{}voting\+Power()\`{}{\ttfamily voting\+Power()}
+\end{DoxyItemize}— Voting power (proportional to total stake)
+\begin{DoxyItemize}
+\item \`{}should\+Slash\+Downtime()\`{}{\ttfamily should\+Slash\+Downtime()}
+\end{DoxyItemize}— Check if validator can be slashed for downtime
+\begin{DoxyItemize}
+\item \`{}get\+Address()\`{}{\ttfamily get\+Address()}
+\end{DoxyItemize}— Returns the current address.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}register\+Validator()\`{}{\ttfamily register\+Validator()}
+\end{DoxyItemize}— Register a new validator with initial stake
+\begin{DoxyItemize}
+\item \`{}activate\+Validator()\`{}{\ttfamily activate\+Validator()}
+\end{DoxyItemize}— Activate a pending validator
+\begin{DoxyItemize}
+\item \`{}start\+Unbonding()\`{}{\ttfamily start\+Unbonding()}
+\end{DoxyItemize}— Start unbonding process
+\begin{DoxyItemize}
+\item \`{}complete\+Unbonding()\`{}{\ttfamily complete\+Unbonding()}
+\end{DoxyItemize}— Complete unbonding (after UNBONDING\+\_\+\+PERIOD blocks)
+\begin{DoxyItemize}
+\item \`{}slash\+Equivocation()\`{}{\ttfamily slash\+Equivocation()}
+\end{DoxyItemize}— Slash a validator for equivocation (double signing)
+\begin{DoxyItemize}
+\item \`{}slash\+Downtime()\`{}{\ttfamily slash\+Downtime()}
+\end{DoxyItemize}— Slash for downtime
+\begin{DoxyItemize}
+\item \`{}select\+Proposer()\`{}{\ttfamily select\+Proposer()}
+\end{DoxyItemize}— Select block proposer (weighted random by stake) Uses block\+\_\+hash as ra...
+\begin{DoxyItemize}
+\item \`{}active\+Count()\`{}{\ttfamily active\+Count()}
+\end{DoxyItemize}— Get number of active validators
+\begin{DoxyItemize}
+\item \`{}total\+Voting\+Power()\`{}{\ttfamily total\+Voting\+Power()}
+\end{DoxyItemize}— Total active voting power
+\begin{DoxyItemize}
+\item \`{}distribute\+Rewards()\`{}{\ttfamily distribute\+Rewards()}
+\end{DoxyItemize}— Distribute rewards to active validators proportional to stake
+\begin{DoxyItemize}
+\item \`{}submit\+Slash\+Evidence()\`{}{\ttfamily submit\+Slash\+Evidence()}
+\end{DoxyItemize}— Submit slash evidence — verify the proof and execute the slash if vali...
+\begin{DoxyItemize}
+\item \`{}find\+Validator\+Index()\`{}{\ttfamily find\+Validator\+Index()}
+\end{DoxyItemize}— Look up a validator by address. Returns index or null.
+\begin{DoxyItemize}
+\item \`{}get\+Slash\+History()\`{}{\ttfamily get\+Slash\+History()}
+\end{DoxyItemize}— Get slash history for a specific validator. Returns a slice of the int...
+\begin{DoxyItemize}
+\item \`{}get\+Validator\+Info()\`{}{\ttfamily get\+Validator\+Info()}
+\end{DoxyItemize}— Get staking info for a validator (for RPC getstakinginfo)
+\begin{DoxyItemize}
+\item \`{}slice()\`{}{\ttfamily slice()}
+\end{DoxyItemize}— Performs the slice operation on the staking module.
+\begin{DoxyItemize}
+\item \`{}get\+Address()\`{}{\ttfamily get\+Address()}
+\end{DoxyItemize}— Returns the current address.
+\begin{DoxyItemize}
+\item \`{}status\+String()\`{}{\ttfamily status\+String()}
+\end{DoxyItemize}— Performs the status string operation on the staking module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3044}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3044}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3045}{}\doxysubsection{\texorpdfstring{{\ttfamily Slash\+Evidence}}{{\ttfamily Slash\+Evidence}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3045}
+Cryptographic evidence that a validator cheated. For double\+\_\+sign:\+ two different block hashes at the same height, each signed by the same validator. Both signatures must verify.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily validator\+\_\+address}  &{\ttfamily \+[64]\+u8}  &Validator\+\_\+address  \\
+{\ttfamily validator\+\_\+addr\+\_\+len}  &{\ttfamily u8}  &Validator\+\_\+addr\+\_\+len  \\
+{\ttfamily reason}  &{\ttfamily Slash\+Reason}  &Reason  \\
+{\ttfamily block\+\_\+hash\+\_\+1}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash\+\_\+1  \\
+{\ttfamily block\+\_\+hash\+\_\+2}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash\+\_\+2  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily signature\+\_\+1}  &{\ttfamily \+[64]\+u8}  &Signature\+\_\+1  \\
+{\ttfamily signature\+\_\+2}  &{\ttfamily \+[64]\+u8}  &Signature\+\_\+2  \\
+{\ttfamily reporter\+\_\+address}  &{\ttfamily \+[64]\+u8}  &Reporter\+\_\+address  \\
+{\ttfamily reporter\+\_\+addr\+\_\+len}  &{\ttfamily u8}  &Reporter\+\_\+addr\+\_\+len  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily validator\+\_\+addr}  &{\ttfamily \+[]\+const u8}  &Validator\+\_\+addr  \\
+{\ttfamily reason}  &{\ttfamily Slash\+Reason}  &Reason  \\
+{\ttfamily hash1}  &{\ttfamily \+[32]\+u8}  &Hash1  \\
+{\ttfamily hash2}  &{\ttfamily \+[32]\+u8}  &Hash2  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily sig1}  &{\ttfamily \+[64]\+u8}  &Sig1  \\
+{\ttfamily sig2}  &{\ttfamily \+[64]\+u8}  &Sig2  \\
+{\ttfamily reporter\+\_\+addr}  &{\ttfamily \+[]\+const u8}  &Reporter\+\_\+addr  \\
+{\ttfamily ts}  &{\ttfamily i64}  &Ts  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3047}{}\doxysubsection{\texorpdfstring{{\ttfamily Slash\+Result}}{{\ttfamily Slash\+Result}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3047}
+Result of processing slash evidence
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily valid}  &{\ttfamily bool}  &Valid  \\
+{\ttfamily slashed\+\_\+amount}  &{\ttfamily u64}  &Slashed\+\_\+amount  \\
+{\ttfamily reporter\+\_\+reward}  &{\ttfamily u64}  &Reporter\+\_\+reward  \\
+{\ttfamily new\+\_\+stake}  &{\ttfamily u64}  &New\+\_\+stake  \\
+{\ttfamily reason}  &{\ttfamily \+[128]\+u8}  &Reason  \\
+{\ttfamily reason\+\_\+len}  &{\ttfamily u8}  &Reason\+\_\+len  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 133}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3049}{}\doxysubsection{\texorpdfstring{{\ttfamily Slash\+Record}}{{\ttfamily Slash\+Record}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3049}
+Persistent record of a slashing event
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily validator}  &{\ttfamily \+[64]\+u8}  &Validator  \\
+{\ttfamily validator\+\_\+len}  &{\ttfamily u8}  &Validator\+\_\+len  \\
+{\ttfamily reason}  &{\ttfamily Slash\+Reason}  &Reason  \\
+{\ttfamily amount\+\_\+slashed}  &{\ttfamily u64}  &Amount\+\_\+slashed  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily reporter}  &{\ttfamily \+[64]\+u8}  &Reporter  \\
+{\ttfamily reporter\+\_\+len}  &{\ttfamily u8}  &Reporter\+\_\+len  \\
+{\ttfamily reporter\+\_\+reward}  &{\ttfamily u64}  &Reporter\+\_\+reward  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 165}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3051}{}\doxysubsection{\texorpdfstring{{\ttfamily Validator}}{{\ttfamily Validator}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3051}
+A validator in the staking system
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[64]\+u8}  &Address  \\
+{\ttfamily addr\+\_\+len}  &{\ttfamily u8}  &Addr\+\_\+len  \\
+{\ttfamily total\+\_\+stake}  &{\ttfamily u64}  &Total\+\_\+stake  \\
+{\ttfamily self\+\_\+stake}  &{\ttfamily u64}  &Self\+\_\+stake  \\
+{\ttfamily delegated\+\_\+stake}  &{\ttfamily u64}  &Delegated\+\_\+stake  \\
+{\ttfamily status}  &{\ttfamily Validator\+Status}  &Status  \\
+{\ttfamily registered\+\_\+block}  &{\ttfamily u64}  &Registered\+\_\+block  \\
+{\ttfamily unbonding\+\_\+block}  &{\ttfamily u64}  &Unbonding\+\_\+block  \\
+{\ttfamily blocks\+\_\+produced}  &{\ttfamily u32}  &Blocks\+\_\+produced  \\
+{\ttfamily blocks\+\_\+missed}  &{\ttfamily u32}  &Blocks\+\_\+missed  \\
+{\ttfamily total\+\_\+rewards}  &{\ttfamily u64}  &Total\+\_\+rewards  \\
+{\ttfamily commission\+\_\+pct}  &{\ttfamily u8}  &Commission\+\_\+pct  \\
+{\ttfamily slash\+\_\+count}  &{\ttfamily u8}  &Slash\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 212}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3053}{}\doxysubsection{\texorpdfstring{{\ttfamily Delegation}}{{\ttfamily Delegation}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3053}
+Delegation record
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily delegator}  &{\ttfamily \+[64]\+u8}  &Delegator  \\
+{\ttfamily delegator\+\_\+len}  &{\ttfamily u8}  &Delegator\+\_\+len  \\
+{\ttfamily validator\+\_\+index}  &{\ttfamily u8}  &Validator\+\_\+index  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily u64}  &Block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 277}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3055}{}\doxysubsection{\texorpdfstring{{\ttfamily Staking\+Engine}}{{\ttfamily Staking\+Engine}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3055}
+Staking Engine — manages the validator set
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily validators}  &{\ttfamily \+[MAX\+\_\+\+VALIDATORS]\+Validator}  &Validators  \\
+{\ttfamily validator\+\_\+count}  &{\ttfamily usize}  &Validator\+\_\+count  \\
+{\ttfamily total\+\_\+staked}  &{\ttfamily u64}  &Total\+\_\+staked  \\
+{\ttfamily current\+\_\+epoch}  &{\ttfamily u64}  &Current\+\_\+epoch  \\
+{\ttfamily total\+\_\+slashes}  &{\ttfamily u32}  &Total\+\_\+slashes  \\
+{\ttfamily slash\+\_\+records}  &{\ttfamily \+[MAX\+\_\+\+TOTAL\+\_\+\+SLASH\+\_\+\+RECORDS]\+Slash\+Record}  &Slash\+\_\+records  \\
+{\ttfamily slash\+\_\+record\+\_\+count}  &{\ttfamily usize}  &Slash\+\_\+record\+\_\+count  \\
+{\ttfamily total\+\_\+slashed\+\_\+amount}  &{\ttfamily u64}  &Total\+\_\+slashed\+\_\+amount  \\
+{\ttfamily total\+\_\+reporter\+\_\+rewards}  &{\ttfamily u64}  &Total\+\_\+reporter\+\_\+rewards  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 286}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3057}{}\doxysubsection{\texorpdfstring{{\ttfamily Slash\+History\+Result}}{{\ttfamily Slash\+History\+Result}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3057}
+Result container for slash history queries (fixed-\/size, no allocation)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily records}  &{\ttfamily \+[MAX\+\_\+\+RESULTS]\+Slash\+Record}  &Records  \\
+{\ttfamily count}  &{\ttfamily usize}  &Count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 650}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3059}{}\doxysubsection{\texorpdfstring{{\ttfamily Validator\+Info}}{{\ttfamily Validator\+Info}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3059}
+Validator info summary for RPC responses
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[64]\+u8}  &Address  \\
+{\ttfamily addr\+\_\+len}  &{\ttfamily u8}  &Addr\+\_\+len  \\
+{\ttfamily total\+\_\+stake}  &{\ttfamily u64}  &Total\+\_\+stake  \\
+{\ttfamily self\+\_\+stake}  &{\ttfamily u64}  &Self\+\_\+stake  \\
+{\ttfamily delegated\+\_\+stake}  &{\ttfamily u64}  &Delegated\+\_\+stake  \\
+{\ttfamily status}  &{\ttfamily Validator\+Status}  &Status  \\
+{\ttfamily slash\+\_\+count}  &{\ttfamily u8}  &Slash\+\_\+count  \\
+{\ttfamily total\+\_\+rewards}  &{\ttfamily u64}  &Total\+\_\+rewards  \\
+{\ttfamily uptime\+\_\+pct}  &{\ttfamily u8}  &Uptime\+\_\+pct  \\
+{\ttfamily slash\+\_\+history\+\_\+count}  &{\ttfamily u8}  &Slash\+\_\+history\+\_\+count  \\
+{\ttfamily blocks\+\_\+produced}  &{\ttfamily u32}  &Blocks\+\_\+produced  \\
+{\ttfamily commission\+\_\+pct}  &{\ttfamily u8}  &Commission\+\_\+pct  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 661}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3061}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3061}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily VALIDATOR\+\_\+\+MIN\+\_\+\+STAKE}  &{\ttfamily u64 = 100\+\_\+000\+\_\+000\+\_\+000}  &V a l i d a t o r\+\_\+ m i n\+\_\+ s t a k e  \\
+{\ttfamily MAX\+\_\+\+VALIDATORS}  &{\ttfamily usize = 128}  &M a x\+\_\+ v a l i d a t o r s  \\
+{\ttfamily UNBONDING\+\_\+\+PERIOD}  &{\ttfamily u64 = 604\+\_\+800}  &U n b o n d i n g\+\_\+ p e r i o d  \\
+{\ttfamily Slash\+Reason}  &{\ttfamily enum(u8) \{}  &Slash reason  \\
+{\ttfamily SLASH\+\_\+\+DOUBLE\+\_\+\+SIGN\+\_\+\+PCT}  &{\ttfamily u64 = 33}  &S l a s h\+\_\+ d o u b l e\+\_\+ s i g n\+\_\+ p c t  \\
+{\ttfamily SLASH\+\_\+\+INVALID\+\_\+\+BLOCK\+\_\+\+PCT}  &{\ttfamily u64 = 10}  &S l a s h\+\_\+ i n v a l i d\+\_\+ b l o c k\+\_\+ p c t  \\
+{\ttfamily DOWNTIME\+\_\+\+PENALTY\+\_\+\+PCT}  &{\ttfamily u64 = 1}  &D o w n t i m e\+\_\+ p e n a l t y\+\_\+ p c t  \\
+{\ttfamily MIN\+\_\+\+SLASH\+\_\+\+AMOUNT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000}  &M i n\+\_\+ s l a s h\+\_\+ a m o u n t  \\
+{\ttfamily REPORTER\+\_\+\+REWARD\+\_\+\+PCT}  &{\ttfamily u64 = 10}  &R e p o r t e r\+\_\+ r e w a r d\+\_\+ p c t  \\
+{\ttfamily MAX\+\_\+\+SLASH\+\_\+\+RECORDS}  &{\ttfamily usize = 64}  &M a x\+\_\+ s l a s h\+\_\+ r e c o r d s  \\
+{\ttfamily MAX\+\_\+\+TOTAL\+\_\+\+SLASH\+\_\+\+RECORDS}  &{\ttfamily usize = 512}  &M a x\+\_\+ t o t a l\+\_\+ s l a s h\+\_\+ r e c o r d s  \\
+{\ttfamily SLASH\+\_\+\+EQUIVOCATION\+\_\+\+PCT}  &{\ttfamily u64 = SLASH\+\_\+\+DOUBLE\+\_\+\+SIGN\+\_\+\+PCT}  &S l a s h\+\_\+ e q u i v o c a t i o n\+\_\+ p c t  \\
+{\ttfamily SLASH\+\_\+\+DOWNTIME\+\_\+\+PERMILLE}  &{\ttfamily u64 = 10}  &S l a s h\+\_\+ d o w n t i m e\+\_\+ p e r m i l l e  \\
+{\ttfamily MIN\+\_\+\+UPTIME\+\_\+\+PCT}  &{\ttfamily u8 = 95}  &M i n\+\_\+ u p t i m e\+\_\+ p c t  \\
+{\ttfamily REWARD\+\_\+\+EPOCH\+\_\+\+BLOCKS}  &{\ttfamily u64 = 100}  &R e w a r d\+\_\+ e p o c h\+\_\+ b l o c k s  \\
+{\ttfamily Validator\+Status}  &{\ttfamily enum(u8) \{}  &Validator status  \\
+{\ttfamily MAX\+\_\+\+RESULTS}  &{\ttfamily usize = MAX\+\_\+\+SLASH\+\_\+\+RECORDS}  &M a x\+\_\+ r e s u l t s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3063}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3063}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3064}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Validator\+Address()}}{{\ttfamily get\+Validator\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3064}
+Returns the current validator address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getValidatorAddress(self:\ *const\ SlashEvidence)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slash\+Evidence}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 95}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3066}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Reporter\+Address()}}{{\ttfamily get\+Reporter\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3066}
+Returns the current reporter address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getReporterAddress(self:\ *const\ SlashEvidence)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slash\+Evidence}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 99}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3068}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Reason()}}{{\ttfamily get\+Reason()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3068}
+Returns the current reason.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getReason(self:\ *const\ SlashResult)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slash\+Result}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 146}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3070}{}\doxysubsection{\texorpdfstring{{\ttfamily rejected()}}{{\ttfamily rejected()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3070}
+Performs the rejected operation on the staking module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ rejected(msg:\ []const\ u8)\ SlashResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily msg}  &{\ttfamily \+[]\+const u8}  &Msg  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Slash\+Result}
+
+{\itshape Defined at line 156}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3072}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Validator()}}{{\ttfamily get\+Validator()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3072}
+Returns the current validator.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getValidator(self:\ *const\ SlashRecord)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slash\+Record}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 183}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3074}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Reporter()}}{{\ttfamily get\+Reporter()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3074}
+Returns the current reporter.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getReporter(self:\ *const\ SlashRecord)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slash\+Record}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 187}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3076}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3076}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(address:\ []const\ u8,\ stake:\ u64,\ block:\ u64)\ Validator\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily stake}  &{\ttfamily u64}  &Stake  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily u64}  &Block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Validator}
+
+{\itshape Defined at line 239}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3078}{}\doxysubsection{\texorpdfstring{{\ttfamily uptime\+Pct()}}{{\ttfamily uptime\+Pct()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3078}
+Uptime percentage (0-\/100)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ uptimePct(self:\ *const\ Validator)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Validator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 253}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3080}{}\doxysubsection{\texorpdfstring{{\ttfamily voting\+Power()}}{{\ttfamily voting\+Power()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3080}
+Voting power (proportional to total stake)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ votingPower(self:\ *const\ Validator)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Validator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 260}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3082}{}\doxysubsection{\texorpdfstring{{\ttfamily should\+Slash\+Downtime()}}{{\ttfamily should\+Slash\+Downtime()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3082}
+Check if validator can be slashed for downtime
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ shouldSlashDowntime(self:\ *const\ Validator)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Validator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 266}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3084}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address()}}{{\ttfamily get\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3084}
+Returns the current address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ Validator)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Validator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 271}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3086}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3086}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ StakingEngine\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Staking\+Engine}
+
+{\itshape Defined at line 303}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3088}{}\doxysubsection{\texorpdfstring{{\ttfamily register\+Validator()}}{{\ttfamily register\+Validator()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3088}
+Register a new validator with initial stake
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ registerValidator(self:\ *StakingEngine,\ address:\ []const\ u8,\ stake:\ u64,\ current\_block:\ u64)\ !u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily stake}  &{\ttfamily u64}  &Stake  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u8}
+
+{\itshape Defined at line 318}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3090}{}\doxysubsection{\texorpdfstring{{\ttfamily activate\+Validator()}}{{\ttfamily activate\+Validator()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3090}
+Activate a pending validator
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ activateValidator(self:\ *StakingEngine,\ index:\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u8}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 335}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3092}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+Unbonding()}}{{\ttfamily start\+Unbonding()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3092}
+Start unbonding process
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startUnbonding(self:\ *StakingEngine,\ index:\ u8,\ current\_block:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u8}  &Index  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 343}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3094}{}\doxysubsection{\texorpdfstring{{\ttfamily complete\+Unbonding()}}{{\ttfamily complete\+Unbonding()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3094}
+Complete unbonding (after UNBONDING\+\_\+\+PERIOD blocks)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ completeUnbonding(self:\ *StakingEngine,\ index:\ u8,\ current\_block:\ u64)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u8}  &Index  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 352}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3096}{}\doxysubsection{\texorpdfstring{{\ttfamily slash\+Equivocation()}}{{\ttfamily slash\+Equivocation()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3096}
+Slash a validator for equivocation (double signing)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ slashEquivocation(self:\ *StakingEngine,\ index:\ u8)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u8}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 367}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3098}{}\doxysubsection{\texorpdfstring{{\ttfamily slash\+Downtime()}}{{\ttfamily slash\+Downtime()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3098}
+Slash for downtime
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ slashDowntime(self:\ *StakingEngine,\ index:\ u8)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u8}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 384}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3100}{}\doxysubsection{\texorpdfstring{{\ttfamily select\+Proposer()}}{{\ttfamily select\+Proposer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3100}
+Select block proposer (weighted random by stake) Uses block\+\_\+hash as randomness source (like EGLD SPoS)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ selectProposer(self:\ *const\ StakingEngine,\ block\_hash:\ [32]u8)\ ?u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Staking\+Engine}  &The instance  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?u8}
+
+{\itshape Defined at line 403}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3102}{}\doxysubsection{\texorpdfstring{{\ttfamily active\+Count()}}{{\ttfamily active\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3102}
+Get number of active validators
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ activeCount(self:\ *const\ StakingEngine)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Staking\+Engine}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 420}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3104}{}\doxysubsection{\texorpdfstring{{\ttfamily total\+Voting\+Power()}}{{\ttfamily total\+Voting\+Power()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3104}
+Total active voting power
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ totalVotingPower(self:\ *const\ StakingEngine)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Staking\+Engine}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 429}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3106}{}\doxysubsection{\texorpdfstring{{\ttfamily distribute\+Rewards()}}{{\ttfamily distribute\+Rewards()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3106}
+Distribute rewards to active validators proportional to stake
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ distributeRewards(self:\ *StakingEngine,\ total\_reward:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily total\+\_\+reward}  &{\ttfamily u64}  &Total\+\_\+reward  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 438}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3108}{}\doxysubsection{\texorpdfstring{{\ttfamily submit\+Slash\+Evidence()}}{{\ttfamily submit\+Slash\+Evidence()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3108}
+Submit slash evidence — verify the proof and execute the slash if valid. Returns a Slash\+Result indicating success/\+failure and amounts.
+
+Philosophy:\+ Slash ONLY validators who intentionally cheat. Normal users cannot be slashed (they have no stake).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ submitSlashEvidence(self:\ *StakingEngine,\ evidence:\ SlashEvidence)\ SlashResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Staking\+Engine}  &The instance  \\
+{\ttfamily evidence}  &{\ttfamily Slash\+Evidence}  &Evidence  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Slash\+Result}
+
+{\itshape Defined at line 457}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3110}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Validator\+Index()}}{{\ttfamily find\+Validator\+Index()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3110}
+Look up a validator by address. Returns index or null.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findValidatorIndex(self:\ *const\ StakingEngine,\ address:\ []const\ u8)\ ?usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Staking\+Engine}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?usize}
+
+{\itshape Defined at line 604}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3112}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Slash\+History()}}{{\ttfamily get\+Slash\+History()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3112}
+Get slash history for a specific validator. Returns a slice of the internal slash\+\_\+records array matching the address. Caller should copy if needed — returned data points into engine storage.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getSlashHistory(self:\ *const\ StakingEngine,\ address:\ []const\ u8)\ SlashHistoryResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Staking\+Engine}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Slash\+History\+Result}
+
+{\itshape Defined at line 614}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3114}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Validator\+Info()}}{{\ttfamily get\+Validator\+Info()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3114}
+Get staking info for a validator (for RPC getstakinginfo)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getValidatorInfo(self:\ *const\ StakingEngine,\ address:\ []const\ u8)\ ?ValidatorInfo\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Staking\+Engine}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Validator\+Info}
+
+{\itshape Defined at line 628}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3116}{}\doxysubsection{\texorpdfstring{{\ttfamily slice()}}{{\ttfamily slice()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3116}
+Performs the slice operation on the staking module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ slice(self:\ *const\ SlashHistoryResult)\ []const\ SlashRecord\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Slash\+History\+Result}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const Slash\+Record}
+
+{\itshape Defined at line 655}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3118}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address()}}{{\ttfamily get\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3118}
+Returns the current address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ ValidatorInfo)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Validator\+Info}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 675}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3120}{}\doxysubsection{\texorpdfstring{{\ttfamily status\+String()}}{{\ttfamily status\+String()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2staking_autotoc_md3120}
+Performs the status string operation on the staking module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ statusString(self:\ *const\ ValidatorInfo)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Validator\+Info}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 679}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

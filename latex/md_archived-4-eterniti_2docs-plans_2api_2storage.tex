@@ -1,0 +1,851 @@
+\chapter{Module:\+ {\ttfamily storage} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage}{}\label{md_archived-4-eterniti_2docs-plans_2api_2storage}\index{Module: $<$tt$>$storage$<$/tt$>$@{Module: $<$tt$>$storage$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3166}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3166}%
+
+
+\begin{quote}
+Key-\/value storage engine — in-\/memory with optional disk persistence, iterator support, memory-\/safe deinit. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+storage.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 331 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 29 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 6 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 6
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3168}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3168}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3169}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3169}
+
+\begin{DoxyItemize}
+\item \`{}\+Tx\+Location\`{}{\ttfamily Tx\+Location}
+\end{DoxyItemize}— Locatia unei tranzactii in blockchain
+\begin{DoxyItemize}
+\item \`{}\+Key\+Value\+Store\`{}{\ttfamily Key\+Value\+Store}
+\end{DoxyItemize}— Key-\/\+Value Storage Interface Abstracts Rocks\+DB, SQLite, or file-\/based storage
+\begin{DoxyItemize}
+\item \`{}\+Block\+Store\`{}{\ttfamily Block\+Store}
+\end{DoxyItemize}— Block Storage
+\begin{DoxyItemize}
+\item \`{}\+Transaction\+Index\`{}{\ttfamily Transaction\+Index}
+\end{DoxyItemize}— Transaction Index
+\begin{DoxyItemize}
+\item \`{}\+Address\+Index\`{}{\ttfamily Address\+Index}
+\end{DoxyItemize}— Address Balance Index
+\begin{DoxyItemize}
+\item \`{}\+State\+Checkpoint\`{}{\ttfamily State\+Checkpoint}
+\end{DoxyItemize}— State Checkpoint for Recovery\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3170}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3170}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}put()\`{}{\ttfamily put()}
+\end{DoxyItemize}— Put key-\/value pair
+\begin{DoxyItemize}
+\item \`{}get()\`{}{\ttfamily get()}
+\end{DoxyItemize}— Get value by key
+\begin{DoxyItemize}
+\item \`{}delete()\`{}{\ttfamily delete()}
+\end{DoxyItemize}— Delete key-\/value pair
+\begin{DoxyItemize}
+\item \`{}contains()\`{}{\ttfamily contains()}
+\end{DoxyItemize}— Check if key exists
+\begin{DoxyItemize}
+\item \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_count}{\`{}count()\`{}}{\ttfamily count()}
+\end{DoxyItemize}— Get total entries
+\begin{DoxyItemize}
+\item \`{}clear()\`{}{\ttfamily clear()}
+\end{DoxyItemize}— Clear all entries
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}store\+Block()\`{}{\ttfamily store\+Block()}
+\end{DoxyItemize}— Store block with key "{}block:\+\+[height]\+"{}
+\begin{DoxyItemize}
+\item \`{}get\+Block()\`{}{\ttfamily get\+Block()}
+\end{DoxyItemize}— Retrieve block by height
+\begin{DoxyItemize}
+\item \`{}block\+Count()\`{}{\ttfamily block\+Count()}
+\end{DoxyItemize}— Get total blocks stored
+\begin{DoxyItemize}
+\item \`{}delete\+Block()\`{}{\ttfamily delete\+Block()}
+\end{DoxyItemize}— Delete block
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}index\+Transaction()\`{}{\ttfamily index\+Transaction()}
+\end{DoxyItemize}— Index transaction:\+ "{}tx:\+\+[hash]\+"{} → "{}block\+\_\+height:\+tx\+\_\+index"{}
+\begin{DoxyItemize}
+\item \`{}find\+Transaction()\`{}{\ttfamily find\+Transaction()}
+\end{DoxyItemize}— Find transaction location
+\begin{DoxyItemize}
+\item \`{}transaction\+Count()\`{}{\ttfamily transaction\+Count()}
+\end{DoxyItemize}— Get total indexed transactions
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}update\+Balance()\`{}{\ttfamily update\+Balance()}
+\end{DoxyItemize}— Update address balance:\+ "{}addr:\+\+[address]\+"{} → "{}balance"{}
+\begin{DoxyItemize}
+\item \`{}get\+Balance()\`{}{\ttfamily get\+Balance()}
+\end{DoxyItemize}— Get address balance
+\begin{DoxyItemize}
+\item \`{}address\+Count()\`{}{\ttfamily address\+Count()}
+\end{DoxyItemize}— Get all addresses
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}save()\`{}{\ttfamily save()}
+\end{DoxyItemize}— Save checkpoint:\+ "{}checkpoint:\+\+[number]\+"{} → state\+\_\+data
+\begin{DoxyItemize}
+\item \`{}load()\`{}{\ttfamily load()}
+\end{DoxyItemize}— Load checkpoint
+\begin{DoxyItemize}
+\item \`{}latest()\`{}{\ttfamily latest()}
+\end{DoxyItemize}— Get latest checkpoint
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3172}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3172}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3173}{}\doxysubsection{\texorpdfstring{{\ttfamily Tx\+Location}}{{\ttfamily Tx\+Location}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3173}
+Locatia unei tranzactii in blockchain
+
+{\itshape Defined at line 4}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3175}{}\doxysubsection{\texorpdfstring{{\ttfamily Key\+Value\+Store}}{{\ttfamily Key\+Value\+Store}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3175}
+Key-\/\+Value Storage Interface Abstracts Rocks\+DB, SQLite, or file-\/based storage
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily data}  &{\ttfamily std.\+String\+Hash\+Map(\+[$\,$]\+u8)}  &Data  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 8}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3177}{}\doxysubsection{\texorpdfstring{{\ttfamily Block\+Store}}{{\ttfamily Block\+Store}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3177}
+Block Storage
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily store}  &{\ttfamily Key\+Value\+Store}  &Store  \\
+{\ttfamily next\+\_\+block\+\_\+id}  &{\ttfamily u64}  &Next\+\_\+block\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 77}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3179}{}\doxysubsection{\texorpdfstring{{\ttfamily Transaction\+Index}}{{\ttfamily Transaction\+Index}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3179}
+Transaction Index
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily store}  &{\ttfamily Key\+Value\+Store}  &Store  \\
+{\ttfamily tx\+\_\+count}  &{\ttfamily u64}  &Tx\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 124}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3181}{}\doxysubsection{\texorpdfstring{{\ttfamily Address\+Index}}{{\ttfamily Address\+Index}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3181}
+Address Balance Index
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily store}  &{\ttfamily Key\+Value\+Store}  &Store  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 177}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3183}{}\doxysubsection{\texorpdfstring{{\ttfamily State\+Checkpoint}}{{\ttfamily State\+Checkpoint}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3183}
+State Checkpoint for Recovery
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily store}  &{\ttfamily Key\+Value\+Store}  &Store  \\
+{\ttfamily checkpoint\+\_\+count}  &{\ttfamily u32}  &Checkpoint\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 220}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3185}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3185}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3186}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3186}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ KeyValueStore\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Key\+Value\+Store}
+
+{\itshape Defined at line 12}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3188}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3188}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *KeyValueStore)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Key\+Value\+Store}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 19}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3190}{}\doxysubsection{\texorpdfstring{{\ttfamily put()}}{{\ttfamily put()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3190}
+Put key-\/value pair
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ put(self:\ *KeyValueStore,\ key:\ []const\ u8,\ value:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Key\+Value\+Store}  &The instance  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+{\ttfamily value}  &{\ttfamily \+[]\+const u8}  &Value  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 29}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3192}{}\doxysubsection{\texorpdfstring{{\ttfamily get()}}{{\ttfamily get()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3192}
+Get value by key
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ get(self:\ *const\ KeyValueStore,\ key:\ []const\ u8)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Value\+Store}  &The instance  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 41}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3194}{}\doxysubsection{\texorpdfstring{{\ttfamily delete()}}{{\ttfamily delete()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3194}
+Delete key-\/value pair
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ delete(self:\ *KeyValueStore,\ key:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Key\+Value\+Store}  &The instance  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3196}{}\doxysubsection{\texorpdfstring{{\ttfamily contains()}}{{\ttfamily contains()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3196}
+Check if key exists
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ contains(self:\ *const\ KeyValueStore,\ key:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Value\+Store}  &The instance  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3198}{}\doxysubsection{\texorpdfstring{{\ttfamily count()}}{{\ttfamily count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3198}
+Get total entries
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ count(self:\ *const\ KeyValueStore)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Value\+Store}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 59}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3200}{}\doxysubsection{\texorpdfstring{{\ttfamily clear()}}{{\ttfamily clear()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3200}
+Clear all entries
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ clear(self:\ *KeyValueStore)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Key\+Value\+Store}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 64}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3202}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3202}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ BlockStore\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Block\+Store}
+
+{\itshape Defined at line 81}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3204}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3204}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *BlockStore)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Block\+Store}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 88}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3206}{}\doxysubsection{\texorpdfstring{{\ttfamily store\+Block()}}{{\ttfamily store\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3206}
+Store block with key "{}block:\+\+[height]\+"{}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ storeBlock(self:\ *BlockStore,\ block\_height:\ u64,\ block\_data:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Block\+Store}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily block\+\_\+data}  &{\ttfamily \+[]\+const u8}  &Block\+\_\+data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 93}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3208}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block()}}{{\ttfamily get\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3208}
+Retrieve block by height
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlock(self:\ *const\ BlockStore,\ block\_height:\ u64)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block\+Store}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 104}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3210}{}\doxysubsection{\texorpdfstring{{\ttfamily block\+Count()}}{{\ttfamily block\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3210}
+Get total blocks stored
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ blockCount(self:\ *const\ BlockStore)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block\+Store}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 111}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3212}{}\doxysubsection{\texorpdfstring{{\ttfamily delete\+Block()}}{{\ttfamily delete\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3212}
+Delete block
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deleteBlock(self:\ *BlockStore,\ block\_height:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Block\+Store}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 116}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3214}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3214}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ TransactionIndex\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Transaction\+Index}
+
+{\itshape Defined at line 128}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3216}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3216}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *TransactionIndex)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Transaction\+Index}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 135}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3218}{}\doxysubsection{\texorpdfstring{{\ttfamily index\+Transaction()}}{{\ttfamily index\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3218}
+Index transaction:\+ "{}tx:\+\+[hash]\+"{} → "{}block\+\_\+height:\+tx\+\_\+index"{}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ indexTransaction(self:\ *TransactionIndex,\ tx\_hash:\ []const\ u8,\ block\_height:\ u64,\ tx\_index:\ u32)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Transaction\+Index}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily u32}  &Tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 140}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3220}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Transaction()}}{{\ttfamily find\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3220}
+Find transaction location
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findTransaction(self:\ *const\ TransactionIndex,\ tx\_hash:\ []const\ u8)\ ?TxLocation\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction\+Index}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Tx\+Location}
+
+{\itshape Defined at line 152}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3222}{}\doxysubsection{\texorpdfstring{{\ttfamily transaction\+Count()}}{{\ttfamily transaction\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3222}
+Get total indexed transactions
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ transactionCount(self:\ *const\ TransactionIndex)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction\+Index}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 171}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3224}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3224}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ AddressIndex\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Address\+Index}
+
+{\itshape Defined at line 180}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3226}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3226}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *AddressIndex)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Address\+Index}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 186}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3228}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Balance()}}{{\ttfamily update\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3228}
+Update address balance:\+ "{}addr:\+\+[address]\+"{} → "{}balance"{}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateBalance(self:\ *AddressIndex,\ address:\ []const\ u8,\ balance:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Address\+Index}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily balance}  &{\ttfamily u64}  &Balance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 191}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3230}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance()}}{{\ttfamily get\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3230}
+Get address balance
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalance(self:\ *const\ AddressIndex,\ address:\ []const\ u8)\ ?u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Address\+Index}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?u64}
+
+{\itshape Defined at line 202}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3232}{}\doxysubsection{\texorpdfstring{{\ttfamily address\+Count()}}{{\ttfamily address\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3232}
+Get all addresses
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addressCount(self:\ *const\ AddressIndex)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Address\+Index}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 214}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3234}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3234}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ StateCheckpoint\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily State\+Checkpoint}
+
+{\itshape Defined at line 224}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3236}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3236}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *StateCheckpoint)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+State\+Checkpoint}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 231}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3238}{}\doxysubsection{\texorpdfstring{{\ttfamily save()}}{{\ttfamily save()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3238}
+Save checkpoint:\+ "{}checkpoint:\+\+[number]\+"{} → state\+\_\+data
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ save(self:\ *StateCheckpoint,\ state\_data:\ []const\ u8)\ !u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+State\+Checkpoint}  &The instance  \\
+{\ttfamily state\+\_\+data}  &{\ttfamily \+[]\+const u8}  &State\+\_\+data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u32}
+
+{\itshape Defined at line 236}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3240}{}\doxysubsection{\texorpdfstring{{\ttfamily load()}}{{\ttfamily load()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3240}
+Load checkpoint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ load(self:\ *const\ StateCheckpoint,\ checkpoint\_number:\ u32)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Checkpoint}  &The instance  \\
+{\ttfamily checkpoint\+\_\+number}  &{\ttfamily u32}  &Checkpoint\+\_\+number  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 257}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3242}{}\doxysubsection{\texorpdfstring{{\ttfamily latest()}}{{\ttfamily latest()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2storage_autotoc_md3242}
+Get latest checkpoint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ latest(self:\ *const\ StateCheckpoint)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const State\+Checkpoint}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 264}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

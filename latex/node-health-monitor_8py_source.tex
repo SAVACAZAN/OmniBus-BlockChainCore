@@ -1,0 +1,170 @@
+\doxysection{node-\/health-\/monitor.py}
+\hypertarget{node-health-monitor_8py_source}{}\label{node-health-monitor_8py_source}\index{scripts/devops/node-\/health-\/monitor.py@{scripts/devops/node-\/health-\/monitor.py}}
+\doxymbox{\hyperlink{node-health-monitor_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00001}\doxymbox{\hyperlink{namespacenode-health-monitor}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00002}\doxymbox{\hyperlink{namespacenode}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Node\ Health\ Monitor\ Daemon}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00005}00005\ \textcolor{stringliteral}{Every\ 30s\ pings\ RPC\ port\ with\ getblockcount\ (JSON-\/RPC\ 2.0).}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00006}00006\ \textcolor{stringliteral}{Alerts\ if\ node\ appears\ stuck\ (same\ block\ height\ for\ 3+\ consecutive\ checks).}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00007}00007\ \textcolor{stringliteral}{Takes\ -\/-\/host\ and\ -\/-\/port\ args.}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00008}00008\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00010}00010\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00011}00011\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00012}00012\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00013}00013\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00014}00014\ \textcolor{keyword}{import}\ urllib.request}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00015}00015\ \textcolor{keyword}{import}\ urllib.error}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00016}00016\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00018}00018\ \textcolor{comment}{\#\ ANSI\ colors}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00019}\doxymbox{\hyperlink{namespacenode-health-monitor_a874595255dea77754b5293e1b3bb85c1}{00019}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00020}\doxymbox{\hyperlink{namespacenode-health-monitor_a4d97149c6728a25a4aeb69b1d82149f6}{00020}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00021}\doxymbox{\hyperlink{namespacenode-health-monitor_afb174c585b6f55342f0a423381bced83}{00021}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00022}\doxymbox{\hyperlink{namespacenode-health-monitor_a541d7c34ca9175040a64ae6232567b7a}{00022}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00023}\doxymbox{\hyperlink{namespacenode-health-monitor_ae2ce6ff1d93331c629a625e6a5428591}{00023}}\ DIM\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00024}\doxymbox{\hyperlink{namespacenode-health-monitor_a7b61b7e19034a325d294311e65fdb60b}{00024}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00025}\doxymbox{\hyperlink{namespacenode-health-monitor_ab4351df639a14b5b24d25e743a46bb69}{00025}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00028}\doxymbox{\hyperlink{namespacenode-health-monitor_a2621f257c2feb16e83fb33631bcfa19a}{00028}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-health-monitor_a2621f257c2feb16e83fb33631bcfa19a}{timestamp}}()\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00029}00029\ \ \ \ \ \textcolor{keywordflow}{return}\ datetime.now().strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M:\%S"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00032}\doxymbox{\hyperlink{namespacenode-health-monitor_aa601a1b0db7d9be0a38ba89b4a5bfbf6}{00032}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-health-monitor_aa601a1b0db7d9be0a38ba89b4a5bfbf6}{rpc\_call}}(url:\ str,\ method:\ str,\ params:\ list\ =\ \textcolor{keywordtype}{None},\ timeout:\ int\ =\ 10)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00033}00033\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Make\ a\ JSON-\/RPC\ 2.0\ call.\ Uses\ only\ stdlib\ (no\ requests\ dependency)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00034}00034\ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00039}00039\ \ \ \ \ \}).encode(\textcolor{stringliteral}{"{}utf-\/8"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00041}00041\ \ \ \ \ req\ =\ urllib.request.Request(}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ url,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ data=payload,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ headers=\{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\},}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ method=\textcolor{stringliteral}{"{}POST"{}},}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00046}00046\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00047}00047\ \ \ \ \ \textcolor{keyword}{with}\ urllib.request.urlopen(req,\ timeout=timeout)\ \textcolor{keyword}{as}\ resp:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ json.loads(resp.read().decode(\textcolor{stringliteral}{"{}utf-\/8"{}}))}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00051}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor}{00051}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor}{HealthMonitor}}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00052}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a7e94a4926eab4908e5bdfff1b4bd1c53}{00052}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a7e94a4926eab4908e5bdfff1b4bd1c53}{\_\_init\_\_}}(self,\ host:\ str,\ port:\ int,\ interval:\ int\ =\ 30,\ stuck\_threshold:\ int\ =\ 3):}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00053}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a05400e6b97943a336c8ddabcca17a521}{00053}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a05400e6b97943a336c8ddabcca17a521}{url}}\ =\ f\textcolor{stringliteral}{"{}http://\{host\}:\{port\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00054}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a57511b60ce5ef5b6a2ed7ad6a1403cb6}{00054}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a57511b60ce5ef5b6a2ed7ad6a1403cb6}{interval}}\ =\ interval}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00055}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a73809a20527195caabfb490bec335d30}{00055}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a73809a20527195caabfb490bec335d30}{stuck\_threshold}}\ =\ stuck\_threshold}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00057}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd}{00057}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd}{last\_block\_height}}:\ int\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00058}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{00058}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{same\_height\_count}}:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00059}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef}{00059}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef}{consecutive\_failures}}:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00060}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a645f725e2512d0e390b467db1593e1a9}{00060}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a645f725e2512d0e390b467db1593e1a9}{total\_checks}}:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00061}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a3ea22e2aacad2108e1d52f39dfa5a5c0}{00061}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a3ea22e2aacad2108e1d52f39dfa5a5c0}{total\_ok}}:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00063}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a06cf3f38dea79be92767913e82ab01ca}{00063}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a06cf3f38dea79be92767913e82ab01ca}{check\_health}}(self)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Returns\ \{"{}ok"{}:\ bool,\ "{}block\_height"{}:\ int|None,\ "{}error"{}:\ str|None\}"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacenode-health-monitor_aa601a1b0db7d9be0a38ba89b4a5bfbf6}{rpc\_call}}(self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a05400e6b97943a336c8ddabcca17a521}{url}},\ \textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ result:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}ok"{}}:\ \textcolor{keyword}{True},\ \textcolor{stringliteral}{"{}block\_height"{}}:\ result[\textcolor{stringliteral}{"{}result"{}}],\ \textcolor{stringliteral}{"{}error"{}}:\ \textcolor{keywordtype}{None}\}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ result:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}ok"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}block\_height"{}}:\ \textcolor{keywordtype}{None},\ \textcolor{stringliteral}{"{}error"{}}:\ result[\textcolor{stringliteral}{"{}error"{}}].get(\textcolor{stringliteral}{"{}message"{}},\ \textcolor{stringliteral}{"{}RPC\ error"{}})\}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}ok"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}block\_height"{}}:\ \textcolor{keywordtype}{None},\ \textcolor{stringliteral}{"{}error"{}}:\ \textcolor{stringliteral}{"{}Unexpected\ response"{}}\}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ urllib.error.URLError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}ok"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}block\_height"{}}:\ \textcolor{keywordtype}{None},\ \textcolor{stringliteral}{"{}error"{}}:\ f\textcolor{stringliteral}{"{}Connection\ failed:\ \{e.reason\}"{}}\}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}ok"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}block\_height"{}}:\ \textcolor{keywordtype}{None},\ \textcolor{stringliteral}{"{}error"{}}:\ str(e)\}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00078}\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a6f4205bd08434ba2f8f39b852b49e2ea}{00078}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a6f4205bd08434ba2f8f39b852b49e2ea}{run}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{CYAN\}===\ OmniBus\ Node\ Health\ Monitor\ ===\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Target:\ \ \ \ \{self.url\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Interval:\ \ \{self.interval\}s\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Stuck\ threshold:\ \{self.stuck\_threshold\}\ checks\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a645f725e2512d0e390b467db1593e1a9}{total\_checks}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ status\ =\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a06cf3f38dea79be92767913e82ab01ca}{check\_health}}()}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ status[\textcolor{stringliteral}{"{}ok"{}}]:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef}{consecutive\_failures}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a3ea22e2aacad2108e1d52f39dfa5a5c0}{total\_ok}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height\ =\ status[\textcolor{stringliteral}{"{}block\_height"{}}]}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ if\ block\ height\ is\ advancing}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd}{last\_block\_height}}\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{and}\ height\ ==\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd}{last\_block\_height}}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{same\_height\_count}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{same\_height\_count}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd}{last\_block\_height}}\ =\ height}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{same\_height\_count}}\ >=\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a73809a20527195caabfb490bec335d30}{stuck\_threshold}}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{RED\}[\{timestamp()\}]\ ALERT:\ Node\ stuck\ at\ block\ \{height\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}for\ \{self.same\_height\_count\}\ consecutive\ checks!\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ advancing\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{same\_height\_count}}\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ advancing\ =\ f\textcolor{stringliteral}{"{}\ \{YELLOW\}(unchanged\ x\{self.same\_height\_count\})\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{GREEN\}[\{timestamp()\}]\ OK\{RESET\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}block=\{height\}\{advancing\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{DIM\}uptime=\{self.total\_ok\}/\{self.total\_checks\}\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef}{consecutive\_failures}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{same\_height\_count}}\ =\ 0\ \ \textcolor{comment}{\#\ reset\ since\ we\ can't\ check\ height}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{RED\}[\{timestamp()\}]\ FAIL\ (\{self.consecutive\_failures\}x)\{RESET\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{status['error']\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef}{consecutive\_failures}}\ >=\ self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a73809a20527195caabfb490bec335d30}{stuck\_threshold}}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{RED\}\{BOLD\}[\{timestamp()\}]\ CRITICAL:\ Node\ unreachable\ "{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}for\ \{self.consecutive\_failures\}\ consecutive\ checks!\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(self.\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a57511b60ce5ef5b6a2ed7ad6a1403cb6}{interval}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{YELLOW\}Monitor\ stopped.\ Total\ checks:\ \{self.total\_checks\},\ "{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}OK:\ \{self.total\_ok\},\ Failed:\ \{self.total\_checks\ -\/\ self.total\_ok\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00138}00138\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00139}\doxymbox{\hyperlink{namespacenode-health-monitor_a7431cb90017e54fe695b23d4190db046}{00139}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenode-health-monitor_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00140}00140\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Node\ Health\ Monitor\ —\ pings\ RPC\ and\ alerts\ if\ stuck"{}}}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00142}00142\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00143}00143\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}RPC\ host\ (default:\ 127.0.0.1)"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00144}00144\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=8332,\ help=\textcolor{stringliteral}{"{}RPC\ port\ (default:\ 8332)"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00145}00145\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/interval"{}},\ type=int,\ default=30,\ help=\textcolor{stringliteral}{"{}Check\ interval\ in\ seconds\ (default:\ 30)"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00146}00146\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/stuck-\/threshold"{}},\ type=int,\ default=3,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Number\ of\ same-\/height\ checks\ before\ alerting\ (default:\ 3)"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00148}00148\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00150}00150\ \ \ \ \ monitor\ =\ \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor}{HealthMonitor}}(}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ host=args.host,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ port=args.port,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ interval=args.interval,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ stuck\_threshold=args.stuck\_threshold,}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00155}00155\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00156}00156\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ monitor.run()}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00158}00158\ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{YELLOW\}Interrupted.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00160}00160\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00163}00163\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{node-health-monitor_8py_source_l00164}00164\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacenode-health-monitor_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

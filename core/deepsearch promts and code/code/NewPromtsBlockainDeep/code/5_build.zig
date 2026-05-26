@@ -1,0 +1,1 @@
+cat build.zig 2>/dev/null || echo "build.zig not found in current directory"

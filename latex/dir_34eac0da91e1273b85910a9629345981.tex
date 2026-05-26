@@ -1,0 +1,1163 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@noble/\+curves Directory Reference}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981}{}\label{dir_34eac0da91e1273b85910a9629345981}\index{frontend/node\_modules/"@noble/curves Directory Reference@{frontend/node\_modules/"@noble/curves Directory Reference}}
+Directory dependency graph for curves:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_838924b928c7f4185b6c989d1feca0a0}{node\+\_\+modules}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4591}{}\doxysubsection{\texorpdfstring{noble-\/curves}{noble-\/curves}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4591}
+Audited \& minimal JS implementation of elliptic curve cryptography.
+
+
+\begin{DoxyItemize}
+\item 🔒 \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Audited\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}{\bfseries{Audited}}
+\end{DoxyItemize}by independent security firms
+\begin{DoxyItemize}
+\item 🔻 Tree-\/shakeable:\+ unused code is excluded from your builds
+\item 🏎 Fast:\+ hand-\/optimized for caveats of JS engines
+\item 🔍 Reliable:\+ cross-\/library /\+ wycheproof tests and fuzzing ensure correctness
+\item ➰ Weierstrass, Edwards, Montgomery curves; ECDSA, Ed\+DSA, Schnorr, BLS signatures
+\item ✍️ ECDH, hash-\/to-\/curve, OPRF, FROST, Poseidon hash, FFT
+\item 🔖 Non-\/repudiation (SUF-\/\+CMA, SBS) \& consensus-\/friendliness (ZIP215) in ed25519, ed448
+\item 🥈 Optional, friendly wrapper over native Web\+Crypto
+\item 🪶 32KB (gzipped) including bundled hashes, 11KB for single-\/curve build
+\end{DoxyItemize}
+
+Curves have 5kb sister projects \href{https://github.com/paulmillr/noble-secp256k1}{\texttt{secp256k1}} \& \href{https://github.com/paulmillr/noble-ed25519}{\texttt{ed25519}}. They have smaller attack surface, but less features.
+
+Take a glance at \href{https://github.com/paulmillr/noble-curves/discussions}{\texttt{Git\+Hub Discussions}} for questions and support.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4592}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape noble} cryptography}{This library belongs to {\itshape noble} cryptography}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4592}
+\begin{quote}
+{\bfseries{noble cryptography}} — high-\/security, easily auditable set of contained cryptographic libraries and tools. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds
+\item All libraries:\+ \href{https://github.com/paulmillr/noble-ciphers}{\texttt{ciphers}}, \href{https://github.com/paulmillr/noble-curves}{\texttt{curves}}, \href{https://github.com/paulmillr/noble-hashes}{\texttt{hashes}}, \href{https://github.com/paulmillr/noble-post-quantum}{\texttt{post-\/quantum}}, 5kb \href{https://github.com/paulmillr/noble-secp256k1}{\texttt{secp256k1}} /\+ \href{https://github.com/paulmillr/noble-ed25519}{\texttt{ed25519}}
+\item \href{https://paulmillr.com/noble/}{\texttt{Check out the homepage}} for reading resources, documentation, and apps built with noble
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4593}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4593}
+\begin{quote}
+{\ttfamily npm install @noble/\+curves} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@noble/\+curves} \end{quote}
+
+
+\doxylink{namespace_we}{We} support all major platforms and runtimes. For React Native, you may need a \href{https://github.com/LinusU/react-native-get-random-values}{\texttt{polyfill for get\+Random\+Values}}. A standalone file \href{https://github.com/paulmillr/noble-curves/releases}{\texttt{noble-\/curves.\+js}} is also available.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ import\ *\ from\ '@noble/curves';\ //\ Error:\ use\ sub-\/imports,\ to\ ensure\ small\ app\ size}
+\DoxyCodeLine{import\ \{\ secp256k1,\ schnorr\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{import\ \{\ ed25519,\ ed25519ph,\ ed25519ctx,\ x25519,\ ristretto255\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ ed448,\ ed448ph,\ x448,\ decaf448\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{import\ \{\ p256,\ p384,\ p521\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ bls12\_381\ \}\ from\ '@noble/curves/bls12-\/381.js';}
+\DoxyCodeLine{import\ \{\ bn254\ \}\ from\ '@noble/curves/bn254.js';}
+\DoxyCodeLine{import\ \{\ jubjub,\ babyjubjub,\ brainpoolP256r1,\ brainpoolP384r1,\ brainpoolP512r1\ \}\ from\ '@noble/curves/misc.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ hash-\/to-\/curve}
+\DoxyCodeLine{import\ \{\ secp256k1\_hasher\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{import\ \{\ p256\_hasher,\ p384\_hasher,\ p521\_hasher\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ ristretto255\_hasher\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ decaf448\_hasher\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ OPRFs}
+\DoxyCodeLine{import\ \{\ p256\_oprf,\ p384\_oprf,\ p521\_oprf\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ ristretto255\_oprf\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ decaf448\_oprf\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ utils}
+\DoxyCodeLine{import\ \{\ bytesToHex,\ hexToBytes,\ concatBytes\ \}\ from\ '@noble/curves/utils.js';}
+\DoxyCodeLine{import\ \{\ Field\ \}\ from\ '@noble/curves/abstract/modular.js';}
+\DoxyCodeLine{import\ \{\ weierstrass,\ ecdsa\ \}\ from\ '@noble/curves/abstract/weierstrass.js';}
+\DoxyCodeLine{import\ \{\ edwards,\ eddsa\ \}\ from\ '@noble/curves/abstract/edwards.js';}
+\DoxyCodeLine{import\ \{\ poseidon,\ poseidonSponge\ \}\ from\ '@noble/curves/abstract/poseidon.js';}
+\DoxyCodeLine{import\ \{\ FFT,\ poly\ \}\ from\ '@noble/curves/abstract/fft.js';}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item Examples
+\begin{DoxyItemize}
+\item ECDSA, Ed\+DSA, Schnorr signaturesECDSA, Ed\+DSA, Schnorr signatures
+\end{DoxyItemize}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item secp256k1, p256, p384, p521, ed25519, ed448, brainpoolsecp256k1, p256, p384, p521, ed25519, ed448, brainpool
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item ristretto255, decaf448ristretto255, decaf448
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Prehashed signingPrehashed signing
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Recovering public keys from signaturesRecovering public keys from signatures
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Hedged ECDSA with noiseHedged ECDSA with noise
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Consensus-\/friendliness vs e-\/votingConsensus-\/friendliness vs e-\/voting
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item ECDH:\+ Diffie-\/\+Hellman shared secretsECDH:\+ Diffie-\/\+Hellman shared secrets
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item webcrypto:\+ Friendly wrapperwebcrypto:\+ Friendly wrapper
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item BLS signatures, bls12-\/381, bn254 aka alt\textbackslash{}\+\_\+bn128BLS signatures, bls12-\/381, bn254 aka alt\+\_\+bn128
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Hashing to curve pointsHashing to curve points
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item OPRFsOPRFs
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item FROST threshold signaturesFROST threshold signatures
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Poseidon hashPoseidon hash
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Fast Fourier TransformFast Fourier Transform
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item utilsutils
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item InternalsInternals
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Elliptic curve Point mathElliptic curve Point math
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item modular:\+ Modular arithmetics \& finite fieldsmodular:\+ Modular arithmetics \& finite fields
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item weierstrass:\+ Custom Weierstrass curveweierstrass:\+ Custom Weierstrass curve
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item edwards:\+ Custom Edwards curveedwards:\+ Custom Edwards curve
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Custom ECDSA instanceCustom ECDSA instance
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SecuritySecurity
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SpeedSpeed
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Contributing \& testingContributing \& testing
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item UpgradingUpgrading
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4594}{}\doxysubsubsection{\texorpdfstring{ECDSA, Ed\+DSA, Schnorr signatures}{ECDSA, Ed\+DSA, Schnorr signatures}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4594}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4595}{}\doxysubsubsubsection{\texorpdfstring{secp256k1, p256, p384, p521, ed25519, ed448, brainpool}{secp256k1, p256, p384, p521, ed25519, ed448, brainpool}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4595}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ secp256k1,\ schnorr\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{import\ \{\ p256,\ p384,\ p521\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ ed25519\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ ed448\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{import\ \{\ brainpoolP256r1,\ brainpoolP384r1,\ brainpoolP512r1\ \}\ from\ '@noble/curves/misc.js';}
+\DoxyCodeLine{for\ (const\ curve\ of\ [}
+\DoxyCodeLine{\ \ secp256k1,\ schnorr,}
+\DoxyCodeLine{\ \ p256,\ p384,\ p521,}
+\DoxyCodeLine{\ \ ed25519,\ ed448,}
+\DoxyCodeLine{\ \ brainpoolP256r1,\ brainpoolP384r1,\ brainpoolP512r1}
+\DoxyCodeLine{])\ \{}
+\DoxyCodeLine{\ \ const\ \{\ secretKey,\ publicKey\ \}\ =\ curve.keygen();}
+\DoxyCodeLine{\ \ const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{\ \ const\ sig\ =\ curve.sign(msg,\ secretKey);}
+\DoxyCodeLine{\ \ const\ isValid\ =\ curve.verify(sig,\ msg,\ publicKey);}
+\DoxyCodeLine{\ \ console.log(curve,\ secretKey,\ publicKey,\ sig,\ isValid);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Specific\ private\ key}
+\DoxyCodeLine{import\ \{\ hexToBytes\ \}\ from\ '@noble/curves/utils.js';}
+\DoxyCodeLine{const\ secret2\ =\ hexToBytes('46c930bc7bb4db7f55da20798697421b98c4175a52c630294d75a84b9c126236');}
+\DoxyCodeLine{const\ pub2\ =\ secp256k1.getPublicKey(secret2);}
+
+\end{DoxyCode}
+
+
+ECDSA signatures use deterministic k, conforming to \href{https://www.rfc-editor.org/rfc/rfc6979}{\texttt{RFC 6979}}. Ed\+DSA conforms to \href{https://www.rfc-editor.org/rfc/rfc8032}{\texttt{RFC 8032}}. Schnorr (secp256k1-\/only) conforms to \href{https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki}{\texttt{BIP 340}}.
+
+Messages are always hashed first.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4596}{}\doxysubsubsubsection{\texorpdfstring{ristretto255, decaf448}{ristretto255, decaf448}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4596}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ ristretto255,\ ristretto255\_hasher,\ ristretto255\_oprf\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ decaf448,\ decaf448\_hasher,\ decaf448\_oprf\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{console.log(ristretto255.Point,\ decaf448.Point);}
+
+\end{DoxyCode}
+
+
+Check out \href{https://www.rfc-editor.org/rfc/rfc9496}{\texttt{RFC 9496}} more info on ristretto255 \& decaf448. Check out separate documentation for PointPoint, hasherhasher and oprfoprf.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4597}{}\doxysubsubsubsection{\texorpdfstring{Prehashed signing}{Prehashed signing}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4597}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ secp256k1\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{import\ \{\ keccak\_256\ \}\ from\ '@noble/hashes/sha3.js';}
+\DoxyCodeLine{const\ \{\ secretKey\ \}\ =\ secp256k1.keygen();}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{//\ prehash:\ true\ (default)\ -\/\ hash\ using\ secp256k1.hash\ (sha256)}
+\DoxyCodeLine{const\ sig\ =\ secp256k1.sign(msg,\ secretKey);}
+\DoxyCodeLine{//\ prehash:\ false\ -\/\ hash\ using\ custom\ hash}
+\DoxyCodeLine{const\ sigKeccak\ =\ secp256k1.sign(keccak\_256(msg),\ secretKey,\ \{\ prehash:\ false\ \});}
+
+\end{DoxyCode}
+
+
+Default sign() and verify() behavior ({\ttfamily prehash:\+ true}) applies built-\/in hash function to message first. For secp256k1 that\textquotesingle{}s \doxylink{namespacesha256}{sha256}, for p521 that\textquotesingle{}s sha512.
+
+Providing {\ttfamily prehash:\+ false} allows user to specify their own hash function (e.\+g. use secp256k1 + keccak\+\_\+256).
+
+\begin{DoxyNote}{Note}
+Previously, in noble-\/curves v1, {\ttfamily prehash:\+ false} was the default. Some other libraries (like libsecp256k1) have no prehashing.
+\end{DoxyNote}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4598}{}\doxysubsubsubsection{\texorpdfstring{Recovering public keys from signatures}{Recovering public keys from signatures}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4598}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ secp256k1\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{const\ \{\ secretKey,\ publicKey\ \}\ =\ secp256k1.keygen();}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ sigRec\ =\ secp256k1.sign(msg,\ secretKey,\ \{\ format:\ 'recovered'\ \});}
+\DoxyCodeLine{const\ publicKey\_\ =\ secp256k1.recoverPublicKey(sigRec,\ msg);\ //\ ==\ publicKey}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ recovered\ sig\ is\ compact\ sig\ with\ an\ extra\ byte}
+\DoxyCodeLine{const\ sigNoRec\ =\ secp256k1.sign(msg,\ secretKey,\ \{\ format:\ 'compact'\ \});}
+\DoxyCodeLine{//\ sigNoRec\ ==\ sigRec.slice(1)}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Signature\ instance}
+\DoxyCodeLine{const\ sigInstance\ =\ secp256k1.Signature.fromBytes(sigRec,\ 'recovered');}
+
+\end{DoxyCode}
+
+
+Public key recovery -\/ only supported with ECDSA.
+
+\begin{DoxyNote}{Note}
+Key recovery is a simple math operation. There are no guarantees the signing was actually done. It\textquotesingle{}s possible to forge signature and msg hash (r, s, h), which would recover into a random public key, but it\textquotesingle{}s not feasible to find m which would lead to this specific forged h.
+\end{DoxyNote}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4599}{}\doxysubsubsubsection{\texorpdfstring{Hedged ECDSA with noise}{Hedged ECDSA with noise}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4599}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ secp256k1\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{const\ \{\ secretKey\ \}\ =\ secp256k1.keygen();}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{//\ extraEntropy:\ false\ -\/\ default,\ hedging\ disabled}
+\DoxyCodeLine{const\ sigNoisy\ =\ secp256k1.sign(msg,\ secretKey);}
+\DoxyCodeLine{//\ extraEntropy:\ true\ -\/\ fetch\ 32\ random\ bytes\ from\ CSPRNG}
+\DoxyCodeLine{const\ sigNoisyA\ =\ secp256k1.sign(msg,\ secretKey,\ \{\ extraEntropy:\ true\ \});}
+\DoxyCodeLine{//\ extraEntropy:\ bytes\ -\/\ specific\ extra\ entropy}
+\DoxyCodeLine{const\ ent\ =\ Uint8Array.from([0xca,\ 0xfe,\ 0x01,\ 0x23]);}
+\DoxyCodeLine{const\ sigNoisy2\ =\ secp256k1.sign(msg,\ secretKey,\ \{\ extraEntropy:\ ent\ \});}
+
+\end{DoxyCode}
+
+
+ECDSA {\ttfamily sign()} allows providing {\ttfamily extra\+Entropy}, which switches sig generation to hedged mode.
+
+By default, ECDSA signatures are generated deterministically, following \href{https://www.rfc-editor.org/rfc/rfc6979}{\texttt{RFC 6979}}. However, purely deterministic signatures are vulnerable to fault attacks. Newer signature schemes, such as BIP340 schnorr, switched to hedged signatures because of this. Hedging is basically incorporating some randomness into sig generation process.
+
+For more info, check out \href{https://paulmillr.com/posts/deterministic-signatures/}{\texttt{Deterministic signatures are not your friends}}, \href{https://www.rfc-editor.org/rfc/rfc6979}{\texttt{RFC 6979}} section 3.\+6, and \href{https://datatracker.ietf.org/doc/draft-irtf-cfrg-det-sigs-with-noise/}{\texttt{cfrg-\/det-\/sigs-\/with-\/noise draft}}.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4600}{}\doxysubsubsubsection{\texorpdfstring{Consensus-\/friendliness vs e-\/voting}{Consensus-\/friendliness vs e-\/voting}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4600}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ ed25519\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{const\ \{\ secretKey,\ publicKey\ \}\ =\ ed25519.keygen();}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ sig\ =\ ed25519.sign(msg,\ secretKey);}
+\DoxyCodeLine{//\ zip215:\ true}
+\DoxyCodeLine{const\ isValid\ =\ ed25519.verify(sig,\ msg,\ publicKey);}
+\DoxyCodeLine{//\ SBS\ /\ e-\/voting\ /\ RFC8032\ /\ FIPS\ 186-\/5}
+\DoxyCodeLine{const\ isValidRfc\ =\ ed25519.verify(sig,\ msg,\ publicKey,\ \{\ zip215:\ false\ \});}
+
+\end{DoxyCode}
+
+
+\begin{DoxyNote}{Note}
+Most other libraries don\textquotesingle{}t have SUF-\/\+CMA \& SBS -\/ less optimal choice for their security.
+\end{DoxyNote}
+In ed25519, there is an ability to choose between consensus-\/friendliness vs e-\/voting mode.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily zip215:\+ true} (default) uses the more permissive, \href{https://hdevalence.ca/blog/2020-10-04-its-25519am}{\texttt{consensus-\/friendly}} verification rules defined in \href{https://zips.z.cash/zip-0215}{\texttt{ZIP215}}.
+\item {\ttfamily zip215:\+ false} enforces strict \href{https://www.rfc-editor.org/rfc/rfc8032}{\texttt{RFC 8032}} /\+ \href{https://csrc.nist.gov/publications/detail/fips/186/5/final}{\texttt{FIPS 186-\/5}} verification and adds SBS-\/based non-\/repudiation, which is useful for:\+
+\begin{DoxyItemize}
+\item {\bfseries{Contract signing:\+}} prevents a signer from later claiming they signed a different document
+\item {\bfseries{E-\/voting:\+}} stops voters from choosing keys that let them repudiate their vote
+\item {\bfseries{Blockchains:\+}} avoids signatures valid for multiple transactions (e.\+g., amount X also validating amount Y)
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Both modes have SUF-\/\+CMA (strong unforgeability under chosen message attacks). See \href{https://eprint.iacr.org/2020/1244}{\texttt{Taming the many Ed\+DSAs}} for more info.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4601}{}\doxysubsubsection{\texorpdfstring{ECDH:\+ Diffie-\/\+Hellman shared secrets}{ECDH:\+ Diffie-\/\+Hellman shared secrets}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4601}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ secp256k1\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{import\ \{\ x25519\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ x448\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{import\ \{\ p256,\ p384,\ p521\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{for\ (const\ curve\ of\ [secp256k1,\ x25519,\ x448,\ p256,\ p384,\ p521])\ \{}
+\DoxyCodeLine{\ \ const\ alice\ =\ curve.keygen();}
+\DoxyCodeLine{\ \ const\ bob\ =\ curve.keygen();}
+\DoxyCodeLine{\ \ const\ sharedKey\ =\ curve.getSharedSecret(alice.secretKey,\ bob.publicKey);}
+\DoxyCodeLine{\ \ console.log('alice',\ alice,\ 'bob',\ bob,\ 'shared',\ sharedKey);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ x25519\ \&\ x448\ specific\ methods}
+\DoxyCodeLine{import\ \{\ ed25519\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{const\ alice\ =\ ed25519.keygen();}
+\DoxyCodeLine{const\ bob\ =\ ed25519.keygen();}
+\DoxyCodeLine{const\ aliceSecX\ =\ ed25519.utils.toMontgomerySecret(alice.secretKey);}
+\DoxyCodeLine{const\ bobPubX\ =\ ed25519.utils.toMontgomery(bob.publicKey);}
+\DoxyCodeLine{const\ sharedKey\ =\ x25519.getSharedSecret(aliceSecX,\ bobPubX);}
+
+\end{DoxyCode}
+
+
+\doxylink{namespace_we}{We} provide ECDH over all Weierstrass curves, and over 2 Montgomery curves X25519 (Curve25519) \& X448 (Curve448), conforming to \href{https://www.rfc-editor.org/rfc/rfc7748}{\texttt{RFC 7748}}.
+
+In Weierstrass curves, shared secrets:\+
+
+
+\begin{DoxyItemize}
+\item Include y-\/parity bytes:\+ use {\ttfamily key.\+slice(1)} to strip it
+\item Are not hashed:\+ use hashing or KDF on top, like {\ttfamily \doxylink{namespacesha256}{sha256(shared)}} or {\ttfamily hkdf(shared)}
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4602}{}\doxysubsubsubsection{\texorpdfstring{webcrypto:\+ Friendly wrapper}{webcrypto:\+ Friendly wrapper}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4602}
+\begin{DoxyNote}{Note}
+Webcrypto methods are always async.
+\end{DoxyNote}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4603}{}\doxysubsubsubsubsection{\texorpdfstring{webcrypto signatures}{webcrypto signatures}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4603}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ ed25519,\ ed448,\ p256,\ p384,\ p521\ \}\ from\ '@noble/curves/webcrypto.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{(async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ for\ (let\ [name,\ curve]\ of\ Object.entries(\{\ p256,\ p384,\ p521,\ ed25519,\ ed448\ \}))\ \{}
+\DoxyCodeLine{\ \ \ \ console.log('curve',\ name);}
+\DoxyCodeLine{\ \ \ \ if\ (!await\ curve.isSupported())\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ console.log('is\ not\ supported,\ skipping');}
+\DoxyCodeLine{\ \ \ \ \ \ continue;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ const\ keys\ =\ await\ curve.keygen();}
+\DoxyCodeLine{\ \ \ \ const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{\ \ \ \ const\ sig\ =\ await\ curve.sign(msg,\ keys.secretKey);}
+\DoxyCodeLine{\ \ \ \ const\ isValid\ =\ await\ curve.verify(sig,\ msg,\ keys.publicKey);}
+\DoxyCodeLine{\ \ \ \ console.log(\{}
+\DoxyCodeLine{\ \ \ \ \ \ keys,\ msg,\ sig,\ isValid}
+\DoxyCodeLine{\ \ \ \ \});}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\})();}
+
+\end{DoxyCode}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4604}{}\doxysubsubsubsubsection{\texorpdfstring{webcrypto ecdh}{webcrypto ecdh}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4604}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ p256,\ p384,\ p521,\ x25519,\ x448\ \}\ from\ '@noble/curves/webcrypto.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{(async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ for\ (let\ [name,\ curve]\ of\ Object.entries(\{\ p256,\ p384,\ p521,\ x25519,\ x448\ \}))\ \{}
+\DoxyCodeLine{\ \ \ \ console.log('curve',\ name);}
+\DoxyCodeLine{\ \ \ \ if\ (!await\ curve.isSupported())\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ console.log('is\ not\ supported,\ skipping');}
+\DoxyCodeLine{\ \ \ \ \ \ continue;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ const\ alice\ =\ await\ curve.keygen();}
+\DoxyCodeLine{\ \ \ \ const\ bob\ =\ await\ curve.keygen();}
+\DoxyCodeLine{\ \ \ \ const\ shared\ =\ await\ curve.getSharedSecret(alice.secretKey,\ bob.publicKey);}
+\DoxyCodeLine{\ \ \ \ const\ shared2\ =\ await\ curve.getSharedSecret(bob.secretKey,\ alice.publicKey);}
+\DoxyCodeLine{\ \ \ \ console.log(\{shared\});}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\})();}
+
+\end{DoxyCode}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4605}{}\doxysubsubsubsubsection{\texorpdfstring{Key conversion from noble to webcrypto and back}{Key conversion from noble to webcrypto and back}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4605}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ p256\ as\ p256n\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ p256\ \}\ from\ '@noble/curves/webcrypto.js';}
+\DoxyCodeLine{(async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ const\ nobleKeys\ =\ p256n.keygen();}
+\DoxyCodeLine{\ \ //\ convert\ noble\ keys\ to\ webcrypto}
+\DoxyCodeLine{\ \ const\ webKeys\ =\ \{}
+\DoxyCodeLine{\ \ \ \ secretKey:\ await\ p256.utils.convertSecretKey(nobleKeys.secretKey,\ 'raw',\ 'pkcs8'),}
+\DoxyCodeLine{\ \ \ \ publicKey:\ await\ p256.utils.convertPublicKey(nobleKeys.publicKey,\ 'raw',\ 'spki')}
+\DoxyCodeLine{\ \ \};}
+\DoxyCodeLine{\ \ //\ convert\ webcrypto\ keys\ to\ noble}
+\DoxyCodeLine{\ \ const\ nobleKeys2\ =\ \{}
+\DoxyCodeLine{\ \ \ \ secretKey:\ await\ p256.utils.convertSecretKey(webKeys.secretKey,\ 'pkcs8',\ 'raw'),}
+\DoxyCodeLine{\ \ \ \ publicKey:\ await\ p256.utils.convertPublicKey(webKeys.publicKey,\ 'spki',\ 'raw')}
+\DoxyCodeLine{\ \ \};}
+\DoxyCodeLine{\})();}
+
+\end{DoxyCode}
+
+
+Check out \href{https://github.com/paulmillr/micro-key-producer}{\texttt{micro-\/key-\/producer}} for pure JS key conversion utils.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4606}{}\doxysubsubsection{\texorpdfstring{BLS signatures, bls12-\/381, bn254 aka alt\+\_\+bn128}{BLS signatures, bls12-\/381, bn254 aka alt\+\_\+bn128}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4606}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ bls12\_381\ \}\ from\ '@noble/curves/bls12-\/381.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ G1\ pubkeys,\ G2\ sigs}
+\DoxyCodeLine{const\ blsl\ =\ bls12\_381.longSignatures;}
+\DoxyCodeLine{const\ \{\ secretKey,\ publicKey\ \}\ =\ blsl.keygen();}
+\DoxyCodeLine{//\ const\ publicKey\ =\ blsl.getPublicKey(secretKey);}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{//\ default\ DST}
+\DoxyCodeLine{const\ msgp\ =\ blsl.hash(msg);}
+\DoxyCodeLine{//\ custom\ DST\ (Ethereum)}
+\DoxyCodeLine{const\ msgpd\ =\ blsl.hash(msg,\ 'BLS\_SIG\_BLS12381G2\_XMD:SHA-\/256\_SSWU\_RO\_POP\_');}
+\DoxyCodeLine{const\ signature\ =\ blsl.sign(msgp,\ secretKey);}
+\DoxyCodeLine{const\ isValid\ =\ blsl.verify(signature,\ msgp,\ publicKey);}
+\DoxyCodeLine{console.log('long',\ \{\ publicKey,\ signature,\ isValid\ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ G1\ sigs,\ G2\ pubkeys}
+\DoxyCodeLine{const\ blss\ =\ bls12\_381.shortSignatures;}
+\DoxyCodeLine{const\ publicKey2\ =\ blss.getPublicKey(secretKey);}
+\DoxyCodeLine{const\ msgp2\ =\ blss.hash(msg,\ 'BLS\_SIG\_BLS12381G1\_XMD:SHA-\/256\_SSWU\_RO\_NUL\_');}
+\DoxyCodeLine{const\ signature2\ =\ blss.sign(msgp2,\ secretKey);}
+\DoxyCodeLine{const\ isValid2\ =\ blss.verify(signature2,\ msgp2,\ publicKey2);}
+\DoxyCodeLine{console.log(\{\ publicKey2,\ signature2,\ isValid2\ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Aggregation}
+\DoxyCodeLine{const\ aggregatedKey\ =\ bls12\_381.longSignatures.aggregatePublicKeys([}
+\DoxyCodeLine{\ \ blsl.getPublicKey(bls12\_381.utils.randomSecretKey()),}
+\DoxyCodeLine{\ \ blsl.getPublicKey(bls12\_381.utils.randomSecretKey()),}
+\DoxyCodeLine{]);}
+\DoxyCodeLine{//\ const\ aggregatedSig\ =\ bls.aggregateSignatures(sigs)}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Pairings,\ with\ and\ without\ final\ exponentiation}
+\DoxyCodeLine{//\ bls.pairing(PointG1,\ PointG2);}
+\DoxyCodeLine{//\ bls.pairing(PointG1,\ PointG2,\ false);}
+\DoxyCodeLine{//\ bls.fields.Fp12.finalExponentiate(bls.fields.Fp12.mul(PointG1,\ PointG2));}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Others}
+\DoxyCodeLine{//\ bls.G1.Point.BASE,\ bls.G2.Point.BASE;}
+\DoxyCodeLine{//\ bls.fields.Fp,\ bls.fields.Fp2,\ bls.fields.Fp12,\ bls.fields.Fr;}
+
+\end{DoxyCode}
+
+
+See abstract/\+blsabstract/\+bls. For example usage, check out \href{https://github.com/ethereumjs/ethereumjs-monorepo/blob/361f4edbc239e795a411ac2da7e5567298b9e7e5/packages/evm/src/precompiles/bls12_381/noble.ts}{\texttt{the implementation of BLS EVM precompiles}}.
+
+The BN254 API mirrors BLSBLS. The curve was previously called alt\+\_\+bn128. The implementation is compatible with \href{https://eips.ethereum.org/EIPS/eip-196}{\texttt{EIP-\/196}} and \href{https://eips.ethereum.org/EIPS/eip-197}{\texttt{EIP-\/197}}.
+
+For BN254 usage, check out \href{https://github.com/paulmillr/noble-curves/blob/3ed792f8ad9932765b84d1064afea8663a255457/test/bn254.test.js\#L697}{\texttt{the implementation of bn254 EVM precompiles}}. \doxylink{namespace_we}{We} don\textquotesingle{}t implement Point methods to\+Bytes. To work around this limitation, has to initialize points on their own from Big\+Ints. Reason it\textquotesingle{}s not implemented is because \href{https://github.com/privacy-scaling-explorations/halo2curves/issues/109}{\texttt{there is no standard}}. Points of divergence:\+
+
+
+\begin{DoxyItemize}
+\item Endianness:\+ LE vs BE (byte-\/swapped)
+\item Flags as first hex bits (similar to BLS) vs no-\/flags
+\item Imaginary part last in G2 vs first (c0, c1 vs c1, c0)
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4607}{}\doxysubsubsection{\texorpdfstring{hash-\/to-\/curve:\+ hashing to curve points}{hash-\/to-\/curve:\+ hashing to curve points}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4607}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ bls12\_381\ \}\ from\ '@noble/curves/bls12-\/381.js';}
+\DoxyCodeLine{import\ \{\ ed25519\_hasher,\ ristretto255\_hasher\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ decaf448\_hasher,\ ed448\_hasher\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{import\ \{\ p256\_hasher,\ p384\_hasher,\ p521\_hasher\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ secp256k1\_hasher\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ h\ =\ \{}
+\DoxyCodeLine{\ \ secp256k1\_hasher,}
+\DoxyCodeLine{\ \ p256\_hasher,\ p384\_hasher,\ p521\_hasher,}
+\DoxyCodeLine{\ \ ed25519\_hasher,}
+\DoxyCodeLine{\ \ ed448\_hasher,}
+\DoxyCodeLine{\ \ ristretto255\_hasher,}
+\DoxyCodeLine{\ \ decaf448\_hasher,}
+\DoxyCodeLine{\ \ bls\_G1:\ bls12\_381.G1,}
+\DoxyCodeLine{\ \ bls\_G2:\ bls12\_381.G2}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ msg\ =\ Uint8Array.from([0xca,\ 0xfe,\ 0x01,\ 0x23]);}
+\DoxyCodeLine{console.log('msg',\ msg);}
+\DoxyCodeLine{for\ (let\ [name,\ c]\ of\ Object.entries(h))\ \{}
+\DoxyCodeLine{\ \ const\ hashToCurve\ =\ c.hashToCurve(msg).toHex();}
+\DoxyCodeLine{\ \ const\ hashToCurve\_customDST\ =\ c.hashToCurve(msg,\ \{\ DST:\ 'hello\ noble'\ \}).toHex();}
+\DoxyCodeLine{\ \ const\ encodeToCurve\ =\ 'encodeToCurve'\ in\ c\ ?\ c.encodeToCurve(msg).toHex()\ :\ undefined;}
+\DoxyCodeLine{\ \ //\ ristretto255,\ decaf448\ only}
+\DoxyCodeLine{\ \ const\ deriveToCurve\ =\ 'deriveToCurve'\ in\ c\ ?}
+\DoxyCodeLine{\ \ \ \ c.deriveToCurve!(new\ Uint8Array(c.Point.Fp.BYTES\ *\ 2)).toHex()\ :\ undefined;}
+\DoxyCodeLine{\ \ const\ hashToScalar\ =\ c.hashToScalar(msg);}
+\DoxyCodeLine{\ \ console.log(\{}
+\DoxyCodeLine{\ \ \ \ name,\ hashToCurve,\ hashToCurve\_customDST,\ encodeToCurve,\ deriveToCurve,\ hashToScalar}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ abstract\ methods}
+\DoxyCodeLine{import\ \{\ expand\_message\_xmd,\ expand\_message\_xof,\ hash\_to\_field\ \}\ from\ '@noble/curves/abstract/hash-\/to-\/curve.js';}
+
+\end{DoxyCode}
+
+
+The module allows to hash arbitrary strings to elliptic curve points. Implements \href{https://www.rfc-editor.org/rfc/rfc9380}{\texttt{RFC 9380}}.
+
+\begin{DoxyNote}{Note}
+Why is {\ttfamily p256\+\_\+hasher} separate from {\ttfamily p256}? The methods reside in separate \+\_\+hasher namespace for tree-\/shaking:\+ this way users who don\textquotesingle{}t need hash-\/to-\/curve, won\textquotesingle{}t have it in their builds.
+\end{DoxyNote}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4608}{}\doxysubsubsection{\texorpdfstring{OPRFs}{OPRFs}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4608}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ p256\_oprf,\ p384\_oprf,\ p521\_oprf\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ ristretto255\_oprf\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ decaf448\_oprf\ \}\ from\ '@noble/curves/ed448.js';}
+
+\end{DoxyCode}
+
+
+\doxylink{namespace_we}{We} provide OPRFs (oblivious pseudorandom functions), conforming to \href{https://www.rfc-editor.org/rfc/rfc9497}{\texttt{RFC 9497}}.
+
+OPRF allows to interactively create an {\ttfamily Output = PRF(\+Input, server\+Secret\+Key)}:\+
+
+
+\begin{DoxyItemize}
+\item Server cannot calculate Output by itself:\+ it doesn\textquotesingle{}t know Input
+\item Client cannot calculate Output by itself:\+ it doesn\textquotesingle{}t know server secret\+Key
+\item An attacker interception the communication can\textquotesingle{}t restore Input/\+\+Output/\+server\+Secret\+Key and can\textquotesingle{}t link Input to some value.
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4609}{}\doxysubsubsection{\texorpdfstring{FROST threshold signatures}{FROST threshold signatures}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4609}
+FROST implements \href{https://www.rfc-editor.org/rfc/rfc9591}{\texttt{RFC 9591}} threshold Schnorr signing. It is similar to multisig from the application point of view:\+ any {\ttfamily min} of {\ttfamily max} participants can jointly produce one Schnorr signature under a shared public key. Supported ciphersuites are {\ttfamily p256\+\_\+\+FROST}, {\ttfamily ed25519\+\_\+\+FROST}, {\ttfamily ed448\+\_\+\+FROST}, {\ttfamily ristretto255\+\_\+\+FROST}, {\ttfamily secp256k1\+\_\+\+FROST}, and {\ttfamily schnorr\+\_\+\+FROST} (Taproot-\/compatible secp256k1). Signing has two rounds:\+ selected signers commit first, then produce signature shares.
+
+\begin{DoxyWarning}{Warning}
+The FROST code is new and has not been audited yet. It passes the imported {\ttfamily frost-\/rs} vectors/\+examples and local regression tests.
+\end{DoxyWarning}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ p256\_FROST\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ signers\ =\ \{\ min:\ 2,\ max:\ 3\ \};}
+\DoxyCodeLine{const\ alice\ =\ p256\_FROST.Identifier.derive('alice@example.com');}
+\DoxyCodeLine{const\ bob\ =\ p256\_FROST.Identifier.derive('bob@example.com');}
+\DoxyCodeLine{const\ carol\ =\ p256\_FROST.Identifier.derive('carol@example.com');}
+\DoxyCodeLine{//\ trusted\ dealer}
+\DoxyCodeLine{const\ deal\ =\ p256\_FROST.trustedDealer(signers,\ [alice,\ bob,\ carol]);}
+\DoxyCodeLine{for\ (const\ id\ of\ [alice,\ bob,\ carol])\ p256\_FROST.validateSecret(deal.secretShares[id],\ deal.public);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('hello\ threshold');}
+\DoxyCodeLine{//\ round\ 1:\ selected\ signers\ commit}
+\DoxyCodeLine{const\ aliceRound1\ =\ p256\_FROST.commit(deal.secretShares[alice]);}
+\DoxyCodeLine{const\ bobRound1\ =\ p256\_FROST.commit(deal.secretShares[bob]);}
+\DoxyCodeLine{const\ commitmentList\ =\ [aliceRound1.commitments,\ bobRound1.commitments];}
+\DoxyCodeLine{//\ round\ 2:\ signers\ produce\ signature\ shares}
+\DoxyCodeLine{const\ sigShares\ =\ \{}
+\DoxyCodeLine{\ \ [alice]:\ p256\_FROST.signShare(}
+\DoxyCodeLine{\ \ \ \ deal.secretShares[alice],}
+\DoxyCodeLine{\ \ \ \ deal.public,}
+\DoxyCodeLine{\ \ \ \ aliceRound1.nonces,}
+\DoxyCodeLine{\ \ \ \ commitmentList,}
+\DoxyCodeLine{\ \ \ \ msg}
+\DoxyCodeLine{\ \ ),}
+\DoxyCodeLine{\ \ [bob]:\ p256\_FROST.signShare(}
+\DoxyCodeLine{\ \ \ \ deal.secretShares[bob],}
+\DoxyCodeLine{\ \ \ \ deal.public,}
+\DoxyCodeLine{\ \ \ \ bobRound1.nonces,}
+\DoxyCodeLine{\ \ \ \ commitmentList,}
+\DoxyCodeLine{\ \ \ \ msg}
+\DoxyCodeLine{\ \ ),}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{const\ sig\ =\ p256\_FROST.aggregate(deal.public,\ commitmentList,\ msg,\ sigShares);}
+\DoxyCodeLine{const\ isValid\ =\ p256\_FROST.verify(sig,\ msg,\ deal.public.commitments[0]);}
+
+\end{DoxyCode}
+
+
+Key generation can be done with a trusted dealer or with DKG. DKG has three rounds:\+ participants commit to key generation, exchange private shares, then derive final participant keys.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ p256\_FROST\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ signers\ =\ \{\ min:\ 2,\ max:\ 3\ \};}
+\DoxyCodeLine{const\ alice\ =\ p256\_FROST.DKG.round1(p256\_FROST.Identifier.fromNumber(1),\ signers);}
+\DoxyCodeLine{const\ bob\ =\ p256\_FROST.DKG.round1(p256\_FROST.Identifier.fromNumber(2),\ signers);}
+\DoxyCodeLine{const\ carol\ =\ p256\_FROST.DKG.round1(p256\_FROST.Identifier.fromNumber(3),\ signers);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ round\ 1:\ participants\ commit\ to\ key\ generation}
+\DoxyCodeLine{const\ aliceRound2\ =\ p256\_FROST.DKG.round2(alice.secret,\ [bob.public,\ carol.public]);}
+\DoxyCodeLine{const\ bobRound2\ =\ p256\_FROST.DKG.round2(bob.secret,\ [alice.public,\ carol.public]);}
+\DoxyCodeLine{const\ carolRound2\ =\ p256\_FROST.DKG.round2(carol.secret,\ [alice.public,\ bob.public]);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ round\ 2:\ private\ shares\ for\ each\ recipient}
+\DoxyCodeLine{const\ aliceKey\ =\ p256\_FROST.DKG.round3(alice.secret,\ [bob.public,\ carol.public],\ [}
+\DoxyCodeLine{\ \ bobRound2[p256\_FROST.Identifier.fromNumber(1)],}
+\DoxyCodeLine{\ \ carolRound2[p256\_FROST.Identifier.fromNumber(1)],}
+\DoxyCodeLine{]);}
+\DoxyCodeLine{//\ round\ 3:\ final\ participant\ key\ package}
+
+\end{DoxyCode}
+
+
+DKG helpers are intended for interoperable testing and practical key generation. The library implements the cryptographic steps, not the surrounding application protocol:\+ callers still need authenticated communication, coordination, retries, session handling, and policy.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4610}{}\doxysubsubsection{\texorpdfstring{poseidon:\+ Poseidon hash}{poseidon:\+ Poseidon hash}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4610}
+Implements \href{https://www.poseidon-hash.info}{\texttt{Poseidon}} ZK-\/friendly hash:\+ permutation and sponge.
+
+There are many poseidon variants with different constants. \doxylink{namespace_we}{We} don\textquotesingle{}t provide them:\+ you should construct them manually. Check out \href{https://github.com/paulmillr/scure-starknet}{\texttt{scure-\/starknet}} package for a proper example.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ bn254\ \}\ from\ '@noble/curves/bn254.js';}
+\DoxyCodeLine{import\ \{\ grainGenConstants,\ poseidon,\ poseidonSponge\ \}\ from\ '@noble/curves/abstract/poseidon.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ rate\ =\ 2;}
+\DoxyCodeLine{const\ capacity\ =\ 1;}
+\DoxyCodeLine{const\ Fp\ =\ bn254.fields.Fr;}
+\DoxyCodeLine{const\ \{\ mds,\ roundConstants\ \}\ =\ grainGenConstants(\{}
+\DoxyCodeLine{\ \ Fp,}
+\DoxyCodeLine{\ \ t:\ rate\ +\ capacity,}
+\DoxyCodeLine{\ \ roundsFull:\ 8,}
+\DoxyCodeLine{\ \ roundsPartial:\ 31,}
+\DoxyCodeLine{\});}
+\DoxyCodeLine{const\ opts\ =\ \{}
+\DoxyCodeLine{\ \ Fp,}
+\DoxyCodeLine{\ \ rate,}
+\DoxyCodeLine{\ \ capacity,}
+\DoxyCodeLine{\ \ sboxPower:\ 17,}
+\DoxyCodeLine{\ \ mds,}
+\DoxyCodeLine{\ \ roundConstants,}
+\DoxyCodeLine{\ \ roundsFull:\ 8,}
+\DoxyCodeLine{\ \ roundsPartial:\ 31,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{const\ permutation\ =\ poseidon(\{\ ...opts,\ t:\ rate\ +\ capacity\ \});}
+\DoxyCodeLine{const\ sponge\ =\ poseidonSponge(opts);\ //\ use\ carefully,\ not\ specced}
+
+\end{DoxyCode}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4611}{}\doxysubsubsection{\texorpdfstring{fft:\+ Fast Fourier Transform}{fft:\+ Fast Fourier Transform}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4611}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ *\ as\ fft\ from\ '@noble/curves/abstract/fft.js';}
+\DoxyCodeLine{import\ \{\ bls12\_381\ \}\ from\ '@noble/curves/bls12-\/381.js';}
+\DoxyCodeLine{const\ Fr\ =\ bls12\_381.fields.Fr;}
+\DoxyCodeLine{const\ roots\ =\ fft.rootsOfUnity(Fr,\ 7n);}
+\DoxyCodeLine{const\ fftFr\ =\ fft.FFT(roots,\ Fr);}
+
+\end{DoxyCode}
+
+
+Experimental implementation of NTT /\+ FFT (Fast Fourier Transform) over finite fields. API may change at any time. The code has not been audited. Feature requests are welcome.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4612}{}\doxysubsubsection{\texorpdfstring{utils:\+ byte shuffling, conversion}{utils:\+ byte shuffling, conversion}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4612}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ bytesToHex,\ concatBytes,\ equalBytes,\ hexToBytes\ \}\ from\ '@noble/curves/utils.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{bytesToHex(Uint8Array.from([0xca,\ 0xfe,\ 0x01,\ 0x23]));}
+\DoxyCodeLine{hexToBytes('cafe0123');}
+\DoxyCodeLine{concatBytes(Uint8Array.from([0xca,\ 0xfe]),\ Uint8Array.from([0x01,\ 0x23]));}
+\DoxyCodeLine{equalBytes(Uint8Array.of(0xca),\ Uint8Array.of(0xca));}
+
+\end{DoxyCode}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4613}{}\doxysubsubsection{\texorpdfstring{Internals}{Internals}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4613}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4614}{}\doxysubsubsubsection{\texorpdfstring{Elliptic curve Point math}{Elliptic curve Point math}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4614}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ pippenger\ \}\ from\ '@noble/curves/abstract/curve.js';}
+\DoxyCodeLine{import\ \{\ secp256k1,\ schnorr\ \}\ from\ '@noble/curves/secp256k1.js';}
+\DoxyCodeLine{import\ \{\ p256,\ p384,\ p521\ \}\ from\ '@noble/curves/nist.js';}
+\DoxyCodeLine{import\ \{\ ed25519,\ ristretto255\ \}\ from\ '@noble/curves/ed25519.js';}
+\DoxyCodeLine{import\ \{\ ed448,\ decaf448\ \}\ from\ '@noble/curves/ed448.js';}
+\DoxyCodeLine{import\ \{\ bls12\_381\ \}\ from\ '@noble/curves/bls12-\/381.js';}
+\DoxyCodeLine{import\ \{\ bn254\ \}\ from\ '@noble/curves/bn254.js';}
+\DoxyCodeLine{import\ \{\ jubjub,\ babyjubjub\ \}\ from\ '@noble/curves/misc.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ curves\ =\ [}
+\DoxyCodeLine{\ \ secp256k1,\ schnorr,\ p256,\ p384,\ p521,\ ed25519,\ ed448,}
+\DoxyCodeLine{\ \ ristretto255,\ decaf448,}
+\DoxyCodeLine{\ \ bls12\_381.G1,\ bls12\_381.G2,\ bn254.G1,}
+\DoxyCodeLine{\ \ jubjub,\ babyjubjub}
+\DoxyCodeLine{];}
+\DoxyCodeLine{for\ (const\ curve\ of\ curves)\ \{}
+\DoxyCodeLine{\ \ const\ \{\ Point\ \}\ =\ curve;}
+\DoxyCodeLine{\ \ const\ \{\ BASE,\ ZERO,\ Fp,\ Fn\ \}\ =\ Point;}
+\DoxyCodeLine{\ \ const\ info\ =\ Point.CURVE?.();}
+\DoxyCodeLine{\ \ const\ p\ =\ BASE.multiply(2n);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Initialization}
+\DoxyCodeLine{\ \ if\ (info?.type\ ===\ 'weierstrass')\ \{}
+\DoxyCodeLine{\ \ \ \ //\ projective\ (homogeneous)\ coordinates:\ (X,\ Y,\ Z)\ ∋\ (x=X/Z,\ y=Y/Z)}
+\DoxyCodeLine{\ \ \ \ const\ p\_\ =\ new\ Point(BASE.X,\ BASE.Y,\ BASE.Z);}
+\DoxyCodeLine{\ \ \}\ else\ if\ (info?.type\ ===\ 'edwards')\ \{}
+\DoxyCodeLine{\ \ \ \ //\ extended\ coordinates:\ (X,\ Y,\ Z,\ T)\ ∋\ (x=X/Z,\ y=Y/Z)}
+\DoxyCodeLine{\ \ \ \ const\ p\_\ =\ new\ Point(BASE.X,\ BASE.Y,\ BASE.Z,\ BASE.T);}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Math}
+\DoxyCodeLine{\ \ const\ p1\ =\ p.add(p);}
+\DoxyCodeLine{\ \ const\ p2\ =\ p.double();}
+\DoxyCodeLine{\ \ const\ p3\ =\ p.subtract(p);}
+\DoxyCodeLine{\ \ const\ p4\ =\ p.negate();}
+\DoxyCodeLine{\ \ const\ p5\ =\ p.multiply(451n);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ MSM\ (multi-\/scalar\ multiplication)}
+\DoxyCodeLine{\ \ const\ pa\ =\ [BASE,\ BASE.multiply(2n),\ BASE.multiply(4n),\ BASE.multiply(8n)];}
+\DoxyCodeLine{\ \ const\ p6\ =\ pippenger(Point,\ pa,\ [3n,\ 5n,\ 7n,\ 11n]);}
+\DoxyCodeLine{\ \ const\ \_true3\ =\ p6.equals(BASE.multiply(129n));\ //\ 129*G}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ pcl\ =\ p.clearCofactor();}
+\DoxyCodeLine{\ \ const\ isTorsionFree\ =\ p.isTorsionFree();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ r1\ =\ p.toBytes();}
+\DoxyCodeLine{\ \ const\ r1\_\ =\ Point.fromBytes(r1);}
+\DoxyCodeLine{\ \ const\ r2\ =\ p.toAffine();}
+\DoxyCodeLine{\ \ const\ \{\ x,\ y\ \}\ =\ r2;}
+\DoxyCodeLine{\ \ const\ r2\_\ =\ Point.fromAffine(r2);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4615}{}\doxysubsubsubsection{\texorpdfstring{modular:\+ Modular arithmetics \& finite fields}{modular:\+ Modular arithmetics \& finite fields}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4615}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ mod,\ invert,\ Field\ \}\ from\ '@noble/curves/abstract/modular.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Finite\ Field\ utils}
+\DoxyCodeLine{const\ fp\ =\ Field(2n\ **\ 255n\ -\/\ 19n);\ //\ Finite\ field\ over\ 2\string^255-\/19}
+\DoxyCodeLine{fp.mul(591n,\ 932n);\ //\ multiplication}
+\DoxyCodeLine{fp.pow(481n,\ 11024858120n);\ //\ exponentiation}
+\DoxyCodeLine{fp.div(5n,\ 17n);\ //\ division:\ 5/17\ mod\ 2\string^255-\/19\ ==\ 5\ *\ invert(17)}
+\DoxyCodeLine{fp.inv(5n);\ //\ modular\ inverse}
+\DoxyCodeLine{fp.sqrt(4n);\ //\ square\ root}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Non-\/Field\ generic\ utils\ are\ also\ available}
+\DoxyCodeLine{mod(21n,\ 10n);\ //\ 21\ mod\ 10\ ==\ 1n;\ fixed\ version\ of\ 21\ \%\ 10}
+\DoxyCodeLine{invert(17n,\ 10n);\ //\ invert(17)\ mod\ 10;\ modular\ multiplicative\ inverse}
+
+\end{DoxyCode}
+
+
+All arithmetics is done with JS bigints over finite fields, which is defined from {\ttfamily modular} sub-\/module.
+
+Field operations are not constant-\/time:\+ see securitysecurity. The fact is mostly irrelevant, but the important method to keep in mind is {\ttfamily pow}, which may leak exponent bits, when used naïvely.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4616}{}\doxysubsubsubsection{\texorpdfstring{weierstrass:\+ Custom Weierstrass curve}{weierstrass:\+ Custom Weierstrass curve}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4616}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ weierstrass\ \}\ from\ '@noble/curves/abstract/weierstrass.js';}
+\DoxyCodeLine{//\ NIST\ secp192r1\ aka\ p192.\ https://www.secg.org/sec2-\/v2.pdf}
+\DoxyCodeLine{const\ p192\_CURVE\ =\ \{}
+\DoxyCodeLine{\ \ p:\ 0xfffffffffffffffffffffffffffffffeffffffffffffffffn,}
+\DoxyCodeLine{\ \ n:\ 0xffffffffffffffffffffffff99def836146bc9b1b4d22831n,}
+\DoxyCodeLine{\ \ h:\ 1n,}
+\DoxyCodeLine{\ \ a:\ 0xfffffffffffffffffffffffffffffffefffffffffffffffcn,}
+\DoxyCodeLine{\ \ b:\ 0x64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1n,}
+\DoxyCodeLine{\ \ Gx:\ 0x188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012n,}
+\DoxyCodeLine{\ \ Gy:\ 0x07192b95ffc8da78631011ed6b24cdd573f977a11e794811n,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{const\ p192\_Point\ =\ weierstrass(p192\_CURVE);}
+
+\end{DoxyCode}
+
+
+Short Weierstrass curve\textquotesingle{}s formula is {\ttfamily y² = x³ + ax + b}. {\ttfamily weierstrass} expects arguments {\ttfamily a}, {\ttfamily b}, field characteristic {\ttfamily p}, curve order {\ttfamily n}, cofactor {\ttfamily h} and coordinates {\ttfamily Gx}, {\ttfamily Gy} of generator point.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4617}{}\doxysubsubsubsection{\texorpdfstring{edwards:\+ Custom Edwards curve}{edwards:\+ Custom Edwards curve}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4617}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ edwards\ \}\ from\ '@noble/curves/abstract/edwards.js';}
+\DoxyCodeLine{const\ ed25519\_CURVE\ =\ \{}
+\DoxyCodeLine{\ \ p:\ 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffedn,}
+\DoxyCodeLine{\ \ n:\ 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3edn,}
+\DoxyCodeLine{\ \ h:\ 8n,}
+\DoxyCodeLine{\ \ a:\ 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffecn,}
+\DoxyCodeLine{\ \ d:\ 0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3n,}
+\DoxyCodeLine{\ \ Gx:\ 0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51an,}
+\DoxyCodeLine{\ \ Gy:\ 0x6666666666666666666666666666666666666666666666666666666666666658n,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{const\ ed25519\_Point\ =\ edwards(ed25519\_CURVE);}
+
+\end{DoxyCode}
+
+
+Twisted Edwards curve\textquotesingle{}s formula is {\ttfamily ax² + y² = 1 + dx²y²}. You must specify {\ttfamily a}, {\ttfamily d}, field characteristic {\ttfamily p}, curve order {\ttfamily n} (sometimes named as {\ttfamily \doxylink{test__mini_8c_a03b0290e2969942a5c40d830149940df}{L}}), cofactor {\ttfamily h} and coordinates {\ttfamily Gx}, {\ttfamily Gy} of generator point.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4618}{}\doxysubsubsubsection{\texorpdfstring{Custom ECDSA instance}{Custom ECDSA instance}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4618}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ weierstrass,\ ecdsa\ \}\ from\ '@noble/curves/abstract/weierstrass.js';}
+\DoxyCodeLine{import\ \{\ sha224,\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{const\ p192\_CURVE\ =\ \{}
+\DoxyCodeLine{\ \ p:\ 0xfffffffffffffffffffffffffffffffeffffffffffffffffn,}
+\DoxyCodeLine{\ \ n:\ 0xffffffffffffffffffffffff99def836146bc9b1b4d22831n,}
+\DoxyCodeLine{\ \ h:\ 1n,}
+\DoxyCodeLine{\ \ a:\ 0xfffffffffffffffffffffffffffffffefffffffffffffffcn,}
+\DoxyCodeLine{\ \ b:\ 0x64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1n,}
+\DoxyCodeLine{\ \ Gx:\ 0x188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012n,}
+\DoxyCodeLine{\ \ Gy:\ 0x07192b95ffc8da78631011ed6b24cdd573f977a11e794811n,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{const\ p192\_Point\ =\ weierstrass(p192\_CURVE);}
+\DoxyCodeLine{const\ p192\_sha256\ =\ ecdsa(p192\_Point,\ sha256);}
+\DoxyCodeLine{//\ or}
+\DoxyCodeLine{const\ p192\_sha224\ =\ ecdsa(p192\_Point,\ sha224);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ keys\ =\ p192\_sha256.keygen();}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('custom\ curve');}
+\DoxyCodeLine{const\ sig\ =\ p192\_sha256.sign(msg,\ keys.secretKey);}
+\DoxyCodeLine{const\ isValid\ =\ p192\_sha256.verify(sig,\ msg,\ keys.publicKey);}
+
+\end{DoxyCode}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4619}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4619}
+The library has been audited:\+
+
+
+\begin{DoxyItemize}
+\item at version 2.\+2.\+0, in Apr 2026, by ourselves (self-\/audited)
+\begin{DoxyItemize}
+\item Scope:\+ everything
+\item \href{https://github.com/paulmillr/noble-curves/compare/2.2.0..main}{\texttt{Changes since audit}}
+\end{DoxyItemize}
+\item at version 1.\+6.\+0, in Sep 2024, independently, by \href{https://cure53.de}{\texttt{Cure53}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{https://cure53.de/audit-report_noble-crypto-libs.pdf}{\texttt{website}}, \href{./audit/2024-09-cure53-audit-nbl4.pdf}{\texttt{in-\/repo}}
+\item \href{https://github.com/paulmillr/noble-curves/compare/1.6.0..main}{\texttt{Changes since audit}}
+\item Scope:\+ ed25519, ed448, their add-\/ons, bls12-\/381, bn254, hash-\/to-\/curve, low-\/level primitives bls, tower, edwards, montgomery.
+\item The audit has been funded by \href{https://opensats.org}{\texttt{Open\+Sats}}
+\end{DoxyItemize}
+\item at version 1.\+2.\+0, in Sep 2023, independently, by \href{https://kudelskisecurity.com}{\texttt{Kudelski Security}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{./audit/2023-09-kudelski-audit-starknet.pdf}{\texttt{in-\/repo}}
+\item \href{https://github.com/paulmillr/noble-curves/compare/1.2.0..main}{\texttt{Changes since audit}}
+\item Scope:\+ \href{https://github.com/paulmillr/scure-starknet}{\texttt{scure-\/starknet}} and its related abstract modules of noble-\/curves:\+ {\ttfamily curve}, {\ttfamily modular}, {\ttfamily poseidon}, {\ttfamily weierstrass}
+\item The audit has been funded by \href{https://starkware.co}{\texttt{Starkware}}
+\end{DoxyItemize}
+\item at version 0.\+7.\+3, in Feb 2023, independently, by \href{https://www.trailofbits.com}{\texttt{Trail of Bits}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{https://github.com/trailofbits/publications/blob/master/reviews/2023-01-ryanshea-noblecurveslibrary-securityreview.pdf}{\texttt{website}}, \href{./audit/2023-01-trailofbits-audit-curves.pdf}{\texttt{in-\/repo}}
+\item \href{https://github.com/paulmillr/noble-curves/compare/0.7.3..main}{\texttt{Changes since audit}}
+\item Scope:\+ abstract modules {\ttfamily curve}, {\ttfamily hash-\/to-\/curve}, {\ttfamily modular}, {\ttfamily poseidon}, {\ttfamily utils}, {\ttfamily weierstrass} and top-\/level modules {\ttfamily \+\_\+shortw\+\_\+utils} and {\ttfamily secp256k1}
+\item The audit has been funded by \href{https://www.shea.io}{\texttt{Ryan Shea}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+It is tested against property-\/based, cross-\/library and Wycheproof vectors, and is being fuzzed in \href{https://github.com/paulmillr/integration-tests}{\texttt{the separate repo}}.
+
+If you see anything unusual:\+ investigate and report.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4620}{}\doxysubsubsection{\texorpdfstring{Constant-\/timeness}{Constant-\/timeness}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4620}
+\doxylink{namespace_we}{We}\textquotesingle{}re targetting algorithmic constant time. {\itshape JIT-\/compiler} and {\itshape Garbage Collector} make "{}constant time"{} extremely hard to achieve \href{https://en.wikipedia.org/wiki/Timing_attack}{\texttt{timing attack}} resistance in a scripting language. Which means {\itshape any other JS library can\textquotesingle{}t have constant-\/timeness}. Even statically typed Rust, a language without GC, \href{https://www.chosenplaintext.ca/open-source/rust-timing-shield/security}{\texttt{makes it harder to achieve constant-\/time}} for some cases. If your goal is absolute security, don\textquotesingle{}t use any JS lib — including bindings to native ones. Use low-\/level libraries \& languages.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4621}{}\doxysubsubsection{\texorpdfstring{Memory dumping}{Memory dumping}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4621}
+Use low-\/level languages instead of JS /\+ WASM if your goal is absolute security.
+
+The library mostly uses Uint8\+Arrays and bigints.
+
+
+\begin{DoxyItemize}
+\item Uint8\+Arrays have {\ttfamily .fill(0)} which instructs to fill content with zeroes but there are no guarantees in JS
+\item bigints are immutable and don\textquotesingle{}t have a method to zeroize their content:\+ a user needs to wait until the next garbage collection cycle
+\item hex strings are also immutable:\+ there is no way to zeroize them
+\item {\ttfamily await fn()} will write all internal variables to memory. With async functions there are no guarantees when the code chunk would be executed. Which means attacker can have plenty of time to read data from memory.
+\end{DoxyItemize}
+
+This means some secrets could stay in memory longer than anticipated. However, if an attacker can read application memory, it\textquotesingle{}s doomed anyway:\+ there is no way to guarantee anything about zeroizing sensitive data without complex tests-\/suite which will dump process memory and verify that there is no sensitive data left. For JS it means testing all browsers (including mobile). And, of course, it will be useless without using the same test-\/suite in the actual application that consumes the library.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4622}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4622}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys to prevent forgery. Be sure to verify the commit signatures
+\item {\bfseries{Releases}} are made transparently through token-\/less Git\+Hub CI and Trusted Publishing. Be sure to verify the \href{https://docs.npmjs.com/generating-provenance-statements}{\texttt{provenance logs}} for authenticity.
+\item {\bfseries{Rare releasing}} is practiced to minimize the need for re-\/audits by end-\/users.
+\item {\bfseries{Dependencies}} are minimized and strictly pinned to reduce supply-\/chain risk.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} use as few dependencies as possible.
+\item Version ranges are locked, and changes are checked with npm-\/diff.
+\end{DoxyItemize}
+\item {\bfseries{Dev dependencies}} are excluded from end-\/user installs; they’re only used for development and build steps.
+\end{DoxyItemize}
+
+For this package, there is 1 dependency; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://github.com/paulmillr/noble-hashes}{\texttt{noble-\/hashes}} provides cryptographic hashing functionality
+\item jsbt is used for benchmarking /\+ testing /\+ build tooling and developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4623}{}\doxysubsubsection{\texorpdfstring{Randomness}{Randomness}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4623}
+\doxylink{namespace_we}{We} rely on the built-\/in \href{https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues}{\texttt{{\ttfamily crypto.\+get\+Random\+Values}}}, which is considered a cryptographically secure PRNG.
+
+Browsers have had weaknesses in the past -\/ and could again -\/ but implementing a userspace CSPRNG is even worse, as there’s no reliable userspace source of high-\/quality entropy.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4624}{}\doxysubsubsection{\texorpdfstring{Quantum computers}{Quantum computers}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4624}
+Cryptographically relevant quantum computer, if built, will allow to break elliptic curve cryptography (both ECDSA /\+ Ed\+DSA \& ECDH) using Shor\textquotesingle{}s algorithm.
+
+Consider switching to newer /\+ hybrid algorithms, such as SPHINCS+. They are available in \href{https://github.com/paulmillr/noble-post-quantum}{\texttt{noble-\/post-\/quantum}}.
+
+NIST prohibits classical cryptography (RSA, DSA, ECDSA, ECDH) \href{https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf}{\texttt{after 2035}}. Australian ASD prohibits it \href{https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism/cyber-security-guidelines/guidelines-cryptography}{\texttt{after 2030}}.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4625}{}\doxysubsection{\texorpdfstring{Speed}{Speed}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4625}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ run\ bench}
+
+\end{DoxyCode}
+
+
+noble-\/curves spends 10+ ms to generate 20MB+ of base point precomputes. This is done {\bfseries{one-\/time}} per curve.
+
+The generation is deferred until any method (pubkey, sign, verify) is called. User can force precompute generation by manually calling {\ttfamily Point.\+BASE.\+precompute(window\+Size, false)}. Check out the source code.
+
+Benchmark results on Apple M4:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ secp256k1}
+\DoxyCodeLine{init\ 10ms}
+\DoxyCodeLine{getPublicKey\ x\ 9,099\ ops/sec\ @\ 109μs/op}
+\DoxyCodeLine{sign\ x\ 7,182\ ops/sec\ @\ 139μs/op}
+\DoxyCodeLine{verify\ x\ 1,188\ ops/sec\ @\ 841μs/op}
+\DoxyCodeLine{recoverPublicKey\ x\ 1,265\ ops/sec\ @\ 790μs/op}
+\DoxyCodeLine{getSharedSecret\ x\ 735\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{schnorr.sign\ x\ 957\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{schnorr.verify\ x\ 1,210\ ops/sec\ @\ 825μs/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ ed25519}
+\DoxyCodeLine{init\ 14ms}
+\DoxyCodeLine{getPublicKey\ x\ 14,216\ ops/sec\ @\ 70μs/op}
+\DoxyCodeLine{sign\ x\ 6,849\ ops/sec\ @\ 145μs/op}
+\DoxyCodeLine{verify\ x\ 1,400\ ops/sec\ @\ 713μs/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ ed448}
+\DoxyCodeLine{init\ 37ms}
+\DoxyCodeLine{getPublicKey\ x\ 5,273\ ops/sec\ @\ 189μs/op}
+\DoxyCodeLine{sign\ x\ 2,494\ ops/sec\ @\ 400μs/op}
+\DoxyCodeLine{verify\ x\ 476\ ops/sec\ @\ 2ms/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ p256}
+\DoxyCodeLine{init\ 17ms}
+\DoxyCodeLine{getPublicKey\ x\ 8,977\ ops/sec\ @\ 111μs/op}
+\DoxyCodeLine{sign\ x\ 7,236\ ops/sec\ @\ 138μs/op}
+\DoxyCodeLine{verify\ x\ 877\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ p384}
+\DoxyCodeLine{init\ 42ms}
+\DoxyCodeLine{getPublicKey\ x\ 4,084\ ops/sec\ @\ 244μs/op}
+\DoxyCodeLine{sign\ x\ 3,247\ ops/sec\ @\ 307μs/op}
+\DoxyCodeLine{verify\ x\ 331\ ops/sec\ @\ 3ms/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ p521}
+\DoxyCodeLine{init\ 83ms}
+\DoxyCodeLine{getPublicKey\ x\ 2,049\ ops/sec\ @\ 487μs/op}
+\DoxyCodeLine{sign\ x\ 1,748\ ops/sec\ @\ 571μs/op}
+\DoxyCodeLine{verify\ x\ 170\ ops/sec\ @\ 5ms/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ ristretto255}
+\DoxyCodeLine{add\ x\ 931,966\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{multiply\ x\ 15,444\ ops/sec\ @\ 64μs/op}
+\DoxyCodeLine{encode\ x\ 21,367\ ops/sec\ @\ 46μs/op}
+\DoxyCodeLine{decode\ x\ 21,715\ ops/sec\ @\ 46μs/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ decaf448}
+\DoxyCodeLine{add\ x\ 478,011\ ops/sec\ @\ 2μs/op}
+\DoxyCodeLine{multiply\ x\ 416\ ops/sec\ @\ 2ms/op}
+\DoxyCodeLine{encode\ x\ 8,562\ ops/sec\ @\ 116μs/op}
+\DoxyCodeLine{decode\ x\ 8,636\ ops/sec\ @\ 115μs/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ ECDH}
+\DoxyCodeLine{x25519\ x\ 1,981\ ops/sec\ @\ 504μs/op}
+\DoxyCodeLine{x448\ x\ 743\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{secp256k1\ x\ 728\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{p256\ x\ 705\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{p384\ x\ 268\ ops/sec\ @\ 3ms/op}
+\DoxyCodeLine{p521\ x\ 137\ ops/sec\ @\ 7ms/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ hash-\/to-\/curve}
+\DoxyCodeLine{hashToPrivateScalar\ x\ 1,754,385\ ops/sec\ @\ 570ns/op}
+\DoxyCodeLine{hash\_to\_field\ x\ 135,703\ ops/sec\ @\ 7μs/op}
+\DoxyCodeLine{hashToCurve\ secp256k1\ x\ 3,194\ ops/sec\ @\ 313μs/op}
+\DoxyCodeLine{hashToCurve\ p256\ x\ 5,962\ ops/sec\ @\ 167μs/op}
+\DoxyCodeLine{hashToCurve\ p384\ x\ 2,230\ ops/sec\ @\ 448μs/op}
+\DoxyCodeLine{hashToCurve\ p521\ x\ 1,063\ ops/sec\ @\ 940μs/op}
+\DoxyCodeLine{hashToCurve\ ed25519\ x\ 4,047\ ops/sec\ @\ 247μs/op}
+\DoxyCodeLine{hashToCurve\ ed448\ x\ 1,691\ ops/sec\ @\ 591μs/op}
+\DoxyCodeLine{hash\_to\_ristretto255\ x\ 8,733\ ops/sec\ @\ 114μs/op}
+\DoxyCodeLine{hash\_to\_decaf448\ x\ 3,882\ ops/sec\ @\ 257μs/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ modular\ over\ secp256k1\ P\ field}
+\DoxyCodeLine{invert\ a\ x\ 866,551\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{invert\ b\ x\ 693,962\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{sqrt\ p\ =\ 3\ mod\ 4\ x\ 25,738\ ops/sec\ @\ 38μs/op}
+\DoxyCodeLine{sqrt\ tonneli-\/shanks\ x\ 847\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ bls12-\/381}
+\DoxyCodeLine{init\ 22ms}
+\DoxyCodeLine{getPublicKey\ x\ 1,325\ ops/sec\ @\ 754μs/op}
+\DoxyCodeLine{sign\ x\ 80\ ops/sec\ @\ 12ms/op}
+\DoxyCodeLine{verify\ x\ 62\ ops/sec\ @\ 15ms/op}
+\DoxyCodeLine{pairing\ x\ 166\ ops/sec\ @\ 6ms/op}
+\DoxyCodeLine{pairing10\ x\ 54\ ops/sec\ @\ 18ms/op\ ±\ 23.48\%\ (15ms..36ms)}
+\DoxyCodeLine{MSM\ 4096\ scalars\ x\ points\ 3286ms}
+\DoxyCodeLine{aggregatePublicKeys/8\ x\ 173\ ops/sec\ @\ 5ms/op}
+\DoxyCodeLine{aggregatePublicKeys/32\ x\ 46\ ops/sec\ @\ 21ms/op}
+\DoxyCodeLine{aggregatePublicKeys/128\ x\ 11\ ops/sec\ @\ 84ms/op}
+\DoxyCodeLine{aggregatePublicKeys/512\ x\ 2\ ops/sec\ @\ 335ms/op}
+\DoxyCodeLine{aggregatePublicKeys/2048\ x\ 0\ ops/sec\ @\ 1346ms/op}
+\DoxyCodeLine{aggregateSignatures/8\ x\ 82\ ops/sec\ @\ 12ms/op}
+\DoxyCodeLine{aggregateSignatures/32\ x\ 21\ ops/sec\ @\ 45ms/op}
+\DoxyCodeLine{aggregateSignatures/128\ x\ 5\ ops/sec\ @\ 178ms/op}
+\DoxyCodeLine{aggregateSignatures/512\ x\ 1\ ops/sec\ @\ 705ms/op}
+\DoxyCodeLine{aggregateSignatures/2048\ x\ 0\ ops/sec\ @\ 2823ms/op}
+
+\end{DoxyCode}
+\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4626}{}\doxysubsection{\texorpdfstring{Upgrading}{Upgrading}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4626}
+Supported node.\+js versions:\+
+
+
+\begin{DoxyItemize}
+\item v2 (2025-\/08):\+ v20.\+19+ (ESM-\/only)
+\item v1 (2023-\/04):\+ v14.\+21+ (ESM \& CJS)
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4627}{}\doxysubsubsection{\texorpdfstring{Changelog of curves v1 to curves v2}{Changelog of curves v1 to curves v2}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4627}
+v2 massively simplifies internals, improves security, reduces bundle size and lays path for the future. \doxylink{namespace_we}{We} tried to keep v2 as much backwards-\/compatible as possible.
+
+To simplify upgrading, upgrade first to curves 1.\+9.\+x. It would show deprecations in vscode-\/like text editor. Fix them first.
+
+
+\begin{DoxyItemize}
+\item The package is now ESM-\/only. ESM can finally be loaded from common.\+js on node v20.\+19+
+\item {\ttfamily .js} extension must be used for all modules
+\begin{DoxyItemize}
+\item Old:\+ {\ttfamily @noble/\+curves/\+ed25519}
+\item New:\+ {\ttfamily @noble/\+curves/\+ed25519.\+js}
+\item This simplifies working in browsers natively without transpilers
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+New features:\+
+
+
+\begin{DoxyItemize}
+\item webcrypto:\+ create friendly noble-\/like wrapper over built-\/in Web\+Crypto
+\item oprf:\+ implement RFC 9497 OPRFs (oblivious pseudorandom functions)
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} support p256, p384, p521, ristretto255 and decaf448
+\end{DoxyItemize}
+\item weierstrass, edwards:\+ add {\ttfamily is\+Valid\+Secret\+Key}, {\ttfamily is\+Valid\+Public\+Key}
+\item misc:\+ add Brainpool curves:\+ brainpool\+P256r1, brainpool\+P384r1, brainpool\+P512r1
+\end{DoxyItemize}
+
+Changes:\+
+
+
+\begin{DoxyItemize}
+\item Most methods now expect Uint8\+Array, string hex inputs are prohibited
+\begin{DoxyItemize}
+\item The change simplifies reasoning, improves security and reduces malleability
+\item {\ttfamily Point.\+from\+Hex} now expects string-\/only hex inputs, use {\ttfamily Point.\+from\+Bytes} for Uint8\+Array
+\end{DoxyItemize}
+\item Many methods were renamed, upgrade to curves v1.\+9 first to highlight deprecated old names
+\item Breaking changes of ECDSA (secp256k1, p256, p384...):\+
+\begin{DoxyItemize}
+\item To bring back old behavior, pass {\ttfamily \{ prehash:\+ false, lowS:\+ false \}} to sign /\+ verify
+\item sign, verify:\+ Switch to {\bfseries{prehashed messages}}. Instead of message\+Hash, the methods now expect unhashed message. To bring back old behavior, use option {\ttfamily \{prehash:\+ false\}}
+\item sign, verify:\+ Switch to {\bfseries{lowS signatures}} by default. This change doesn\textquotesingle{}t affect secp256k1, which has been using lowS since beginning. To bring back old behavior, use option {\ttfamily \{lowS:\+ false\}}
+\item sign, verify:\+ Switch to {\bfseries{Uint8\+Array signatures}} (format:\+ \textquotesingle{}compact\textquotesingle{}) by default.
+\item verify:\+ {\bfseries{der format must be explicitly specified}} in {\ttfamily \{format:\+ \textquotesingle{}der\textquotesingle{}\}}. This reduces malleability
+\item verify:\+ {\bfseries{prohibit Signature-\/instance}} signature. User must now always do {\ttfamily signature.\+to\+Bytes()}
+\end{DoxyItemize}
+\item Breaking changes of BLS signatures (bls12-\/381, bn254):\+
+\begin{DoxyItemize}
+\item Move get\+Public\+Key, sign, verify, sign\+Short\+Signature etc into two new namespaces:\+ bls.\+long\+Signatures (G1 pubkeys, G2 sigs) and bls.\+short\+Signatures (G1 sigs, G2 pubkeys).
+\item verify\+Batch now expects array of inputs {\ttfamily \{message:\+ ..., public\+Key:\+ ...\}\+[]\+}
+\end{DoxyItemize}
+\item Curve changes:\+
+\begin{DoxyItemize}
+\item Massively simplify curve creation, split it into point creation \& sig generator creation
+\item New methods are {\ttfamily weierstrass() + ecdsa()} /\+ {\ttfamily edwards() + eddsa()}
+\item weierstrass /\+ edwards expect simplified curve params (Fp became p)
+\item ecdsa /\+ eddsa expect Point class and hash
+\item Remove unnecessary Fn argument in {\ttfamily pippenger}
+\end{DoxyItemize}
+\item modular changes:\+
+\begin{DoxyItemize}
+\item Field\+\#from\+Bytes() now validates elements to be in 0..order-\/1 range
+\end{DoxyItemize}
+\item Massively improve error messages, make them more descriptive
+\end{DoxyItemize}
+
+Renamings:\+
+
+
+\begin{DoxyItemize}
+\item Module changes
+\begin{DoxyItemize}
+\item {\ttfamily p256}, {\ttfamily p384}, {\ttfamily p521} modules have been moved into {\ttfamily \doxylink{namespacenist}{nist}}
+\item {\ttfamily jubjub} module has been moved into {\ttfamily misc}
+\end{DoxyItemize}
+\item Point changes
+\begin{DoxyItemize}
+\item Extended\+Point, Projective\+Point =\texorpdfstring{$>$}{>} Point
+\item Point coordinates (projective /\+ extended) from px/\+ex, py/\+ey, pz/\+ez, et =\texorpdfstring{$>$}{>} X, Y, Z, T
+\item Point.\+normalizeZ, Point.\+msm =\texorpdfstring{$>$}{>} separate methods in {\ttfamily abstract/\+curve.\+js} submodule
+\item Point.\+from\+Private\+Key() got removed, use {\ttfamily Point.\+BASE.\+multiply()} and {\ttfamily Point.\+Fn.\+from\+Bytes(secret\+Key)}
+\item to\+Raw\+Bytes, from\+Raw\+Bytes =\texorpdfstring{$>$}{>} to\+Bytes, from\+Bytes
+\item Ristretto\+Point =\texorpdfstring{$>$}{>} ristretto255.\+Point, Decaf\+Poiont =\texorpdfstring{$>$}{>} decaf448.\+Point
+\end{DoxyItemize}
+\item Signature (ECDSA) changes
+\begin{DoxyItemize}
+\item to\+Compact\+Raw\+Bytes, to\+DERRaw\+Bytes =\texorpdfstring{$>$}{>} to\+Bytes(\textquotesingle{}compact\textquotesingle{}), to\+Bytes(\textquotesingle{}der\textquotesingle{})
+\item to\+Compact\+Hex, to\+DERHex =\texorpdfstring{$>$}{>} to\+Hex(\textquotesingle{}compact\textquotesingle{}), to\+Hex(\textquotesingle{}der\textquotesingle{})
+\item from\+Compact, from\+DER =\texorpdfstring{$>$}{>} from\+Bytes(format), from\+Hex(format)
+\end{DoxyItemize}
+\item utils changes
+\begin{DoxyItemize}
+\item random\+Private\+Key =\texorpdfstring{$>$}{>} random\+Secret\+Key
+\item utils.\+precompute, Point\+\#\+\_\+set\+Window\+Size =\texorpdfstring{$>$}{>} Point\+\#precompute
+\item edwards\+To\+Montgomery =\texorpdfstring{$>$}{>} utils.\+to\+Montgomery
+\item edwards\+To\+Montgomery\+Priv =\texorpdfstring{$>$}{>} utils.\+to\+Montgomery\+Secret
+\end{DoxyItemize}
+\item Rename all curve-\/specific hash-\/to-\/curve methods to {\ttfamily \texorpdfstring{$\ast$}{*}curve\texorpdfstring{$\ast$}{*}\+\_\+hasher}. Example:\+ {\ttfamily secp256k1.\+hash\+To\+Curve} =\texorpdfstring{$>$}{>} {\ttfamily secp256k1\+\_\+hasher.\+hash\+To\+Curve()}
+\item Massive type renamings and improvements
+\end{DoxyItemize}
+
+Removed features:\+
+
+
+\begin{DoxyItemize}
+\item Point\+\#multiply\+And\+Add\+Unsafe, Point\+\#has\+EvenY
+\item {\ttfamily CURVE} property with all kinds of random stuff. Point.\+CURVE() now replaces it, but only provides curve parameters
+\item Remove {\ttfamily pasta}, {\ttfamily bn254\+\_\+weierstrass} (NOT pairing-\/based bn254) curves
+\item utils.\+norm\+Private\+Key\+To\+Scalar -\/ use {\ttfamily Point.\+Fn.\+from\+Bytes}
+\item Field.\+MASK
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4628}{}\doxysubsubsection{\texorpdfstring{secp256k1 v1, ed25519 v1, bls12-\/381 v1 to curves v1}{secp256k1 v1, ed25519 v1, bls12-\/381 v1 to curves v1}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4628}
+Previously, the library was split into single-\/feature packages \href{https://github.com/paulmillr/noble-secp256k1}{\texttt{noble-\/secp256k1}}, \href{https://github.com/paulmillr/noble-ed25519}{\texttt{noble-\/ed25519}} and \href{https://github.com/paulmillr/noble-bls12-381}{\texttt{noble-\/bls12-\/381}}.
+
+Curves continue their original work. The single-\/feature packages changed their direction towards providing minimal 5kb implementations of cryptography, which means they have less features. Separate bls package had been deprecated.
+
+secp256k1:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily get\+Public\+Key}:\+ defaults to compressed sigs (use second argument to adjust)
+\item {\ttfamily sign}:\+ renamed options {\ttfamily canonical} =\texorpdfstring{$>$}{>} {\ttfamily lowS}; {\ttfamily der} =\texorpdfstring{$>$}{>} {\ttfamily format:\+ \textquotesingle{}der\textquotesingle{}}
+\item {\ttfamily verify}:\+ renamed option {\ttfamily strict} =\texorpdfstring{$>$}{>} {\ttfamily lowS}
+\item {\ttfamily get\+Shared\+Secret}:\+ defaults to compressed sigs (use third argument to adjust)
+\item {\ttfamily recover\+Public\+Key(msg, sig, rec)} was changed to {\ttfamily sig.\+recover\+Public\+Key(msg)}
+\item {\ttfamily Point} (2d xy) has been changed to {\ttfamily Projective\+Point} (3d xyz)
+\end{DoxyItemize}
+
+ed25519:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily Signature} was removed in favor of raw bytes
+\item {\ttfamily get\+Shared\+Secret} was moved to {\ttfamily x25519} module
+\end{DoxyItemize}
+
+bls12-\/381:\+
+
+
+\begin{DoxyItemize}
+\item Renamed Point\+G1 -\/\texorpdfstring{$>$}{>} G1.\+Point, Point\+G2 -\/\texorpdfstring{$>$}{>} G2.\+Point
+\item Renamed Point\+G2.\+from\+Signature -\/\texorpdfstring{$>$}{>} Signature.\+decode, Point\+G2.\+to\+Signature -\/\texorpdfstring{$>$}{>} Signature.\+encode
+\end{DoxyItemize}\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4629}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4629}
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run lint} /\+ {\ttfamily npm run format} will run linter /\+ fix linter issues.
+\item {\ttfamily npm run bench} will run benchmarks
+\item {\ttfamily npm run \doxylink{namespacebuild}{build}:\+release} will build single file
+\end{DoxyItemize}
+
+See \href{https://paulmillr.com/noble/}{\texttt{paulmillr.\+com/\+noble}} for useful resources, articles, documentation and demos related to the library.
+
+Mu\+Sig2 signature scheme and BIP324 Elligator\+Swift mapping for secp256k1 are available \href{https://github.com/paulmillr/scure-btc-signer}{\texttt{in a separate package}}.\hypertarget{dir_34eac0da91e1273b85910a9629345981_autotoc_md4630}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_34eac0da91e1273b85910a9629345981_autotoc_md4630}
+The MIT License (MIT)
+
+Copyright (c) 2022 Paul Miller \href{https://paulmillr.com}{\texttt{(https:\+/\+/\+paulmillr.\+com)}}
+
+See LICENSE file. 

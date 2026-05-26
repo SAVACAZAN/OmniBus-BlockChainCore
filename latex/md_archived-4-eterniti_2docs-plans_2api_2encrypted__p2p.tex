@@ -1,0 +1,19 @@
+\chapter{encrypted\+\_\+p2p.\+zig — API Reference }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p}{}\label{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p}\index{encrypted\_p2p.zig — API Reference@{encrypted\_p2p.zig — API Reference}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p_autotoc_md1563}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p_autotoc_md1563}%
+
+
+\begin{quote}
+Auto-\/generated from core/\+encrypted\+\_\+p2p.\+zig \end{quote}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p_autotoc_md1564}{}\doxysection{\texorpdfstring{Public Functions}{Public Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p_autotoc_md1564}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ EncryptedSession\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ initiate()\ !EncryptedSession\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ completeHandshake(self:\ *EncryptedSession,\ remote\_pubkey:\ [33]u8)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ encrypt(self:\ *EncryptedSession,\ plaintext:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ decrypt(self:\ *EncryptedSession,\ ciphertext:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p_autotoc_md1565}{}\doxysection{\texorpdfstring{Tests:\+ 4}{Tests:\+ 4}}\label{md_archived-4-eterniti_2docs-plans_2api_2encrypted__p2p_autotoc_md1565}

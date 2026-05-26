@@ -1,0 +1,179 @@
+\doxysection{sync-\/deployments.py}
+\hypertarget{sync-deployments_8py_source}{}\label{sync-deployments_8py_source}\index{scripts/cross/sync-\/deployments.py@{scripts/cross/sync-\/deployments.py}}
+\doxymbox{\hyperlink{sync-deployments_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00001}\doxymbox{\hyperlink{namespacesync-deployments}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00002}\doxymbox{\hyperlink{namespacesync}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00003}00003\ \textcolor{stringliteral}{sync-\/deployments.py}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00005}00005\ \textcolor{stringliteral}{Synchronize\ contract\ addresses\ between\ BlockChainCore\ and\ aweb3\ Liberty.}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00006}00006\ \textcolor{stringliteral}{Reads\ deployment\ artifacts\ from\ both\ projects\ and\ produces\ a\ unified}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00007}00007\ \textcolor{stringliteral}{address\ map.\ \ Optionally\ writes\ the\ map\ back\ to\ both\ projects\ so\ they}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00008}00008\ \textcolor{stringliteral}{stay\ in\ sync.}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00010}00010\ \textcolor{stringliteral}{Outputs:\ scripts/cross/deployment-\/sync.json}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00011}00011\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00013}00013\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00014}00014\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00015}00015\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00016}00016\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00017}00017\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00018}00018\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00019}00019\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00021}\doxymbox{\hyperlink{namespacesync-deployments_aa9df7d5e4098f7fc45eb08d0b7144f89}{00021}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00022}\doxymbox{\hyperlink{namespacesync-deployments_a41de526b6e9fd8f18cdeb319992d5739}{00022}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00023}\doxymbox{\hyperlink{namespacesync-deployments_a0577c0174ede29e8047895e7e26f9180}{00023}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00024}\doxymbox{\hyperlink{namespacesync-deployments_a100eb127387dbc34d381167589b2d259}{00024}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00025}\doxymbox{\hyperlink{namespacesync-deployments_a43cfc9960d7b60fcd4342ce225240350}{00025}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00028}\doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00028}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00029}00029\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00032}\doxymbox{\hyperlink{namespacesync-deployments_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00032}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00033}00033\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00036}\doxymbox{\hyperlink{namespacesync-deployments_abf994b8269849d29e07697ea8a840f74}{00036}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00037}00037\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00040}\doxymbox{\hyperlink{namespacesync-deployments_adf0e2aa4d06b5ca38e44721821eca783}{00040}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00041}00041\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00044}00044\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00045}00045\ \textcolor{comment}{\#\ Discovery\ helpers}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00046}00046\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00047}\doxymbox{\hyperlink{namespacesync-deployments_a288e2a00f611039501be52f84bbf2313}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_a288e2a00f611039501be52f84bbf2313}{find\_json\_artifacts}}(root:\ str,\ filename\_patterns:\ list[str])\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00048}00048\ \ \ \ \ found:\ list[str]\ =\ []}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{for}\ dirpath,\ \_,\ filenames\ \textcolor{keywordflow}{in}\ os.walk(root):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ fname\ \textcolor{keywordflow}{in}\ filenames:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ any(pat\ \textcolor{keywordflow}{in}\ fname\ \textcolor{keywordflow}{for}\ pat\ \textcolor{keywordflow}{in}\ filename\_patterns):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ found.append(os.path.join(dirpath,\ fname))}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{return}\ found}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00056}\doxymbox{\hyperlink{namespacesync-deployments_a393045fb77a65a88327a4b3ae0589bec}{00056}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_a393045fb77a65a88327a4b3ae0589bec}{extract\_addresses\_from\_artifact}}(path:\ str)\ -\/>\ dict[str,\ str]:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00057}00057\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Try\ to\ read\ Hardhat\ /\ Foundry\ /\ custom\ artifact\ JSON\ for\ address."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ data\ =\ json.loads(Path(path).read\_text(encoding=\textcolor{stringliteral}{"{}utf-\/8"{}}))}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00062}00062\ \ \ \ \ addresses:\ dict[str,\ str]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00063}00063\ \ \ \ \ \textcolor{comment}{\#\ Hardhat\ format}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(data,\ dict):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ addr\ =\ data.get(\textcolor{stringliteral}{"{}address"{}})\ \textcolor{keywordflow}{or}\ data.get(\textcolor{stringliteral}{"{}receipt"{}},\ \{\}).get(\textcolor{stringliteral}{"{}contractAddress"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ addr:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ contract\_name\ =\ data.get(\textcolor{stringliteral}{"{}contractName"{}})\ \textcolor{keywordflow}{or}\ Path(path).stem}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ addresses[contract\_name]\ =\ addr}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Foundry\ broadcast\ format\ nested}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ data.items():}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(v,\ dict):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sub\ =\ v.get(\textcolor{stringliteral}{"{}address"{}})\ \textcolor{keywordflow}{or}\ v.get(\textcolor{stringliteral}{"{}receipt"{}},\ \{\}).get(\textcolor{stringliteral}{"{}contractAddress"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ sub:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ addresses[k]\ =\ sub}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00075}00075\ \ \ \ \ \textcolor{keywordflow}{return}\ addresses}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00078}\doxymbox{\hyperlink{namespacesync-deployments_ae0361e3f04e1e944e8377b86e618e964}{00078}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_ae0361e3f04e1e944e8377b86e618e964}{extract\_zig\_addresses}}(repo:\ str)\ -\/>\ dict[str,\ str]:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00079}00079\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Look\ for\ contract\ address\ constants\ in\ Zig\ source\ or\ config\ files."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00080}00080\ \ \ \ \ addresses:\ dict[str,\ str]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{for}\ root,\ \_,\ files\ \textcolor{keywordflow}{in}\ os.walk(repo):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ files:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ f.endswith(\textcolor{stringliteral}{"{}.zig"{}})\ \textcolor{keywordflow}{or}\ f.endswith(\textcolor{stringliteral}{"{}.json"{}}):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fpath\ =\ os.path.join(root,\ f)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ text\ =\ Path(fpath).read\_text(encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Look\ for\ 0x40\ hex\ addresses}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ \_\_import\_\_(\textcolor{stringliteral}{"{}re"{}}).finditer(\textcolor{stringliteral}{r"{}(bridge|contract|token|vault|oracle|locker)\_?(\(\backslash\)w*)\(\backslash\)s*[=:]\(\backslash\)s*\(\backslash\)"{}(0x[a-\/fA-\/F0-\/9]\{40\})\(\backslash\)"{}"{}},\ text):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ key\ =\ m.group(1)\ +\ (f\textcolor{stringliteral}{"{}\_\{m.group(2)\}"{}}\ \textcolor{keywordflow}{if}\ m.group(2)\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ addresses[key]\ =\ m.group(3)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ \_\_import\_\_(\textcolor{stringliteral}{"{}re"{}}).finditer(\textcolor{stringliteral}{r"{}\(\backslash\)"{}(0x[a-\/fA-\/F0-\/9]\{40\})\(\backslash\)"{}"{}},\ text):}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ addr\ =\ m.group(1)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ assign\ generic\ key\ if\ not\ matched\ above}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ addr\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ addresses.values():}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ addresses[f\textcolor{stringliteral}{"{}unknown\_\{addr[:6]\}"{}}]\ =\ addr}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00098}00098\ \ \ \ \ \textcolor{keywordflow}{return}\ addresses}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00101}00101\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00102}00102\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00103}00103\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00104}\doxymbox{\hyperlink{namespacesync-deployments_a7431cb90017e54fe695b23d4190db046}{00104}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesync-deployments_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00105}00105\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Synchronize\ deployment\ addresses."{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00106}00106\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/blockchain-\/core"{}},\ default=\textcolor{stringliteral}{"{}."{}},\ help=\textcolor{stringliteral}{"{}BlockChainCore\ repo\ path"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00107}00107\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/aweb3"{}},\ default=\textcolor{stringliteral}{"{}../OmniBus\ -\/\ aweb3"{}},\ help=\textcolor{stringliteral}{"{}aweb3\ repo\ path"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00108}00108\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}scripts/cross/deployment-\/sync.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00109}00109\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/write-\/back"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Write\ unified\ map\ back\ to\ both\ repos"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00110}00110\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00112}00112\ \ \ \ \ core\_path\ =\ os.path.abspath(args.blockchain\_core)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00113}00113\ \ \ \ \ aweb3\_path\ =\ os.path.abspath(args.aweb3)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00115}00115\ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Scanning\ aweb3\ deployment\ artifacts\ …"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00116}00116\ \ \ \ \ aweb3\_artifacts\ =\ \doxymbox{\hyperlink{namespacesync-deployments_a288e2a00f611039501be52f84bbf2313}{find\_json\_artifacts}}(aweb3\_path,\ [\textcolor{stringliteral}{"{}deployment"{}},\ \textcolor{stringliteral}{"{}artifact"{}},\ \textcolor{stringliteral}{"{}broadcast"{}},\ \textcolor{stringliteral}{"{}.json"{}}])}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00117}00117\ \ \ \ \ aweb3\_addrs:\ dict[str,\ str]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00118}00118\ \ \ \ \ \textcolor{keywordflow}{for}\ art\ \textcolor{keywordflow}{in}\ aweb3\_artifacts:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ addrs\ =\ \doxymbox{\hyperlink{namespacesync-deployments_a393045fb77a65a88327a4b3ae0589bec}{extract\_addresses\_from\_artifact}}(art)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ aweb3\_addrs.update(addrs)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00121}00121\ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Found\ \{len(aweb3\_addrs)\}\ addresses\ in\ aweb3"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00123}00123\ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Scanning\ BlockChainCore\ for\ address\ references\ …"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00124}00124\ \ \ \ \ core\_addrs\ =\ \doxymbox{\hyperlink{namespacesync-deployments_ae0361e3f04e1e944e8377b86e618e964}{extract\_zig\_addresses}}(core\_path)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00125}00125\ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Found\ \{len(core\_addrs)\}\ addresses\ in\ BlockChainCore"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00127}00127\ \ \ \ \ \textcolor{comment}{\#\ Build\ unified\ map}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00128}00128\ \ \ \ \ unified:\ dict[str,\ dict[str,\ str]]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}aweb3"{}}:\ aweb3\_addrs,}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blockchain\_core"{}}:\ core\_addrs,}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00131}00131\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00133}00133\ \ \ \ \ \textcolor{comment}{\#\ Cross-\/check\ mismatches}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00134}00134\ \ \ \ \ mismatches:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ addr\ \textcolor{keywordflow}{in}\ aweb3\_addrs.items():}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ cname,\ caddr\ \textcolor{keywordflow}{in}\ core\_addrs.items():}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ name.lower()\ \textcolor{keywordflow}{in}\ cname.lower()\ \textcolor{keywordflow}{or}\ cname.lower()\ \textcolor{keywordflow}{in}\ name.lower():}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ addr.lower()\ !=\ caddr.lower():}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mismatches.append(\{\textcolor{stringliteral}{"{}contract"{}}:\ name,\ \textcolor{stringliteral}{"{}aweb3"{}}:\ addr,\ \textcolor{stringliteral}{"{}blockchain\_core"{}}:\ caddr\})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{if}\ mismatches:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}\{len(mismatches)\}\ address\ mismatches\ detected"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ mismatches:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}\ \ \{m['contract']\}:\ aweb3=\{m['aweb3']\}\ core=\{m['blockchain\_core']\}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}No\ address\ mismatches\ detected"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00148}00148\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}unified"{}}:\ unified,}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mismatches"{}}:\ mismatches,}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00152}00152\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00154}00154\ \ \ \ \ out\_path\ =\ os.path.join(core\_path,\ args.output)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00155}00155\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00156}00156\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00159}00159\ \ \ \ \ \textcolor{keywordflow}{if}\ args.write\_back:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ core\_map\_path\ =\ os.path.join(core\_path,\ \textcolor{stringliteral}{"{}scripts"{}},\ \textcolor{stringliteral}{"{}cross"{}},\ \textcolor{stringliteral}{"{}contract-\/addresses.json"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ aweb3\_map\_path\ =\ os.path.join(aweb3\_path,\ \textcolor{stringliteral}{"{}scripts"{}},\ \textcolor{stringliteral}{"{}contract-\/addresses.json"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ [core\_map\_path,\ aweb3\_map\_path]:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ os.makedirs(os.path.dirname(p),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(p,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(unified,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Wrote\ unified\ map\ back\ to\ \{core\_map\_path\}\ and\ \{aweb3\_map\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00168}00168\ \ \ \ \ \doxymbox{\hyperlink{namespacesync-deployments_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Sync\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00169}00169\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00172}00172\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{sync-deployments_8py_source_l00173}00173\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacesync-deployments_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

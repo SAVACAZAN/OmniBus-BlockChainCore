@@ -1,0 +1,401 @@
+\chapter{Module:\+ {\ttfamily oracle} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle}{}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle}\index{Module: $<$tt$>$oracle$<$/tt$>$@{Module: $<$tt$>$oracle$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2333}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2333}%
+
+
+\begin{quote}
+Price oracle — BID/\+\+ASK feeds per exchange, best ask/\+best bid aggregation, on-\/chain price attestations for De\+Fi. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+oracle.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 377 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 12 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2335}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2335}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2336}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2336}
+
+\begin{DoxyItemize}
+\item \`{}\+Exchange\+Quote\`{}{\ttfamily Exchange\+Quote}
+\end{DoxyItemize}— BID/\+\+ASK de pe un exchange specific pentru un asset Validatorul Omni\+Bus citeste a...
+\begin{DoxyItemize}
+\item \`{}\+Bridge\+Reference\+Price\`{}{\ttfamily Bridge\+Reference\+Price}
+\end{DoxyItemize}— Pretul de referinta pentru bridge — median din mid-\/price-\/urile CEX/\+\+DEX Acesta NU...
+\begin{DoxyItemize}
+\item \`{}\+Price\+Oracle\`{}{\ttfamily Price\+Oracle}
+\end{DoxyItemize}— Data structure for price oracle. Fields include:\+ quotes, quote\+\_\+valid, bridge\+\_\+pri...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2337}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2337}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2338}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2338}
+
+\begin{DoxyItemize}
+\item \`{}name()\`{}{\ttfamily name()}
+\end{DoxyItemize}— Performs the name operation on the oracle module.
+\begin{DoxyItemize}
+\item \`{}name()\`{}{\ttfamily name()}
+\end{DoxyItemize}— Performs the name operation on the oracle module.
+\begin{DoxyItemize}
+\item \`{}is\+Dex()\`{}{\ttfamily is\+Dex()}
+\end{DoxyItemize}— Checks whether the dex condition is true.
+\begin{DoxyItemize}
+\item \`{}spread()\`{}{\ttfamily spread()}
+\end{DoxyItemize}— Performs the spread operation on the oracle module.
+\begin{DoxyItemize}
+\item \`{}mid\+Price()\`{}{\ttfamily mid\+Price()}
+\end{DoxyItemize}— Performs the mid price operation on the oracle module.
+\begin{DoxyItemize}
+\item \`{}is\+Stale()\`{}{\ttfamily is\+Stale()}
+\end{DoxyItemize}— Checks whether the stale condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}submit\+Quote()\`{}{\ttfamily submit\+Quote()}
+\end{DoxyItemize}— Submitera un quote BID/\+\+ASK de pe un exchange specific
+\begin{DoxyItemize}
+\item \`{}get\+Bridge\+Price()\`{}{\ttfamily get\+Bridge\+Price()}
+\end{DoxyItemize}— Returneaza pretul de referinta pentru bridge (median din mid-\/prices)
+\begin{DoxyItemize}
+\item \`{}best\+Ask()\`{}{\ttfamily best\+Ask()}
+\end{DoxyItemize}— Gaseste cel mai mic ASK (best ask) dintre toate exchange-\/urile pt un a...
+\begin{DoxyItemize}
+\item \`{}best\+Bid()\`{}{\ttfamily best\+Bid()}
+\end{DoxyItemize}— Gaseste cel mai mare BID (best bid) dintre toate exchange-\/urile pt un ...
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the oracle module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2340}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2340}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2341}{}\doxysubsection{\texorpdfstring{{\ttfamily Exchange\+Quote}}{{\ttfamily Exchange\+Quote}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2341}
+BID/\+\+ASK de pe un exchange specific pentru un asset Validatorul Omni\+Bus citeste aceste date si le submitera pe chain
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily chain\+\_\+id}  &{\ttfamily Chain\+Id}  &Chain\+\_\+id  \\
+{\ttfamily exchange\+\_\+id}  &{\ttfamily Exchange\+Id}  &Exchange\+\_\+id  \\
+{\ttfamily bid\+\_\+micro\+\_\+usd}  &{\ttfamily u64}  &Bid\+\_\+micro\+\_\+usd  \\
+{\ttfamily ask\+\_\+micro\+\_\+usd}  &{\ttfamily u64}  &Ask\+\_\+micro\+\_\+usd  \\
+{\ttfamily volume\+\_\+24h\+\_\+micro\+\_\+usd}  &{\ttfamily u64}  &Volume\+\_\+24h\+\_\+micro\+\_\+usd  \\
+{\ttfamily timestamp\+\_\+ms}  &{\ttfamily i64}  &Timestamp\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 90}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2343}{}\doxysubsection{\texorpdfstring{{\ttfamily Bridge\+Reference\+Price}}{{\ttfamily Bridge\+Reference\+Price}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2343}
+Pretul de referinta pentru bridge — median din mid-\/price-\/urile CEX/\+\+DEX Acesta NU e pretul de arbitraj — e doar pretul trustless pt bridge
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily chain\+\_\+id}  &{\ttfamily Chain\+Id}  &Chain\+\_\+id  \\
+{\ttfamily reference\+\_\+micro\+\_\+usd}  &{\ttfamily u64}  &Reference\+\_\+micro\+\_\+usd  \\
+{\ttfamily last\+\_\+update\+\_\+ms}  &{\ttfamily i64}  &Last\+\_\+update\+\_\+ms  \\
+{\ttfamily source\+\_\+count}  &{\ttfamily u8}  &Source\+\_\+count  \\
+{\ttfamily is\+\_\+valid}  &{\ttfamily bool}  &Is\+\_\+valid  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 117}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2345}{}\doxysubsection{\texorpdfstring{{\ttfamily Price\+Oracle}}{{\ttfamily Price\+Oracle}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2345}
+Data structure for price oracle. Fields include:\+ quotes, quote\+\_\+valid, bridge\+\_\+prices, chain.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily quotes}  &{\ttfamily \+[CHAINS]\+\+[MAX\+\_\+\+EXCHANGES]\+Exchange\+Quote}  &Quotes  \\
+{\ttfamily quote\+\_\+valid}  &{\ttfamily \+[CHAINS]\+\+[MAX\+\_\+\+EXCHANGES]\+bool}  &Quote\+\_\+valid  \\
+{\ttfamily bridge\+\_\+prices}  &{\ttfamily \+[CHAINS]\+Bridge\+Reference\+Price}  &Bridge\+\_\+prices  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily Chain\+Id}  &Chain  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 130}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2347}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2347}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Chain\+Id}  &{\ttfamily enum(u8) \{}  &Chain id  \\
+{\ttfamily Exchange\+Id}  &{\ttfamily enum(u8) \{}  &Exchange id  \\
+{\ttfamily MAX\+\_\+\+PRICE\+\_\+\+AGE\+\_\+\+MS}  &{\ttfamily i64 = 60\+\_\+000}  &M a x\+\_\+ p r i c e\+\_\+ a g e\+\_\+ m s  \\
+{\ttfamily MAX\+\_\+\+EXCHANGES}  &{\ttfamily usize = 9}  &M a x\+\_\+ e x c h a n g e s  \\
+{\ttfamily CHAINS}  &{\ttfamily usize = 20}  &C h a i n s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2349}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2349}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2350}{}\doxysubsection{\texorpdfstring{{\ttfamily name()}}{{\ttfamily name()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2350}
+Performs the name operation on the oracle module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ name(self:\ ChainId)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Chain\+Id}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 39}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2352}{}\doxysubsection{\texorpdfstring{{\ttfamily name()}}{{\ttfamily name()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2352}
+Performs the name operation on the oracle module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ name(self:\ ExchangeId)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Exchange\+Id}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 64}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2354}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Dex()}}{{\ttfamily is\+Dex()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2354}
+Checks whether the dex condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isDex(self:\ ExchangeId)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Exchange\+Id}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2356}{}\doxysubsection{\texorpdfstring{{\ttfamily spread()}}{{\ttfamily spread()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2356}
+Performs the spread operation on the oracle module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ spread(self:\ *const\ ExchangeQuote)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Exchange\+Quote}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 101}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2358}{}\doxysubsection{\texorpdfstring{{\ttfamily mid\+Price()}}{{\ttfamily mid\+Price()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2358}
+Performs the mid price operation on the oracle module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ midPrice(self:\ *const\ ExchangeQuote)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Exchange\+Quote}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 106}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2360}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Stale()}}{{\ttfamily is\+Stale()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2360}
+Checks whether the stale condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isStale(self:\ *const\ ExchangeQuote,\ now\_ms:\ i64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Exchange\+Quote}  &The instance  \\
+{\ttfamily now\+\_\+ms}  &{\ttfamily i64}  &Now\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 110}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2362}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2362}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ PriceOracle\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Price\+Oracle}
+
+{\itshape Defined at line 138}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2364}{}\doxysubsection{\texorpdfstring{{\ttfamily submit\+Quote()}}{{\ttfamily submit\+Quote()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2364}
+Submitera un quote BID/\+\+ASK de pe un exchange specific
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ submitQuote(self:\ *PriceOracle,\ quote:\ ExchangeQuote)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Price\+Oracle}  &The instance  \\
+{\ttfamily quote}  &{\ttfamily Exchange\+Quote}  &Quote  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 156}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2366}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Bridge\+Price()}}{{\ttfamily get\+Bridge\+Price()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2366}
+Returneaza pretul de referinta pentru bridge (median din mid-\/prices)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBridgePrice(self:\ *const\ PriceOracle,\ chain:\ ChainId)\ !BridgeReferencePrice\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Price\+Oracle}  &The instance  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily Chain\+Id}  &Chain  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Bridge\+Reference\+Price}
+
+{\itshape Defined at line 184}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2368}{}\doxysubsection{\texorpdfstring{{\ttfamily best\+Ask()}}{{\ttfamily best\+Ask()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2368}
+Gaseste cel mai mic ASK (best ask) dintre toate exchange-\/urile pt un asset
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ bestAsk(self:\ *const\ PriceOracle,\ chain:\ ChainId)\ !ExchangeQuote\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Price\+Oracle}  &The instance  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily Chain\+Id}  &Chain  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Exchange\+Quote}
+
+{\itshape Defined at line 194}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2370}{}\doxysubsection{\texorpdfstring{{\ttfamily best\+Bid()}}{{\ttfamily best\+Bid()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2370}
+Gaseste cel mai mare BID (best bid) dintre toate exchange-\/urile pt un asset
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ bestBid(self:\ *const\ PriceOracle,\ chain:\ ChainId)\ !ExchangeQuote\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Price\+Oracle}  &The instance  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily Chain\+Id}  &Chain  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Exchange\+Quote}
+
+{\itshape Defined at line 212}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2372}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2oracle_autotoc_md2372}
+Performs the print status operation on the oracle module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ PriceOracle,\ chain:\ ChainId)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Price\+Oracle}  &The instance  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily Chain\+Id}  &Chain  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 264}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,114 @@
+\doxysection{address-\/validator.py}
+\hypertarget{address-validator_8py_source}{}\label{address-validator_8py_source}\index{tools/WALLET/address-\/validator.py@{tools/WALLET/address-\/validator.py}}
+\doxymbox{\hyperlink{address-validator_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00001}\doxymbox{\hyperlink{namespaceaddress-validator}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00002}\doxymbox{\hyperlink{namespaceaddress}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Address\ Validator}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00005}00005\ \textcolor{stringliteral}{Validates\ OmniBus\ addresses\ (bech32,\ PQ\ domains).}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00009}00009\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00010}00010\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00011}00011\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00012}00012\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ Tuple}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00014}\doxymbox{\hyperlink{namespaceaddress-validator_ae9fd3261ba3cd9fe871df66507d8b420}{00014}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00015}\doxymbox{\hyperlink{namespaceaddress-validator_a39c7163bc56469cbda7158e2ff82ad4e}{00015}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00016}\doxymbox{\hyperlink{namespaceaddress-validator_a35bf18dbc079d277e7696ab883c1626c}{00016}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00017}\doxymbox{\hyperlink{namespaceaddress-validator_a4d6224bcf318795e6b15aff747bb5398}{00017}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00020}\doxymbox{\hyperlink{namespaceaddress-validator_acd59877dca2a9957888013a6f06aab6d}{00020}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceaddress-validator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00021}00021\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00024}00024\ \textcolor{comment}{\#\ Bech32\ character\ set}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00025}\doxymbox{\hyperlink{namespaceaddress-validator_a9d0fbf33f4e77a94eb150827c93553ff}{00025}}\ BECH32\_CHARSET\ =\ \textcolor{stringliteral}{"{}qpzry9x8gf2tvdw0s3jn54khce6mua7l"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00028}\doxymbox{\hyperlink{namespaceaddress-validator_a19bc1652897c910368a06c71cc6c6f04}{00028}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceaddress-validator_a19bc1652897c910368a06c71cc6c6f04}{bech32\_polymod}}(values:\ list)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00029}00029\ \ \ \ \ generator\ =\ [0x3b6a57b2,\ 0x26508e6d,\ 0x1ea119fa,\ 0x3d4233dd,\ 0x2a1462b3]}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00030}00030\ \ \ \ \ chk\ =\ 1}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00031}00031\ \ \ \ \ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ values:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ b\ =\ chk\ >>\ 25}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ chk\ =\ (chk\ \&\ 0x1ffffff)\ <<\ 5\ \string^\ v}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(5):}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \ \ \ \ chk\ \string^=\ generator[i]\ \textcolor{keywordflow}{if}\ ((b\ >>\ i)\ \&\ 1)\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{return}\ chk}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00039}\doxymbox{\hyperlink{namespaceaddress-validator_aaeac5507887bd09676ccbf52be144e2f}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceaddress-validator_aaeac5507887bd09676ccbf52be144e2f}{bech32\_hrp\_expand}}(hrp:\ str)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{return}\ [ord(x)\ >>\ 5\ \textcolor{keywordflow}{for}\ x\ \textcolor{keywordflow}{in}\ hrp]\ +\ [0]\ +\ [ord(x)\ \&\ 31\ \textcolor{keywordflow}{for}\ x\ \textcolor{keywordflow}{in}\ hrp]}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00043}\doxymbox{\hyperlink{namespaceaddress-validator_af36d5be9a1b870d8953074adb4c99392}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceaddress-validator_af36d5be9a1b870d8953074adb4c99392}{bech32\_verify\_checksum}}(hrp:\ str,\ data:\ list)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespaceaddress-validator_a19bc1652897c910368a06c71cc6c6f04}{bech32\_polymod}}(\doxymbox{\hyperlink{namespaceaddress-validator_aaeac5507887bd09676ccbf52be144e2f}{bech32\_hrp\_expand}}(hrp)\ +\ data)\ ==\ 1}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00047}\doxymbox{\hyperlink{namespaceaddress-validator_af937139e0e5ddc162bb9c3c5dad9217c}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceaddress-validator_af937139e0e5ddc162bb9c3c5dad9217c}{validate\_bech32}}(addr:\ str)\ -\/>\ Tuple[bool,\ str]:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00048}00048\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ (1\ <=\ len(addr)\ <=\ 74):}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}Length\ out\ of\ range"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00050}00050\ \ \ \ \ addr\ =\ addr.lower()}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00051}00051\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}1"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ addr:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}Missing\ separator\ '1'"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00053}00053\ \ \ \ \ idx\ =\ addr.rindex(\textcolor{stringliteral}{"{}1"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00054}00054\ \ \ \ \ hrp\ =\ addr[:idx]}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00055}00055\ \ \ \ \ data\ =\ addr[idx\ +\ 1\ :]}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ all(c\ \textcolor{keywordflow}{in}\ BECH32\_CHARSET\ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ data):}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}Invalid\ characters\ in\ data\ part"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00058}00058\ \ \ \ \ data\_values\ =\ [BECH32\_CHARSET.find(c)\ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ data]}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00059}00059\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ \doxymbox{\hyperlink{namespaceaddress-validator_af36d5be9a1b870d8953074adb4c99392}{bech32\_verify\_checksum}}(hrp,\ data\_values):}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}Checksum\ mismatch"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True},\ \textcolor{stringliteral}{"{}Valid\ bech32"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00064}\doxymbox{\hyperlink{namespaceaddress-validator_af640476f8e863661e6424dc1438c6523}{00064}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceaddress-validator_af640476f8e863661e6424dc1438c6523}{validate\_omnibus}}(addr:\ str)\ -\/>\ Tuple[bool,\ str]:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ addr.startswith(\textcolor{stringliteral}{"{}om1"{}}):}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}OmniBus\ addresses\ must\ start\ with\ 'om1'"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00067}00067\ \ \ \ \ \textcolor{keywordflow}{if}\ addr.startswith(\textcolor{stringliteral}{"{}om1pq"{}}):}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ PQ\ domain:\ extra\ validation\ could\ be\ added\ here}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(addr)\ <\ 20:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}PQ\ address\ too\ short"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True},\ \textcolor{stringliteral}{"{}Valid\ OmniBus\ PQ\ address"{}}}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespaceaddress-validator_af937139e0e5ddc162bb9c3c5dad9217c}{validate\_bech32}}(addr)}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00075}\doxymbox{\hyperlink{namespaceaddress-validator_a7431cb90017e54fe695b23d4190db046}{00075}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceaddress-validator_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00076}00076\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Validate\ OmniBus\ addresses"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00077}00077\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}address"{}},\ nargs=\textcolor{stringliteral}{"{}?"{}},\ help=\textcolor{stringliteral}{"{}Address\ to\ validate"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00078}00078\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/file"{}},\ help=\textcolor{stringliteral}{"{}File\ with\ one\ address\ per\ line"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00079}00079\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}validation-\/report.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00080}00080\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00082}00082\ \ \ \ \ \doxymbox{\hyperlink{namespaceaddress-validator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Address\ Validator\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00083}00083\ \ \ \ \ results:\ list\ =\ []}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00084}00084\ \ \ \ \ addresses\ =\ []}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{if}\ args.address:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ addresses.append(args.address)}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{if}\ args.file:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.file,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ addresses.extend(line.strip()\ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ f\ \textcolor{keywordflow}{if}\ line.strip())}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00091}00091\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ addresses:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceaddress-validator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ \textcolor{stringliteral}{"{}No\ addresses\ provided.\ Use\ positional\ arg\ or\ -\/-\/file"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{for}\ addr\ \textcolor{keywordflow}{in}\ addresses:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ ok,\ msg\ =\ \doxymbox{\hyperlink{namespaceaddress-validator_af640476f8e863661e6424dc1438c6523}{validate\_omnibus}}(addr)}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceaddress-validator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color,\ f\textcolor{stringliteral}{"{}\{addr\}:\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}address"{}}:\ addr,\ \textcolor{stringliteral}{"{}valid"{}}:\ ok,\ \textcolor{stringliteral}{"{}message"{}}:\ msg\})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00101}00101\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ json.dump(results,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00103}00103\ \ \ \ \ \doxymbox{\hyperlink{namespaceaddress-validator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nReport\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00107}00107\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{address-validator_8py_source_l00108}00108\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespaceaddress-validator_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

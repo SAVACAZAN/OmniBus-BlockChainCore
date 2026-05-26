@@ -46,11 +46,27 @@ export function Header() {
   useEffect(() => {
     window.__openTx = (txid: string) => {
       const s = txid.trim();
+      if (!s) return;
       // Block number
       if (/^\d+$/.test(s)) { window.location.hash = `#/block/${s}`; return; }
       // Full TX hash
       if (/^[0-9a-fA-F]{64}$/.test(s)) { window.location.hash = `#/tx/${s}`; return; }
-      // Address or partial — fall back to legacy TxSearch
+      // ob1q... OMNI address — navigate directly
+      if (/^ob1[a-z0-9]{8,}$/.test(s)) { window.location.hash = `#/address/${s}`; return; }
+      // ENS-style name — try resolveaddress, fall back to TxSearch
+      if (/^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9]+)?$/.test(s) && !/^[0-9a-fA-F]+$/.test(s)) {
+        _searchRpc.request_raw("resolveaddress", [s]).then((r: any) => {
+          const resolved = typeof r === "string" ? r : r?.address;
+          if (resolved && resolved.length > 8) {
+            window.location.hash = `#/address/${resolved}`;
+          } else {
+            setSearchInitial(s); setShowSearch(true);
+          }
+        }).catch(() => { setSearchInitial(s); setShowSearch(true); });
+        return;
+      }
+      // Partial / direct address
+      if (s.length >= 8) { window.location.hash = `#/address/${s}`; return; }
       setSearchInitial(s);
       setShowSearch(true);
     };

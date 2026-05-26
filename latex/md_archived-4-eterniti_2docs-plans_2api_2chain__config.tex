@@ -1,0 +1,282 @@
+\chapter{Module:\+ {\ttfamily chain\+\_\+config} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config}{}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config}\index{Module: $<$tt$>$chain\_config$<$/tt$>$@{Module: $<$tt$>$chain\_config$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1237}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1237}%
+
+
+\begin{quote}
+Chain configuration — mainnet/\+testnet/\+regtest parameters, fee estimation, network-\/specific settings. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+chain\+\_\+config.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 271 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 7 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1239}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1239}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1240}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1240}
+
+\begin{DoxyItemize}
+\item \`{}\+Checkpoint\`{}{\ttfamily Checkpoint}
+\end{DoxyItemize}— Checkpoint — bloc cu hash verificat (ca Bitcoin\textquotesingle{}s assumevalid) Nodurile noi pot ...
+\begin{DoxyItemize}
+\item \`{}\+Network\+Magic\`{}{\ttfamily Network\+Magic}
+\end{DoxyItemize}— Network magic bytes (ca Bitcoin:\+ 0x\+F9\+BEB4\+D9 mainnet, 0x\+FABFB5\+DA testnet) Primii ...
+\begin{DoxyItemize}
+\item \`{}\+Chain\+Config\`{}{\ttfamily Chain\+Config}
+\end{DoxyItemize}— Full chain configuration
+\begin{DoxyItemize}
+\item \`{}\+Fee\+Estimator\`{}{\ttfamily Fee\+Estimator}
+\end{DoxyItemize}— Gas estimation for transaction fees Bitcoin:\+ estimatesmartfee RPC Ethereum:\+ eth\+\_\+...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1241}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1241}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1242}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1242}
+
+\begin{DoxyItemize}
+\item \`{}for\+Chain()\`{}{\ttfamily for\+Chain()}
+\end{DoxyItemize}— Performs the for chain operation on the chain\+\_\+config module.
+\begin{DoxyItemize}
+\item \`{}mainnet()\`{}{\ttfamily mainnet()}
+\end{DoxyItemize}— Mainnet configuration
+\begin{DoxyItemize}
+\item \`{}testnet()\`{}{\ttfamily testnet()}
+\end{DoxyItemize}— Testnet configuration (faster blocks, lower difficulty)
+\begin{DoxyItemize}
+\item \`{}regtest()\`{}{\ttfamily regtest()}
+\end{DoxyItemize}— Regtest (instant mining, difficulty 1)
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}estimate\+Fee()\`{}{\ttfamily estimate\+Fee()}
+\end{DoxyItemize}— Estimate fee in SAT for next-\/block inclusion Returns:\+ fee in SAT per t...
+\begin{DoxyItemize}
+\item \`{}estimate\+Blocks()\`{}{\ttfamily estimate\+Blocks()}
+\end{DoxyItemize}— Estimate confirmation time in blocks
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1244}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1244}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1245}{}\doxysubsection{\texorpdfstring{{\ttfamily Checkpoint}}{{\ttfamily Checkpoint}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1245}
+Checkpoint — bloc cu hash verificat (ca Bitcoin\textquotesingle{}s assumevalid) Nodurile noi pot sari validarea PoW pentru blocuri mai vechi decat ultimul checkpoint
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily hash}  &{\ttfamily \+[64]\+u8}  &Hash  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 26}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1247}{}\doxysubsection{\texorpdfstring{{\ttfamily Network\+Magic}}{{\ttfamily Network\+Magic}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1247}
+Network magic bytes (ca Bitcoin:\+ 0x\+F9\+BEB4\+D9 mainnet, 0x\+FABFB5\+DA testnet) Primii 4 bytes din fiecare mesaj P2P — identifica reteaua
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bytes}  &{\ttfamily \+[4]\+u8}  &Bytes  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 35}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1249}{}\doxysubsection{\texorpdfstring{{\ttfamily Chain\+Config}}{{\ttfamily Chain\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1249}
+Full chain configuration
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily chain\+\_\+id}  &{\ttfamily Chain\+Id}  &Chain\+\_\+id  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily magic}  &{\ttfamily Network\+Magic}  &Magic  \\
+{\ttfamily genesis\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Genesis\+\_\+hash  \\
+{\ttfamily genesis\+\_\+timestamp}  &{\ttfamily i64}  &Genesis\+\_\+timestamp  \\
+{\ttfamily p2p\+\_\+port}  &{\ttfamily u16}  &P2p\+\_\+port  \\
+{\ttfamily rpc\+\_\+port}  &{\ttfamily u16}  &Rpc\+\_\+port  \\
+{\ttfamily ws\+\_\+port}  &{\ttfamily u16}  &Ws\+\_\+port  \\
+{\ttfamily initial\+\_\+difficulty}  &{\ttfamily u32}  &Initial\+\_\+difficulty  \\
+{\ttfamily block\+\_\+time\+\_\+ms}  &{\ttfamily u64}  &Block\+\_\+time\+\_\+ms  \\
+{\ttfamily max\+\_\+supply\+\_\+sat}  &{\ttfamily u64}  &Max\+\_\+supply\+\_\+sat  \\
+{\ttfamily initial\+\_\+reward\+\_\+sat}  &{\ttfamily u64}  &Initial\+\_\+reward\+\_\+sat  \\
+{\ttfamily halving\+\_\+interval}  &{\ttfamily u64}  &Halving\+\_\+interval  \\
+{\ttfamily retarget\+\_\+interval}  &{\ttfamily u64}  &Retarget\+\_\+interval  \\
+{\ttfamily sub\+\_\+blocks\+\_\+per\+\_\+block}  &{\ttfamily u8}  &Sub\+\_\+blocks\+\_\+per\+\_\+block  \\
+{\ttfamily checkpoints}  &{\ttfamily \+[]\+const Checkpoint}  &Checkpoints  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1251}{}\doxysubsection{\texorpdfstring{{\ttfamily Fee\+Estimator}}{{\ttfamily Fee\+Estimator}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1251}
+Gas estimation for transaction fees Bitcoin:\+ estimatesmartfee RPC Ethereum:\+ eth\+\_\+estimate\+Gas + EIP-\/1559 base fee Omni\+Bus:\+ simplified — fee based on mempool pressure
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mempool\+\_\+size}  &{\ttfamily usize}  &Mempool\+\_\+size  \\
+{\ttfamily mempool\+\_\+max}  &{\ttfamily usize}  &Mempool\+\_\+max  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 165}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1253}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1253}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Chain\+Id}  &{\ttfamily enum(u32) \{}  &Chain id  \\
+{\ttfamily MAINNET}  &{\ttfamily Network\+Magic\{ .bytes = .\{ 0x4F, 0x4D, 0x4E, 0x49 \} \}}  &M a i n n e t  \\
+{\ttfamily TESTNET}  &{\ttfamily Network\+Magic\{ .bytes = .\{ 0x54, 0x45, 0x53, 0x54 \} \}}  &T e s t n e t  \\
+{\ttfamily DEVNET}  &{\ttfamily Network\+Magic\{ .bytes = .\{ 0x44, 0x45, 0x56, 0x4E \} \}}  &D e v n e t  \\
+{\ttfamily REGTEST}  &{\ttfamily Network\+Magic\{ .bytes = .\{ 0x52, 0x45, 0x47, 0x54 \} \}}  &R e g t e s t  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1255}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1255}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1256}{}\doxysubsection{\texorpdfstring{{\ttfamily for\+Chain()}}{{\ttfamily for\+Chain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1256}
+Performs the for chain operation on the chain\+\_\+config module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ forChain(chain\_id:\ ChainId)\ NetworkMagic\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily chain\+\_\+id}  &{\ttfamily Chain\+Id}  &Chain\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Network\+Magic}
+
+{\itshape Defined at line 43}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1258}{}\doxysubsection{\texorpdfstring{{\ttfamily mainnet()}}{{\ttfamily mainnet()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1258}
+Mainnet configuration
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ mainnet()\ ChainConfig\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Chain\+Config}
+
+{\itshape Defined at line 89}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1260}{}\doxysubsection{\texorpdfstring{{\ttfamily testnet()}}{{\ttfamily testnet()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1260}
+Testnet configuration (faster blocks, lower difficulty)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ testnet()\ ChainConfig\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Chain\+Config}
+
+{\itshape Defined at line 111}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1262}{}\doxysubsection{\texorpdfstring{{\ttfamily regtest()}}{{\ttfamily regtest()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1262}
+Regtest (instant mining, difficulty 1)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ regtest()\ ChainConfig\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Chain\+Config}
+
+{\itshape Defined at line 133}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1264}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1264}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(mempool\_size:\ usize,\ mempool\_max:\ usize)\ FeeEstimator\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mempool\+\_\+size}  &{\ttfamily usize}  &Mempool\+\_\+size  \\
+{\ttfamily mempool\+\_\+max}  &{\ttfamily usize}  &Mempool\+\_\+max  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Fee\+Estimator}
+
+{\itshape Defined at line 171}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1266}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+Fee()}}{{\ttfamily estimate\+Fee()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1266}
+Estimate fee in SAT for next-\/block inclusion Returns:\+ fee in SAT per transaction Algorithm:\+ base\+\_\+fee \texorpdfstring{$\ast$}{*} (1 + mempool\+\_\+pressure) When mempool is empty → min fee (1 SAT) When mempool is 50\% full → 2x fee When mempool is 100\% full → 10x fee
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateFee(self:\ *const\ FeeEstimator)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Fee\+Estimator}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 181}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1268}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+Blocks()}}{{\ttfamily estimate\+Blocks()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2chain__config_autotoc_md1268}
+Estimate confirmation time in blocks
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateBlocks(self:\ *const\ FeeEstimator,\ fee\_sat:\ u64)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Fee\+Estimator}  &The instance  \\
+{\ttfamily fee\+\_\+sat}  &{\ttfamily u64}  &Fee\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 193}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

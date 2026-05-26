@@ -1,0 +1,36 @@
+\doxysection{QRCode\+Widget.\+h}
+\hypertarget{_q_r_code_widget_8h_source}{}\label{_q_r_code_widget_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/QRCodeWidget.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/QRCodeWidget.h}}
+\doxymbox{\hyperlink{_q_r_code_widget_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QString>}}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QImage>}}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00007}00007\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00009}00009\ \textcolor{comment}{//\ Minimal\ QR\ Code\ generator\ using\ QPainter\ —\ supports\ up\ to\ \string~80\ char\ alphanumeric}}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00010}\doxymbox{\hyperlink{classomni_1_1_q_r_code_widget}{00010}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_q_r_code_widget_a730a4a8d94233117364c301f9cc2d826}{QRCodeWidget}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00011}00011\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00012}00012\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00013}00013\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_q_r_code_widget_a730a4a8d94233117364c301f9cc2d826}{QRCodeWidget}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00015}00015\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_q_r_code_widget_a11f99297143985ee3de6456ef416587b}{setData}}(\textcolor{keyword}{const}\ QString\&\ data);}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00016}\doxymbox{\hyperlink{classomni_1_1_q_r_code_widget_a623e1fb4bf2139a5f77f1704f53c483e}{00016}}\ \ \ \ \ QSize\ \doxymbox{\hyperlink{classomni_1_1_q_r_code_widget_a623e1fb4bf2139a5f77f1704f53c483e}{sizeHint}}()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ QSize(200,\ 200);\ \}}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00018}00018\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00019}00019\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_q_r_code_widget_a067c655f324723a46b2418e959249edf}{paintEvent}}(QPaintEvent*\ event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00021}00021\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ generateQR();}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00024}00024\ \ \ \ \ QString\ m\_data;}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00025}00025\ \ \ \ \ \textcolor{comment}{//\ Simple\ 2D\ grid\ representation:\ true\ =\ black\ module}}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00026}00026\ \ \ \ \ QVector<QVector<bool>>\ m\_modules;}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00027}00027\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_size\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00028}00028\ \};}
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{_q_r_code_widget_8h_source_l00030}00030\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

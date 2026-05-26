@@ -1,0 +1,231 @@
+\doxysection{log-\/aggregator Namespace Reference}
+\hypertarget{namespacelog-aggregator}{}\label{namespacelog-aggregator}\index{log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{Log\+Entry}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+tuple\+[str, str]\+ \doxymbox{\hyperlink{namespacelog-aggregator_a751fece60b5f4052c6e32b9713600460}{extract\+\_\+timestamp}} (str line)
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a7840577ee4b9e5659ad3b421a415439b}{detect\+\_\+severity}} (str line)
+\item 
+list\+[\doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{Log\+Entry}}]\+ \doxymbox{\hyperlink{namespacelog-aggregator_a8ed2f7a255228fbb7f176001c0c3fae6}{parse\+\_\+log\+\_\+file}} (str filepath)
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_acd54cbec4c18c0e6f125789e69cc1ce6}{colorize\+\_\+severity}} (str severity)
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a7449ef3cb290dd1f5b2ce976493295af}{format\+\_\+entry}} (\doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{Log\+Entry}} entry, bool show\+\_\+source=True)
+\item 
+int \doxymbox{\hyperlink{namespacelog-aggregator_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{namespacelog-aggregator_a856c9f2af9640c5b95c66970c44f4c2b}{COLORS}}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a105e3c773c06eea82596c1d649d1ae53}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a4a4439bb38533af1f576b23cadec0e4e}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a12515a7fd9054784d85a6164b703e66e}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a9a2c5e6f91205140b47df1f6d8468b9b}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+list \doxymbox{\hyperlink{namespacelog-aggregator_ae7e3634c9dc55293b87d66d6d842e9fb}{TIMESTAMP\+\_\+\+PATTERNS}}
+\item 
+\doxymbox{\hyperlink{namespacelog-aggregator_a31d0e8502dbde730568918dc32fcc05c}{SEVERITY\+\_\+\+PATTERN}}
+\end{DoxyCompactItemize}
+
+
+\label{namespacelog-aggregator_doc-func-members}
+\Hypertarget{namespacelog-aggregator_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacelog-aggregator_acd54cbec4c18c0e6f125789e69cc1ce6}\index{log-\/aggregator@{log-\/aggregator}!colorize\_severity@{colorize\_severity}}
+\index{colorize\_severity@{colorize\_severity}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{colorize\_severity()}{colorize\_severity()}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_acd54cbec4c18c0e6f125789e69cc1ce6} 
+ str colorize\+\_\+severity (\begin{DoxyParamCaption}\item[{str}]{severity}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00107}{107}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacelog-aggregator_a7840577ee4b9e5659ad3b421a415439b}\index{log-\/aggregator@{log-\/aggregator}!detect\_severity@{detect\_severity}}
+\index{detect\_severity@{detect\_severity}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{detect\_severity()}{detect\_severity()}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a7840577ee4b9e5659ad3b421a415439b} 
+ str detect\+\_\+severity (\begin{DoxyParamCaption}\item[{str}]{line}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Detect log severity from line content.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacelog-aggregator_a751fece60b5f4052c6e32b9713600460}\index{log-\/aggregator@{log-\/aggregator}!extract\_timestamp@{extract\_timestamp}}
+\index{extract\_timestamp@{extract\_timestamp}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{extract\_timestamp()}{extract\_timestamp()}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a751fece60b5f4052c6e32b9713600460} 
+ tuple\+[str, str]\+ extract\+\_\+timestamp (\begin{DoxyParamCaption}\item[{str}]{line}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract timestamp from log line. Returns (raw, sortable) or fallbacks.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacelog-aggregator_a7449ef3cb290dd1f5b2ce976493295af}\index{log-\/aggregator@{log-\/aggregator}!format\_entry@{format\_entry}}
+\index{format\_entry@{format\_entry}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{format\_entry()}{format\_entry()}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a7449ef3cb290dd1f5b2ce976493295af} 
+ str format\+\_\+entry (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{Log\+Entry}}}]{entry}{, }\item[{bool }]{show\+\_\+source}{ = {\ttfamily True}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Format a log entry for colored terminal output.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00112}{112}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacelog-aggregator_a7431cb90017e54fe695b23d4190db046}\index{log-\/aggregator@{log-\/aggregator}!main@{main}}
+\index{main@{main}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00127}{127}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacelog-aggregator_a8ed2f7a255228fbb7f176001c0c3fae6}\index{log-\/aggregator@{log-\/aggregator}!parse\_log\_file@{parse\_log\_file}}
+\index{parse\_log\_file@{parse\_log\_file}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{parse\_log\_file()}{parse\_log\_file()}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a8ed2f7a255228fbb7f176001c0c3fae6} 
+ list\+[\doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{Log\+Entry}}]\+ parse\+\_\+log\+\_\+file (\begin{DoxyParamCaption}\item[{str}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse a single log file into LogEntry list.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00089}{89}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+
+
+\label{namespacelog-aggregator_doc-var-members}
+\Hypertarget{namespacelog-aggregator_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacelog-aggregator_a12515a7fd9054784d85a6164b703e66e}\index{log-\/aggregator@{log-\/aggregator}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a12515a7fd9054784d85a6164b703e66e} 
+str \doxymbox{\hyperlink{namespacelog}{log}}-\/aggregator.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+\Hypertarget{namespacelog-aggregator_a856c9f2af9640c5b95c66970c44f4c2b}\index{log-\/aggregator@{log-\/aggregator}!COLORS@{COLORS}}
+\index{COLORS@{COLORS}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{COLORS}{COLORS}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a856c9f2af9640c5b95c66970c44f4c2b} 
+dict \doxymbox{\hyperlink{namespacelog}{log}}-\/aggregator.\+COLORS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ERROR"{}}:\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}},\ \ \ \ \textcolor{comment}{\#\ red}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}WARN"{}}:\ \ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}},\ \ \ \ \textcolor{comment}{\#\ yellow}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}WARNING"{}}:\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}},\ \ \textcolor{comment}{\#\ yellow\ (alias)}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}INFO"{}}:\ \ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}},\ \ \ \ \textcolor{comment}{\#\ green}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}DEBUG"{}}:\ \textcolor{stringliteral}{"{}\(\backslash\)033[90m"{}},\ \ \ \ \textcolor{comment}{\#\ gray}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00018}{18}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+\Hypertarget{namespacelog-aggregator_a105e3c773c06eea82596c1d649d1ae53}\index{log-\/aggregator@{log-\/aggregator}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a105e3c773c06eea82596c1d649d1ae53} 
+str \doxymbox{\hyperlink{namespacelog}{log}}-\/aggregator.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+\Hypertarget{namespacelog-aggregator_a4a4439bb38533af1f576b23cadec0e4e}\index{log-\/aggregator@{log-\/aggregator}!DIM@{DIM}}
+\index{DIM@{DIM}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a4a4439bb38533af1f576b23cadec0e4e} 
+str \doxymbox{\hyperlink{namespacelog}{log}}-\/aggregator.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+\Hypertarget{namespacelog-aggregator_a9a2c5e6f91205140b47df1f6d8468b9b}\index{log-\/aggregator@{log-\/aggregator}!RESET@{RESET}}
+\index{RESET@{RESET}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a9a2c5e6f91205140b47df1f6d8468b9b} 
+str \doxymbox{\hyperlink{namespacelog}{log}}-\/aggregator.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+\Hypertarget{namespacelog-aggregator_a31d0e8502dbde730568918dc32fcc05c}\index{log-\/aggregator@{log-\/aggregator}!SEVERITY\_PATTERN@{SEVERITY\_PATTERN}}
+\index{SEVERITY\_PATTERN@{SEVERITY\_PATTERN}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{SEVERITY\_PATTERN}{SEVERITY\_PATTERN}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_a31d0e8502dbde730568918dc32fcc05c} 
+\doxymbox{\hyperlink{namespacelog}{log}}-\/aggregator.\+SEVERITY\+\_\+\+PATTERN}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)b(ERROR|WARN(?:ING)?|INFO|DEBUG|FATAL|CRITICAL)\(\backslash\)b"{}},\ re.IGNORECASE}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+
+\Hypertarget{namespacelog-aggregator_ae7e3634c9dc55293b87d66d6d842e9fb}\index{log-\/aggregator@{log-\/aggregator}!TIMESTAMP\_PATTERNS@{TIMESTAMP\_PATTERNS}}
+\index{TIMESTAMP\_PATTERNS@{TIMESTAMP\_PATTERNS}!log-\/aggregator@{log-\/aggregator}}
+\doxysubsubsection{\texorpdfstring{TIMESTAMP\_PATTERNS}{TIMESTAMP\_PATTERNS}}
+{\footnotesize\ttfamily \label{namespacelog-aggregator_ae7e3634c9dc55293b87d66d6d842e9fb} 
+list \doxymbox{\hyperlink{namespacelog}{log}}-\/aggregator.\+TIMESTAMP\+\_\+\+PATTERNS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ ISO\ 8601:\ 2026-\/04-\/19T12:30:45.123Z}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}(\(\backslash\)d\{4\}-\/\(\backslash\)d\{2\}-\/\(\backslash\)d\{2\}[T\ ]\(\backslash\)d\{2\}:\(\backslash\)d\{2\}:\(\backslash\)d\{2\}(?:\(\backslash\).\(\backslash\)d+)?(?:Z|[+-\/]\(\backslash\)d\{2\}:?\(\backslash\)d\{2\})?)"{}}),}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Simple:\ 2026-\/04-\/19\ 12:30:45}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}(\(\backslash\)d\{4\}-\/\(\backslash\)d\{2\}-\/\(\backslash\)d\{2\}\ \(\backslash\)d\{2\}:\(\backslash\)d\{2\}:\(\backslash\)d\{2\})"{}}),}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Time\ only:\ [12:30:45]}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}\(\backslash\)[(\(\backslash\)d\{2\}:\(\backslash\)d\{2\}:\(\backslash\)d\{2\})\(\backslash\)]"{}}),}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{log-aggregator_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{log-aggregator_8py_source}{log-\/aggregator.\+py}}.
+

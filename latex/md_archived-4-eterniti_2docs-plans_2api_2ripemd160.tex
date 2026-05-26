@@ -1,0 +1,149 @@
+\chapter{Module:\+ {\ttfamily ripemd160} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160}{}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160}\index{Module: $<$tt$>$ripemd160$<$/tt$>$@{Module: $<$tt$>$ripemd160$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2774}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2774}%
+
+
+\begin{quote}
+Pure Zig RIPEMD-\/160 hash function — 193 lines, Bitcoin-\/compatible, used for address generation (RIPEMD160(\+SHA256(pubkey))). \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+ripemd160.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 193 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 4
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2776}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2776}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2777}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2777}
+
+\begin{DoxyItemize}
+\item \`{}\+Ripemd160\`{}{\ttfamily Ripemd160}
+\end{DoxyItemize}— Data structure for ripemd160. Fields include:\+ state, buf, buf\+\_\+len, total\+\_\+len.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2778}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2778}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2779}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2779}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}update()\`{}{\ttfamily update()}
+\end{DoxyItemize}— Updates the with new values.
+\begin{DoxyItemize}
+\item \`{}final()\`{}{\ttfamily final()}
+\end{DoxyItemize}— Performs the final operation on the ripemd160 module.
+\begin{DoxyItemize}
+\item \`{}hash()\`{}{\ttfamily hash()}
+\end{DoxyItemize}— Checks whether the h condition is true.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2781}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2781}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2782}{}\doxysubsection{\texorpdfstring{{\ttfamily Ripemd160}}{{\ttfamily Ripemd160}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2782}
+Data structure for ripemd160. Fields include:\+ state, buf, buf\+\_\+len, total\+\_\+len.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily state}  &{\ttfamily \+[5]\+u32}  &State  \\
+{\ttfamily buf}  &{\ttfamily \+[64]\+u8}  &Buf  \\
+{\ttfamily buf\+\_\+len}  &{\ttfamily usize}  &Buf\+\_\+len  \\
+{\ttfamily total\+\_\+len}  &{\ttfamily u64}  &Total\+\_\+len  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 45}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2784}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2784}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily digest\+\_\+length}  &{\ttfamily 20}  &Digest\+\_\+length  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2786}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2786}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2787}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2787}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ Ripemd160\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Ripemd160}
+
+{\itshape Defined at line 53}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2789}{}\doxysubsection{\texorpdfstring{{\ttfamily update()}}{{\ttfamily update()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2789}
+Updates the with new values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ update(self:\ *Ripemd160,\ data:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ripemd160}  &The instance  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 62}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2791}{}\doxysubsection{\texorpdfstring{{\ttfamily final()}}{{\ttfamily final()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2791}
+Performs the final operation on the ripemd160 module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ final(self:\ *Ripemd160,\ out:\ *[20]u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ripemd160}  &The instance  \\
+{\ttfamily out}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+[20]\+u8}  &Out  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 85}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2793}{}\doxysubsection{\texorpdfstring{{\ttfamily hash()}}{{\ttfamily hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ripemd160_autotoc_md2793}
+Checks whether the h condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hash(data:\ []const\ u8,\ out:\ *[20]u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+{\ttfamily out}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+[20]\+u8}  &Out  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 149}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

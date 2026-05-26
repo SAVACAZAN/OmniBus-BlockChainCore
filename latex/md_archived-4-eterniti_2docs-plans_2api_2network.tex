@@ -1,0 +1,457 @@
+\chapter{Module:\+ {\ttfamily network} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network}{}\label{md_archived-4-eterniti_2docs-plans_2api_2network}\index{Module: $<$tt$>$network$<$/tt$>$@{Module: $<$tt$>$network$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2215}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2215}%
+
+
+\begin{quote}
+Network layer — manages peer connections, message routing, broadcast to all peers, connection lifecycle management. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+network.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 316 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 13 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 4
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2217}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2217}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2218}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2218}
+
+\begin{DoxyItemize}
+\item \`{}\+Network\+Node\`{}{\ttfamily Network\+Node}
+\end{DoxyItemize}— Network Node -\/ P2P participant
+\begin{DoxyItemize}
+\item \`{}\+P2\+PNetwork\`{}{\ttfamily P2\+PNetwork}
+\end{DoxyItemize}— P2P Network -\/ Manages all connected nodes
+\begin{DoxyItemize}
+\item \`{}\+Network\+Status\`{}{\ttfamily Network\+Status}
+\end{DoxyItemize}— Data structure for network status. Fields include:\+ total\+\_\+peers, total\+\_\+miners, se...
+\begin{DoxyItemize}
+\item \`{}\+Message\`{}{\ttfamily Message}
+\end{DoxyItemize}— P2P Message\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2219}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2219}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2220}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2220}
+
+\begin{DoxyItemize}
+\item \`{}get\+Address()\`{}{\ttfamily get\+Address()}
+\end{DoxyItemize}— Get node address string
+\begin{DoxyItemize}
+\item \`{}get\+Endpoint()\`{}{\ttfamily get\+Endpoint()}
+\end{DoxyItemize}— Get node endpoint (host:\+port)
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Seed\+Node()\`{}{\ttfamily add\+Seed\+Node()}
+\end{DoxyItemize}— Add seed node
+\begin{DoxyItemize}
+\item \`{}connect\+To\+Node()\`{}{\ttfamily connect\+To\+Node()}
+\end{DoxyItemize}— Connect to a node
+\begin{DoxyItemize}
+\item \`{}disconnect\+From\+Node()\`{}{\ttfamily disconnect\+From\+Node()}
+\end{DoxyItemize}— Disconnect from a node
+\begin{DoxyItemize}
+\item \`{}broadcast()\`{}{\ttfamily broadcast()}
+\end{DoxyItemize}— Broadcast message to all peers — delegates to P2\+PNode.\+broadcast\+Block i...
+\begin{DoxyItemize}
+\item \`{}get\+Peer\+Count()\`{}{\ttfamily get\+Peer\+Count()}
+\end{DoxyItemize}— Get connected node count
+\begin{DoxyItemize}
+\item \`{}get\+Miner\+Count()\`{}{\ttfamily get\+Miner\+Count()}
+\end{DoxyItemize}— Get miner count
+\begin{DoxyItemize}
+\item \`{}is\+Miner()\`{}{\ttfamily is\+Miner()}
+\end{DoxyItemize}— Check if node is miner
+\begin{DoxyItemize}
+\item \`{}get\+Miners()\`{}{\ttfamily get\+Miners()}
+\end{DoxyItemize}— Get all miners
+\begin{DoxyItemize}
+\item \`{}get\+Status()\`{}{\ttfamily get\+Status()}
+\end{DoxyItemize}— Get network status
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2222}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2222}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2223}{}\doxysubsection{\texorpdfstring{{\ttfamily Network\+Node}}{{\ttfamily Network\+Node}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2223}
+Network Node -\/ P2P participant
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily version}  &{\ttfamily \+[]\+const u8}  &Version  \\
+{\ttfamily is\+\_\+miner}  &{\ttfamily bool}  &Is\+\_\+miner  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily version}  &{\ttfamily \+[]\+const u8}  &Version  \\
+{\ttfamily is\+\_\+miner}  &{\ttfamily bool}  &Is\+\_\+miner  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 5}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2225}{}\doxysubsection{\texorpdfstring{{\ttfamily P2\+PNetwork}}{{\ttfamily P2\+PNetwork}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2225}
+P2P Network -\/ Manages all connected nodes
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily local\+\_\+node}  &{\ttfamily Network\+Node}  &Local\+\_\+node  \\
+{\ttfamily connected\+\_\+nodes}  &{\ttfamily array\+\_\+list.\+Managed(\+Network\+Node)}  &Connected\+\_\+nodes  \\
+{\ttfamily seed\+\_\+nodes}  &{\ttfamily array\+\_\+list.\+Managed(\+Network\+Node)}  &Seed\+\_\+nodes  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily p2p\+\_\+node\+\_\+ptr}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}anyopaque}  &P2p\+\_\+node\+\_\+ptr  \\
+{\ttfamily broadcast\+\_\+fn}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}const fn (node\+\_\+ptr:\+ \texorpdfstring{$\ast$}{*}anyopaque}  &Broadcast\+\_\+fn  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 43}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2227}{}\doxysubsection{\texorpdfstring{{\ttfamily Network\+Status}}{{\ttfamily Network\+Status}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2227}
+Data structure for network status. Fields include:\+ total\+\_\+peers, total\+\_\+miners, seed\+\_\+nodes, is\+\_\+synced.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily total\+\_\+peers}  &{\ttfamily usize}  &Total\+\_\+peers  \\
+{\ttfamily total\+\_\+miners}  &{\ttfamily usize}  &Total\+\_\+miners  \\
+{\ttfamily seed\+\_\+nodes}  &{\ttfamily usize}  &Seed\+\_\+nodes  \\
+{\ttfamily is\+\_\+synced}  &{\ttfamily bool}  &Is\+\_\+synced  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 174}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2229}{}\doxysubsection{\texorpdfstring{{\ttfamily Message}}{{\ttfamily Message}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2229}
+P2P Message
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily message\+\_\+type}  &{\ttfamily Message\+Type}  &Message\+\_\+type  \\
+{\ttfamily sender\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Sender\+\_\+id  \\
+{\ttfamily payload}  &{\ttfamily \+[]\+const u8}  &Payload  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 209}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2231}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2231}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Message\+Type}  &{\ttfamily enum \{}  &Message type  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2233}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2233}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2234}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address()}}{{\ttfamily get\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2234}
+Get node address string
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ NetworkNode)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Network\+Node}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 32}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2236}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Endpoint()}}{{\ttfamily get\+Endpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2236}
+Get node endpoint (host:\+port)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getEndpoint(self:\ *const\ NetworkNode,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Network\+Node}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 37}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2238}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2238}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(local\_node:\ NetworkNode,\ allocator:\ std.mem.Allocator)\ P2PNetwork\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily local\+\_\+node}  &{\ttfamily Network\+Node}  &Local\+\_\+node  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily P2\+PNetwork}
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2240}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2240}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *P2PNetwork)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNetwork}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 65}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2242}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Seed\+Node()}}{{\ttfamily add\+Seed\+Node()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2242}
+Add seed node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addSeedNode(self:\ *P2PNetwork,\ node:\ NetworkNode)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNetwork}  &The instance  \\
+{\ttfamily \doxylink{namespacenode}{node}}  &{\ttfamily Network\+Node}  &Node  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 71}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2244}{}\doxysubsection{\texorpdfstring{{\ttfamily connect\+To\+Node()}}{{\ttfamily connect\+To\+Node()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2244}
+Connect to a node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ connectToNode(self:\ *P2PNetwork,\ node:\ NetworkNode)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNetwork}  &The instance  \\
+{\ttfamily \doxylink{namespacenode}{node}}  &{\ttfamily Network\+Node}  &Node  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 77}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2246}{}\doxysubsection{\texorpdfstring{{\ttfamily disconnect\+From\+Node()}}{{\ttfamily disconnect\+From\+Node()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2246}
+Disconnect from a node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ disconnectFromNode(self:\ *P2PNetwork,\ node\_id:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNetwork}  &The instance  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 90}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2248}{}\doxysubsection{\texorpdfstring{{\ttfamily broadcast()}}{{\ttfamily broadcast()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2248}
+Broadcast message to all peers — delegates to P2\+PNode.\+broadcast\+Block if attached
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ broadcast(self:\ *const\ P2PNetwork,\ message:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNetwork}  &The instance  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 113}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2250}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Peer\+Count()}}{{\ttfamily get\+Peer\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2250}
+Get connected node count
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPeerCount(self:\ *const\ P2PNetwork)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNetwork}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 125}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2252}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Miner\+Count()}}{{\ttfamily get\+Miner\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2252}
+Get miner count
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMinerCount(self:\ *const\ P2PNetwork)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNetwork}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 130}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2254}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Miner()}}{{\ttfamily is\+Miner()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2254}
+Check if node is miner
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isMiner(self:\ *const\ P2PNetwork,\ node\_id:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNetwork}  &The instance  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 141}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2256}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Miners()}}{{\ttfamily get\+Miners()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2256}
+Get all miners
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMiners(self:\ *const\ P2PNetwork,\ allocator:\ std.mem.Allocator)\ ![]NetworkNode\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNetwork}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+Network\+Node}
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2258}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Status()}}{{\ttfamily get\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2network_autotoc_md2258}
+Get network status
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getStatus(self:\ *const\ P2PNetwork)\ NetworkStatus\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNetwork}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Network\+Status}
+
+{\itshape Defined at line 164}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

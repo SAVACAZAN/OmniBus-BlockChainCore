@@ -1,0 +1,141 @@
+\chapter{Module:\+ {\ttfamily hex\+\_\+utils} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils}{}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils}\index{Module: $<$tt$>$hex\_utils$<$/tt$>$@{Module: $<$tt$>$hex\_utils$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1690}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1690}%
+
+
+\begin{quote}
+Hex/\+hash utilities — shared hex encoding/\+decoding, hash formatting functions used across modules. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+hex\+\_\+utils.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 151 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 0 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1692}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1692}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1693}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1693}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1694}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1694}
+
+\begin{DoxyItemize}
+\item \`{}char\+To\+Nibble()\`{}{\ttfamily char\+To\+Nibble()}
+\end{DoxyItemize}— Shared hex/\+hash utilities used by transaction.\+zig, blockchain.\+zig, blo...
+\begin{DoxyItemize}
+\item \`{}hex\+To\+Bytes()\`{}{\ttfamily hex\+To\+Bytes()}
+\end{DoxyItemize}— Convert hex string to bytes
+\begin{DoxyItemize}
+\item \`{}hash\+Block()\`{}{\ttfamily hash\+Block()}
+\end{DoxyItemize}— Calculate block hash from a block struct (convenience wrapper) Elimina...
+\begin{DoxyItemize}
+\item \`{}is\+Valid\+Hash\+Difficulty()\`{}{\ttfamily is\+Valid\+Hash\+Difficulty()}
+\end{DoxyItemize}— Check if a hex hash meets difficulty (leading zeros count)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1696}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1696}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MAX\+\_\+\+NONCE}  &{\ttfamily u64 = 4\+\_\+294\+\_\+967\+\_\+296}  &M a x\+\_\+ n o n c e  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1698}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1698}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1699}{}\doxysubsection{\texorpdfstring{{\ttfamily char\+To\+Nibble()}}{{\ttfamily char\+To\+Nibble()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1699}
+Shared hex/\+hash utilities used by transaction.\+zig, blockchain.\+zig, blockchain\+\_\+v2.\+zig Extracted to eliminate code duplication (was duplicated in 3 files) Convert hex character to 4-\/bit nibble value
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ charToNibble(c:\ u8)\ !u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily c}  &{\ttfamily u8}  &C  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u8}
+
+{\itshape Defined at line 7}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1701}{}\doxysubsection{\texorpdfstring{{\ttfamily hex\+To\+Bytes()}}{{\ttfamily hex\+To\+Bytes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1701}
+Convert hex string to bytes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hexToBytes(hex:\ []const\ u8,\ out:\ []u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily hex}  &{\ttfamily \+[]\+const u8}  &Hex  \\
+{\ttfamily out}  &{\ttfamily \+[]\+u8}  &Out  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 17}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1703}{}\doxysubsection{\texorpdfstring{{\ttfamily hash\+Block()}}{{\ttfamily hash\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1703}
+Calculate block hash from a block struct (convenience wrapper) Eliminates duplicate code between blockchain.\+zig and blockchain\+\_\+v2.\+zig
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hashBlock(block:\ anytype,\ allocator:\ std.mem.Allocator)\ ![]const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily anytype}  &Block  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+const u8}
+
+{\itshape Defined at line 61}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1705}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Valid\+Hash\+Difficulty()}}{{\ttfamily is\+Valid\+Hash\+Difficulty()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2hex__utils_autotoc_md1705}
+Check if a hex hash meets difficulty (leading zeros count)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isValidHashDifficulty(hash:\ []const\ u8,\ difficulty:\ u32)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+{\ttfamily \doxylink{namespacedifficulty}{difficulty}}  &{\ttfamily u32}  &Difficulty  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 77}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

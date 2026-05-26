@@ -1,0 +1,331 @@
+\doxysection{vuln-\/signature-\/updater.py}
+\hypertarget{vuln-signature-updater_8py_source}{}\label{vuln-signature-updater_8py_source}\index{tools/SECURITY/vuln-\/signature-\/updater.py@{tools/SECURITY/vuln-\/signature-\/updater.py}}
+\doxymbox{\hyperlink{vuln-signature-updater_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00001}\doxymbox{\hyperlink{namespacevuln-signature-updater}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00002}\doxymbox{\hyperlink{namespacevuln}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00003}00003\ \textcolor{stringliteral}{vuln-\/signature-\/updater.py\ —\ OmniBus\ BlockChainCore\ Vulnerability\ Rule\ Manager}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00005}00005\ \textcolor{stringliteral}{Auto-\/updater\ and\ scanner\ for\ vulnerability\ detection\ rules:}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/-\/update\ \ \ Download/update\ rules\ from\ a\ manifest\ URL\ (or\ local\ git)}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/-\/check\ \ \ \ Load\ rules\ and\ scan\ core/*.zig\ for\ pattern\ matches}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/-\/list\ \ \ \ \ List\ all\ loaded\ rules\ with\ severity}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00010}00010\ \textcolor{stringliteral}{Rules\ are\ stored\ in\ tools/SECURITY/rules/\ as\ JSON\ files.}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00011}00011\ \textcolor{stringliteral}{Each\ rule:\ \{id,\ version,\ pattern\ (regex),\ severity,\ description,\ affected\_modules,\ fix\_suggestion\}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00012}00012\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00014}00014\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00015}00015\ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00016}00016\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00017}00017\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00018}00018\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00020}00020\ \textcolor{keyword}{import}\ urllib.request}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00021}00021\ \textcolor{keyword}{import}\ urllib.error}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00023}00023\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00025}\doxymbox{\hyperlink{namespacevuln-signature-updater_a2db11c8a910c2e8c80efd617fbc3c93b}{00025}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00026}\doxymbox{\hyperlink{namespacevuln-signature-updater_ad631b90d5ec85297ac38c647a82b2bd8}{00026}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00027}\doxymbox{\hyperlink{namespacevuln-signature-updater_aacddfce9d00e9daeef32fe34353e5ae2}{00027}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00028}\doxymbox{\hyperlink{namespacevuln-signature-updater_a6bca466d63420ebdde1d5d984876e57e}{00028}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00029}\doxymbox{\hyperlink{namespacevuln-signature-updater_a2e3b2b512c4653f6a08a9d73c662ffa4}{00029}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00030}\doxymbox{\hyperlink{namespacevuln-signature-updater_a955576e0aef87645eab2585457d16f94}{00030}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00032}\doxymbox{\hyperlink{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998}{00032}}\ SCRIPT\_DIR\ =\ Path(os.path.dirname(os.path.abspath(\_\_file\_\_)))}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00033}\doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{00033}}\ RULES\_DIR\ =\ SCRIPT\_DIR\ /\ \textcolor{stringliteral}{"{}rules"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00034}\doxymbox{\hyperlink{namespacevuln-signature-updater_abb89b783526684978090e4902cc0ad9c}{00034}}\ CORE\_DIR\ =\ SCRIPT\_DIR.parent.parent\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00035}\doxymbox{\hyperlink{namespacevuln-signature-updater_a250633a1defe145192fa04c7a636f50b}{00035}}\ MANIFEST\_FILE\ =\ RULES\_DIR\ /\ \textcolor{stringliteral}{"{}manifest.json"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00036}\doxymbox{\hyperlink{namespacevuln-signature-updater_a2321a20a75428bc132fcf0e317040144}{00036}}\ DEFAULT\_RULES\_FILE\ =\ RULES\_DIR\ /\ \textcolor{stringliteral}{"{}default-\/rules.json"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00038}\doxymbox{\hyperlink{namespacevuln-signature-updater_a09afa5d4bb316a23c40d27c19d9ac189}{00038}}\ DEFAULT\_UPDATE\_URL\ =\ \textcolor{stringliteral}{"{}"{}}\ \ \textcolor{comment}{\#\ Set\ to\ GitHub\ raw\ URL\ or\ leave\ empty\ for\ local-\/only}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00041}\doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00042}00042\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00045}\doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00045}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00046}00046\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00049}\doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{00049}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00050}00050\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00053}\doxymbox{\hyperlink{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783}{00053}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00054}00054\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00057}\doxymbox{\hyperlink{namespacevuln-signature-updater_aedd208f12212a74fc2e1f9e3b38c8ef3}{00057}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_aedd208f12212a74fc2e1f9e3b38c8ef3}{sha256\_file}}(path:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00058}00058\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Compute\ SHA-\/256\ of\ a\ file."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00059}00059\ \ \ \ \ h\ =\ hashlib.sha256()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00060}00060\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{"{}rb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ chunk\ =\ f.read(8192)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ chunk:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ h.update(chunk)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{return}\ h.hexdigest()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00069}\doxymbox{\hyperlink{namespacevuln-signature-updater_a4d048f8b0e84e039f67000ab71a9ea11}{00069}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_a4d048f8b0e84e039f67000ab71a9ea11}{sha256\_bytes}}(data:\ bytes)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{return}\ hashlib.sha256(data).hexdigest()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00073}\doxymbox{\hyperlink{namespacevuln-signature-updater_a1cf48343cf1504e5d6355f98edf4a29d}{00073}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_a1cf48343cf1504e5d6355f98edf4a29d}{load\_rules}}()\ -\/>\ list[dict]:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00074}00074\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Load\ all\ vulnerability\ rules\ from\ rules\ directory."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00075}00075\ \ \ \ \ rules\ =\ []}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00077}00077\ \ \ \ \ \textcolor{comment}{\#\ Load\ default\ rules}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00078}00078\ \ \ \ \ \textcolor{keywordflow}{if}\ DEFAULT\_RULES\_FILE.exists():}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(DEFAULT\_RULES\_FILE,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(data,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}rules"{}}\ \textcolor{keywordflow}{in}\ data:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rules.extend(data[\textcolor{stringliteral}{"{}rules"{}}])}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ isinstance(data,\ list):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rules.extend(data)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Loaded\ \{len(rules)\}\ rules\ from\ \{DEFAULT\_RULES\_FILE.name\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (json.JSONDecodeError,\ IOError)\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Error\ loading\ \{DEFAULT\_RULES\_FILE\}:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00090}00090\ \ \ \ \ \textcolor{comment}{\#\ Load\ any\ additional\ rule\ files}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00091}00091\ \ \ \ \ \textcolor{keywordflow}{if}\ RULES\_DIR.exists():}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ rule\_file\ \textcolor{keywordflow}{in}\ RULES\_DIR.glob(\textcolor{stringliteral}{"{}*.json"{}}):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ rule\_file.name\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}default-\/rules.json"{}},\ \textcolor{stringliteral}{"{}manifest.json"{}}):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(rule\_file,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ extra\ =\ data.get(\textcolor{stringliteral}{"{}rules"{}},\ data)\ \textcolor{keywordflow}{if}\ isinstance(data,\ dict)\ \textcolor{keywordflow}{else}\ data}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(extra,\ list):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rules.extend(extra)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Loaded\ \{len(extra)\}\ additional\ rules\ from\ \{rule\_file.name\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (json.JSONDecodeError,\ IOError):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{return}\ rules}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00108}\doxymbox{\hyperlink{namespacevuln-signature-updater_aa58767b86530efeb326f2509c3166744}{00108}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_aa58767b86530efeb326f2509c3166744}{update\_rules}}(url:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00109}00109\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ for\ and\ download\ updated\ rules\ from\ URL."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00110}00110\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ url:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}No\ update\ URL\ configured.\ Use\ -\/-\/url\ to\ specify\ one."{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Example:\ -\/-\/url\ https://raw.githubusercontent.com/org/repo/main/rules/manifest.json"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00115}00115\ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Checking\ for\ updates\ at:\ \{url\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00117}00117\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ req\ =\ urllib.request.Request(url,\ headers=\{\textcolor{stringliteral}{"{}User-\/Agent"{}}:\ \textcolor{stringliteral}{"{}OmniBus-\/VulnUpdater/1.0"{}}\})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ urllib.request.urlopen(req,\ timeout=15)\ \textcolor{keyword}{as}\ resp:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ remote\_data\ =\ resp.read()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{except}\ urllib.error.URLError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Failed\ to\ fetch\ manifest:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00124}00124\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Unexpected\ error:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ remote\_manifest\ =\ json.loads(remote\_data.decode(\textcolor{stringliteral}{"{}utf-\/8"{}}))}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00130}00130\ \ \ \ \ \textcolor{keywordflow}{except}\ json.JSONDecodeError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Invalid\ JSON\ in\ remote\ manifest:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00134}00134\ \ \ \ \ \textcolor{comment}{\#\ Compare\ versions}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00135}00135\ \ \ \ \ remote\_version\ =\ remote\_manifest.get(\textcolor{stringliteral}{"{}version"{}},\ \textcolor{stringliteral}{"{}0.0.0"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00136}00136\ \ \ \ \ local\_version\ =\ \textcolor{stringliteral}{"{}0.0.0"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00137}00137\ \ \ \ \ \textcolor{keywordflow}{if}\ MANIFEST\_FILE.exists():}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(MANIFEST\_FILE,\ \textcolor{stringliteral}{"{}r"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ local\_manifest\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ local\_version\ =\ local\_manifest.get(\textcolor{stringliteral}{"{}version"{}},\ \textcolor{stringliteral}{"{}0.0.0"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (json.JSONDecodeError,\ IOError):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00145}00145\ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Local\ version:\ \{local\_version\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00146}00146\ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Remote\ version:\ \{remote\_version\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00148}00148\ \ \ \ \ \textcolor{keywordflow}{if}\ remote\_version\ <=\ local\_version:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Rules\ are\ up\ to\ date."{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00152}00152\ \ \ \ \ \textcolor{comment}{\#\ Download\ and\ verify\ rules}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00153}00153\ \ \ \ \ rules\_url\ =\ remote\_manifest.get(\textcolor{stringliteral}{"{}rules\_url"{}},\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00154}00154\ \ \ \ \ expected\_sha\ =\ remote\_manifest.get(\textcolor{stringliteral}{"{}sha256"{}},\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00156}00156\ \ \ \ \ \textcolor{keywordflow}{if}\ rules\_url:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ req\ =\ urllib.request.Request(rules\_url,\ headers=\{\textcolor{stringliteral}{"{}User-\/Agent"{}}:\ \textcolor{stringliteral}{"{}OmniBus-\/VulnUpdater/1.0"{}}\})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ urllib.request.urlopen(req,\ timeout=15)\ \textcolor{keyword}{as}\ resp:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rules\_data\ =\ resp.read()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Failed\ to\ download\ rules:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Verify\ checksum}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ actual\_sha\ =\ \doxymbox{\hyperlink{namespacevuln-signature-updater_a4d048f8b0e84e039f67000ab71a9ea11}{sha256\_bytes}}(rules\_data)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ expected\_sha\ \textcolor{keywordflow}{and}\ actual\_sha\ !=\ expected\_sha:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}SHA-\/256\ mismatch!\ Expected:\ \{expected\_sha\},\ Got:\ \{actual\_sha\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Rules\ file\ may\ be\ tampered.\ Aborting\ update."{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ expected\_sha:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}SHA-\/256\ verified:\ \{actual\_sha[:16]\}..."{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Save\ rules}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ RULES\_DIR.mkdir(parents=\textcolor{keyword}{True},\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ rules\_path\ =\ RULES\_DIR\ /\ \textcolor{stringliteral}{"{}downloaded-\/rules.json"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(rules\_path,\ \textcolor{stringliteral}{"{}wb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ f.write(rules\_data)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Updated\ rules\ saved\ to\ \{rules\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00182}00182\ \ \ \ \ \textcolor{comment}{\#\ Save\ manifest}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00183}00183\ \ \ \ \ \textcolor{keyword}{with}\ open(MANIFEST\_FILE,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ json.dump(remote\_manifest,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00185}00185\ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Manifest\ updated\ to\ version\ \{remote\_version\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00187}00187\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00190}\doxymbox{\hyperlink{namespacevuln-signature-updater_ad6c565526b239ca5273cacebd207bad1}{00190}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_ad6c565526b239ca5273cacebd207bad1}{scan\_zig\_files}}(rules:\ list[dict])\ -\/>\ list[dict]:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00191}00191\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scan\ core/*.zig\ files\ for\ vulnerability\ pattern\ matches."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00192}00192\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ CORE\_DIR.exists():}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Core\ directory\ not\ found:\ \{CORE\_DIR\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ []}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00196}00196\ \ \ \ \ zig\_files\ =\ list(CORE\_DIR.glob(\textcolor{stringliteral}{"{}*.zig"{}}))}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00197}00197\ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Scanning\ \{len(zig\_files)\}\ Zig\ source\ files\ in\ \{CORE\_DIR\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00199}00199\ \ \ \ \ findings\ =\ []}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00200}00200\ \ \ \ \ compiled\_rules\ =\ []}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00201}00201\ \ \ \ \ \textcolor{keywordflow}{for}\ rule\ \textcolor{keywordflow}{in}\ rules:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ pattern\ =\ rule.get(\textcolor{stringliteral}{"{}pattern"{}},\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ pattern:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ regex\ =\ re.compile(pattern,\ re.IGNORECASE\ |\ re.MULTILINE)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ compiled\_rules.append((rule,\ regex))}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ re.error\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Invalid\ regex\ in\ rule\ \{rule.get('id',\ '?')\}:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{for}\ zig\_file\ \textcolor{keywordflow}{in}\ sorted(zig\_files):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ content\ =\ zig\_file.read\_text(encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ IOError:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ lines\ =\ content.splitlines()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ rule,\ regex\ \textcolor{keywordflow}{in}\ compiled\_rules:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ regex.search(line):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ findings.append(\{}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rule\_id"{}}:\ rule.get(\textcolor{stringliteral}{"{}id"{}},\ \textcolor{stringliteral}{"{}?"{}}),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}severity"{}}:\ rule.get(\textcolor{stringliteral}{"{}severity"{}},\ \textcolor{stringliteral}{"{}INFO"{}}),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ rule.get(\textcolor{stringliteral}{"{}description"{}},\ \textcolor{stringliteral}{"{}"{}}),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}file"{}}:\ str(zig\_file.name),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}line"{}}:\ i,}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}matched\_text"{}}:\ line.strip()[:120],}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fix\_suggestion"{}}:\ rule.get(\textcolor{stringliteral}{"{}fix\_suggestion"{}},\ \textcolor{stringliteral}{"{}"{}}),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00232}00232\ \ \ \ \ \textcolor{keywordflow}{return}\ findings}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00235}\doxymbox{\hyperlink{namespacevuln-signature-updater_abaf7bdd99d407b9fcc2c6dd340d92f64}{00235}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_abaf7bdd99d407b9fcc2c6dd340d92f64}{list\_rules}}(rules:\ list[dict])\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00236}00236\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Display\ all\ loaded\ rules."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00237}00237\ \ \ \ \ severity\_colors\ =\ \{\textcolor{stringliteral}{"{}CRITICAL"{}}:\ RED,\ \textcolor{stringliteral}{"{}HIGH"{}}:\ RED,\ \textcolor{stringliteral}{"{}MEDIUM"{}}:\ YELLOW,\ \textcolor{stringliteral}{"{}LOW"{}}:\ GREEN,\ \textcolor{stringliteral}{"{}INFO"{}}:\ CYAN\}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00239}00239\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'ID':<12s\}\ \{'Sev':<10s\}\ \{'Description'\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00240}00240\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'-\/'*12\}\ \{'-\/'*10\}\ \{'-\/'*50\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00241}00241\ \ \ \ \ \textcolor{keywordflow}{for}\ rule\ \textcolor{keywordflow}{in}\ sorted(rules,\ key=\textcolor{keyword}{lambda}\ r:\ r.get(\textcolor{stringliteral}{"{}id"{}},\ \textcolor{stringliteral}{"{}"{}})):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ sev\ =\ rule.get(\textcolor{stringliteral}{"{}severity"{}},\ \textcolor{stringliteral}{"{}INFO"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ color\ =\ severity\_colors.get(sev,\ RESET)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ desc\ =\ rule.get(\textcolor{stringliteral}{"{}description"{}},\ \textcolor{stringliteral}{"{}"{}})[:60]}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{rule.get('id',\ '?'):<12s\}\ \{color\}\{sev:<10s\}\{RESET\}\ \{desc\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00246}00246\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)nTotal:\ \{len(rules)\}\ rules\ loaded"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00249}\doxymbox{\hyperlink{namespacevuln-signature-updater_a7431cb90017e54fe695b23d4190db046}{00249}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacevuln-signature-updater_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00250}00250\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Vulnerability\ Rule\ Manager\ —\ update\ rules\ and\ scan\ Zig\ source"{}},}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00252}00252\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00253}00253\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/update"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Check\ for\ and\ download\ rule\ updates"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00254}00254\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/check"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Scan\ core/*.zig\ for\ vulnerability\ matches"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00255}00255\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/list"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}List\ all\ loaded\ rules"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00256}00256\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/url"{}},\ default=DEFAULT\_UPDATE\_URL,\ help=\textcolor{stringliteral}{"{}URL\ for\ rule\ manifest"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00257}00257\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ \textcolor{stringliteral}{"{}-\/o"{}},\ default=\textcolor{keywordtype}{None},\ help=\textcolor{stringliteral}{"{}Save\ scan\ results\ to\ JSON\ file"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00258}00258\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00259}00259\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00260}00260\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00261}00261\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ OmniBus\ Vulnerability\ Signature\ Manager\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00262}00262\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00263}00263\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00264}00264\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ any([args.update,\ args.check,\ args.list]):}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ parser.print\_help()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00268}00268\ \ \ \ \ \textcolor{keywordflow}{if}\ args.update:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_aa58767b86530efeb326f2509c3166744}{update\_rules}}(args.url)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00272}00272\ \ \ \ \ rules\ =\ \doxymbox{\hyperlink{namespacevuln-signature-updater_a1cf48343cf1504e5d6355f98edf4a29d}{load\_rules}}()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00273}00273\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00274}00274\ \ \ \ \ \textcolor{keywordflow}{if}\ args.list:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abaf7bdd99d407b9fcc2c6dd340d92f64}{list\_rules}}(rules)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00278}00278\ \ \ \ \ \textcolor{keywordflow}{if}\ args.check:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ rules:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}No\ rules\ loaded.\ Run\ with\ -\/-\/list\ to\ verify."{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ findings\ =\ \doxymbox{\hyperlink{namespacevuln-signature-updater_ad6c565526b239ca5273cacebd207bad1}{scan\_zig\_files}}(rules)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Display\ results}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ severity\_colors\ =\ \{\textcolor{stringliteral}{"{}CRITICAL"{}}:\ RED,\ \textcolor{stringliteral}{"{}HIGH"{}}:\ RED,\ \textcolor{stringliteral}{"{}MEDIUM"{}}:\ YELLOW,\ \textcolor{stringliteral}{"{}LOW"{}}:\ GREEN,\ \textcolor{stringliteral}{"{}INFO"{}}:\ CYAN\}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Scan\ Results:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ findings:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}No\ vulnerability\ patterns\ matched.\ Code\ looks\ clean!"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ \ \ \ \ critical\ =\ sum(1\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ findings\ \textcolor{keywordflow}{if}\ f[\textcolor{stringliteral}{"{}severity"{}}]\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}CRITICAL"{}},\ \textcolor{stringliteral}{"{}HIGH"{}}))}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ \ \ \ \ medium\ =\ sum(1\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ findings\ \textcolor{keywordflow}{if}\ f[\textcolor{stringliteral}{"{}severity"{}}]\ ==\ \textcolor{stringliteral}{"{}MEDIUM"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ low\ =\ sum(1\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ findings\ \textcolor{keywordflow}{if}\ f[\textcolor{stringliteral}{"{}severity"{}}]\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}LOW"{}},\ \textcolor{stringliteral}{"{}INFO"{}}))}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00295}00295\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ finding\ \textcolor{keywordflow}{in}\ findings:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ color\ =\ severity\_colors.get(finding[\textcolor{stringliteral}{"{}severity"{}}],\ RESET)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{color\}[\{finding['severity']\}]\{RESET\}\ \{finding['rule\_id']\}:\ \{finding['description']\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ File:\ \{finding['file']\}:\{finding['line']\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Match:\ \{finding['matched\_text']\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ finding[\textcolor{stringliteral}{"{}fix\_suggestion"{}}]:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Fix:\ \{finding['fix\_suggestion']\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Summary:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}Critical/High:\{RESET\}\ \{critical\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Medium:\{RESET\}\ \ \ \ \ \ \ \ \{medium\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Low/Info:\{RESET\}\ \ \ \ \ \ \ \{low\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total:\ \ \ \ \ \ \ \ \ \ \{len(findings)\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00309}00309\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.output:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now(tz=timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rules\_loaded"{}}:\ len(rules),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}findings\_count"{}}:\ len(findings),}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}findings"{}}:\ findings,}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Report\ saved\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00320}00320\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00321}00321\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00323}00323\ }
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00324}00324\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{vuln-signature-updater_8py_source_l00325}00325\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacevuln-signature-updater_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

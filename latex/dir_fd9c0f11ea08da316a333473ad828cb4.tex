@@ -1,0 +1,163 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@scure/\+bip39 Directory Reference}
+\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4}{}\label{dir_fd9c0f11ea08da316a333473ad828cb4}\index{frontend/node\_modules/"@scure/bip39 Directory Reference@{frontend/node\_modules/"@scure/bip39 Directory Reference}}
+Directory dependency graph for bip39:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_0dc12e941f94d3c3c93494bf9a124782}{node\+\_\+modules}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4876}{}\doxysubsection{\texorpdfstring{scure-\/bip39}{scure-\/bip39}}\label{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4876}
+Audited \& minimal JS implementation of \href{https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki}{\texttt{BIP39 mnemonic phrases}}.
+
+
+\begin{DoxyItemize}
+\item 🔒 \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Audited\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}{\bfseries{Audited}}
+\end{DoxyItemize}by an independent security firm
+\begin{DoxyItemize}
+\item 🔻 Tree-\/shakeable:\+ unused code is excluded from your builds
+\item 🥈 Two implementations:\+ pure JS or friendly Web\+Crypto wrapper
+\item ➰ Only 2 audited dependencies by the same author:\+ \href{https://github.com/paulmillr/noble-hashes}{\texttt{noble-\/hashes}} and \href{https://github.com/paulmillr/scure-base}{\texttt{scure-\/base}}
+\item 🪶 14KB (gzipped) with one wordlist, 79KB with all of them:\+ much smaller than similar libraries
+\end{DoxyItemize}
+
+Check out \href{https://github.com/paulmillr/scure-bip32}{\texttt{scure-\/bip32}} if you need hierarchical deterministic wallets ("{}\+HD Wallets"{}).\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4877}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape scure}}{This library belongs to {\itshape scure}}}\label{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4877}
+\begin{quote}
+{\bfseries{scure}} — audited micro-\/libraries. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds
+\item Check out \href{https://paulmillr.com/noble/\#scure}{\texttt{homepage}} \& all libraries:\+ \href{https://github.com/paulmillr/scure-base}{\texttt{base}}, \href{https://github.com/paulmillr/scure-bip32}{\texttt{bip32}}, \href{https://github.com/paulmillr/scure-bip39}{\texttt{bip39}}, \href{https://github.com/paulmillr/scure-btc-signer}{\texttt{btc-\/signer}}, \href{https://github.com/paulmillr/scure-sr25519}{\texttt{sr25519}}, \href{https://github.com/paulmillr/scure-starknet}{\texttt{starknet}}
+\end{DoxyItemize}\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4878}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4878}
+\begin{quote}
+{\ttfamily npm install @scure/\+bip39} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@scure/\+bip39} \end{quote}
+
+
+\doxylink{namespace_we}{We} don\textquotesingle{}t provide source maps. Wordlists are large, including source maps would double package size.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ *\ as\ bip39\ from\ '@scure/bip39';}
+\DoxyCodeLine{import\ \{\ wordlist\ \}\ from\ '@scure/bip39/wordlists/english.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Generate\ x\ random\ words.\ Uses\ Cryptographically-\/Secure\ Random\ Number\ Generator.}
+\DoxyCodeLine{const\ mn\ =\ bip39.generateMnemonic(wordlist);}
+\DoxyCodeLine{console.log(mn);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ You\ can\ customize\ the\ strength\ of\ the\ generated\ mnemonic\ by\ passing\ a\ value\ between\ 128\ and\ 256\ as\ the\ second\ argument\ to\ the\ generateMnemonic\ function.}
+\DoxyCodeLine{//\ This\ value\ must\ be\ a\ multiple\ of\ 32.\ Default\ is\ 128.}
+\DoxyCodeLine{const\ mn256\ =\ bip39.generateMnemonic(wordlist,\ 256);}
+\DoxyCodeLine{console.log(mn256);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Reversible:\ Converts\ mnemonic\ string\ to\ raw\ entropy\ in\ form\ of\ byte\ array.}
+\DoxyCodeLine{const\ ent\ =\ bip39.mnemonicToEntropy(mn,\ wordlist);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Reversible:\ Converts\ raw\ entropy\ in\ form\ of\ byte\ array\ to\ mnemonic\ string.}
+\DoxyCodeLine{bip39.entropyToMnemonic(ent,\ wordlist);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Validates\ mnemonic\ for\ being\ 12-\/24\ words\ contained\ in\ \`{}wordlist`.}
+\DoxyCodeLine{bip39.validateMnemonic(mn,\ wordlist);}
+\DoxyCodeLine{bip39.validateMnemonic(mn256,\ wordlist);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Irreversible:\ Uses\ KDF\ to\ derive\ 64\ bytes\ of\ key\ data\ from\ mnemonic\ +\ optional\ password.}
+\DoxyCodeLine{const\ seed1\ =\ await\ bip39.mnemonicToSeed(mn,\ 'password');}
+\DoxyCodeLine{const\ seed2\ =\ bip39.mnemonicToSeedSync(mn,\ 'password');}
+\DoxyCodeLine{const\ seed3\ =\ await\ bip39.mnemonicToSeedWebcrypto(mn,\ 'password');\ //\ Native,\ WebCrypto\ version.}
+
+\end{DoxyCode}
+
+
+This submodule contains the word lists defined by BIP39 for Czech, English, French, Italian, Japanese, Korean, Portuguese, Simplified and Traditional Chinese, and Spanish. These are not imported by default, as that would increase bundle sizes too much. Instead, you should import and use them explicitly.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ generateMnemonic(wordlist:\ string[],\ strength?:\ number):\ string;}
+\DoxyCodeLine{function\ mnemonicToEntropy(mnemonic:\ string,\ wordlist:\ string[]):\ Uint8Array;}
+\DoxyCodeLine{function\ entropyToMnemonic(entropy:\ Uint8Array,\ wordlist:\ string[]):\ string;}
+\DoxyCodeLine{function\ validateMnemonic(mnemonic:\ string,\ wordlist:\ string[]):\ boolean;}
+\DoxyCodeLine{function\ mnemonicToSeed(mnemonic:\ string,\ passphrase?:\ string):\ Promise<Uint8Array>;}
+\DoxyCodeLine{function\ mnemonicToSeedSync(mnemonic:\ string,\ passphrase?:\ string):\ Uint8Array;}
+\DoxyCodeLine{function\ mnemonicToSeedWebcrypto(mnemonic:\ string,\ passphrase?:\ string):\ Promise<Uint8Array>;}
+
+\end{DoxyCode}
+
+
+All wordlists ({\bfseries{warning:\+ non-\/english wordlists are officially discouraged by bip39}}):\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ czech\ \}\ from\ '@scure/bip39/wordlists/czech.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ english\ \}\ from\ '@scure/bip39/wordlists/english.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ french\ \}\ from\ '@scure/bip39/wordlists/french.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ italian\ \}\ from\ '@scure/bip39/wordlists/italian.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ japanese\ \}\ from\ '@scure/bip39/wordlists/japanese.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ korean\ \}\ from\ '@scure/bip39/wordlists/korean.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ portuguese\ \}\ from\ '@scure/bip39/wordlists/portuguese.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ simplifiedChinese\ \}\ from\ '@scure/bip39/wordlists/simplified-\/chinese.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ spanish\ \}\ from\ '@scure/bip39/wordlists/spanish.js';}
+\DoxyCodeLine{import\ \{\ wordlist\ as\ traditionalChinese\ \}\ from\ '@scure/bip39/wordlists/traditional-\/chinese.js';}
+
+\end{DoxyCode}
+\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4879}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4879}
+The library has been audited:\+
+
+
+\begin{DoxyItemize}
+\item at version 2.\+2.\+0, in Apr 2026, by ourselves (self-\/audited)
+\begin{DoxyItemize}
+\item Scope:\+ everything
+\item \href{https://github.com/paulmillr/scure-bip39/compare/2.2.0..main}{\texttt{Changes since audit}}
+\end{DoxyItemize}
+\item at version 1.\+0.\+0, in Jan 2022, by \href{https://cure53.de}{\texttt{cure53}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{https://cure53.de/pentest-report_hashing-libs.pdf}{\texttt{online}}, \href{./audit/2022-01-05-cure53-audit-nbl2.pdf}{\texttt{offline}}
+\item \href{https://github.com/paulmillr/scure-bip39/compare/1.0.0..main}{\texttt{Changes since audit}}.
+\item The audit has been funded by \href{https://ethereum.org/en/}{\texttt{Ethereum Foundation}} with help of \href{https://nomiclabs.io}{\texttt{Nomic Labs}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+The library was initially developed for \href{https://github.com/ethereum/js-ethereum-cryptography}{\texttt{js-\/ethereum-\/cryptography}}. At commit \href{https://github.com/ethereum/js-ethereum-cryptography/commit/ae00e6d7d24fb3c76a1c7fe10039f6ecd120b77e}{\texttt{ae00e6d7}}, it was extracted to a separate package called {\ttfamily micro-\/bip39}. After the audit we\textquotesingle{}ve decided to use {\ttfamily @scure} NPM namespace for security.
+
+To audit wordlist content, run {\ttfamily \doxylink{namespacenode}{node} scripts/\+fetch-\/wordlist.\+js}.\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4880}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4880}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys to prevent forgery. Be sure to verify the commit signatures
+\item {\bfseries{Releases}} are made transparently through token-\/less Git\+Hub CI and Trusted Publishing. Be sure to verify the \href{https://docs.npmjs.com/generating-provenance-statements}{\texttt{provenance logs}} for authenticity.
+\item {\bfseries{Rare releasing}} is practiced to minimize the need for re-\/audits by end-\/users.
+\item {\bfseries{Dependencies}} are minimized and strictly pinned to reduce supply-\/chain risk.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} use as few dependencies as possible.
+\item Version ranges are locked, and changes are checked with npm-\/diff.
+\end{DoxyItemize}
+\item {\bfseries{Dev dependencies}} are excluded from end-\/user installs; they’re only used for development and build steps.
+\end{DoxyItemize}
+
+For this package, there are 2 dependencies; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://github.com/paulmillr/noble-hashes}{\texttt{noble-\/hashes}} provides cryptographic hashing functionality
+\item \href{https://github.com/paulmillr/scure-base}{\texttt{scure-\/base}} provides low-\/level wordlist utilities
+\item jsbt is used for benchmarking /\+ testing /\+ build tooling and developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation
+\end{DoxyItemize}\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4881}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4881}
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run lint} /\+ {\ttfamily npm run format} will run linter /\+ fix linter issues.
+\item {\ttfamily npm run \doxylink{namespacebuild}{build}:\+release} will build single file
+\end{DoxyItemize}\hypertarget{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4882}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_fd9c0f11ea08da316a333473ad828cb4_autotoc_md4882}
+\href{./LICENSE}{\texttt{MIT License}}
+
+Copyright (c) 2022 Patricio Palladino, Paul Miller (paulmillr.\+com) 

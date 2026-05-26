@@ -1,0 +1,131 @@
+\doxysection{Types.\+h}
+\hypertarget{_types_8h_source}{}\label{_types_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/Types.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/Types.h}}
+\doxymbox{\hyperlink{_types_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QString>}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QList>}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QJsonObject>}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00008}00008\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00010}00010\ \textcolor{comment}{//\ 1\ OMNI\ =\ 1,000,000,000\ SAT}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00011}\doxymbox{\hyperlink{namespaceomni_ad85f2784b7dea8003c1f47fe54c36641}{00011}}\ \textcolor{keyword}{constexpr}\ qint64\ \doxymbox{\hyperlink{namespaceomni_ad85f2784b7dea8003c1f47fe54c36641}{SAT\_PER\_OMNI}}\ =\ 1'000'000'000LL;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00012}\doxymbox{\hyperlink{namespaceomni_a4464b9dfc7380503446e1c7c11777925}{00012}}\ \textcolor{keyword}{constexpr}\ qint64\ \doxymbox{\hyperlink{namespaceomni_a4464b9dfc7380503446e1c7c11777925}{MAX\_SUPPLY\_SAT}}\ =\ 21'000'000LL\ *\ \doxymbox{\hyperlink{namespaceomni_ad85f2784b7dea8003c1f47fe54c36641}{SAT\_PER\_OMNI}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00014}\doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{00014}}\ \textcolor{keyword}{inline}\ QString\ \doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(qint64\ sat)\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00015}00015\ \ \ \ \ \textcolor{keywordtype}{bool}\ negative\ =\ sat\ <\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00016}00016\ \ \ \ \ qint64\ abs\ =\ negative\ ?\ -\/sat\ :\ sat;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00017}00017\ \ \ \ \ qint64\ whole\ =\ abs\ /\ \doxymbox{\hyperlink{namespaceomni_ad85f2784b7dea8003c1f47fe54c36641}{SAT\_PER\_OMNI}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00018}00018\ \ \ \ \ qint64\ frac\ =\ abs\ \%\ \doxymbox{\hyperlink{namespaceomni_ad85f2784b7dea8003c1f47fe54c36641}{SAT\_PER\_OMNI}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00019}00019\ \ \ \ \ QString\ s\ =\ QString(\textcolor{stringliteral}{"{}\%1\%2.\%3"{}})}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00020}00020\ \ \ \ \ \ \ \ \ .arg(negative\ ?\ \textcolor{stringliteral}{"{}-\/"{}}\ :\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00021}00021\ \ \ \ \ \ \ \ \ .arg(whole)}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00022}00022\ \ \ \ \ \ \ \ \ .arg(frac,\ 9,\ 10,\ QChar(\textcolor{charliteral}{'0'}));}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00023}00023\ \ \ \ \ \textcolor{comment}{//\ Trim\ trailing\ zeros\ but\ keep\ at\ least\ 4\ decimal\ places}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordflow}{while}\ (s.endsWith(\textcolor{charliteral}{'0'})\ \&\&\ s.indexOf(\textcolor{charliteral}{'.'})\ <\ s.length()\ -\/\ 5)}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00025}00025\ \ \ \ \ \ \ \ \ s.chop(1);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00026}00026\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00027}00027\ \}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00029}\doxymbox{\hyperlink{namespaceomni_a5236a26636f58d4490d572fa4ebd4a6e}{00029}}\ \textcolor{keyword}{inline}\ qint64\ \doxymbox{\hyperlink{namespaceomni_a5236a26636f58d4490d572fa4ebd4a6e}{omniToSat}}(\textcolor{keywordtype}{double}\ \doxymbox{\hyperlink{namespaceomni}{omni}})\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00030}00030\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}qint64\textcolor{keyword}{>}(\doxymbox{\hyperlink{namespaceomni}{omni}}\ *\ \doxymbox{\hyperlink{namespaceomni_ad85f2784b7dea8003c1f47fe54c36641}{SAT\_PER\_OMNI}});}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00031}00031\ \}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00033}\doxymbox{\hyperlink{structomni_1_1_block_data}{00033}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00034}\doxymbox{\hyperlink{structomni_1_1_block_data_a20b1fabc8db819d07afa2b033c2fce9b}{00034}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_block_data_a20b1fabc8db819d07afa2b033c2fce9b}{height}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00035}\doxymbox{\hyperlink{structomni_1_1_block_data_a9e83b9a642bfe447fd89373a37d025f1}{00035}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_block_data_a9e83b9a642bfe447fd89373a37d025f1}{hash}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00036}\doxymbox{\hyperlink{structomni_1_1_block_data_a7f783cf1180c603f006389c93410295c}{00036}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_block_data_a7f783cf1180c603f006389c93410295c}{previousHash}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00037}\doxymbox{\hyperlink{structomni_1_1_block_data_a1dd34550adca6dda2445c81088871465}{00037}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_block_data_a1dd34550adca6dda2445c81088871465}{timestamp}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00038}\doxymbox{\hyperlink{structomni_1_1_block_data_a27fbbf8dff206e55e2c0e9344c674b08}{00038}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_block_data_a27fbbf8dff206e55e2c0e9344c674b08}{nonce}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00039}\doxymbox{\hyperlink{structomni_1_1_block_data_a685f61e48527bb14aa34d3837b240a28}{00039}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_block_data_a685f61e48527bb14aa34d3837b240a28}{txCount}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00040}\doxymbox{\hyperlink{structomni_1_1_block_data_a41fb5bfc51469a82452114ac5182d856}{00040}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_block_data_a41fb5bfc51469a82452114ac5182d856}{miner}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00041}\doxymbox{\hyperlink{structomni_1_1_block_data_a9933853827a889421289e6707d01a001}{00041}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_block_data_a9933853827a889421289e6707d01a001}{rewardSAT}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00042}\doxymbox{\hyperlink{structomni_1_1_block_data_aafdfb5577b921c024376f4082f6a3461}{00042}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{namespacedifficulty}{difficulty}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00044}00044\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\ \doxymbox{\hyperlink{structomni_1_1_block_data_a633c802a32e4448d20e1ff9767e630f1}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00045}00045\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00047}\doxymbox{\hyperlink{structomni_1_1_transaction_data}{00047}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_transaction_data}{TransactionData}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00048}\doxymbox{\hyperlink{structomni_1_1_transaction_data_a8f4b79c5054942900e9d541d7e5d3a68}{00048}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_a8f4b79c5054942900e9d541d7e5d3a68}{txid}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00049}\doxymbox{\hyperlink{structomni_1_1_transaction_data_aae4df81bbc1c881035bd089e66ba74e2}{00049}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_aae4df81bbc1c881035bd089e66ba74e2}{from}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00050}\doxymbox{\hyperlink{structomni_1_1_transaction_data_a8a5bcd32cf89371200fc1819323556a4}{00050}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_a8a5bcd32cf89371200fc1819323556a4}{to}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00051}\doxymbox{\hyperlink{structomni_1_1_transaction_data_a47c314da827ede422586afb6e8b7d1db}{00051}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_a47c314da827ede422586afb6e8b7d1db}{amountSAT}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00052}\doxymbox{\hyperlink{structomni_1_1_transaction_data_a934479d09e343e5b45136610933fdc42}{00052}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_a934479d09e343e5b45136610933fdc42}{feeSAT}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00053}\doxymbox{\hyperlink{structomni_1_1_transaction_data_a643f869f2b9357e891de6776db5875b4}{00053}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_a643f869f2b9357e891de6776db5875b4}{confirmations}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00054}\doxymbox{\hyperlink{structomni_1_1_transaction_data_ae103c9136fd4b92d5cb954ef687c3cb3}{00054}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_ae103c9136fd4b92d5cb954ef687c3cb3}{blockHeight}}\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00055}\doxymbox{\hyperlink{structomni_1_1_transaction_data_aa14689f680e588f5bc32fbbb37e4f9a1}{00055}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_aa14689f680e588f5bc32fbbb37e4f9a1}{status}};\ \ \ \ \ \ \textcolor{comment}{//\ "{}pending"{}\ or\ "{}confirmed"{}}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00056}\doxymbox{\hyperlink{structomni_1_1_transaction_data_ae3bd2713d1996678e8daf2ee7b2b2a40}{00056}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_ae3bd2713d1996678e8daf2ee7b2b2a40}{direction}};\ \ \ \textcolor{comment}{//\ "{}sent"{}\ or\ "{}received"{}}}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00057}\doxymbox{\hyperlink{structomni_1_1_transaction_data_aed209d4a0f0def07db78bc60a92f53e6}{00057}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_aed209d4a0f0def07db78bc60a92f53e6}{timestamp}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00058}\doxymbox{\hyperlink{structomni_1_1_transaction_data_aea2034d5654c00b5e85b8ad001781c5b}{00058}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_aea2034d5654c00b5e85b8ad001781c5b}{opReturn}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00060}00060\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_transaction_data}{TransactionData}}\ \doxymbox{\hyperlink{structomni_1_1_transaction_data_ab6013f077b20fb0dcb824ccdbd38ecf9}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00061}00061\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00063}\doxymbox{\hyperlink{structomni_1_1_peer_info}{00063}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_peer_info}{PeerInfo}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00064}\doxymbox{\hyperlink{structomni_1_1_peer_info_a66b7247bb0084d63560a64f24778e136}{00064}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_peer_info_a66b7247bb0084d63560a64f24778e136}{id}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00065}\doxymbox{\hyperlink{structomni_1_1_peer_info_a8de50a81621b2302785a8b26ee33ca40}{00065}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_peer_info_a8de50a81621b2302785a8b26ee33ca40}{host}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00066}\doxymbox{\hyperlink{structomni_1_1_peer_info_a6b7b696c4811a9752f4063a5464457f9}{00066}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_peer_info_a6b7b696c4811a9752f4063a5464457f9}{port}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00067}\doxymbox{\hyperlink{structomni_1_1_peer_info_ae150e1a95a0d0db690a5e5aa70c4c460}{00067}}\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{structomni_1_1_peer_info_ae150e1a95a0d0db690a5e5aa70c4c460}{alive}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00069}00069\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_peer_info}{PeerInfo}}\ \doxymbox{\hyperlink{structomni_1_1_peer_info_a78339a74df5f605e16ff95d84e20abee}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00070}00070\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00072}\doxymbox{\hyperlink{structomni_1_1_miner_info}{00072}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_miner_info}{MinerInfo}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00073}\doxymbox{\hyperlink{structomni_1_1_miner_info_ad962b935fb9ad30868a8283cc40edba4}{00073}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_miner_info_ad962b935fb9ad30868a8283cc40edba4}{miner}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00074}\doxymbox{\hyperlink{structomni_1_1_miner_info_a5fb2f0d082dbe628caf4a0dafa4123be}{00074}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_miner_info_a5fb2f0d082dbe628caf4a0dafa4123be}{blocksMined}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00075}\doxymbox{\hyperlink{structomni_1_1_miner_info_a98ade527eb1658d46cd7f3ece36d3cf9}{00075}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_miner_info_a98ade527eb1658d46cd7f3ece36d3cf9}{totalRewardSAT}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00076}\doxymbox{\hyperlink{structomni_1_1_miner_info_a9fdc2c8da9f5e8495d53b5dac85b3752}{00076}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_miner_info_a9fdc2c8da9f5e8495d53b5dac85b3752}{currentBalanceSAT}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00078}00078\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_miner_info}{MinerInfo}}\ \doxymbox{\hyperlink{structomni_1_1_miner_info_ab9b0d1a793e11d3c353529035e82f0a4}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00079}00079\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00081}\doxymbox{\hyperlink{structomni_1_1_network_info}{00081}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_network_info}{NetworkInfo}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00082}\doxymbox{\hyperlink{structomni_1_1_network_info_aea4271cc9d6dc247961265e0c3222c9b}{00082}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{namespacechain}{chain}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00083}\doxymbox{\hyperlink{structomni_1_1_network_info_a3602d6caab5c6ccb0343ecc68a678fcf}{00083}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_network_info_a3602d6caab5c6ccb0343ecc68a678fcf}{version}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00084}\doxymbox{\hyperlink{structomni_1_1_network_info_ad31ba6075444ee062fb4d4de5102257b}{00084}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_network_info_ad31ba6075444ee062fb4d4de5102257b}{blockHeight}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00085}\doxymbox{\hyperlink{structomni_1_1_network_info_af5d64285f4fe4cbdc9f87902f5891c58}{00085}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_network_info_af5d64285f4fe4cbdc9f87902f5891c58}{blockRewardSAT}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00086}\doxymbox{\hyperlink{structomni_1_1_network_info_a8c73a0249ddd14fff6f1c5742cc01993}{00086}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{namespacedifficulty}{difficulty}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00087}\doxymbox{\hyperlink{structomni_1_1_network_info_afcd7e8eb7cc8ee4b93a561f6496ae32d}{00087}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_network_info_afcd7e8eb7cc8ee4b93a561f6496ae32d}{mempoolSize}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00088}\doxymbox{\hyperlink{structomni_1_1_network_info_ab31468f25b45c35627e4a2f1a963a422}{00088}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_network_info_ab31468f25b45c35627e4a2f1a963a422}{peerCount}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00089}\doxymbox{\hyperlink{structomni_1_1_network_info_a4467e18915e9c9ac7685f1a33ce0a80a}{00089}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_network_info_a4467e18915e9c9ac7685f1a33ce0a80a}{nodeAddress}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00090}\doxymbox{\hyperlink{structomni_1_1_network_info_a65484093a4b541300b0190bb030fde5b}{00090}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_network_info_a65484093a4b541300b0190bb030fde5b}{nodeBalance}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00091}\doxymbox{\hyperlink{structomni_1_1_network_info_a7ccbd159c7df7d07ce3504c06c218c01}{00091}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_network_info_a7ccbd159c7df7d07ce3504c06c218c01}{halvingInterval}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00092}\doxymbox{\hyperlink{structomni_1_1_network_info_a2db5e8cb74e66973ab4dc5a923c78366}{00092}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_network_info_a2db5e8cb74e66973ab4dc5a923c78366}{maxSupply}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00093}\doxymbox{\hyperlink{structomni_1_1_network_info_ac19fa89667328eeeceda296f9018d001}{00093}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_network_info_ac19fa89667328eeeceda296f9018d001}{blockTimeMs}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00094}\doxymbox{\hyperlink{structomni_1_1_network_info_a88aab384e22fecc9c61172371e5e2bd0}{00094}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_network_info_a88aab384e22fecc9c61172371e5e2bd0}{subBlocksPerBlock}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00096}00096\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_network_info}{NetworkInfo}}\ \doxymbox{\hyperlink{structomni_1_1_network_info_ab505dd46a30612909d26fdd05d8b0302}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00097}00097\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00099}\doxymbox{\hyperlink{structomni_1_1_mempool_stats}{00099}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_mempool_stats}{MempoolStats}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00100}\doxymbox{\hyperlink{structomni_1_1_mempool_stats_af515385afd22bcaee766cbf669bc4172}{00100}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats_af515385afd22bcaee766cbf669bc4172}{size}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00101}\doxymbox{\hyperlink{structomni_1_1_mempool_stats_ac90bf04b5dd22724a71f071da11ecc03}{00101}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats_ac90bf04b5dd22724a71f071da11ecc03}{maxTx}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00102}\doxymbox{\hyperlink{structomni_1_1_mempool_stats_ae1a2f6bfcfe7d1a8b88df7dbe2127bbe}{00102}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats_ae1a2f6bfcfe7d1a8b88df7dbe2127bbe}{maxBytes}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00103}\doxymbox{\hyperlink{structomni_1_1_mempool_stats_aeb84329d9e1a6805647943e5a2e17a18}{00103}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats_aeb84329d9e1a6805647943e5a2e17a18}{bytes}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00105}00105\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats}{MempoolStats}}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats_ab5b5c45896204099a1e0c0520dd1a924}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00106}00106\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00108}\doxymbox{\hyperlink{structomni_1_1_fee_estimate}{00108}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_fee_estimate}{FeeEstimate}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00109}\doxymbox{\hyperlink{structomni_1_1_fee_estimate_af34465a34107f201c4e9b074ae8a46b7}{00109}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_fee_estimate_af34465a34107f201c4e9b074ae8a46b7}{medianFee}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00110}\doxymbox{\hyperlink{structomni_1_1_fee_estimate_a651edde1b2405151e5d891c6455736ae}{00110}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_fee_estimate_a651edde1b2405151e5d891c6455736ae}{minFee}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00111}\doxymbox{\hyperlink{structomni_1_1_fee_estimate_a9ddb61eedd3b224c8373ce57f03bbf46}{00111}}\ \ \ \ \ \textcolor{keywordtype}{double}\ \doxymbox{\hyperlink{structomni_1_1_fee_estimate_a9ddb61eedd3b224c8373ce57f03bbf46}{burnPct}}\ =\ 0.0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00113}00113\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_fee_estimate}{FeeEstimate}}\ \doxymbox{\hyperlink{structomni_1_1_fee_estimate_aeac0d2e453ef7f0caf1465b171b077df}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00114}00114\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00116}\doxymbox{\hyperlink{structomni_1_1_wallet_info}{00116}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\ \{}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00117}\doxymbox{\hyperlink{structomni_1_1_wallet_info_af42e2410b77a05bd7d35da80f88fd3f4}{00117}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{namespaceaddress}{address}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00118}\doxymbox{\hyperlink{structomni_1_1_wallet_info_ac81ab2dfc85548c1a53baae6b0322235}{00118}}\ \ \ \ \ qint64\ \doxymbox{\hyperlink{structomni_1_1_wallet_info_ac81ab2dfc85548c1a53baae6b0322235}{balanceSAT}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00119}\doxymbox{\hyperlink{structomni_1_1_wallet_info_ab60524973f677a539b7c5aafb16d3585}{00119}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_info_ab60524973f677a539b7c5aafb16d3585}{balanceOMNI}};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00120}\doxymbox{\hyperlink{structomni_1_1_wallet_info_af0a09678bf32174b20f654d85fbdcb74}{00120}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_wallet_info_af0a09678bf32174b20f654d85fbdcb74}{nodeHeight}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00122}00122\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\ \doxymbox{\hyperlink{structomni_1_1_wallet_info_a1705b2ab607f6c22785b0f6df9d883b6}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00123}00123\ \};}
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{_types_8h_source_l00125}00125\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

@@ -1,0 +1,2 @@
+const txid = try rpc.sendTransaction(raw_tx);
+std.debug.print("Transaction sent: {s}\n", .{txid});

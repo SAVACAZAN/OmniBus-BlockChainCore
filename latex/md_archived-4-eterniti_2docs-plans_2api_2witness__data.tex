@@ -1,0 +1,729 @@
+\chapter{Module:\+ {\ttfamily witness\+\_\+data} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data}{}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data}\index{Module: $<$tt$>$witness\_data$<$/tt$>$@{Module: $<$tt$>$witness\_data$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3556}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3556}%
+
+
+\begin{quote}
+Signature witness separation — 95\% size reduction for stored signatures, backward compatible with full validation. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+witness\+\_\+data.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 417 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 25 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 8
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3558}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3558}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3559}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3559}
+
+\begin{DoxyItemize}
+\item \`{}\+Witness\+Data\`{}{\ttfamily Witness\+Data}
+\end{DoxyItemize}— Signature witness data (kept separate from transaction data in Seg\+Wit style)
+\begin{DoxyItemize}
+\item \`{}\+Witness\+Pool\`{}{\ttfamily Witness\+Pool}
+\end{DoxyItemize}— Witness pool -\/ manages all signatures for a block
+\begin{DoxyItemize}
+\item \`{}\+Compression\+Stats\`{}{\ttfamily Compression\+Stats}
+\end{DoxyItemize}— Data structure for compression stats. Fields include:\+ full\+\_\+size, witness\+\_\+size, r...
+\begin{DoxyItemize}
+\item \`{}\+Witness\+Archive\`{}{\ttfamily Witness\+Archive}
+\end{DoxyItemize}— Witness archive for old blocks\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3560}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3560}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}set\+Signature()\`{}{\ttfamily set\+Signature()}
+\end{DoxyItemize}— Set signature data
+\begin{DoxyItemize}
+\item \`{}set\+Public\+Key()\`{}{\ttfamily set\+Public\+Key()}
+\end{DoxyItemize}— Set public key data
+\begin{DoxyItemize}
+\item \`{}get\+Signature()\`{}{\ttfamily get\+Signature()}
+\end{DoxyItemize}— Get signature slice
+\begin{DoxyItemize}
+\item \`{}get\+Public\+Key()\`{}{\ttfamily get\+Public\+Key()}
+\end{DoxyItemize}— Get public key slice
+\begin{DoxyItemize}
+\item \`{}serialize()\`{}{\ttfamily serialize()}
+\end{DoxyItemize}— Serialize witness to binary
+\begin{DoxyItemize}
+\item \`{}deserialize()\`{}{\ttfamily deserialize()}
+\end{DoxyItemize}— Deserialize witness from binary
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the witness\+\_\+data module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Witness()\`{}{\ttfamily add\+Witness()}
+\end{DoxyItemize}— Add witness for a transaction
+\begin{DoxyItemize}
+\item \`{}get\+Witness()\`{}{\ttfamily get\+Witness()}
+\end{DoxyItemize}— Get witness by transaction ID
+\begin{DoxyItemize}
+\item \`{}has\+Witness()\`{}{\ttfamily has\+Witness()}
+\end{DoxyItemize}— Check if witness exists
+\begin{DoxyItemize}
+\item \`{}get\+All\+Witnesses()\`{}{\ttfamily get\+All\+Witnesses()}
+\end{DoxyItemize}— Get all witnesses
+\begin{DoxyItemize}
+\item \`{}get\+Witness\+Count()\`{}{\ttfamily get\+Witness\+Count()}
+\end{DoxyItemize}— Get witness count
+\begin{DoxyItemize}
+\item \`{}estimate\+Size()\`{}{\ttfamily estimate\+Size()}
+\end{DoxyItemize}— Estimated storage size in bytes
+\begin{DoxyItemize}
+\item \`{}serialize()\`{}{\ttfamily serialize()}
+\end{DoxyItemize}— Serialize all witnesses to binary
+\begin{DoxyItemize}
+\item \`{}clear()\`{}{\ttfamily clear()}
+\end{DoxyItemize}— Clear all witnesses
+\begin{DoxyItemize}
+\item \`{}get\+Compression\+Stats()\`{}{\ttfamily get\+Compression\+Stats()}
+\end{DoxyItemize}— Get compression ratio (witness data vs full signature)
+\begin{DoxyItemize}
+\item \`{}print\+Stats()\`{}{\ttfamily print\+Stats()}
+\end{DoxyItemize}— Performs the print stats operation on the witness\+\_\+data module.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}archive\+Block()\`{}{\ttfamily archive\+Block()}
+\end{DoxyItemize}— Archive witnesses for a block height
+\begin{DoxyItemize}
+\item \`{}get\+Block\+Witnesses()\`{}{\ttfamily get\+Block\+Witnesses()}
+\end{DoxyItemize}— Get witnesses for a block
+\begin{DoxyItemize}
+\item \`{}get\+Total\+Size()\`{}{\ttfamily get\+Total\+Size()}
+\end{DoxyItemize}— Get total archived size
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3562}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3562}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3563}{}\doxysubsection{\texorpdfstring{{\ttfamily Witness\+Data}}{{\ttfamily Witness\+Data}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3563}
+Signature witness data (kept separate from transaction data in Seg\+Wit style)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+id}  &{\ttfamily u32}  &Tx\+\_\+id  \\
+{\ttfamily sig\+\_\+type}  &{\ttfamily u8}  &Sig\+\_\+type  \\
+{\ttfamily signature}  &{\ttfamily \+[512]\+u8}  &Signature  \\
+{\ttfamily sig\+\_\+len}  &{\ttfamily u16}  &Sig\+\_\+len  \\
+{\ttfamily timestamp}  &{\ttfamily u64}  &Timestamp  \\
+{\ttfamily flags}  &{\ttfamily u8}  &Flags  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 5}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3565}{}\doxysubsection{\texorpdfstring{{\ttfamily Witness\+Pool}}{{\ttfamily Witness\+Pool}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3565}
+Witness pool -\/ manages all signatures for a block
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily witnesses}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Witness\+Data)}  &Witnesses  \\
+{\ttfamily witness\+\_\+map}  &{\ttfamily std.\+Auto\+Hash\+Map(u32}  &Witness\+\_\+map  \\
+{\ttfamily total\+\_\+size}  &{\ttfamily u64}  &Total\+\_\+size  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3567}{}\doxysubsection{\texorpdfstring{{\ttfamily Compression\+Stats}}{{\ttfamily Compression\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3567}
+Data structure for compression stats. Fields include:\+ full\+\_\+size, witness\+\_\+size, reduction\+\_\+percent.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily full\+\_\+size}  &{\ttfamily u64}  &Full\+\_\+size  \\
+{\ttfamily witness\+\_\+size}  &{\ttfamily u64}  &Witness\+\_\+size  \\
+{\ttfamily reduction\+\_\+percent}  &{\ttfamily u64}  &Reduction\+\_\+percent  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 263}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3569}{}\doxysubsection{\texorpdfstring{{\ttfamily Witness\+Archive}}{{\ttfamily Witness\+Archive}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3569}
+Witness archive for old blocks
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily block\+\_\+witnesses}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Witness\+Pool)}  &Block\+\_\+witnesses  \\
+{\ttfamily block\+\_\+heights}  &{\ttfamily std.\+array\+\_\+list.\+Managed(u32)}  &Block\+\_\+heights  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 270}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3571}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3571}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3572}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3572}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(tx\_id:\ u32,\ sig\_type:\ u8)\ WitnessData\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+id}  &{\ttfamily u32}  &Tx\+\_\+id  \\
+{\ttfamily sig\+\_\+type}  &{\ttfamily u8}  &Sig\+\_\+type  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Witness\+Data}
+
+{\itshape Defined at line 15}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3574}{}\doxysubsection{\texorpdfstring{{\ttfamily set\+Signature()}}{{\ttfamily set\+Signature()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3574}
+Set signature data
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ setSignature(self:\ *WitnessData,\ sig:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Witness\+Data}  &The instance  \\
+{\ttfamily sig}  &{\ttfamily \+[]\+const u8}  &Sig  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 29}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3576}{}\doxysubsection{\texorpdfstring{{\ttfamily set\+Public\+Key()}}{{\ttfamily set\+Public\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3576}
+Set public key data
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ setPublicKey(self:\ *WitnessData,\ pubkey:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Witness\+Data}  &The instance  \\
+{\ttfamily pubkey}  &{\ttfamily \+[]\+const u8}  &Pubkey  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 36}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3578}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Signature()}}{{\ttfamily get\+Signature()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3578}
+Get signature slice
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getSignature(self:\ *const\ WitnessData)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Data}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 43}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3580}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Public\+Key()}}{{\ttfamily get\+Public\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3580}
+Get public key slice
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPublicKey(self:\ *const\ WitnessData)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Data}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 48}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3582}{}\doxysubsection{\texorpdfstring{{\ttfamily serialize()}}{{\ttfamily serialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3582}
+Serialize witness to binary
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ serialize(self:\ *const\ WitnessData,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Data}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 53}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3584}{}\doxysubsection{\texorpdfstring{{\ttfamily deserialize()}}{{\ttfamily deserialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3584}
+Deserialize witness from binary
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deserialize(data:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !WitnessData\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Witness\+Data}
+
+{\itshape Defined at line 93}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3586}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3586}
+Performs the print operation on the witness\+\_\+data module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ WitnessData)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Data}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 142}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3588}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3588}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ WitnessPool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Witness\+Pool}
+
+{\itshape Defined at line 157}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3590}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Witness()}}{{\ttfamily add\+Witness()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3590}
+Add witness for a transaction
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addWitness(self:\ *WitnessPool,\ witness:\ WitnessData)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Witness\+Pool}  &The instance  \\
+{\ttfamily witness}  &{\ttfamily Witness\+Data}  &Witness  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 166}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3592}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Witness()}}{{\ttfamily get\+Witness()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3592}
+Get witness by transaction ID
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getWitness(self:\ *const\ WitnessPool,\ tx\_id:\ u32)\ ?*const\ WitnessData\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+{\ttfamily tx\+\_\+id}  &{\ttfamily u32}  &Tx\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Witness\+Data}
+
+{\itshape Defined at line 175}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3594}{}\doxysubsection{\texorpdfstring{{\ttfamily has\+Witness()}}{{\ttfamily has\+Witness()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3594}
+Check if witness exists
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hasWitness(self:\ *const\ WitnessPool,\ tx\_id:\ u32)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+{\ttfamily tx\+\_\+id}  &{\ttfamily u32}  &Tx\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 183}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3596}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+All\+Witnesses()}}{{\ttfamily get\+All\+Witnesses()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3596}
+Get all witnesses
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAllWitnesses(self:\ *const\ WitnessPool)\ []const\ WitnessData\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const Witness\+Data}
+
+{\itshape Defined at line 188}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3598}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Witness\+Count()}}{{\ttfamily get\+Witness\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3598}
+Get witness count
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getWitnessCount(self:\ *const\ WitnessPool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 193}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3600}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+Size()}}{{\ttfamily estimate\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3600}
+Estimated storage size in bytes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateSize(self:\ *const\ WitnessPool)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 198}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3602}{}\doxysubsection{\texorpdfstring{{\ttfamily serialize()}}{{\ttfamily serialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3602}
+Serialize all witnesses to binary
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ serialize(self:\ *const\ WitnessPool)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 203}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3604}{}\doxysubsection{\texorpdfstring{{\ttfamily clear()}}{{\ttfamily clear()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3604}
+Clear all witnesses
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ clear(self:\ *WitnessPool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 220}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3606}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Compression\+Stats()}}{{\ttfamily get\+Compression\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3606}
+Get compression ratio (witness data vs full signature)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getCompressionStats(self:\ *const\ WitnessPool)\ CompressionStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Compression\+Stats}
+
+{\itshape Defined at line 227}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3608}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Stats()}}{{\ttfamily print\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3608}
+Performs the print stats operation on the witness\+\_\+data module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStats(self:\ *const\ WitnessPool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 249}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3610}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3610}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *WitnessPool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Witness\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 257}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3612}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3612}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ WitnessArchive\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Witness\+Archive}
+
+{\itshape Defined at line 275}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3614}{}\doxysubsection{\texorpdfstring{{\ttfamily archive\+Block()}}{{\ttfamily archive\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3614}
+Archive witnesses for a block height
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ archiveBlock(self:\ *WitnessArchive,\ block\_height:\ u32,\ pool:\ WitnessPool)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Witness\+Archive}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u32}  &Block\+\_\+height  \\
+{\ttfamily pool}  &{\ttfamily Witness\+Pool}  &Pool  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 284}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3616}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block\+Witnesses()}}{{\ttfamily get\+Block\+Witnesses()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3616}
+Get witnesses for a block
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlockWitnesses(self:\ *const\ WitnessArchive,\ block\_height:\ u32)\ ?*const\ WitnessPool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Archive}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u32}  &Block\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Witness\+Pool}
+
+{\itshape Defined at line 290}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3618}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Total\+Size()}}{{\ttfamily get\+Total\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3618}
+Get total archived size
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTotalSize(self:\ *const\ WitnessArchive)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Witness\+Archive}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 300}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3620}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2witness__data_autotoc_md3620}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *WitnessArchive)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Witness\+Archive}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 308}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

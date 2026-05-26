@@ -1,0 +1,93 @@
+\doxysection{core-\/dump-\/analyzer.py}
+\hypertarget{core-dump-analyzer_8py_source}{}\label{core-dump-analyzer_8py_source}\index{tools/DEBUG/core-\/dump-\/analyzer.py@{tools/DEBUG/core-\/dump-\/analyzer.py}}
+\doxymbox{\hyperlink{core-dump-analyzer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00001}\doxymbox{\hyperlink{namespacecore-dump-analyzer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00002}\doxymbox{\hyperlink{namespacecore}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Core\ Dump\ Analyzer}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00005}00005\ \textcolor{stringliteral}{Analyzes\ crash\ dumps\ (stack\ traces,\ registers)\ and\ extracts\ actionable\ info.}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00009}00009\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00010}00010\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00011}00011\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00012}00012\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00013}00013\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00015}\doxymbox{\hyperlink{namespacecore-dump-analyzer_a2729accb2048966849304ffac8ec7dea}{00015}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00016}\doxymbox{\hyperlink{namespacecore-dump-analyzer_a1fcf3db0e3eea1a511687aa1be04a5d8}{00016}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00017}\doxymbox{\hyperlink{namespacecore-dump-analyzer_a2d2f08b5c16e1656ec57a987a2773197}{00017}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00018}\doxymbox{\hyperlink{namespacecore-dump-analyzer_aaea95468c947cf6632bc8e59e42c173b}{00018}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00021}\doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{00021}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00022}00022\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00025}\doxymbox{\hyperlink{namespacecore-dump-analyzer_abbfa203c5fda16f069f3901447011c08}{00025}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecore-dump-analyzer_abbfa203c5fda16f069f3901447011c08}{analyze\_dump}}(dump\_path:\ str)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00026}00026\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(dump\_path):}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ FileNotFoundError(dump\_path)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00029}00029\ \ \ \ \ \textcolor{keyword}{with}\ open(dump\_path,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}ignore"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ content\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00032}00032\ \ \ \ \ \textcolor{comment}{\#\ Extract\ stack\ frames}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00033}00033\ \ \ \ \ frames:\ List[Dict[str,\ str]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00034}00034\ \ \ \ \ frame\_re\ =\ re.compile(\textcolor{stringliteral}{r"{}(\(\backslash\)d+):\(\backslash\)s+0x[0-\/9a-\/f]+\(\backslash\)s+in\(\backslash\)s+(.+?)\(\backslash\)s+\(\backslash\)((.+?)\(\backslash\))"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00035}00035\ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ frame\_re.finditer(content):}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ frames.append(\{\textcolor{stringliteral}{"{}index"{}}:\ m.group(1),\ \textcolor{stringliteral}{"{}function"{}}:\ m.group(2),\ \textcolor{stringliteral}{"{}location"{}}:\ m.group(3)\})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00038}00038\ \ \ \ \ \textcolor{comment}{\#\ Extract\ signal}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00039}00039\ \ \ \ \ signal\ =\ \textcolor{stringliteral}{"{}UNKNOWN"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00040}00040\ \ \ \ \ sig\_re\ =\ re.compile(\textcolor{stringliteral}{r"{}signal\(\backslash\)s+(SIG\(\backslash\)w+|\(\backslash\)d+)"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00041}00041\ \ \ \ \ sm\ =\ sig\_re.search(content)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00042}00042\ \ \ \ \ \textcolor{keywordflow}{if}\ sm:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ signal\ =\ sm.group(1)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00045}00045\ \ \ \ \ \textcolor{comment}{\#\ Extract\ fault\ address}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00046}00046\ \ \ \ \ fault\_addr\ =\ \textcolor{stringliteral}{"{}N/A"{}}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00047}00047\ \ \ \ \ addr\_re\ =\ re.compile(\textcolor{stringliteral}{r"{}fault\ addr\(\backslash\)s+(0x[0-\/9a-\/f]+)"{}},\ re.IGNORECASE)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00048}00048\ \ \ \ \ am\ =\ addr\_re.search(content)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{if}\ am:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ fault\_addr\ =\ am.group(1)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00052}00052\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}dump\_file"{}}:\ dump\_path,}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signal"{}}:\ signal,}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fault\_address"{}}:\ fault\_addr,}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stack\_frames"{}}:\ frames,}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}frame\_count"{}}:\ len(frames),}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00058}00058\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00061}\doxymbox{\hyperlink{namespacecore-dump-analyzer_a7431cb90017e54fe695b23d4190db046}{00061}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecore-dump-analyzer_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00062}00062\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Analyze\ core\ crash\ dumps"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00063}00063\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}dump"{}},\ help=\textcolor{stringliteral}{"{}Path\ to\ crash\ dump\ /\ stack\ trace\ file"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00064}00064\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}dump-\/analysis.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00065}00065\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00067}00067\ \ \ \ \ \doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Core\ Dump\ Analyzer\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespacecore-dump-analyzer_abbfa203c5fda16f069f3901447011c08}{analyze\_dump}}(args.dump)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{except}\ FileNotFoundError:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}Dump\ file\ not\ found:\ \{args.dump\}"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00074}00074\ \ \ \ \ \doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Signal:\ \{report['signal']\}"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00075}00075\ \ \ \ \ \doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Fault\ address:\ \{report['fault\_address']\}"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00076}00076\ \ \ \ \ \doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Stack\ frames:\ \{report['frame\_count']\}"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{for}\ fr\ \textcolor{keywordflow}{in}\ report[\textcolor{stringliteral}{"{}stack\_frames"{}}][:5]:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\ \ \#\{fr['index']\}\ \{fr['function']\}\ at\ \{fr['location']\}"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00080}00080\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00082}00082\ \ \ \ \ \doxymbox{\hyperlink{namespacecore-dump-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nAnalysis\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00083}00083\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00086}00086\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{core-dump-analyzer_8py_source_l00087}00087\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacecore-dump-analyzer_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

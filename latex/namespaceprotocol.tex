@@ -1,0 +1,26 @@
+\doxysection{protocol Namespace Reference}
+\hypertarget{namespaceprotocol}{}\label{namespaceprotocol}\index{protocol@{protocol}}
+
+
+-\/fuzzer  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/fuzzer 
+
+\begin{DoxyVerb}protocol-fuzzer.py
+
+Fuzz the P2P protocol of a BlockChainCore node over TCP.
+Sends malformed messages:
+  - oversized payloads
+  - invalid headers / magic bytes
+  - truncated data
+  - random garbage
+
+Detects crashes, hangs, and unexpected responses.
+
+Outputs: fuzz-results.json
+\end{DoxyVerb}
+ 

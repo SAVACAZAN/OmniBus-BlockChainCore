@@ -1,0 +1,2352 @@
+openapi: "3.1.0"
+info:
+  title: OmniBus DEX API
+  description: |
+    Kraken-compatible Spot REST API for the OmniBus native on-chain DEX.
+
+    Two modes are supported:
+    * **Real trading** — production money, real fills, real fees. Routes under `/exchange/0/*`.
+    * **Paper trading** — identical engine, isolated state. Routes under `/paper/0/*`.
+
+    Switching between modes changes only the URL prefix. Request shapes, endpoint
+    names and response schemas are identical. Paper responses include a
+    `"mode":"paper"` field; real responses omit it.
+
+    Asset codes differ by mode:
+    * Real: `OMNI`, `BTC`, `ETH`, `LCX`, `USDC`
+    * Paper: `OMNI_DEMO` (paper balance token)
+
+    When the paper engine is disabled on the server, all `/paper/0/*` routes
+    return `{"error":["PaperTraderDisabled"],"result":{}}`.
+
+    For full conceptual documentation see:
+    `wiki-kimi-omnibus/02-API-REFERENCE.md`
+  version: "0.1.0"
+  contact:
+    name: OmniBus
+    url: https://omnibusblockchain.cc
+
+servers:
+  - url: https://omnibusblockchain.cc:8443
+    description: Production (real + paper)
+
+tags:
+  - name: real-trading
+    description: Operations under `/exchange/0/*` — production money, real fills, real fees
+  - name: paper-trading
+    description: Operations under `/paper/0/*` — demo/simulation, isolated state, OMNI_DEMO asset
+  - name: Public
+    description: Market data — no authentication required
+  - name: Private Account
+    description: Account & order history — API key required
+  - name: Private Trading
+    description: Order placement & cancellation
+  - name: Private Funding
+    description: Deposits, withdrawals, transfers
+  - name: Private Staking
+    description: Staking operations
+  - name: Private Earn
+    description: Earn / yield strategies
+  - name: Private Export
+    description: Report exports
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  # ========================================================================
+  # PUBLIC — Real trading (/exchange/0/public/*)
+  # ========================================================================
+  /exchange/0/public/Time:
+    get:
+      tags: [real-trading, Public]
+      summary: Get server time
+      operationId: realPublicTime
+      responses:
+        "200":
+          description: Server status and timestamp
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+              example:
+                error: []
+                result:
+                  status: running
+                  blockCount: 49325
+                  mempoolSize: 0
+
+  /exchange/0/public/SystemStatus:
+    get:
+      tags: [real-trading, Public]
+      summary: System status
+      operationId: realPublicSystemStatus
+      responses:
+        "200":
+          description: online / maintenance / cancel_only
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+              example:
+                error: []
+                result:
+                  status: online
+                  settlement_token: OMNI
+
+  /exchange/0/public/Assets:
+    get:
+      tags: [real-trading, Public]
+      summary: Get asset info
+      operationId: realPublicAssets
+      parameters:
+        - name: asset
+          in: query
+          schema: { type: string }
+          description: Comma-separated asset codes (e.g. OMNI,BTC,USDC)
+      responses:
+        "200":
+          description: Asset metadata
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/public/AssetPairs:
+    get:
+      tags: [real-trading, Public]
+      summary: Tradable asset pairs
+      operationId: realPublicAssetPairs
+      parameters:
+        - name: pair
+          in: query
+          schema: { type: string }
+          description: Filter by pair(s)
+      responses:
+        "200":
+          description: Pair definitions + fees
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/public/Ticker:
+    get:
+      tags: [real-trading, Public]
+      summary: Ticker info
+      operationId: realPublicTicker
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+          description: Pair symbol (e.g. OMNIUSDC)
+      responses:
+        "200":
+          description: Ask, bid, close, volume
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/public/Depth:
+    get:
+      tags: [real-trading, Public]
+      summary: Order book
+      operationId: realPublicDepth
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: count
+          in: query
+          schema: { type: integer, default: 100 }
+          description: Max depth levels (1-500)
+      responses:
+        "200":
+          description: Bids and asks arrays
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/public/Trades:
+    get:
+      tags: [real-trading, Public]
+      summary: Recent trades
+      operationId: realPublicTrades
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: since
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Recent trade list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/public/OHLC:
+    get:
+      tags: [real-trading, Public]
+      summary: OHLC data
+      operationId: realPublicOHLC
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: interval
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: since
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Candlestick data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/public/Spread:
+    get:
+      tags: [real-trading, Public]
+      summary: Recent spreads
+      operationId: realPublicSpread
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: since
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Bid/ask spread history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  # ========================================================================
+  # PRIVATE — Real trading (/exchange/0/private/*)
+  # ========================================================================
+  /exchange/0/private/Balance:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Account balance
+      operationId: realPrivateBalance
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string, description: "Trader address (ob1q...)" }
+      responses:
+        "200":
+          description: Asset balances
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/TradeBalance:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Trade balance
+      operationId: realPrivateTradeBalance
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                asset: { type: string, default: "USDC" }
+      responses:
+        "200":
+          description: Equity, margin, free margin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/OpenOrders:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Open orders
+      operationId: realPrivateOpenOrders
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                trades: { type: boolean }
+                userref: { type: integer }
+      responses:
+        "200":
+          description: Open order map
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/ClosedOrders:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Closed orders
+      operationId: realPrivateClosedOrders
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                trades: { type: boolean }
+                start: { type: integer }
+                end: { type: integer }
+                ofs: { type: integer }
+      responses:
+        "200":
+          description: Closed order map
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/QueryOrders:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Query orders info
+      operationId: realPrivateQueryOrders
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                txid: { type: string }
+                trades: { type: boolean }
+                userref: { type: integer }
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/TradesHistory:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Trades history
+      operationId: realPrivateTradesHistory
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                type: { type: string }
+                trades: { type: boolean }
+                start: { type: integer }
+                end: { type: integer }
+                ofs: { type: integer }
+      responses:
+        "200":
+          description: Trade list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/QueryTrades:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Query trades info
+      operationId: realPrivateQueryTrades
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                txid: { type: string }
+                trades: { type: boolean }
+      responses:
+        "200":
+          description: Trade details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/OpenPositions:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Open positions
+      operationId: realPrivateOpenPositions
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                txid: { type: string }
+                docalcs: { type: boolean }
+      responses:
+        "200":
+          description: Position map (empty — spot only)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Ledgers:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Get ledgers
+      operationId: realPrivateLedgers
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                type: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+                ofs: { type: integer }
+      responses:
+        "200":
+          description: Ledger entries
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/QueryLedgers:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Query ledgers
+      operationId: realPrivateQueryLedgers
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                trades: { type: boolean }
+      responses:
+        "200":
+          description: Ledger details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/TradeVolume:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Trade volume
+      operationId: realPrivateTradeVolume
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pair: { type: string }
+                fee-info: { type: boolean }
+      responses:
+        "200":
+          description: Volume + fee tier info
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/AddOrder:
+    post:
+      tags: [real-trading, Private Trading]
+      summary: Add order
+      operationId: realPrivateAddOrder
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pair: { type: string, example: "OMNIUSDC" }
+                type: { type: string, enum: [buy, sell] }
+                ordertype: { type: string, enum: [market, limit] }
+                price: { type: string }
+                volume: { type: string }
+                oflags: { type: string }
+                userref: { type: integer }
+              required: [pair, type, ordertype, volume]
+      responses:
+        "200":
+          description: Order placed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/CancelOrder:
+    post:
+      tags: [real-trading, Private Trading]
+      summary: Cancel order
+      operationId: realPrivateCancelOrder
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                txid: { type: string }
+                owner: { type: string }
+              required: [txid]
+      responses:
+        "200":
+          description: Cancel result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/CancelAll:
+    post:
+      tags: [real-trading, Private Trading]
+      summary: Cancel all orders
+      operationId: realPrivateCancelAll
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Count cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/CancelAllOrdersAfter:
+    post:
+      tags: [real-trading, Private Trading]
+      summary: Cancel all after timeout
+      operationId: realPrivateCancelAllAfter
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                timeout: { type: integer }
+              required: [timeout]
+      responses:
+        "200":
+          description: Deadline timestamp
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/EditOrder:
+    post:
+      tags: [real-trading, Private Trading]
+      summary: Edit order
+      operationId: realPrivateEditOrder
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                txid: { type: string }
+                pair: { type: string }
+                price: { type: string }
+                volume: { type: string }
+              required: [txid, pair]
+      responses:
+        "200":
+          description: Edit result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/DepositMethods:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Deposit methods
+      operationId: realPrivateDepositMethods
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+              required: [asset]
+      responses:
+        "200":
+          description: Available deposit methods
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/DepositAddresses:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Deposit addresses
+      operationId: realPrivateDepositAddresses
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+                new: { type: boolean }
+              required: [asset, method]
+      responses:
+        "200":
+          description: Address list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/StatusOfDeposits:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Status of recent deposits
+      operationId: realPrivateStatusOfDeposits
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+      responses:
+        "200":
+          description: Deposit status list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/WithdrawMethods:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Withdrawal methods
+      operationId: realPrivateWithdrawMethods
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+              required: [asset]
+      responses:
+        "200":
+          description: Available withdrawal methods
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/WithdrawAddresses:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Withdrawal addresses
+      operationId: realPrivateWithdrawAddresses
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+              required: [asset]
+      responses:
+        "200":
+          description: Address list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Withdraw:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Withdraw funds
+      operationId: realPrivateWithdraw
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                key: { type: string }
+                amount: { type: string }
+              required: [asset, key, amount]
+      responses:
+        "200":
+          description: Withdrawal refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/StatusOfWithdrawals:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Status of recent withdrawals
+      operationId: realPrivateStatusOfWithdrawals
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+      responses:
+        "200":
+          description: Withdrawal status list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/WithdrawCancel:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Cancel withdrawal
+      operationId: realPrivateWithdrawCancel
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                refid: { type: string }
+              required: [asset, refid]
+      responses:
+        "200":
+          description: Cancel result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/WalletTransfer:
+    post:
+      tags: [real-trading, Private Funding]
+      summary: Wallet transfer
+      operationId: realPrivateWalletTransfer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                from: { type: string }
+                to: { type: string }
+                amount: { type: string }
+              required: [asset, from, to, amount]
+      responses:
+        "200":
+          description: Transfer refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Stake:
+    post:
+      tags: [real-trading, Private Staking]
+      summary: Stake asset
+      operationId: realPrivateStake
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                amount: { type: string }
+                method: { type: string }
+              required: [asset, amount, method]
+      responses:
+        "200":
+          description: Stake refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Unstake:
+    post:
+      tags: [real-trading, Private Staking]
+      summary: Unstake asset
+      operationId: realPrivateUnstake
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                amount: { type: string }
+                method: { type: string }
+              required: [asset, amount, method]
+      responses:
+        "200":
+          description: Unstake refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/GetStakingAssets:
+    post:
+      tags: [real-trading, Private Staking]
+      summary: Get staking assets
+      operationId: realPrivateGetStakingAssets
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Staking asset list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/GetPendingStaking:
+    post:
+      tags: [real-trading, Private Staking]
+      summary: Get pending staking transactions
+      operationId: realPrivateGetPendingStaking
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Pending staking list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/ListStakingTransactions:
+    post:
+      tags: [real-trading, Private Staking]
+      summary: List staking transactions
+      operationId: realPrivateListStakingTransactions
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+      responses:
+        "200":
+          description: Staking tx list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Earn/Allocate:
+    post:
+      tags: [real-trading, Private Earn]
+      summary: Allocate to earn strategy
+      operationId: realPrivateEarnAllocate
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                strategy_id: { type: string }
+                amount: { type: string }
+              required: [strategy_id, amount]
+      responses:
+        "200":
+          description: Allocation result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Earn/Deallocate:
+    post:
+      tags: [real-trading, Private Earn]
+      summary: Deallocate from earn strategy
+      operationId: realPrivateEarnDeallocate
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                strategy_id: { type: string }
+                amount: { type: string }
+              required: [strategy_id, amount]
+      responses:
+        "200":
+          description: Deallocation result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Earn/Strategies:
+    post:
+      tags: [real-trading, Private Earn]
+      summary: List earn strategies
+      operationId: realPrivateEarnStrategies
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Strategy list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/Earn/Allocations:
+    post:
+      tags: [real-trading, Private Earn]
+      summary: List earn allocations
+      operationId: realPrivateEarnAllocations
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Allocation list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/AddExport:
+    post:
+      tags: [real-trading, Private Export]
+      summary: Add export report
+      operationId: realPrivateAddExport
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                report: { type: string, enum: [trades, ledgers] }
+                description: { type: string }
+                format: { type: string, enum: [CSV, TSV] }
+              required: [report, description, format]
+      responses:
+        "200":
+          description: Export ID
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/ExportStatus:
+    post:
+      tags: [real-trading, Private Export]
+      summary: Export status
+      operationId: realPrivateExportStatus
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                report: { type: string }
+              required: [report]
+      responses:
+        "200":
+          description: Export status list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/RetrieveExport:
+    post:
+      tags: [real-trading, Private Export]
+      summary: Retrieve export
+      operationId: realPrivateRetrieveExport
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+              required: [id]
+      responses:
+        "200":
+          description: Binary export data
+          content:
+            application/zip:
+              schema: { type: string, format: binary }
+
+  /exchange/0/private/DeleteExport:
+    post:
+      tags: [real-trading, Private Export]
+      summary: Delete export
+      operationId: realPrivateDeleteExport
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                type: { type: string, enum: [delete, cancel] }
+              required: [id, type]
+      responses:
+        "200":
+          description: Delete result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  /exchange/0/private/GetWebSocketsToken:
+    post:
+      tags: [real-trading, Private Account]
+      summary: Get WebSocket auth token
+      operationId: realPrivateGetWebSocketsToken
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: WS token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+
+  # ========================================================================
+  # PAPER TRADING — Same paths under /paper/0/* prefix
+  # ========================================================================
+  /paper/0/public/Time:
+    get:
+      tags: [paper-trading, Public]
+      summary: Get server time (paper mode)
+      operationId: paperPublicTime
+      responses:
+        "200":
+          description: Server status and timestamp
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+              example:
+                error: []
+                result:
+                  status: running
+                  mode: paper
+                  blockCount: 49325
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/SystemStatus:
+    get:
+      tags: [paper-trading, Public]
+      summary: System status (paper mode)
+      operationId: paperPublicSystemStatus
+      responses:
+        "200":
+          description: online with mode paper
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+              example:
+                error: []
+                result:
+                  status: online
+                  mode: paper
+                  settlement_token: OMNI_DEMO
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/Assets:
+    get:
+      tags: [paper-trading, Public]
+      summary: Get asset info (paper mode)
+      operationId: paperPublicAssets
+      parameters:
+        - name: asset
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Asset metadata including OMNI_DEMO
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/AssetPairs:
+    get:
+      tags: [paper-trading, Public]
+      summary: Tradable asset pairs (paper mode)
+      operationId: paperPublicAssetPairs
+      responses:
+        "200":
+          description: Same pairs as real, fees identical
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/Ticker:
+    get:
+      tags: [paper-trading, Public]
+      summary: Ticker info (paper mode)
+      operationId: paperPublicTicker
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Ask, bid, close, volume
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/Depth:
+    get:
+      tags: [paper-trading, Public]
+      summary: Order book (paper mode)
+      operationId: paperPublicDepth
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: count
+          in: query
+          schema: { type: integer, default: 100 }
+      responses:
+        "200":
+          description: Bids and asks arrays
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/Trades:
+    get:
+      tags: [paper-trading, Public]
+      summary: Recent trades (paper mode)
+      operationId: paperPublicTrades
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: since
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Recent trade list from isolated paper log
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/OHLC:
+    get:
+      tags: [paper-trading, Public]
+      summary: OHLC data (paper mode)
+      operationId: paperPublicOHLC
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: interval
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: since
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Candlestick data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/public/Spread:
+    get:
+      tags: [paper-trading, Public]
+      summary: Recent spreads (paper mode)
+      operationId: paperPublicSpread
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema: { type: string }
+        - name: since
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Bid/ask spread history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Balance:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Account balance (paper mode)
+      operationId: paperPrivateBalance
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+      responses:
+        "200":
+          description: OMNI_DEMO balances
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/TradeBalance:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Trade balance (paper mode)
+      operationId: paperPrivateTradeBalance
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                asset: { type: string, default: "OMNI_DEMO" }
+      responses:
+        "200":
+          description: Paper equity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/OpenOrders:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Open orders (paper mode)
+      operationId: paperPrivateOpenOrders
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                trades: { type: boolean }
+                userref: { type: integer }
+      responses:
+        "200":
+          description: Open order map
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/ClosedOrders:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Closed orders (paper mode)
+      operationId: paperPrivateClosedOrders
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                trades: { type: boolean }
+                start: { type: integer }
+                end: { type: integer }
+                ofs: { type: integer }
+      responses:
+        "200":
+          description: Closed order map
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/QueryOrders:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Query orders info (paper mode)
+      operationId: paperPrivateQueryOrders
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                txid: { type: string }
+                trades: { type: boolean }
+                userref: { type: integer }
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/TradesHistory:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Trades history (paper mode)
+      operationId: paperPrivateTradesHistory
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                type: { type: string }
+                trades: { type: boolean }
+                start: { type: integer }
+                end: { type: integer }
+                ofs: { type: integer }
+      responses:
+        "200":
+          description: Paper trade list (isolated from real fills)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/QueryTrades:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Query trades info (paper mode)
+      operationId: paperPrivateQueryTrades
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                txid: { type: string }
+                trades: { type: boolean }
+      responses:
+        "200":
+          description: Trade details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/OpenPositions:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Open positions (paper mode)
+      operationId: paperPrivateOpenPositions
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                owner: { type: string }
+                txid: { type: string }
+                docalcs: { type: boolean }
+      responses:
+        "200":
+          description: Position map (empty — spot only)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Ledgers:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Get ledgers (paper mode)
+      operationId: paperPrivateLedgers
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                type: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+                ofs: { type: integer }
+      responses:
+        "200":
+          description: Ledger entries
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/QueryLedgers:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Query ledgers (paper mode)
+      operationId: paperPrivateQueryLedgers
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                trades: { type: boolean }
+      responses:
+        "200":
+          description: Ledger details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/TradeVolume:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Trade volume (paper mode)
+      operationId: paperPrivateTradeVolume
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pair: { type: string }
+                fee-info: { type: boolean }
+      responses:
+        "200":
+          description: Volume + fee tier info
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/AddOrder:
+    post:
+      tags: [paper-trading, Private Trading]
+      summary: Add order (paper mode)
+      operationId: paperPrivateAddOrder
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pair: { type: string, example: "OMNIUSDC" }
+                type: { type: string, enum: [buy, sell] }
+                ordertype: { type: string, enum: [market, limit] }
+                price: { type: string }
+                volume: { type: string }
+                oflags: { type: string }
+                userref: { type: integer }
+              required: [pair, type, ordertype, volume]
+      responses:
+        "200":
+          description: Paper order placed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/CancelOrder:
+    post:
+      tags: [paper-trading, Private Trading]
+      summary: Cancel order (paper mode)
+      operationId: paperPrivateCancelOrder
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                txid: { type: string }
+                owner: { type: string }
+              required: [txid]
+      responses:
+        "200":
+          description: Cancel result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/CancelAll:
+    post:
+      tags: [paper-trading, Private Trading]
+      summary: Cancel all orders (paper mode)
+      operationId: paperPrivateCancelAll
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Count cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/CancelAllOrdersAfter:
+    post:
+      tags: [paper-trading, Private Trading]
+      summary: Cancel all after timeout (paper mode)
+      operationId: paperPrivateCancelAllAfter
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                timeout: { type: integer }
+              required: [timeout]
+      responses:
+        "200":
+          description: Deadline timestamp
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/EditOrder:
+    post:
+      tags: [paper-trading, Private Trading]
+      summary: Edit order (paper mode)
+      operationId: paperPrivateEditOrder
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                txid: { type: string }
+                pair: { type: string }
+                price: { type: string }
+                volume: { type: string }
+              required: [txid, pair]
+      responses:
+        "200":
+          description: Edit result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/DepositMethods:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Deposit methods (paper mode)
+      operationId: paperPrivateDepositMethods
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+              required: [asset]
+      responses:
+        "200":
+          description: Available deposit methods
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/DepositAddresses:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Deposit addresses (paper mode)
+      operationId: paperPrivateDepositAddresses
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+                new: { type: boolean }
+              required: [asset, method]
+      responses:
+        "200":
+          description: Address list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/StatusOfDeposits:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Status of recent deposits (paper mode)
+      operationId: paperPrivateStatusOfDeposits
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+      responses:
+        "200":
+          description: Deposit status list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/WithdrawMethods:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Withdrawal methods (paper mode)
+      operationId: paperPrivateWithdrawMethods
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+              required: [asset]
+      responses:
+        "200":
+          description: Available withdrawal methods
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/WithdrawAddresses:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Withdrawal addresses (paper mode)
+      operationId: paperPrivateWithdrawAddresses
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+              required: [asset]
+      responses:
+        "200":
+          description: Address list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Withdraw:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Withdraw funds (paper mode)
+      operationId: paperPrivateWithdraw
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                key: { type: string }
+                amount: { type: string }
+              required: [asset, key, amount]
+      responses:
+        "200":
+          description: Withdrawal refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/StatusOfWithdrawals:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Status of recent withdrawals (paper mode)
+      operationId: paperPrivateStatusOfWithdrawals
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                method: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+      responses:
+        "200":
+          description: Withdrawal status list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/WithdrawCancel:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Cancel withdrawal (paper mode)
+      operationId: paperPrivateWithdrawCancel
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                refid: { type: string }
+              required: [asset, refid]
+      responses:
+        "200":
+          description: Cancel result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/WalletTransfer:
+    post:
+      tags: [paper-trading, Private Funding]
+      summary: Wallet transfer (paper mode)
+      operationId: paperPrivateWalletTransfer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                from: { type: string }
+                to: { type: string }
+                amount: { type: string }
+              required: [asset, from, to, amount]
+      responses:
+        "200":
+          description: Transfer refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Stake:
+    post:
+      tags: [paper-trading, Private Staking]
+      summary: Stake asset (paper mode)
+      operationId: paperPrivateStake
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                amount: { type: string }
+                method: { type: string }
+              required: [asset, amount, method]
+      responses:
+        "200":
+          description: Stake refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Unstake:
+    post:
+      tags: [paper-trading, Private Staking]
+      summary: Unstake asset (paper mode)
+      operationId: paperPrivateUnstake
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                amount: { type: string }
+                method: { type: string }
+              required: [asset, amount, method]
+      responses:
+        "200":
+          description: Unstake refid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/GetStakingAssets:
+    post:
+      tags: [paper-trading, Private Staking]
+      summary: Get staking assets (paper mode)
+      operationId: paperPrivateGetStakingAssets
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Staking asset list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/GetPendingStaking:
+    post:
+      tags: [paper-trading, Private Staking]
+      summary: Get pending staking transactions (paper mode)
+      operationId: paperPrivateGetPendingStaking
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Pending staking list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/ListStakingTransactions:
+    post:
+      tags: [paper-trading, Private Staking]
+      summary: List staking transactions (paper mode)
+      operationId: paperPrivateListStakingTransactions
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                asset: { type: string }
+                start: { type: integer }
+                end: { type: integer }
+      responses:
+        "200":
+          description: Staking tx list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Earn/Allocate:
+    post:
+      tags: [paper-trading, Private Earn]
+      summary: Allocate to earn strategy (paper mode)
+      operationId: paperPrivateEarnAllocate
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                strategy_id: { type: string }
+                amount: { type: string }
+              required: [strategy_id, amount]
+      responses:
+        "200":
+          description: Allocation result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Earn/Deallocate:
+    post:
+      tags: [paper-trading, Private Earn]
+      summary: Deallocate from earn strategy (paper mode)
+      operationId: paperPrivateEarnDeallocate
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                strategy_id: { type: string }
+                amount: { type: string }
+              required: [strategy_id, amount]
+      responses:
+        "200":
+          description: Deallocation result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Earn/Strategies:
+    post:
+      tags: [paper-trading, Private Earn]
+      summary: List earn strategies (paper mode)
+      operationId: paperPrivateEarnStrategies
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Strategy list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/Earn/Allocations:
+    post:
+      tags: [paper-trading, Private Earn]
+      summary: List earn allocations (paper mode)
+      operationId: paperPrivateEarnAllocations
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Allocation list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/AddExport:
+    post:
+      tags: [paper-trading, Private Export]
+      summary: Add export report (paper mode)
+      operationId: paperPrivateAddExport
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                report: { type: string, enum: [trades, ledgers] }
+                description: { type: string }
+                format: { type: string, enum: [CSV, TSV] }
+              required: [report, description, format]
+      responses:
+        "200":
+          description: Export ID
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/ExportStatus:
+    post:
+      tags: [paper-trading, Private Export]
+      summary: Export status (paper mode)
+      operationId: paperPrivateExportStatus
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                report: { type: string }
+              required: [report]
+      responses:
+        "200":
+          description: Export status list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/RetrieveExport:
+    post:
+      tags: [paper-trading, Private Export]
+      summary: Retrieve export (paper mode)
+      operationId: paperPrivateRetrieveExport
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+              required: [id]
+      responses:
+        "200":
+          description: Binary export data
+          content:
+            application/zip:
+              schema: { type: string, format: binary }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/DeleteExport:
+    post:
+      tags: [paper-trading, Private Export]
+      summary: Delete export (paper mode)
+      operationId: paperPrivateDeleteExport
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                type: { type: string, enum: [delete, cancel] }
+              required: [id, type]
+      responses:
+        "200":
+          description: Delete result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+  /paper/0/private/GetWebSocketsToken:
+    post:
+      tags: [paper-trading, Private Account]
+      summary: Get WebSocket auth token (paper mode)
+      operationId: paperPrivateGetWebSocketsToken
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema: { type: object }
+      responses:
+        "200":
+          description: WS token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KrakenResponse" }
+        "503":
+          description: Paper trader disabled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaperDisabledError" }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: API-Key
+      description: |
+        OmniBus exchange API key created via `exchange_createApiKey` (JSON-RPC)
+        or `POST /exchange/0/private/AddExport` (REST). Pass `API-Key` header
+        for private endpoints. HMAC-SHA512 signing is work-in-progress;
+        currently Bearer token auth is also accepted via `Authorization` header.
+
+  schemas:
+    KrakenResponse:
+      type: object
+      properties:
+        error:
+          type: array
+          items: { type: string }
+        result: {}
+      required: [error, result]
+
+    PaperDisabledError:
+      type: object
+      properties:
+        error:
+          type: array
+          items:
+            type: string
+            enum: [PaperTraderDisabled]
+        result:
+          type: object
+      required: [error, result]
+      example:
+        error: [PaperTraderDisabled]
+        result: {}
+
+    Order:
+      type: object
+      properties:
+        order_id: { type: integer, format: uint64 }
+        trader: { type: string }
+        pair: { type: string }
+        side: { type: string, enum: [buy, sell] }
+        price: { type: string, description: "Limit price in micro-USD" }
+        volume: { type: string, description: "Amount in SAT" }
+        filled: { type: string }
+        status: { type: string, enum: [active, partial, filled, cancelled] }
+        timestamp: { type: integer, format: int64 }
+
+    Fill:
+      type: object
+      properties:
+        fill_id: { type: integer, format: uint64 }
+        buy_order_id: { type: integer, format: uint64 }
+        sell_order_id: { type: integer, format: uint64 }
+        price: { type: string, description: "Execution price in micro-USD" }
+        amount: { type: string, description: "Filled amount in SAT" }
+        timestamp: { type: integer, format: int64 }
+        pair: { type: string }
+        buyer: { type: string }
+        seller: { type: string }
+
+    Orderbook:
+      type: object
+      properties:
+        pair: { type: string }
+        bids:
+          type: array
+          items:
+            type: array
+            items: { type: number }
+            minItems: 2
+            maxItems: 3
+        asks:
+          type: array
+          items:
+            type: array
+            items: { type: number }
+            minItems: 2
+            maxItems: 3
+
+    AssetPair:
+      type: object
+      properties:
+        altname: { type: string }
+        wsname: { type: string }
+        aclass_base: { type: string }
+        base: { type: string }
+        aclass_quote: { type: string }
+        quote: { type: string }
+        lot: { type: string }
+        pair_decimals: { type: integer }
+        lot_decimals: { type: integer }
+        lot_multiplier: { type: integer }
+        leverage_buy: { type: array, items: { type: integer } }
+        leverage_sell: { type: array, items: { type: integer } }
+        fees: { type: array, items: { type: array, items: { type: number } } }
+        fees_maker: { type: array, items: { type: array, items: { type: number } } }
+        fee_volume_currency: { type: string }
+        margin_call: { type: integer }
+        margin_stop: { type: integer }
+        ordermin: { type: string }
+        pair_id: { type: integer }

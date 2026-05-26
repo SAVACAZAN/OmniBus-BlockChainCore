@@ -1,0 +1,517 @@
+\doxysection{blockchain\+\_\+dependency\+\_\+graph.\+py}
+\hypertarget{blockchain__dependency__graph_8py_source}{}\label{blockchain__dependency__graph_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_dependency\_graph.py@{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_dependency\_graph.py}}
+\doxymbox{\hyperlink{blockchain__dependency__graph_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00001}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00003}00003\ \textcolor{stringliteral}{blockchain\_dependency\_graph.py\ -\/\ Module\ Dependency\ Analyzer\ v1.0}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00005}00005\ \textcolor{stringliteral}{Analizeaza\ graful\ de\ dependente\ intre\ modulele\ blockchain:}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Cine\ @import\ pe\ cine}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Detecteaza\ dependente\ circulare}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Gaseste\ module\ izolate\ (zombies)}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Calculeaza\ coupling/cohesion\ per\ modul}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Gaseste\ single\ points\ of\ failure\ (hub\ modules)}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ Genereaza\ graf\ DOT\ pentru\ Graphviz}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ -\/\ Layer\ analysis\ (crypto\ -\/>\ chain\ -\/>\ network\ -\/>\ storage\ -\/>\ node)}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00014}00014\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_dependency\_graph.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Full\ analysis}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_dependency\_graph.py\ -\/-\/dot\ graph.dot\ \#\ Export\ Graphviz\ DOT}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00017}00017\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_dependency\_graph.py\ -\/-\/json\ deps.json}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ python\ tools/blockchain\_dependency\_graph.py\ -\/-\/module\ p2p\ \ \ \ \#\ Show\ deps\ for\ p2p}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00019}00019\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00022}00022\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00023}00023\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00024}00024\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00025}00025\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00026}00026\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ field}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00027}00027\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ List,\ Dict,\ Set,\ Tuple,\ Optional}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00028}00028\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00030}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{00030}}\ ROOT\ =\ Path(\_\_file\_\_).parent.parent.parent}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00031}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a9947f545ca43dd66ab6a5724fd274a22}{00031}}\ CORE\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00032}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_af61b6af30eecf96a396683de52b2625c}{00032}}\ TEST\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}test"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00033}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a4e037d847ed432e386473611d2c563ea}{00033}}\ AGENT\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}agent"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00035}00035\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00036}00036\ \textcolor{comment}{\#\ DATA\ CLASSES}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00037}00037\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00039}00039\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00040}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{00040}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{ModuleNode}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00041}00041\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00042}00042\ \ \ \ \ path:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00043}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node_a7b559da2cf2b4d67548526f4693cefc9}{00043}}\ \ \ \ \ imports:\ List[str]\ =\ field(default\_factory=list)\ \ \ \ \ \ \ \textcolor{comment}{\#\ who\ I\ import}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00044}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node_a0809abcb97caf30e90ba437b4d9ec124}{00044}}\ \ \ \ \ imported\_by:\ List[str]\ =\ field(default\_factory=list)\ \ \ \ \textcolor{comment}{\#\ who\ imports\ me}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00045}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node_ac46e3b3d268f907cb85cd706243c019c}{00045}}\ \ \ \ \ layer:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00046}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node_a3b648d9b1400f46aecf698f91b71974f}{00046}}\ \ \ \ \ lines:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00047}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node_afae746a7b29598be8774fea6028cd3f1}{00047}}\ \ \ \ \ pub\_functions:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00048}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node_a3b13699b7425537e730f1aa68e06dd4c}{00048}}\ \ \ \ \ tests:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00050}00050\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00051}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{00051}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{CycleInfo}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00052}\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info_a13e2755d36ad03ba354890409271db4b}{00052}}\ \ \ \ \ modules:\ List[str]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00053}00053\ \ \ \ \ length:\ int}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00055}00055\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00056}00056\ \textcolor{comment}{\#\ LAYER\ DEFINITIONS}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00057}00057\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00059}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a9419e8c90e67ae64045278eedd75ecbe}{00059}}\ LAYER\_MAP\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00060}00060\ \ \ \ \ 0:\ (\textcolor{stringliteral}{"{}CRYPTO"{}},\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crypto"{}},\ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}ripemd160"{}},\ \textcolor{stringliteral}{"{}pq\_crypto"{}},\ \textcolor{stringliteral}{"{}key\_encryption"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}schnorr"{}},\ \textcolor{stringliteral}{"{}multisig"{}},\ \textcolor{stringliteral}{"{}bech32"{}},\ \textcolor{stringliteral}{"{}encrypted\_p2p"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00063}00063\ \ \ \ \ ]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00064}00064\ \ \ \ \ 1:\ (\textcolor{stringliteral}{"{}TYPES"{}},\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}transaction"{}},\ \textcolor{stringliteral}{"{}block"{}},\ \textcolor{stringliteral}{"{}bip32\_wallet"{}},\ \textcolor{stringliteral}{"{}compact\_transaction"{}},\ \textcolor{stringliteral}{"{}witness\_data"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hex\_utils"{}},\ \textcolor{stringliteral}{"{}utxo"{}},\ \textcolor{stringliteral}{"{}psbt"{}},\ \textcolor{stringliteral}{"{}block\_filter"{}},\ \textcolor{stringliteral}{"{}htlc"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}compact\_blocks"{}},\ \textcolor{stringliteral}{"{}tx\_receipt"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00068}00068\ \ \ \ \ ]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00069}00069\ \ \ \ \ 2:\ (\textcolor{stringliteral}{"{}CORE"{}},\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blockchain"{}},\ \textcolor{stringliteral}{"{}blockchain\_v2"{}},\ \textcolor{stringliteral}{"{}genesis"{}},\ \textcolor{stringliteral}{"{}consensus"{}},\ \textcolor{stringliteral}{"{}mempool"{}},\ \textcolor{stringliteral}{"{}wallet"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sub\_block"{}},\ \textcolor{stringliteral}{"{}miner\_genesis"{}},\ \textcolor{stringliteral}{"{}e2e\_mining"{}},\ \textcolor{stringliteral}{"{}finality"{}},\ \textcolor{stringliteral}{"{}governance"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shard\_config"{}},\ \textcolor{stringliteral}{"{}prune\_config"{}},\ \textcolor{stringliteral}{"{}archive\_manager"{}},\ \textcolor{stringliteral}{"{}binary\_codec"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}spark\_invariants"{}},\ \textcolor{stringliteral}{"{}chain\_config"{}},\ \textcolor{stringliteral}{"{}light\_client"{}},\ \textcolor{stringliteral}{"{}database"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00074}00074\ \ \ \ \ ]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00075}00075\ \ \ \ \ 3:\ (\textcolor{stringliteral}{"{}NETWORK"{}},\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}p2p"{}},\ \textcolor{stringliteral}{"{}sync"{}},\ \textcolor{stringliteral}{"{}bootstrap"{}},\ \textcolor{stringliteral}{"{}network"{}},\ \textcolor{stringliteral}{"{}ws\_server"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peer\_scoring"{}},\ \textcolor{stringliteral}{"{}kademlia\_dht"{}},\ \textcolor{stringliteral}{"{}dns\_registry"{}},\ \textcolor{stringliteral}{"{}tor\_proxy"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00078}00078\ \ \ \ \ ]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00079}00079\ \ \ \ \ 4:\ (\textcolor{stringliteral}{"{}STORAGE"{}},\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}storage"{}},\ \textcolor{stringliteral}{"{}state\_trie"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00081}00081\ \ \ \ \ ]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00082}00082\ \ \ \ \ 5:\ (\textcolor{stringliteral}{"{}NODE"{}},\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_launcher"{}},\ \textcolor{stringliteral}{"{}cli"{}},\ \textcolor{stringliteral}{"{}vault\_reader"{}},\ \textcolor{stringliteral}{"{}vault\_engine"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mining\_pool"{}},\ \textcolor{stringliteral}{"{}light\_miner"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shard\_coordinator"{}},\ \textcolor{stringliteral}{"{}metachain"{}},\ \textcolor{stringliteral}{"{}miner\_wallet"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lightning"{}},\ \textcolor{stringliteral}{"{}payment\_channel"{}},\ \textcolor{stringliteral}{"{}staking"{}},\ \textcolor{stringliteral}{"{}benchmark"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00087}00087\ \ \ \ \ ]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00088}00088\ \ \ \ \ 6:\ (\textcolor{stringliteral}{"{}SERVICE"{}},\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_server"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bread\_ledger"{}},\ \textcolor{stringliteral}{"{}domain\_minter"{}},\ \textcolor{stringliteral}{"{}ubi\_distributor"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bridge\_relay"{}},\ \textcolor{stringliteral}{"{}oracle"{}},\ \textcolor{stringliteral}{"{}omni\_brain"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}synapse\_priority"{}},\ \textcolor{stringliteral}{"{}os\_mode"{}},\ \textcolor{stringliteral}{"{}guardian"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}agent\_manager"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00094}00094\ \ \ \ \ ]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00095}00095\ \ \ \ \ 7:\ (\textcolor{stringliteral}{"{}ENTRY"{}},\ [\textcolor{stringliteral}{"{}main"{}}]),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00096}00096\ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00098}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}{00098}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}{get\_layer}}(module\_name:\ str)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00099}00099\ \ \ \ \ \textcolor{keywordflow}{for}\ layer\_num,\ (\_,\ modules)\ \textcolor{keywordflow}{in}\ LAYER\_MAP.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ module\_name\ \textcolor{keywordflow}{in}\ modules:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ layer\_num}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00102}00102\ \ \ \ \ \textcolor{keywordflow}{return}\ 99}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00104}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acc5a869094c2ac5af1ff0ba033d881ea}{00104}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acc5a869094c2ac5af1ff0ba033d881ea}{get\_layer\_name}}(layer\_num:\ int)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{if}\ layer\_num\ \textcolor{keywordflow}{in}\ LAYER\_MAP:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ LAYER\_MAP[layer\_num][0]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}UNKNOWN"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00109}00109\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00110}00110\ \textcolor{comment}{\#\ GRAPH\ BUILDING}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00111}00111\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00113}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a7f60f3dcdd372bda3568ebeb527fc1ac}{00113}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a7f60f3dcdd372bda3568ebeb527fc1ac}{build\_graph}}()\ -\/>\ Dict[str,\ ModuleNode]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00114}00114\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Build\ dependency\ graph\ from\ all\ Zig\ files."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00115}00115\ \ \ \ \ graph\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00117}00117\ \ \ \ \ scan\_dirs\ =\ [(CORE,\ \textcolor{stringliteral}{"{}core"{}}),\ (TEST,\ \textcolor{stringliteral}{"{}test"{}}),\ (AGENT,\ \textcolor{stringliteral}{"{}agent"{}})]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{for}\ d,\ label\ \textcolor{keywordflow}{in}\ scan\_dirs:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ d.exists():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ fpath\ \textcolor{keywordflow}{in}\ sorted(d.glob(\textcolor{stringliteral}{"{}*.zig"{}})):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ name\ =\ fpath.stem}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ code\ =\ fpath.read\_text(encoding=\textcolor{stringliteral}{'utf-\/8'},\ errors=\textcolor{stringliteral}{'replace'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Extract\ imports\ (only\ local\ ones,\ not\ std/builtin)}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ imports\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ re.finditer(\textcolor{stringliteral}{r'@import\(\backslash\)s*\(\backslash\)(\(\backslash\)s*"{}([\string^"{}]+)"{}\(\backslash\)s*\(\backslash\))'},\ code):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imp\ =\ m.group(1).replace(\textcolor{stringliteral}{"{}.zig"{}},\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}std"{}},\ \textcolor{stringliteral}{"{}builtin"{}}):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imports.append(imp)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ lines\ =\ code.count(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ pub\_fns\ =\ len(re.findall(\textcolor{stringliteral}{r'pub\(\backslash\)s+(?:export\(\backslash\)s+)?fn\(\backslash\)s+\(\backslash\)w+'},\ code))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ tests\ =\ len(re.findall(\textcolor{stringliteral}{r'test\(\backslash\)s+"{}[\string^"{}]*"{}'},\ code))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ graph[name]\ =\ \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{ModuleNode}}(}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name=name,\ path=str(fpath),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imports=imports,\ layer=\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}{get\_layer}}(name),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lines=lines,\ pub\_functions=pub\_fns,\ tests=tests,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00146}00146\ \ \ \ \ \textcolor{comment}{\#\ Build\ reverse\ edges\ (imported\_by)}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00147}00147\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ node\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ node.imports:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\ \textcolor{keywordflow}{in}\ graph:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graph[imp].imported\_by.append(name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00152}00152\ \ \ \ \ \textcolor{keywordflow}{return}\ graph}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00155}00155\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00156}00156\ \textcolor{comment}{\#\ ANALYSIS}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00157}00157\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00159}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acbc4cf9b825fb9b2879592b0da4c60b5}{00159}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acbc4cf9b825fb9b2879592b0da4c60b5}{find\_cycles}}(graph:\ Dict[str,\ ModuleNode])\ -\/>\ List[CycleInfo]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00160}00160\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ circular\ dependencies\ using\ DFS."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00161}00161\ \ \ \ \ cycles\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00162}00162\ \ \ \ \ visited\ =\ set()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00163}00163\ \ \ \ \ path\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00164}00164\ \ \ \ \ path\_set\ =\ set()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00166}00166\ \ \ \ \ \textcolor{keyword}{def\ }dfs(node\_name):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ node\_name\ \textcolor{keywordflow}{in}\ path\_set:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Found\ cycle}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ idx\ =\ path.index(node\_name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ cycle\ =\ path[idx:]\ +\ [node\_name]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ cycles.append(\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{CycleInfo}}(modules=cycle,\ length=len(cycle)\ -\/\ 1))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ node\_name\ \textcolor{keywordflow}{in}\ visited:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ visited.add(node\_name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ path.append(node\_name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ path\_set.add(node\_name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ node\ =\ graph.get(node\_name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ node:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ node.imports:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\ \textcolor{keywordflow}{in}\ graph:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dfs(imp)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ path.pop()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ path\_set.discard(node\_name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00189}00189\ \ \ \ \ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ graph:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ dfs(name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00192}00192\ \ \ \ \ \textcolor{comment}{\#\ Deduplicate\ cycles}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00193}00193\ \ \ \ \ seen\ =\ set()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00194}00194\ \ \ \ \ unique\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00195}00195\ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ cycles:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ key\ =\ tuple(sorted(c.modules[:-\/1]))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ key\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ seen:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ seen.add(key)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ unique.append(c)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00201}00201\ \ \ \ \ \textcolor{keywordflow}{return}\ unique}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00204}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a01de46534cc2c180c06766a586162181}{00204}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a01de46534cc2c180c06766a586162181}{find\_zombies}}(graph:\ Dict[str,\ ModuleNode])\ -\/>\ List[str]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00205}00205\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ isolated\ modules\ (no\ imports,\ not\ imported\ by\ anyone)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00206}00206\ \ \ \ \ zombies\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00207}00207\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ node\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ name\ ==\ \textcolor{stringliteral}{"{}main"{}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ node.imports\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ node.imported\_by:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ zombies.append(name)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{return}\ zombies}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00215}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a5cca26f89782b4c0c79fbe47192229e6}{00215}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a5cca26f89782b4c0c79fbe47192229e6}{find\_hubs}}(graph:\ Dict[str,\ ModuleNode],\ threshold:\ int\ =\ 5)\ -\/>\ List[Tuple[str,\ int,\ int]]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00216}00216\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ hub\ modules\ (high\ in-\/degree\ or\ out-\/degree)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00217}00217\ \ \ \ \ hubs\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ node\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ in\_deg\ =\ len(node.imported\_by)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ out\_deg\ =\ len(node.imports)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ in\_deg\ >=\ threshold\ \textcolor{keywordflow}{or}\ out\_deg\ >=\ threshold:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ hubs.append((name,\ in\_deg,\ out\_deg))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00223}00223\ \ \ \ \ \textcolor{keywordflow}{return}\ sorted(hubs,\ key=\textcolor{keyword}{lambda}\ x:\ -\/(x[1]\ +\ x[2]))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00225}00225\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00226}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad9f4b464c8993ba19bc2446e39577511}{00226}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad9f4b464c8993ba19bc2446e39577511}{calc\_coupling}}(graph:\ Dict[str,\ ModuleNode])\ -\/>\ Dict[str,\ float]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00227}00227\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Calculate\ coupling\ score\ per\ module\ (0=isolated,\ 1=maximum\ coupling)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00228}00228\ \ \ \ \ n\ =\ len(graph)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00229}00229\ \ \ \ \ \textcolor{keywordflow}{if}\ n\ <=\ 1:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00231}00231\ \ \ \ \ coupling\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00232}00232\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ node\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ total\_connections\ =\ len(set(node.imports)\ |\ set(node.imported\_by))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ coupling[name]\ =\ round(total\_connections\ /\ (n\ -\/\ 1),\ 3)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00235}00235\ \ \ \ \ \textcolor{keywordflow}{return}\ coupling}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00237}00237\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00238}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a893bee52ec18f36de87d575466780d6d}{00238}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a893bee52ec18f36de87d575466780d6d}{find\_layer\_violations}}(graph:\ Dict[str,\ ModuleNode])\ -\/>\ List[Tuple[str,\ str,\ int,\ int]]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00239}00239\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ imports\ that\ go\ UP\ in\ layers\ (violations)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00240}00240\ \ \ \ \ violations\ =\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00241}00241\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ node\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ node.imports:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\ \textcolor{keywordflow}{in}\ graph:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ my\_layer\ =\ node.layer}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imp\_layer\ =\ graph[imp].layer}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Only\ flag\ when\ lower\ layer\ imports\ higher\ layer}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\_layer\ >\ my\_layer\ \textcolor{keywordflow}{and}\ my\_layer\ !=\ 99\ \textcolor{keywordflow}{and}\ imp\_layer\ !=\ 99:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ violations.append((name,\ imp,\ my\_layer,\ imp\_layer))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00249}00249\ \ \ \ \ \textcolor{keywordflow}{return}\ violations}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00252}00252\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00253}00253\ \textcolor{comment}{\#\ OUTPUT}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00254}00254\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00256}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a3175b29b638dbf3f9adffab763f308fa}{00256}}\ G\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}};\ Y\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}};\ R\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}};\ B\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[94m"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00257}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad70fc3a167ee273295a9b24614cf3859}{00257}}\ C\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}};\ W\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}};\ DIM\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00258}00258\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00259}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae8c8cc0e97cf2bda1ea16d01be60cd6f}{00259}}\ LAYER\_COLORS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00260}00260\ \ \ \ \ 0:\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}},\ \ \textcolor{comment}{\#\ Purple\ -\/\ Crypto}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00261}00261\ \ \ \ \ 1:\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}},\ \ \textcolor{comment}{\#\ Cyan\ -\/\ Types}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00262}00262\ \ \ \ \ 2:\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}},\ \ \textcolor{comment}{\#\ Green\ -\/\ Core}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00263}00263\ \ \ \ \ 3:\ \textcolor{stringliteral}{"{}\(\backslash\)033[94m"{}},\ \ \textcolor{comment}{\#\ Blue\ -\/\ Network}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00264}00264\ \ \ \ \ 4:\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}},\ \ \textcolor{comment}{\#\ Yellow\ -\/\ Storage}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00265}00265\ \ \ \ \ 5:\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}},\ \ \textcolor{comment}{\#\ White\ -\/\ Node}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00266}00266\ \ \ \ \ 6:\ \textcolor{stringliteral}{"{}\(\backslash\)033[33m"{}},\ \ \textcolor{comment}{\#\ Dark\ yellow\ -\/\ Features}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00267}00267\ \ \ \ \ 7:\ \textcolor{stringliteral}{"{}\(\backslash\)033[36m"{}},\ \ \textcolor{comment}{\#\ Dark\ cyan\ -\/\ Economic}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00268}00268\ \ \ \ \ 8:\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}},\ \ \textcolor{comment}{\#\ Red\ -\/\ Entry}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00269}00269\ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00272}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae18befc196ea62997094c8c99cff9439}{00272}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae18befc196ea62997094c8c99cff9439}{print\_report}}(graph:\ Dict[str,\ ModuleNode],\ cycles:\ List[CycleInfo],}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ zombies:\ List[str],\ hubs:\ List[Tuple[str,\ int,\ int]],}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ violations:\ List[Tuple[str,\ str,\ int,\ int]],}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ coupling:\ Dict[str,\ float],\ specific\_module:\ str\ =\ \textcolor{keywordtype}{None}):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00276}00276\ \ \ \ \ SEP\ =\ \textcolor{stringliteral}{"{}="{}}\ *\ 90}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00278}00278\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00279}00279\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}OmniBus\ Blockchain\ -\/\ Dependency\ Graph\ Analysis\ v1.0\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00280}00280\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Modules:\ \{len(graph)\}\ |\ Edges:\ \{sum(len(n.imports)\ for\ n\ in\ graph.values())\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00281}00281\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00283}00283\ \ \ \ \ \textcolor{keywordflow}{if}\ specific\_module:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ node\ =\ graph.get(specific\_module)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ node:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{R\}Module\ not\ found:\ \{specific\_module\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Module:\ \{specific\_module\}\{W\}\ (Layer\ \{node.layer\}:\ \{get\_layer\_name(node.layer)\})"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Lines:\ \{node.lines\}\ |\ Pub\ functions:\ \{node.pub\_functions\}\ |\ Tests:\ \{node.tests\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Coupling:\ \{coupling.get(specific\_module,\ 0):.3f\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{C\}Imports\ (\{len(node.imports)\}):\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ sorted(node.imports):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ \ \ \ \ layer\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}{get\_layer}}(imp)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ col\ =\ LAYER\_COLORS.get(layer,\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ -\/>\ \{col\}\{imp\}\{W\}\ (L\{layer\}:\ \{get\_layer\_name(layer)\})"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{C\}Imported\ by\ (\{len(node.imported\_by)\}):\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ sorted(node.imported\_by):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ layer\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}{get\_layer}}(imp)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ col\ =\ LAYER\_COLORS.get(layer,\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ <-\/\ \{col\}\{imp\}\{W\}\ (L\{layer\}:\ \{get\_layer\_name(layer)\})"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00302}00302\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00303}00303\ \ \ \ \ \textcolor{comment}{\#\ Layer-\/by-\/layer\ view}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00304}00304\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}DEPENDENCY\ MAP\ BY\ LAYER\{W\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00305}00305\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00306}00306\ \ \ \ \ \textcolor{keywordflow}{for}\ layer\_num\ \textcolor{keywordflow}{in}\ sorted(LAYER\_MAP.keys()):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ layer\_name,\ \_\ =\ LAYER\_MAP[layer\_num]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ col\ =\ LAYER\_COLORS.get(layer\_num,\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ layer\_modules\ =\ [n\ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ graph.values()\ \textcolor{keywordflow}{if}\ n.layer\ ==\ layer\_num]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00310}00310\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ layer\_modules:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{col\}\{BOLD\}Layer\ \{layer\_num\}:\ \{layer\_name\}\{W\}\ (\{len(layer\_modules)\}\ modules)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00315}00315\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ node\ \textcolor{keywordflow}{in}\ sorted(layer\_modules,\ key=\textcolor{keyword}{lambda}\ n:\ -\/len(n.imported\_by)):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ in\_deg\ =\ len(node.imported\_by)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ out\_deg\ =\ len(node.imports)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ imports\_str\ =\ \textcolor{stringliteral}{"{},\ "{}}.join(node.imports[:5])}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(node.imports)\ >\ 5:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imports\_str\ +=\ f\textcolor{stringliteral}{"{}\ +\{len(node.imports)-\/5\}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ bar\_in\ =\ \textcolor{stringliteral}{"{}>"{}}\ *\ min(in\_deg,\ 20)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \ \ \ \ bar\_out\ =\ \textcolor{stringliteral}{"{}<"{}}\ *\ min(out\_deg,\ 20)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{col\}\{node.name:<25\}\{W\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}in=\{G\}\{in\_deg:<3\}\{W\}\ out=\{B\}\{out\_deg:<3\}\{W\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{DIM\}-\/>\ \{imports\_str\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00328}00328\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00331}00331\ \ \ \ \ \textcolor{comment}{\#\ Hubs}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00332}00332\ \ \ \ \ \textcolor{keywordflow}{if}\ hubs:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}\{Y\}HUB\ MODULES\ (high\ connectivity)\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ in\_deg,\ out\_deg\ \textcolor{keywordflow}{in}\ hubs[:10]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00335}00335\ \ \ \ \ \ \ \ \ \ \ \ \ total\ =\ in\_deg\ +\ out\_deg}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00336}00336\ \ \ \ \ \ \ \ \ \ \ \ \ bar\ =\ \textcolor{stringliteral}{"{}\#"{}}\ *\ min(total,\ 30)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00337}00337\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{name:<25\}\ in=\{in\_deg:<3\}\ out=\{out\_deg:<3\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00338}00338\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}total=\{total:<3\}\ \{Y\}\{bar\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00340}00340\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00341}00341\ \ \ \ \ \textcolor{comment}{\#\ Cycles}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00342}00342\ \ \ \ \ \textcolor{keywordflow}{if}\ cycles:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}\{R\}CIRCULAR\ DEPENDENCIES\ (\{len(cycles)\})\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ cycles[:10]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{R\}\{'\ -\/>\ '.join(c.modules)\}\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00347}00347\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00348}00348\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{G\}No\ circular\ dependencies\ found!\{W\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00349}00349\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00350}00350\ \ \ \ \ \textcolor{comment}{\#\ Layer\ violations}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00351}00351\ \ \ \ \ \textcolor{keywordflow}{if}\ violations:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}\{Y\}LAYER\ VIOLATIONS\ (\{len(violations)\})\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ src,\ dst,\ src\_layer,\ dst\_layer\ \textcolor{keywordflow}{in}\ violations[:15]:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00354}00354\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{Y\}\{src\}\{W\}\ (L\{src\_layer\})\ imports\ \{R\}\{dst\}\{W\}\ (L\{dst\_layer\})\ "{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00355}00355\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}-\/\ \{get\_layer\_name(src\_layer)\}\ -\/>\ \{get\_layer\_name(dst\_layer)\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00356}00356\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00358}00358\ \ \ \ \ \textcolor{comment}{\#\ Zombies}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00359}00359\ \ \ \ \ \textcolor{keywordflow}{if}\ zombies:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}\{DIM\}ISOLATED\ MODULES\ (\{len(zombies)\})\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ z\ \textcolor{keywordflow}{in}\ zombies:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}\{z\}\ (no\ imports,\ not\ imported)\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00363}00363\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00364}00364\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00365}00365\ \ \ \ \ \textcolor{comment}{\#\ Stats}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00366}00366\ \ \ \ \ degrees\ =\ [(n,\ len(n.imports),\ len(n.imported\_by))\ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ graph.values()]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00367}00367\ \ \ \ \ avg\_in\ =\ sum(d[2]\ \textcolor{keywordflow}{for}\ d\ \textcolor{keywordflow}{in}\ degrees)\ /\ len(degrees)\ \textcolor{keywordflow}{if}\ degrees\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00368}00368\ \ \ \ \ avg\_out\ =\ sum(d[1]\ \textcolor{keywordflow}{for}\ d\ \textcolor{keywordflow}{in}\ degrees)\ /\ len(degrees)\ \textcolor{keywordflow}{if}\ degrees\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00369}00369\ \ \ \ \ avg\_coupling\ =\ sum(coupling.values())\ /\ len(coupling)\ \textcolor{keywordflow}{if}\ coupling\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00370}00370\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00371}00371\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00372}00372\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}GRAPH\ METRICS\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00373}00373\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00374}00374\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Nodes\ (modules):\ \ \ \ \ \ \{len(graph)\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00375}00375\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Edges\ (imports):\ \ \ \ \ \ \{sum(len(n.imports)\ for\ n\ in\ graph.values())\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00376}00376\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Avg\ in-\/degree:\ \ \ \ \ \ \ \ \{avg\_in:.1f\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00377}00377\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Avg\ out-\/degree:\ \ \ \ \ \ \ \{avg\_out:.1f\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00378}00378\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Avg\ coupling:\ \ \ \ \ \ \ \ \ \{avg\_coupling:.3f\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00379}00379\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Circular\ deps:\ \ \ \ \ \ \ \ \{len(cycles)\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00380}00380\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Layer\ violations:\ \ \ \ \ \{len(violations)\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00381}00381\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Isolated\ modules:\ \ \ \ \ \{len(zombies)\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00382}00382\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00383}00383\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00385}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_abbe46775c3db481e0313603a16f011a8}{00385}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_abbe46775c3db481e0313603a16f011a8}{generate\_dot}}(graph:\ Dict[str,\ ModuleNode],\ path:\ Path):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00386}00386\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ Graphviz\ DOT\ file."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00387}00387\ \ \ \ \ dot\_colors\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00388}00388\ \ \ \ \ \ \ \ \ 0:\ \textcolor{stringliteral}{"{}\#c084fc"{}},\ \ \textcolor{comment}{\#\ Purple\ -\/\ Crypto}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00389}00389\ \ \ \ \ \ \ \ \ 1:\ \textcolor{stringliteral}{"{}\#67e8f9"{}},\ \ \textcolor{comment}{\#\ Cyan\ -\/\ Types}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00390}00390\ \ \ \ \ \ \ \ \ 2:\ \textcolor{stringliteral}{"{}\#86efac"{}},\ \ \textcolor{comment}{\#\ Green\ -\/\ Core}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00391}00391\ \ \ \ \ \ \ \ \ 3:\ \textcolor{stringliteral}{"{}\#93c5fd"{}},\ \ \textcolor{comment}{\#\ Blue\ -\/\ Network}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00392}00392\ \ \ \ \ \ \ \ \ 4:\ \textcolor{stringliteral}{"{}\#fde047"{}},\ \ \textcolor{comment}{\#\ Yellow\ -\/\ Storage}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00393}00393\ \ \ \ \ \ \ \ \ 5:\ \textcolor{stringliteral}{"{}\#e5e7eb"{}},\ \ \textcolor{comment}{\#\ Gray\ -\/\ Node}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00394}00394\ \ \ \ \ \ \ \ \ 6:\ \textcolor{stringliteral}{"{}\#fdba74"{}},\ \ \textcolor{comment}{\#\ Orange\ -\/\ Features}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00395}00395\ \ \ \ \ \ \ \ \ 7:\ \textcolor{stringliteral}{"{}\#5eead4"{}},\ \ \textcolor{comment}{\#\ Teal\ -\/\ Economic}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00396}00396\ \ \ \ \ \ \ \ \ 8:\ \textcolor{stringliteral}{"{}\#fca5a5"{}},\ \ \textcolor{comment}{\#\ Red\ -\/\ Entry}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00397}00397\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00398}00398\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00399}00399\ \ \ \ \ lines\ =\ [\textcolor{stringliteral}{'digraph\ BlockchainDeps\ \{'}]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00400}00400\ \ \ \ \ lines.append(\textcolor{stringliteral}{'\ \ rankdir=TB;'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00401}00401\ \ \ \ \ lines.append(\textcolor{stringliteral}{'\ \ node\ [shape=box,\ style="{}filled,rounded"{},\ fontname="{}Consolas"{}];'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00402}00402\ \ \ \ \ lines.append(\textcolor{stringliteral}{'\ \ edge\ [color="{}\#666666"{}];'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00403}00403\ \ \ \ \ lines.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00405}00405\ \ \ \ \ \textcolor{comment}{\#\ Create\ subgraphs\ per\ layer}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00406}00406\ \ \ \ \ \textcolor{keywordflow}{for}\ layer\_num\ \textcolor{keywordflow}{in}\ sorted(LAYER\_MAP.keys()):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00407}00407\ \ \ \ \ \ \ \ \ layer\_name,\ \_\ =\ LAYER\_MAP[layer\_num]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00408}00408\ \ \ \ \ \ \ \ \ layer\_modules\ =\ [n\ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ graph.values()\ \textcolor{keywordflow}{if}\ n.layer\ ==\ layer\_num]}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00409}00409\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ layer\_modules:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00411}00411\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00412}00412\ \ \ \ \ \ \ \ \ color\ =\ dot\_colors.get(layer\_num,\ \textcolor{stringliteral}{"{}\#f0f0f0"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00413}00413\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ subgraph\ cluster\_L\{layer\_num\}\ \{\{'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00414}00414\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ \ \ label="{}L\{layer\_num\}:\ \{layer\_name\}"{};'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00415}00415\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ \ \ style=dashed;\ color="{}\{color\}"{};'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00416}00416\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ node\ \textcolor{keywordflow}{in}\ layer\_modules:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00417}00417\ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ \ \ "{}\{node.name\}"{}\ [fillcolor="{}\{color\}"{},\ '}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00418}00418\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{'label="{}\{node.name\}\(\backslash\)\(\backslash\)n\{node.lines\}L\ \{node.pub\_functions\}fn"{}];'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00419}00419\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{'\ \ \}'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00420}00420\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00421}00421\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00422}00422\ \ \ \ \ \textcolor{comment}{\#\ Edges}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00423}00423\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ node\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00424}00424\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ node.imports:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00425}00425\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\ \textcolor{keywordflow}{in}\ graph:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00426}00426\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Red\ for\ violations,\ gray\ for\ normal}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00427}00427\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ node.layer\ <\ graph[imp].layer\ \textcolor{keywordflow}{and}\ node.layer\ !=\ 99\ \textcolor{keywordflow}{and}\ graph[imp].layer\ !=\ 99:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00428}00428\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ "{}\{name\}"{}\ -\/>\ "{}\{imp\}"{}\ [color="{}red"{},\ penwidth=2];'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00429}00429\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00430}00430\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ "{}\{name\}"{}\ -\/>\ "{}\{imp\}"{};'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00431}00431\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00432}00432\ \ \ \ \ lines.append(\textcolor{stringliteral}{'\}'})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00433}00433\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00434}00434\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'w'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00435}00435\ \ \ \ \ \ \ \ \ f.write(\textcolor{stringliteral}{'\(\backslash\)n'}.join(lines))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00436}00436\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ DOT\ graph\ exported:\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00437}00437\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Render\ with:\ dot\ -\/Tpng\ \{path\}\ -\/o\ graph.png"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00438}00438\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00439}00439\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00440}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acf6beaf5c3d7150474e87362c40204dd}{00440}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acf6beaf5c3d7150474e87362c40204dd}{export\_json}}(graph:\ Dict[str,\ ModuleNode],\ cycles,\ zombies,\ hubs,\ violations,\ coupling,\ path:\ Path):}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00441}00441\ \ \ \ \ data\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00442}00442\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tool"{}}:\ \textcolor{stringliteral}{"{}blockchain\_dependency\_graph"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00443}00443\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ \textcolor{stringliteral}{"{}1.0"{}},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00444}00444\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ name:\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00446}00446\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}layer"{}}:\ node.layer,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00447}00447\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}layer\_name"{}}:\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acc5a869094c2ac5af1ff0ba033d881ea}{get\_layer\_name}}(node.layer),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00448}00448\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lines"{}}:\ node.lines,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00449}00449\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pub\_functions"{}}:\ node.pub\_functions,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00450}00450\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ node.tests,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00451}00451\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imports"{}}:\ node.imports,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00452}00452\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imported\_by"{}}:\ node.imported\_by,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00453}00453\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}coupling"{}}:\ coupling.get(name,\ 0),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00454}00454\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00455}00455\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ node\ \textcolor{keywordflow}{in}\ graph.items()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00456}00456\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00457}00457\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cycles"{}}:\ [\{\textcolor{stringliteral}{"{}modules"{}}:\ c.modules,\ \textcolor{stringliteral}{"{}length"{}}:\ c.length\}\ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ cycles],}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00458}00458\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}zombies"{}}:\ zombies,}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00459}00459\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hubs"{}}:\ [\{\textcolor{stringliteral}{"{}name"{}}:\ h[0],\ \textcolor{stringliteral}{"{}in"{}}:\ h[1],\ \textcolor{stringliteral}{"{}out"{}}:\ h[2]\}\ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ hubs],}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00460}00460\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}violations"{}}:\ [\{\textcolor{stringliteral}{"{}from"{}}:\ v[0],\ \textcolor{stringliteral}{"{}to"{}}:\ v[1],\ \textcolor{stringliteral}{"{}from\_layer"{}}:\ v[2],\ \textcolor{stringliteral}{"{}to\_layer"{}}:\ v[3]\}\ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ violations],}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00461}00461\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}metrics"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00462}00462\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nodes"{}}:\ len(graph),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00463}00463\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}edges"{}}:\ sum(len(n.imports)\ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ graph.values()),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00464}00464\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cycles"{}}:\ len(cycles),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00465}00465\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}violations"{}}:\ len(violations),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00466}00466\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}zombies"{}}:\ len(zombies),}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00467}00467\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00468}00468\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00469}00469\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'w'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00470}00470\ \ \ \ \ \ \ \ \ json.dump(data,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00471}00471\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ JSON\ exported:\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00472}00472\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00473}00473\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00474}00474\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00475}00475\ \textcolor{comment}{\#\ MAIN}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00476}00476\ \textcolor{comment}{\#\ =============================================================================}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00477}00477\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00478}\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a51af30a60f9f02777c6396b8247e356f}{00478}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00479}00479\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ Blockchain\ Dependency\ Graph\ v1.0"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00480}00480\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/module"{}},\ \textcolor{stringliteral}{"{}-\/m"{}},\ help=\textcolor{stringliteral}{"{}Show\ deps\ for\ specific\ module"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00481}00481\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/dot"{}},\ metavar=\textcolor{stringliteral}{"{}FILE"{}},\ help=\textcolor{stringliteral}{"{}Export\ Graphviz\ DOT\ file"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00482}00482\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ metavar=\textcolor{stringliteral}{"{}FILE"{}},\ help=\textcolor{stringliteral}{"{}Export\ JSON\ report"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00483}00483\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00484}00484\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00485}00485\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'='\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00486}00486\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}OmniBus\ Blockchain\ Dependency\ Graph\ v1.0\{W\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00487}00487\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00488}00488\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00489}00489\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Building\ dependency\ graph..."{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00490}00490\ \ \ \ \ graph\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a7f60f3dcdd372bda3568ebeb527fc1ac}{build\_graph}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00491}00491\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Found\ \{len(graph)\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00492}00492\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00493}00493\ \ \ \ \ \textcolor{comment}{\#\ Analysis}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00494}00494\ \ \ \ \ cycles\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acbc4cf9b825fb9b2879592b0da4c60b5}{find\_cycles}}(graph)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00495}00495\ \ \ \ \ zombies\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a01de46534cc2c180c06766a586162181}{find\_zombies}}(graph)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00496}00496\ \ \ \ \ hubs\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a5cca26f89782b4c0c79fbe47192229e6}{find\_hubs}}(graph)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00497}00497\ \ \ \ \ coupling\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad9f4b464c8993ba19bc2446e39577511}{calc\_coupling}}(graph)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00498}00498\ \ \ \ \ violations\ =\ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a893bee52ec18f36de87d575466780d6d}{find\_layer\_violations}}(graph)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00499}00499\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00500}00500\ \ \ \ \ \textcolor{comment}{\#\ Report}}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00501}00501\ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae18befc196ea62997094c8c99cff9439}{print\_report}}(graph,\ cycles,\ zombies,\ hubs,\ violations,\ coupling,\ args.module)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00502}00502\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00503}00503\ \ \ \ \ \textcolor{keywordflow}{if}\ args.dot:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00504}00504\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_abbe46775c3db481e0313603a16f011a8}{generate\_dot}}(graph,\ Path(args.dot))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00505}00505\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00506}00506\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acf6beaf5c3d7150474e87362c40204dd}{export\_json}}(graph,\ cycles,\ zombies,\ hubs,\ violations,\ coupling,\ Path(args.json))}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00507}00507\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00508}00508\ \ \ \ \ sys.exit(1\ \textcolor{keywordflow}{if}\ cycles\ \textcolor{keywordflow}{else}\ 0)}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00509}00509\ }
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00510}00510\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__dependency__graph_8py_source_l00511}00511\ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

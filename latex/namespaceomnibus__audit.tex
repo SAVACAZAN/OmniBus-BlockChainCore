@@ -1,0 +1,267 @@
+\doxysection{omnibus\+\_\+audit Namespace Reference}
+\hypertarget{namespaceomnibus__audit}{}\label{namespaceomnibus__audit}\index{omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a82b2e4e6711f719621e0d6ca9faf889e}{scan\+\_\+all\+\_\+modules}} ()
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a5d0d51234ad145139afb4fa2bef907cc}{infer\+\_\+layers}} (modules)
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a241d7d821dd9572ca707740f60874013}{analyze\+\_\+dependencies}} (modules)
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a0920836449aaf565151ed465e58f515d}{security\+\_\+scan}} (modules)
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a1b195c8c3f9d2b24bcb228bdf68dce12}{run\+\_\+tests}} ()
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a287dbb9f8e09cf53469f62291f3845b4}{check\+\_\+wiki\+\_\+sync}} (modules)
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a2d5dcf327821a266db8913c17f5f3316}{compute\+\_\+metrics}} (modules)
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_ad500dfc26e88e0f5997cc0ae575b527b}{generate\+\_\+report}} (modules, deps, security, tests, metrics, wiki\+\_\+missing)
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceomnibus__audit_aafc7ea77125dfba16b870b4318e77f0d}{CORE}} = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespaceomnibus__audit_a4eba94de6173158a85c857705038d692}{TEST}} = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}test"{}
+\item 
+str \doxymbox{\hyperlink{namespaceomnibus__audit_a987dbc086674eef9901803c33cd6dcf5}{DOCS\+\_\+\+API}} = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}docs"{} /\+ "{}api"{}
+\item 
+str \doxymbox{\hyperlink{namespaceomnibus__audit_a10c5bfb8045a701d82dd635f53a0b83e}{FULLBTCDEV}} = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}FULLBTCDEV"{}
+\item 
+str \doxymbox{\hyperlink{namespaceomnibus__audit_ade029a22039a1c2ebfa699f6c7840071}{REPORTS}} = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}reports"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceomnibus__audit_af10bc0aee15e4d3009bdd5a79ff3f83b}{LAYER\+\_\+\+HINTS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}omnibus_audit.py — OmniBus Blockchain Master Audit Framework v2.0
+
+DYNAMIC: Scaneaza automat TOATE fisierele .zig din core/, fara liste hardcodate.
+Inlocuieste 20+ scripturi vechi din tools/ cu un singur framework.
+
+Features:
+  1. Module Scanner     — gaseste toate .zig, numara LOC/functii/teste
+  2. Dependency Graph   — import graph, circular deps, layer violations
+  3. Security Scan      — TODO/FIXME, hardcoded secrets, debug prints
+  4. Test Runner        — ruleaza zig build test-* si raporteaza
+  5. Code Metrics       — LOC, test ratio, complexity
+  6. Wiki Sync Check    — verifica docs/api/ exista pt fiecare modul
+  7. BTC Comparison     — ruleaza generate_comparison.py
+  8. Full Report        — genereaza MASTER_AUDIT_REPORT.md
+
+Usage:
+  python FULLBTCDEV/omnibus_audit.py                    # Full audit
+  python FULLBTCDEV/omnibus_audit.py --module            # Module scan only
+  python FULLBTCDEV/omnibus_audit.py --deps              # Dependencies only
+  python FULLBTCDEV/omnibus_audit.py --security          # Security only
+  python FULLBTCDEV/omnibus_audit.py --tests             # Run tests only
+  python FULLBTCDEV/omnibus_audit.py --metrics           # Metrics only
+  python FULLBTCDEV/omnibus_audit.py --wiki              # Wiki sync only
+  python FULLBTCDEV/omnibus_audit.py --compare           # BTC comparison
+  python FULLBTCDEV/omnibus_audit.py --json report.json  # JSON output
+\end{DoxyVerb}
+ 
+
+\label{namespaceomnibus__audit_doc-func-members}
+\Hypertarget{namespaceomnibus__audit_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceomnibus__audit_a241d7d821dd9572ca707740f60874013}\index{omnibus\_audit@{omnibus\_audit}!analyze\_dependencies@{analyze\_dependencies}}
+\index{analyze\_dependencies@{analyze\_dependencies}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{analyze\_dependencies()}{analyze\_dependencies()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a241d7d821dd9572ca707740f60874013} 
+analyze\+\_\+dependencies (\begin{DoxyParamCaption}\item[{}]{modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find circular deps, layer violations, isolated modules.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00151}{151}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceomnibus__audit_a287dbb9f8e09cf53469f62291f3845b4}\index{omnibus\_audit@{omnibus\_audit}!check\_wiki\_sync@{check\_wiki\_sync}}
+\index{check\_wiki\_sync@{check\_wiki\_sync}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{check\_wiki\_sync()}{check\_wiki\_sync()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a287dbb9f8e09cf53469f62291f3845b4} 
+check\+\_\+wiki\+\_\+sync (\begin{DoxyParamCaption}\item[{}]{modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if each module has docs/api/*.md.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00283}{283}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceomnibus__audit_a2d5dcf327821a266db8913c17f5f3316}\index{omnibus\_audit@{omnibus\_audit}!compute\_metrics@{compute\_metrics}}
+\index{compute\_metrics@{compute\_metrics}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{compute\_metrics()}{compute\_metrics()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a2d5dcf327821a266db8913c17f5f3316} 
+compute\+\_\+metrics (\begin{DoxyParamCaption}\item[{}]{modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Compute aggregate code metrics.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00295}{295}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceomnibus__audit_ad500dfc26e88e0f5997cc0ae575b527b}\index{omnibus\_audit@{omnibus\_audit}!generate\_report@{generate\_report}}
+\index{generate\_report@{generate\_report}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{generate\_report()}{generate\_report()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_ad500dfc26e88e0f5997cc0ae575b527b} 
+generate\+\_\+report (\begin{DoxyParamCaption}\item[{}]{modules}{, }\item[{}]{deps}{, }\item[{}]{security}{, }\item[{}]{tests}{, }\item[{}]{metrics}{, }\item[{}]{wiki\+\_\+missing}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate markdown report.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00332}{332}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceomnibus__audit_a5d0d51234ad145139afb4fa2bef907cc}\index{omnibus\_audit@{omnibus\_audit}!infer\_layers@{infer\_layers}}
+\index{infer\_layers@{infer\_layers}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{infer\_layers()}{infer\_layers()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a5d0d51234ad145139afb4fa2bef907cc} 
+infer\+\_\+layers (\begin{DoxyParamCaption}\item[{}]{modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Infer module layers from import depth.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00125}{125}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceomnibus__audit_a51af30a60f9f02777c6396b8247e356f}\index{omnibus\_audit@{omnibus\_audit}!main@{main}}
+\index{main@{main}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00440}{440}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespaceomnibus__audit_a1b195c8c3f9d2b24bcb228bdf68dce12}\index{omnibus\_audit@{omnibus\_audit}!run\_tests@{run\_tests}}
+\index{run\_tests@{run\_tests}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{run\_tests()}{run\_tests()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a1b195c8c3f9d2b24bcb228bdf68dce12} 
+run\+\_\+tests (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run all zig build test-* steps.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00252}{252}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceomnibus__audit_a82b2e4e6711f719621e0d6ca9faf889e}\index{omnibus\_audit@{omnibus\_audit}!scan\_all\_modules@{scan\_all\_modules}}
+\index{scan\_all\_modules@{scan\_all\_modules}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{scan\_all\_modules()}{scan\_all\_modules()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a82b2e4e6711f719621e0d6ca9faf889e} 
+scan\+\_\+all\+\_\+modules (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scan ALL .zig files in core/ dynamically. No hardcoded lists.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespaceomnibus__audit_a0920836449aaf565151ed465e58f515d}\index{omnibus\_audit@{omnibus\_audit}!security\_scan@{security\_scan}}
+\index{security\_scan@{security\_scan}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{security\_scan()}{security\_scan()}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a0920836449aaf565151ed465e58f515d} 
+security\+\_\+scan (\begin{DoxyParamCaption}\item[{}]{modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scan for security issues dynamically.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00215}{215}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+
+
+\label{namespaceomnibus__audit_doc-var-members}
+\Hypertarget{namespaceomnibus__audit_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceomnibus__audit_aafc7ea77125dfba16b870b4318e77f0d}\index{omnibus\_audit@{omnibus\_audit}!CORE@{CORE}}
+\index{CORE@{CORE}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_aafc7ea77125dfba16b870b4318e77f0d} 
+str omnibus\+\_\+audit.\+CORE = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceomnibus__audit_a987dbc086674eef9901803c33cd6dcf5}\index{omnibus\_audit@{omnibus\_audit}!DOCS\_API@{DOCS\_API}}
+\index{DOCS\_API@{DOCS\_API}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{DOCS\_API}{DOCS\_API}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a987dbc086674eef9901803c33cd6dcf5} 
+str omnibus\+\_\+audit.\+DOCS\+\_\+\+API = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}docs"{} /\+ "{}api"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceomnibus__audit_a10c5bfb8045a701d82dd635f53a0b83e}\index{omnibus\_audit@{omnibus\_audit}!FULLBTCDEV@{FULLBTCDEV}}
+\index{FULLBTCDEV@{FULLBTCDEV}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{FULLBTCDEV}{FULLBTCDEV}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a10c5bfb8045a701d82dd635f53a0b83e} 
+str omnibus\+\_\+audit.\+FULLBTCDEV = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}FULLBTCDEV"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceomnibus__audit_af10bc0aee15e4d3009bdd5a79ff3f83b}\index{omnibus\_audit@{omnibus\_audit}!LAYER\_HINTS@{LAYER\_HINTS}}
+\index{LAYER\_HINTS@{LAYER\_HINTS}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{LAYER\_HINTS}{LAYER\_HINTS}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_af10bc0aee15e4d3009bdd5a79ff3f83b} 
+dict omnibus\+\_\+audit.\+LAYER\+\_\+\+HINTS}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00091}{91}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceomnibus__audit_ade029a22039a1c2ebfa699f6c7840071}\index{omnibus\_audit@{omnibus\_audit}!REPORTS@{REPORTS}}
+\index{REPORTS@{REPORTS}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{REPORTS}{REPORTS}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_ade029a22039a1c2ebfa699f6c7840071} 
+str omnibus\+\_\+audit.\+REPORTS = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}reports"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}\index{omnibus\_audit@{omnibus\_audit}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e} 
+omnibus\+\_\+audit.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceomnibus__audit_a4eba94de6173158a85c857705038d692}\index{omnibus\_audit@{omnibus\_audit}!TEST@{TEST}}
+\index{TEST@{TEST}!omnibus\_audit@{omnibus\_audit}}
+\doxysubsubsection{\texorpdfstring{TEST}{TEST}}
+{\footnotesize\ttfamily \label{namespaceomnibus__audit_a4eba94de6173158a85c857705038d692} 
+str omnibus\+\_\+audit.\+TEST = \doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{ROOT}} /\+ "{}test"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{omnibus__audit_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{omnibus__audit_8py_source}{omnibus\+\_\+audit.\+py}}.
+

@@ -1,0 +1,144 @@
+\doxysection{generate-\/rpc-\/client Namespace Reference}
+\hypertarget{namespacegenerate-rpc-client}{}\label{namespacegenerate-rpc-client}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacegenerate-rpc-client_aba274f7bfb7834f2b3bf51265060e062}{log}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate-rpc-client_a77291fface3880c66e48eb80bc91aac4}{find\+\_\+rpc\+\_\+server\+\_\+zig}} ()
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacegenerate-rpc-client_a34801374b2230f72f6fe8faa7492a3ad}{extract\+\_\+rpc\+\_\+methods}} (str filepath)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate-rpc-client_affcc3036f96577a6c5df0ecf0b55b0f7}{generate\+\_\+typescript}} (list\+[dict]\+ methods, str class\+\_\+name="{}Omni\+Bus\+RPC"{})
+\item 
+int \doxymbox{\hyperlink{namespacegenerate-rpc-client_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate-rpc-client_a9a01d2fdeed9ea0a3bb6b90a7fd0811c}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate-rpc-client_a0d11ed54f34da506e906add8c6ce0324}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate-rpc-client_a49b1997ddda8b36d34223a3a23928a0f}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate-rpc-client_a44821d8378909d83b10b82bc350e4f0a}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacegenerate-rpc-client_doc-func-members}
+\Hypertarget{namespacegenerate-rpc-client_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegenerate-rpc-client_a34801374b2230f72f6fe8faa7492a3ad}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!extract\_rpc\_methods@{extract\_rpc\_methods}}
+\index{extract\_rpc\_methods@{extract\_rpc\_methods}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{extract\_rpc\_methods()}{extract\_rpc\_methods()}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_a34801374b2230f72f6fe8faa7492a3ad} 
+ list\+[dict]\+ extract\+\_\+rpc\+\_\+methods (\begin{DoxyParamCaption}\item[{str}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract RPC method names from rpc_server.zig by matching:
+  std.mem.eql(u8, method, "methodname")
+
+Also tries to extract parameter hints from nearby Usage comments.
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacegenerate-rpc-client_a77291fface3880c66e48eb80bc91aac4}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!find\_rpc\_server\_zig@{find\_rpc\_server\_zig}}
+\index{find\_rpc\_server\_zig@{find\_rpc\_server\_zig}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{find\_rpc\_server\_zig()}{find\_rpc\_server\_zig()}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_a77291fface3880c66e48eb80bc91aac4} 
+ str find\+\_\+rpc\+\_\+server\+\_\+zig (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Locate core/rpc_server.zig relative to this script's project root.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacegenerate-rpc-client_affcc3036f96577a6c5df0ecf0b55b0f7}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!generate\_typescript@{generate\_typescript}}
+\index{generate\_typescript@{generate\_typescript}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{generate\_typescript()}{generate\_typescript()}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_affcc3036f96577a6c5df0ecf0b55b0f7} 
+ str generate\+\_\+typescript (\begin{DoxyParamCaption}\item[{list\+[dict]\+}]{methods}{, }\item[{str }]{class\+\_\+name}{ = {\ttfamily "{}OmniBusRPC"{}}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate a TypeScript RPC client class.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00101}{101}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacegenerate-rpc-client_aba274f7bfb7834f2b3bf51265060e062}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!log@{log}}
+\index{log@{log}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{log()}{log()}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_aba274f7bfb7834f2b3bf51265060e062} 
+ None log (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print to stderr so stdout stays clean for the generated code.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00021}{21}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+\Hypertarget{namespacegenerate-rpc-client_a7431cb90017e54fe695b23d4190db046}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!main@{main}}
+\index{main@{main}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00170}{170}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+
+
+\label{namespacegenerate-rpc-client_doc-var-members}
+\Hypertarget{namespacegenerate-rpc-client_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegenerate-rpc-client_a49b1997ddda8b36d34223a3a23928a0f}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!DIM@{DIM}}
+\index{DIM@{DIM}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_a49b1997ddda8b36d34223a3a23928a0f} 
+str \doxymbox{\hyperlink{namespacegenerate}{generate}}-\/\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/client.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00017}{17}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+\Hypertarget{namespacegenerate-rpc-client_a9a01d2fdeed9ea0a3bb6b90a7fd0811c}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_a9a01d2fdeed9ea0a3bb6b90a7fd0811c} 
+str \doxymbox{\hyperlink{namespacegenerate}{generate}}-\/\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/client.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00015}{15}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+\Hypertarget{namespacegenerate-rpc-client_a44821d8378909d83b10b82bc350e4f0a}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!RESET@{RESET}}
+\index{RESET@{RESET}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_a44821d8378909d83b10b82bc350e4f0a} 
+str \doxymbox{\hyperlink{namespacegenerate}{generate}}-\/\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/client.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00018}{18}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+
+\Hypertarget{namespacegenerate-rpc-client_a0d11ed54f34da506e906add8c6ce0324}\index{generate-\/rpc-\/client@{generate-\/rpc-\/client}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!generate-\/rpc-\/client@{generate-\/rpc-\/client}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacegenerate-rpc-client_a0d11ed54f34da506e906add8c6ce0324} 
+str \doxymbox{\hyperlink{namespacegenerate}{generate}}-\/\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/client.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate-rpc-client_8py_source_l00016}{16}} of file \doxymbox{\hyperlink{generate-rpc-client_8py_source}{generate-\/rpc-\/client.\+py}}.
+

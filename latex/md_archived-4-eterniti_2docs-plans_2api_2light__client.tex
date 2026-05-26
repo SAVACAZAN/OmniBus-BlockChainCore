@@ -1,0 +1,1057 @@
+\chapter{Module:\+ {\ttfamily light\+\_\+client} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client}{}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client}\index{Module: $<$tt$>$light\_client$<$/tt$>$@{Module: $<$tt$>$light\_client$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1776}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1776}%
+
+
+\begin{quote}
+SPV (Simplified Payment Verification) — header-\/only sync, Bloom filters, Merkle proofs for TX inclusion, mobile-\/friendly (200B per header). \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+light\+\_\+client.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 979 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 36 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 6 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 27
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1778}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1778}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1779}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1779}
+
+\begin{DoxyItemize}
+\item \`{}\+Block\+Header\`{}{\ttfamily Block\+Header}
+\end{DoxyItemize}— Minimal block header for light client (only \texorpdfstring{$\sim$}{\string~}200 bytes vs 35KB full block)
+\begin{DoxyItemize}
+\item \`{}\+Merkle\+Proof\`{}{\ttfamily Merkle\+Proof}
+\end{DoxyItemize}— Merkle inclusion proof for a single transaction. Allows a light client to verify...
+\begin{DoxyItemize}
+\item \`{}\+Bloom\+Filter\`{}{\ttfamily Bloom\+Filter}
+\end{DoxyItemize}— Bloom filter for SPV transaction filtering. Light clients send a Bloom filter to...
+\begin{DoxyItemize}
+\item \`{}\+Light\+Client\`{}{\ttfamily Light\+Client}
+\end{DoxyItemize}— Light Client -\/ minimal blockchain for low-\/resource devices. Downloads only block...
+\begin{DoxyItemize}
+\item \`{}\+SPVProof\`{}{\ttfamily SPVProof}
+\end{DoxyItemize}— SPV (Simplified Payment Verification) proof for light clients (legacy compat)
+\begin{DoxyItemize}
+\item \`{}\+Sync\+Tracker\`{}{\ttfamily Sync\+Tracker}
+\end{DoxyItemize}— Data structure representing a sync tracker in the light\+\_\+client module.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1780}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1780}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}serialize()\`{}{\ttfamily serialize()}
+\end{DoxyItemize}— Serialize header to binary (lightweight)
+\begin{DoxyItemize}
+\item \`{}deserialize()\`{}{\ttfamily deserialize()}
+\end{DoxyItemize}— Deserialize header from binary
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the light\+\_\+client module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Step()\`{}{\ttfamily add\+Step()}
+\end{DoxyItemize}— Add a sibling hash to the proof path
+\begin{DoxyItemize}
+\item \`{}verify\+Merkle\+Proof()\`{}{\ttfamily verify\+Merkle\+Proof()}
+\end{DoxyItemize}— Verify a merkle proof:\+ hash the TX with siblings up to root. Returns t...
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add()\`{}{\ttfamily add()}
+\end{DoxyItemize}— Insert data (address, txid, pubkey) into the filter
+\begin{DoxyItemize}
+\item \`{}contains()\`{}{\ttfamily contains()}
+\end{DoxyItemize}— Check if data might be in the filter. May return false positives, neve...
+\begin{DoxyItemize}
+\item \`{}clear()\`{}{\ttfamily clear()}
+\end{DoxyItemize}— Clear the filter (reset all bits)
+\begin{DoxyItemize}
+\item \`{}estimate\+False\+Positive\+Pct()\`{}{\ttfamily estimate\+False\+Positive\+Pct()}
+\end{DoxyItemize}— Estimate false positive rate given number of elements inserted. Formul...
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Header()\`{}{\ttfamily add\+Header()}
+\end{DoxyItemize}— Add block header to chain after validation
+\begin{DoxyItemize}
+\item \`{}validate\+Header()\`{}{\ttfamily validate\+Header()}
+\end{DoxyItemize}— Validate a header before adding it:\+
+\begin{DoxyEnumerate}
+\item previous\+\_\+hash must match the ha...
+\end{DoxyEnumerate}
+\begin{DoxyItemize}
+\item \`{}add\+Validated\+Header()\`{}{\ttfamily add\+Validated\+Header()}
+\end{DoxyItemize}— Validate and add a header. Returns error if validation fails.
+\begin{DoxyItemize}
+\item \`{}verify\+Chain()\`{}{\ttfamily verify\+Chain()}
+\end{DoxyItemize}— Verify header chain (check previous\+\_\+hash links)
+\begin{DoxyItemize}
+\item \`{}get\+Height()\`{}{\ttfamily get\+Height()}
+\end{DoxyItemize}— Get current header chain height
+\begin{DoxyItemize}
+\item \`{}get\+Header()\`{}{\ttfamily get\+Header()}
+\end{DoxyItemize}— Get header by block height
+\begin{DoxyItemize}
+\item \`{}get\+Latest\+Header()\`{}{\ttfamily get\+Latest\+Header()}
+\end{DoxyItemize}— Get latest header
+\begin{DoxyItemize}
+\item \`{}get\+Header\+Count()\`{}{\ttfamily get\+Header\+Count()}
+\end{DoxyItemize}— Get header count
+\begin{DoxyItemize}
+\item \`{}verify\+Transaction()\`{}{\ttfamily verify\+Transaction()}
+\end{DoxyItemize}— Verify a TX is in a block using a Merkle proof and our header chain
+\begin{DoxyItemize}
+\item \`{}watch\+Address()\`{}{\ttfamily watch\+Address()}
+\end{DoxyItemize}— Add an address to the Bloom filter (for TX matching)
+\begin{DoxyItemize}
+\item \`{}matches\+Filter()\`{}{\ttfamily matches\+Filter()}
+\end{DoxyItemize}— Check if a TX matches any watched address
+\begin{DoxyItemize}
+\item \`{}get\+Confirmations()\`{}{\ttfamily get\+Confirmations()}
+\end{DoxyItemize}— Get number of confirmations for a proven TX
+\begin{DoxyItemize}
+\item \`{}estimate\+Storage\+Size()\`{}{\ttfamily estimate\+Storage\+Size()}
+\end{DoxyItemize}— Estimate storage used (headers only)
+\begin{DoxyItemize}
+\item \`{}fast\+Sync\+From\+Checkpoint()\`{}{\ttfamily fast\+Sync\+From\+Checkpoint()}
+\end{DoxyItemize}— Fast sync from trusted checkpoint
+\begin{DoxyItemize}
+\item \`{}get\+Difficulty()\`{}{\ttfamily get\+Difficulty()}
+\end{DoxyItemize}— Get proof-\/of-\/work difficulty at height
+\begin{DoxyItemize}
+\item \`{}serialize\+To\+File()\`{}{\ttfamily serialize\+To\+File()}
+\end{DoxyItemize}— Serialize headers to file format
+\begin{DoxyItemize}
+\item \`{}deserialize\+From\+File()\`{}{\ttfamily deserialize\+From\+File()}
+\end{DoxyItemize}— Deserialize headers from file format
+\begin{DoxyItemize}
+\item \`{}sync\+Headers()\`{}{\ttfamily sync\+Headers()}
+\end{DoxyItemize}— Trigger SPV header sync via P2P. Accepts an opaque pointer to P2\+PNode ...
+\begin{DoxyItemize}
+\item \`{}print\+Stats()\`{}{\ttfamily print\+Stats()}
+\end{DoxyItemize}— Statistics about light client
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}verify\+Proof()\`{}{\ttfamily verify\+Proof()}
+\end{DoxyItemize}— Verify SPV proof against block header
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1782}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1782}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1783}{}\doxysubsection{\texorpdfstring{{\ttfamily Block\+Header}}{{\ttfamily Block\+Header}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1783}
+Minimal block header for light client (only \texorpdfstring{$\sim$}{\string~}200 bytes vs 35KB full block)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily previous\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Previous\+\_\+hash  \\
+{\ttfamily merkle\+\_\+root}  &{\ttfamily \+[32]\+u8}  &Merkle\+\_\+root  \\
+{\ttfamily nonce}  &{\ttfamily u64}  &Nonce  \\
+{\ttfamily hash}  &{\ttfamily \+[32]\+u8}  &Hash  \\
+{\ttfamily \doxylink{namespacedifficulty}{difficulty}}  &{\ttfamily u32}  &Difficulty  \\
+{\ttfamily transaction\+\_\+count}  &{\ttfamily u32}  &Transaction\+\_\+count  \\
+{\ttfamily sub\+\_\+blocks}  &{\ttfamily u8}  &Sub\+\_\+blocks  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 6}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1785}{}\doxysubsection{\texorpdfstring{{\ttfamily Merkle\+Proof}}{{\ttfamily Merkle\+Proof}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1785}
+Merkle inclusion proof for a single transaction. Allows a light client to verify that a TX is included in a block using only the block header\textquotesingle{}s merkle\+\_\+root, without the full block.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily proof\+\_\+hashes}  &{\ttfamily \+[MAX\+\_\+\+MERKLE\+\_\+\+DEPTH]\+\+[32]\+u8}  &Proof\+\_\+hashes  \\
+{\ttfamily directions}  &{\ttfamily \+[MAX\+\_\+\+MERKLE\+\_\+\+DEPTH]\+bool}  &Directions  \\
+{\ttfamily depth}  &{\ttfamily u8}  &Depth  \\
+{\ttfamily merkle\+\_\+root}  &{\ttfamily \+[32]\+u8}  &Merkle\+\_\+root  \\
+{\ttfamily block\+\_\+index}  &{\ttfamily u32}  &Block\+\_\+index  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily u32}  &Tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 133}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1787}{}\doxysubsection{\texorpdfstring{{\ttfamily Bloom\+Filter}}{{\ttfamily Bloom\+Filter}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1787}
+Bloom filter for SPV transaction filtering. Light clients send a Bloom filter to full nodes describing which addresses they are interested in. The full node only relays matching TXs. Uses multiple hash functions (murmur-\/style rotation) for low false-\/positive rate.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bits}  &{\ttfamily \+[512]\+u8}  &Bits  \\
+{\ttfamily num\+\_\+hash\+\_\+funcs}  &{\ttfamily u8}  &Num\+\_\+hash\+\_\+funcs  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 201}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1789}{}\doxysubsection{\texorpdfstring{{\ttfamily Light\+Client}}{{\ttfamily Light\+Client}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1789}
+Light Client -\/ minimal blockchain for low-\/resource devices. Downloads only block headers (\texorpdfstring{$\sim$}{\string~}200 bytes each vs \texorpdfstring{$\sim$}{\string~}35\+KB full blocks). Verifies TX inclusion via Merkle proofs (SPV). Uses Bloom filters to request only relevant TXs from full nodes.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily headers}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Block\+Header)}  &Headers  \\
+{\ttfamily trusted\+\_\+root}  &{\ttfamily \+[32]\+u8}  &Trusted\+\_\+root  \\
+{\ttfamily sync\+\_\+height}  &{\ttfamily u32}  &Sync\+\_\+height  \\
+{\ttfamily max\+\_\+headers\+\_\+to\+\_\+keep}  &{\ttfamily u32}  &Max\+\_\+headers\+\_\+to\+\_\+keep  \\
+{\ttfamily bloom}  &{\ttfamily Bloom\+Filter}  &Bloom  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 283}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1791}{}\doxysubsection{\texorpdfstring{{\ttfamily SPVProof}}{{\ttfamily SPVProof}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1791}
+SPV (Simplified Payment Verification) proof for light clients (legacy compat)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily merkle\+\_\+proof}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+[32]\+u8)}  &Merkle\+\_\+proof  \\
+{\ttfamily block\+\_\+header}  &{\ttfamily Block\+Header}  &Block\+\_\+header  \\
+{\ttfamily position\+\_\+in\+\_\+block}  &{\ttfamily u32}  &Position\+\_\+in\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 537}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1793}{}\doxysubsection{\texorpdfstring{{\ttfamily Sync\+Tracker}}{{\ttfamily Sync\+Tracker}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1793}
+Data structure representing a sync tracker in the light\+\_\+client module.
+
+{\itshape Defined at line 966}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1795}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1795}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1796}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1796}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(index:\ u32)\ BlockHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Block\+Header}
+
+{\itshape Defined at line 17}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1798}{}\doxysubsection{\texorpdfstring{{\ttfamily serialize()}}{{\ttfamily serialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1798}
+Serialize header to binary (lightweight)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ serialize(self:\ *const\ BlockHeader)\ [200]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block\+Header}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[200]\+u8}
+
+{\itshape Defined at line 32}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1800}{}\doxysubsection{\texorpdfstring{{\ttfamily deserialize()}}{{\ttfamily deserialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1800}
+Deserialize header from binary
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deserialize(data:\ [200]u8)\ BlockHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[200]\+u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Block\+Header}
+
+{\itshape Defined at line 75}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1802}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1802}
+Performs the print operation on the light\+\_\+client module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ BlockHeader)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block\+Header}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 117}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1804}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1804}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(tx\_hash:\ [32]u8,\ root:\ [32]u8,\ block\_idx:\ u32,\ tx\_idx:\ u32)\ MerkleProof\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily root}  &{\ttfamily \+[32]\+u8}  &Root  \\
+{\ttfamily block\+\_\+idx}  &{\ttfamily u32}  &Block\+\_\+idx  \\
+{\ttfamily tx\+\_\+idx}  &{\ttfamily u32}  &Tx\+\_\+idx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Merkle\+Proof}
+
+{\itshape Defined at line 142}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1806}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Step()}}{{\ttfamily add\+Step()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1806}
+Add a sibling hash to the proof path
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addStep(self:\ *MerkleProof,\ sibling:\ [32]u8,\ is\_right:\ bool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Merkle\+Proof}  &The instance  \\
+{\ttfamily sibling}  &{\ttfamily \+[32]\+u8}  &Sibling  \\
+{\ttfamily is\+\_\+right}  &{\ttfamily bool}  &Is\+\_\+right  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 155}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1808}{}\doxysubsection{\texorpdfstring{{\ttfamily verify\+Merkle\+Proof()}}{{\ttfamily verify\+Merkle\+Proof()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1808}
+Verify a merkle proof:\+ hash the TX with siblings up to root. Returns true if the computed root matches the expected merkle\+\_\+root. This is the core of SPV — proves TX inclusion without full block data. Special case:\+ depth=0 means single-\/\+TX block where tx\+\_\+hash IS the merkle root.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifyMerkleProof(proof:\ *const\ MerkleProof)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily proof}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Merkle\+Proof}  &Proof  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 168}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1810}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1810}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(num\_funcs:\ u8)\ BloomFilter\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily num\+\_\+funcs}  &{\ttfamily u8}  &Num\+\_\+funcs  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bloom\+Filter}
+
+{\itshape Defined at line 205}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1812}{}\doxysubsection{\texorpdfstring{{\ttfamily add()}}{{\ttfamily add()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1812}
+Insert data (address, txid, pubkey) into the filter
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ add(self:\ *BloomFilter,\ data:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bloom\+Filter}  &The instance  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 213}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1814}{}\doxysubsection{\texorpdfstring{{\ttfamily contains()}}{{\ttfamily contains()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1814}
+Check if data might be in the filter. May return false positives, never false negatives.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ contains(self:\ *const\ BloomFilter,\ data:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bloom\+Filter}  &The instance  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 224}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1816}{}\doxysubsection{\texorpdfstring{{\ttfamily clear()}}{{\ttfamily clear()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1816}
+Clear the filter (reset all bits)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ clear(self:\ *BloomFilter)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bloom\+Filter}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 238}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1818}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+False\+Positive\+Pct()}}{{\ttfamily estimate\+False\+Positive\+Pct()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1818}
+Estimate false positive rate given number of elements inserted. Formula:\+ (1 -\/ e\texorpdfstring{$^\wedge$}{\string^}(-\/kn/\+m))\texorpdfstring{$^\wedge$}{\string^}k where k=hash\+\_\+funcs, n=elements, m=bits Returns a rough integer percentage (0-\/100).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateFalsePositivePct(self:\ *const\ BloomFilter,\ num\_elements:\ u32)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bloom\+Filter}  &The instance  \\
+{\ttfamily num\+\_\+elements}  &{\ttfamily u32}  &Num\+\_\+elements  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 245}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1820}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1820}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ LightClient\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Light\+Client}
+
+{\itshape Defined at line 291}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1822}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Header()}}{{\ttfamily add\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1822}
+Add block header to chain after validation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addHeader(self:\ *LightClient,\ header:\ BlockHeader)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Light\+Client}  &The instance  \\
+{\ttfamily header}  &{\ttfamily Block\+Header}  &Header  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 301}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1824}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Header()}}{{\ttfamily validate\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1824}
+Validate a header before adding it:\+
+\begin{DoxyEnumerate}
+\item previous\+\_\+hash must match the hash of the last known header
+\item index must be sequential
+\item timestamp must not be in the future (with 2h tolerance, like Bitcoin)
+\item difficulty must be \texorpdfstring{$>$}{>} 0
+\end{DoxyEnumerate}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validateHeader(self:\ *const\ LightClient,\ header:\ *const\ BlockHeader)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+{\ttfamily header}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block\+Header}  &Header  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 319}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1826}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Validated\+Header()}}{{\ttfamily add\+Validated\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1826}
+Validate and add a header. Returns error if validation fails.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addValidatedHeader(self:\ *LightClient,\ header:\ BlockHeader)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Light\+Client}  &The instance  \\
+{\ttfamily header}  &{\ttfamily Block\+Header}  &Header  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 348}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1828}{}\doxysubsection{\texorpdfstring{{\ttfamily verify\+Chain()}}{{\ttfamily verify\+Chain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1828}
+Verify header chain (check previous\+\_\+hash links)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifyChain(self:\ *const\ LightClient)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 356}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1830}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Height()}}{{\ttfamily get\+Height()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1830}
+Get current header chain height
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getHeight(self:\ *const\ LightClient)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 378}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1832}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Header()}}{{\ttfamily get\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1832}
+Get header by block height
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getHeader(self:\ *const\ LightClient,\ height:\ u32)\ ?*const\ BlockHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+{\ttfamily height}  &{\ttfamily u32}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Block\+Header}
+
+{\itshape Defined at line 384}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1834}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Latest\+Header()}}{{\ttfamily get\+Latest\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1834}
+Get latest header
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getLatestHeader(self:\ *const\ LightClient)\ ?*const\ BlockHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Block\+Header}
+
+{\itshape Defined at line 394}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1836}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Header\+Count()}}{{\ttfamily get\+Header\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1836}
+Get header count
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getHeaderCount(self:\ *const\ LightClient)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 400}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1838}{}\doxysubsection{\texorpdfstring{{\ttfamily verify\+Transaction()}}{{\ttfamily verify\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1838}
+Verify a TX is in a block using a Merkle proof and our header chain
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifyTransaction(self:\ *const\ LightClient,\ proof:\ *const\ MerkleProof)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+{\ttfamily proof}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Merkle\+Proof}  &Proof  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 405}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1840}{}\doxysubsection{\texorpdfstring{{\ttfamily watch\+Address()}}{{\ttfamily watch\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1840}
+Add an address to the Bloom filter (for TX matching)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ watchAddress(self:\ *LightClient,\ address:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Light\+Client}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 417}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1842}{}\doxysubsection{\texorpdfstring{{\ttfamily matches\+Filter()}}{{\ttfamily matches\+Filter()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1842}
+Check if a TX matches any watched address
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ matchesFilter(self:\ *const\ LightClient,\ address:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 422}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1844}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Confirmations()}}{{\ttfamily get\+Confirmations()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1844}
+Get number of confirmations for a proven TX
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getConfirmations(self:\ *const\ LightClient,\ proof:\ *const\ MerkleProof)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+{\ttfamily proof}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Merkle\+Proof}  &Proof  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 427}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1846}{}\doxysubsection{\texorpdfstring{{\ttfamily estimate\+Storage\+Size()}}{{\ttfamily estimate\+Storage\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1846}
+Estimate storage used (headers only)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ estimateStorageSize(self:\ *const\ LightClient)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 434}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1848}{}\doxysubsection{\texorpdfstring{{\ttfamily fast\+Sync\+From\+Checkpoint()}}{{\ttfamily fast\+Sync\+From\+Checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1848}
+Fast sync from trusted checkpoint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fastSyncFromCheckpoint(self:\ *LightClient,\ trusted\_header:\ BlockHeader,\ new\_headers:\ []const\ BlockHeader)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Light\+Client}  &The instance  \\
+{\ttfamily trusted\+\_\+header}  &{\ttfamily Block\+Header}  &Trusted\+\_\+header  \\
+{\ttfamily new\+\_\+headers}  &{\ttfamily \+[]\+const Block\+Header}  &New\+\_\+headers  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 440}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1850}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Difficulty()}}{{\ttfamily get\+Difficulty()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1850}
+Get proof-\/of-\/work difficulty at height
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getDifficulty(self:\ *const\ LightClient,\ height:\ u32)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+{\ttfamily height}  &{\ttfamily u32}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 456}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1852}{}\doxysubsection{\texorpdfstring{{\ttfamily serialize\+To\+File()}}{{\ttfamily serialize\+To\+File()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1852}
+Serialize headers to file format
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ serializeToFile(self:\ *const\ LightClient,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 464}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1854}{}\doxysubsection{\texorpdfstring{{\ttfamily deserialize\+From\+File()}}{{\ttfamily deserialize\+From\+File()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1854}
+Deserialize headers from file format
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deserializeFromFile(self:\ *LightClient,\ data:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Light\+Client}  &The instance  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 480}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1856}{}\doxysubsection{\texorpdfstring{{\ttfamily sync\+Headers()}}{{\ttfamily sync\+Headers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1856}
+Trigger SPV header sync via P2P. Accepts an opaque pointer to P2\+PNode and a function pointer that calls P2\+PNode.\+sync\+Headers(). This avoids circular imports (light\+\_\+client cannot import p2p.\+zig directly).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ syncHeaders(self:\ *LightClient,\ p2p\_ptr:\ *anyopaque,\ sync\_fn:\ *const\ fn\ (*anyopaque)\ void)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Light\+Client}  &The instance  \\
+{\ttfamily p2p\+\_\+ptr}  &{\ttfamily \texorpdfstring{$\ast$}{*}anyopaque}  &P2p\+\_\+ptr  \\
+{\ttfamily sync\+\_\+fn}  &{\ttfamily \texorpdfstring{$\ast$}{*}const fn (\texorpdfstring{$\ast$}{*}anyopaque}  &Sync\+\_\+fn  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily void) void}
+
+{\itshape Defined at line 506}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1858}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Stats()}}{{\ttfamily print\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1858}
+Statistics about light client
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStats(self:\ *const\ LightClient)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Light\+Client}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 512}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1860}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1860}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *LightClient)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Light\+Client}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 531}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1862}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1862}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ tx\_hash:\ [32]u8,\ header:\ BlockHeader)\ SPVProof\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily header}  &{\ttfamily Block\+Header}  &Header  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily SPVProof}
+
+{\itshape Defined at line 543}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1864}{}\doxysubsection{\texorpdfstring{{\ttfamily verify\+Proof()}}{{\ttfamily verify\+Proof()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1864}
+Verify SPV proof against block header
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifyProof(self:\ *const\ SPVProof)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const SPVProof}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 553}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1866}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2light__client_autotoc_md1866}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *SPVProof)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+SPVProof}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 559}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,56 @@
+\doxysection{archived-\/4-\/eterniti/\+tools-\/python/\+\+DOCUMENTATION/\+doc\+\_\+generator.py File Reference}
+\hypertarget{doc__generator_8py}{}\label{doc__generator_8py}\index{archived-\/4-\/eterniti/tools-\/python/DOCUMENTATION/doc\_generator.py@{archived-\/4-\/eterniti/tools-\/python/DOCUMENTATION/doc\_generator.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classdoc__generator_1_1_function_doc}{doc\+\_\+generator.\+Function\+Doc}}
+\item 
+class \doxymbox{\hyperlink{classdoc__generator_1_1_struct_doc}{doc\+\_\+generator.\+Struct\+Doc}}
+\item 
+class \doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{doc\+\_\+generator.\+Module\+Doc}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacedoc__generator}{doc\+\_\+generator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a8c338d81ff26cd9c872b378e75a84009}{doc\+\_\+generator.\+infer\+\_\+function\+\_\+description}} (str func\+\_\+name, List\+[Tuple\+[str, str]\+]\+ params, str returns, str module\+\_\+name, List\+[str]\+ body\+\_\+lines)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_afb6688a90a1f27ac7f22d4d0d6a05fc9}{doc\+\_\+generator.\+infer\+\_\+struct\+\_\+description}} (str struct\+\_\+name, List\+[Tuple\+[str, str]\+]\+ fields, str module\+\_\+name)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{doc\+\_\+generator.\+camel\+\_\+to\+\_\+words}} (str name)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c}{doc\+\_\+generator.\+extract\+\_\+doc\+\_\+comments}} (str content, int start\+\_\+line)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespacedoc__generator_ac6d709371eab2179ca2b6d67052bd529}{doc\+\_\+generator.\+extract\+\_\+body\+\_\+lines}} (str content, int start\+\_\+line, int max\+\_\+lines=15)
+\item 
+List\+[Tuple\+[str, str]\+]\+ \doxymbox{\hyperlink{namespacedoc__generator_a6bd9510228d45b9f6b4d3894dc365ef9}{doc\+\_\+generator.\+extract\+\_\+struct\+\_\+fields}} (str content, int start\+\_\+line)
+\item 
+Optional\+[Tuple\+[str, str, List\+[Tuple\+[str, str]\+]\+]\+]\+ \doxymbox{\hyperlink{namespacedoc__generator_ad78ac702de4ce8523e7a90b8e94c38cd}{doc\+\_\+generator.\+parse\+\_\+function}} (str line)
+\item 
+Optional\+[str]\+ \doxymbox{\hyperlink{namespacedoc__generator_ac2262fd610f45d420573944724eed983}{doc\+\_\+generator.\+parse\+\_\+struct}} (str line)
+\item 
+\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}} \doxymbox{\hyperlink{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64}{doc\+\_\+generator.\+parse\+\_\+module}} (Path filepath)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1}{doc\+\_\+generator.\+generate\+\_\+markdown}} (\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}} module)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a7be65388ac661c82dde9642fdcd6c990}{doc\+\_\+generator.\+generate\+\_\+html\+\_\+index}} (List\+[\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}}]\+ modules)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6}{doc\+\_\+generator.\+generate\+\_\+html}} (\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}} module)
+\item 
+\doxymbox{\hyperlink{namespacedoc__generator_a51af30a60f9f02777c6396b8247e356f}{doc\+\_\+generator.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{doc\+\_\+generator.\+ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_afba2af4d4fa5a0def5e98bb265892b1d}{doc\+\_\+generator.\+CORE}} = \doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a2fbe88bbb3c6c9cb4ee545afa63df02e}{doc\+\_\+generator.\+OUTPUT}} = \doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{ROOT}} /\+ "{}docs"{} /\+ "{}api"{}
+\item 
+dict \doxymbox{\hyperlink{namespacedoc__generator_ac918b2ab10430397178b8891fb6d7dee}{doc\+\_\+generator.\+MODULE\+\_\+\+DESCRIPTIONS}}
+\end{DoxyCompactItemize}

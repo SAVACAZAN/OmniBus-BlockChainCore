@@ -1,0 +1,489 @@
+\doxysection{Multi\+Chain.\+cpp}
+\hypertarget{_multi_chain_8cpp_source}{}\label{_multi_chain_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/MultiChain.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/core/MultiChain.cpp}}
+\doxymbox{\hyperlink{_multi_chain_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_multi_chain_8h}{core/MultiChain.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00004}00004\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00006}00006\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00007}00007\ \textcolor{comment}{//\ \ Chain\ Definitions\ -\/\ all\ 19\ chains}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00008}00008\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00010}\doxymbox{\hyperlink{classomni_1_1_multi_chain_wallet_a7a5c89eacf1864208a9bfd8c33948d8f}{00010}}\ QList<ChainDef>\ \doxymbox{\hyperlink{classomni_1_1_multi_chain_wallet_a7a5c89eacf1864208a9bfd8c33948d8f}{MultiChainWallet::chainDefinitions}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00011}00011\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00012}00012\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 5\ OMNI\ PQ\ Domains}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00013}00013\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}OMNI"{}},\ \ 777,\ 44,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}},\ \textcolor{stringliteral}{"{}ob"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}omnibus.omni"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}O"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00014}00014\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}OMNI"{}},\ \ 778,\ 44,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}},\ \textcolor{stringliteral}{"{}ob\_k1\_"{}},\ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}omnibus.love"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}L"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00015}00015\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}OMNI"{}},\ \ 779,\ 44,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}},\ \textcolor{stringliteral}{"{}ob\_f5\_"{}},\ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}omnibus.food"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}F"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00016}00016\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}OMNI"{}},\ \ 780,\ 44,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}},\ \textcolor{stringliteral}{"{}ob\_d5\_"{}},\ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}omnibus.rent"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}R"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00017}00017\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}OMNI"{}},\ \ 781,\ 44,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}},\ \textcolor{stringliteral}{"{}ob\_s3\_"{}},\ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}omnibus.vacation"{}},\ \textcolor{stringliteral}{"{}V"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00018}00018\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ BTC\ 4\ types}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00019}00019\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}BTC"{}},\ \ \ \ \ 0,\ 44,\ \textcolor{stringliteral}{"{}LEGACY\_P2PKH"{}},\ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}B"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00020}00020\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}BTC"{}},\ \ \ \ \ 0,\ 49,\ \textcolor{stringliteral}{"{}SEGWIT\_P2SH"{}},\ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}B"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00021}00021\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}BTC"{}},\ \ \ \ \ 0,\ 84,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}},\ \ \textcolor{stringliteral}{"{}bc"{}},\ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}B"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00022}00022\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}BTC"{}},\ \ \ \ \ 0,\ 86,\ \textcolor{stringliteral}{"{}TAPROOT"{}},\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bc"{}},\ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}B"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00023}00023\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ EVM\ chains}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00024}00024\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}ETH"{}},\ \ \ \ 60,\ 44,\ \textcolor{stringliteral}{"{}EOA"{}},\ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}0x"{}},\ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}E"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00025}00025\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}BNB"{}},\ \ \ \ 60,\ 44,\ \textcolor{stringliteral}{"{}EOA"{}},\ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}0x"{}},\ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}N"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00026}00026\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}OP"{}},\ \ \ \ \ 60,\ 44,\ \textcolor{stringliteral}{"{}EOA"{}},\ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}0x"{}},\ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}P"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ secp256k1\ chains}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00028}00028\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}ATOM"{}},\ \ 118,\ 44,\ \textcolor{stringliteral}{"{}BECH32"{}},\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cosmos"{}},\textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}A"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00029}00029\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}XRP"{}},\ \ \ 144,\ 44,\ \textcolor{stringliteral}{"{}BASE58"{}},\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}X"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00030}00030\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}LTC"{}},\ \ \ \ \ 2,\ 84,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}},\ \textcolor{stringliteral}{"{}ltc"{}},\ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}L"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00031}00031\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}DOGE"{}},\ \ \ \ 3,\ 44,\ \textcolor{stringliteral}{"{}P2PKH"{}},\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}D"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00032}00032\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}BCH"{}},\ \ \ 145,\ 44,\ \textcolor{stringliteral}{"{}P2PKH"{}},\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}C"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Ed25519\ chains\ (simplified\ -\/\ derive\ as\ secp256k1\ with\ note)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00034}00034\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}SOL"{}},\ \ \ 501,\ 44,\ \textcolor{stringliteral}{"{}ED25519"{}},\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}ed25519"{}},\ \ \ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}S"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00035}00035\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}ADA"{}},\ \ 1815,\ 44,\ \textcolor{stringliteral}{"{}ED25519"{}},\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}ed25519"{}},\ \ \ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}A"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00036}00036\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}DOT"{}},\ \ \ 354,\ 44,\ \textcolor{stringliteral}{"{}SS58"{}},\ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}ed25519"{}},\ \ \ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}D"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}EGLD"{}},\ \ 508,\ 44,\ \textcolor{stringliteral}{"{}BECH32"{}},\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}erd"{}},\ \ \textcolor{stringliteral}{"{}ed25519"{}},\ \ \ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}E"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00038}00038\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}XLM"{}},\ \ \ 148,\ 44,\ \textcolor{stringliteral}{"{}ED25519"{}},\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}ed25519"{}},\ \ \ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}X"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00039}00039\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00040}00040\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00042}00042\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00043}00043\ \textcolor{comment}{//\ \ Base58Check\ encoding}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00044}00044\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00046}00046\ \textcolor{keyword}{namespace\ }\{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00047}00047\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ BASE58\_ALPHABET[]\ =\ \textcolor{stringliteral}{"{}123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00048}00048\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00050}00050\ QString\ MultiChainWallet::base58Check(\textcolor{keyword}{const}\ QByteArray\&\ payload)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00051}00051\ \ \ \ \ \textcolor{comment}{//\ Append\ 4-\/byte\ checksum}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00052}00052\ \ \ \ \ QByteArray\ checksum\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a80d023ff288c77dd24290ab62cad269c}{crypto::doubleSha256}}(payload).left(4);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00053}00053\ \ \ \ \ QByteArray\ data\ =\ payload\ +\ checksum;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00055}00055\ \ \ \ \ \textcolor{comment}{//\ Count\ leading\ zeros}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00056}00056\ \ \ \ \ \textcolor{keywordtype}{int}\ leadingZeros\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ data.size()\ \&\&\ data[i]\ ==\ 0;\ ++i)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00058}00058\ \ \ \ \ \ \ \ \ leadingZeros++;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00060}00060\ \ \ \ \ \textcolor{comment}{//\ Convert\ to\ base58}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{comment}{//\ Work\ with\ big\ number\ represented\ as\ bytes}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00062}00062\ \ \ \ \ std::vector<uint8\_t>\ input(data.begin(),\ data.end());}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00063}00063\ \ \ \ \ std::vector<char>\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{while}\ (!input.empty())\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ remainder\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00067}00067\ \ \ \ \ \ \ \ \ std::vector<uint8\_t>\ quotient;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (uint8\_t\ \textcolor{keywordtype}{byte}\ :\ input)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ value\ =\ remainder\ *\ 256\ +\ byte;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ q\ =\ value\ /\ 58;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ remainder\ =\ value\ \%\ 58;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!quotient.empty()\ ||\ q\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ quotient.push\_back(\textcolor{keyword}{static\_cast<}uint8\_t\textcolor{keyword}{>}(q));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00074}00074\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00075}00075\ \ \ \ \ \ \ \ \ result.push\_back(BASE58\_ALPHABET[remainder]);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00076}00076\ \ \ \ \ \ \ \ \ input\ =\ quotient;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00077}00077\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00079}00079\ \ \ \ \ \textcolor{comment}{//\ Add\ leading\ '1's\ for\ leading\ zero\ bytes}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ leadingZeros;\ ++i)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00081}00081\ \ \ \ \ \ \ \ \ result.push\_back(\textcolor{charliteral}{'1'});}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00083}00083\ \ \ \ \ \textcolor{comment}{//\ Reverse}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00084}00084\ \ \ \ \ std::reverse(result.begin(),\ result.end());}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{return}\ QString::fromLatin1(result.data(),\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{int}\textcolor{keyword}{>}(result.size()));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00086}00086\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00088}00088\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00089}00089\ \textcolor{comment}{//\ \ Keccak-\/256\ (minimal\ implementation\ for\ Ethereum\ addresses)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00090}00090\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00092}00092\ \textcolor{keyword}{namespace\ }\{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00094}00094\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ uint64\_t\ KECCAK\_RC[24]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00095}00095\ \ \ \ \ 0x0000000000000001ULL,\ 0x0000000000008082ULL,\ 0x800000000000808AULL,\ 0x8000000080008000ULL,}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00096}00096\ \ \ \ \ 0x000000000000808BULL,\ 0x0000000080000001ULL,\ 0x8000000080008081ULL,\ 0x8000000000008009ULL,}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00097}00097\ \ \ \ \ 0x000000000000008AULL,\ 0x0000000000000088ULL,\ 0x0000000080008009ULL,\ 0x000000008000000AULL,}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00098}00098\ \ \ \ \ 0x000000008000808BULL,\ 0x800000000000008BULL,\ 0x8000000000008089ULL,\ 0x8000000000008003ULL,}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00099}00099\ \ \ \ \ 0x8000000000008002ULL,\ 0x8000000000000080ULL,\ 0x000000000000800AULL,\ 0x800000008000000AULL,}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00100}00100\ \ \ \ \ 0x8000000080008081ULL,\ 0x8000000000008080ULL,\ 0x0000000080000001ULL,\ 0x8000000080008008ULL,}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00101}00101\ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00103}00103\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ KECCAK\_ROTC[24]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00104}00104\ \ \ \ \ 1,3,6,10,15,21,28,36,45,55,2,14,27,41,56,8,25,43,62,18,39,61,20,44}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00105}00105\ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00107}00107\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ KECCAK\_PILN[24]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00108}00108\ \ \ \ \ 10,7,11,17,18,3,5,16,8,21,24,4,15,23,19,13,12,2,20,14,22,9,6,1}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00109}00109\ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00111}00111\ \textcolor{keyword}{inline}\ uint64\_t\ keccak\_rotl64(uint64\_t\ x,\ \textcolor{keywordtype}{int}\ n)\ \{\ \textcolor{keywordflow}{return}\ (x\ <<\ n)\ |\ (x\ >>\ (64\ -\/\ n));\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00113}00113\ \textcolor{keywordtype}{void}\ keccakF1600(uint64\_t\ st[25])\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00114}00114\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ round\ =\ 0;\ round\ <\ 24;\ ++round)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Theta}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00116}00116\ \ \ \ \ \ \ \ \ uint64\_t\ bc[5];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 5;\ ++i)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ bc[i]\ =\ st[i]\ \string^\ st[i+5]\ \string^\ st[i+10]\ \string^\ st[i+15]\ \string^\ st[i+20];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 5;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ t\ =\ bc[(i+4)\%5]\ \string^\ keccak\_rotl64(bc[(i+1)\%5],\ 1);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ 25;\ j\ +=\ 5)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ st[j+i]\ \string^=\ t;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00123}00123\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Rho\ +\ Pi}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00125}00125\ \ \ \ \ \ \ \ \ uint64\_t\ t\ =\ st[1];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 24;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ j\ =\ KECCAK\_PILN[i];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ tmp\ =\ st[j];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ st[j]\ =\ keccak\_rotl64(t,\ KECCAK\_ROTC[i]);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ t\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00131}00131\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Chi}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00133}00133\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ 25;\ j\ +=\ 5)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ tmp[5];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 5;\ ++i)\ tmp[i]\ =\ st[j+i];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 5;\ ++i)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ st[j+i]\ =\ tmp[i]\ \string^\ ((\string~tmp[(i+1)\%5])\ \&\ tmp[(i+2)\%5]);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00138}00138\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Iota}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00140}00140\ \ \ \ \ \ \ \ \ st[0]\ \string^=\ KECCAK\_RC[round];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00141}00141\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00142}00142\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00144}00144\ QByteArray\ keccak256(\textcolor{keyword}{const}\ QByteArray\&\ input)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00145}00145\ \ \ \ \ uint64\_t\ st[25]\ =\ \{\};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00146}00146\ \ \ \ \ \textcolor{keywordtype}{int}\ rate\ =\ 136;\ \textcolor{comment}{//\ (1600\ -\/\ 256*2)\ /\ 8\ bytes}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00148}00148\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ data\ =\ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }uint8\_t*\textcolor{keyword}{>}(input.constData());}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00149}00149\ \ \ \ \ \textcolor{keywordtype}{int}\ len\ =\ input.size();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00150}00150\ \ \ \ \ \textcolor{keywordtype}{int}\ offset\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00152}00152\ \ \ \ \ \textcolor{comment}{//\ Absorb}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00153}00153\ \ \ \ \ \textcolor{keywordflow}{while}\ (len\ >=\ rate)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00154}00154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ rate\ /\ 8;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ v\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ b\ =\ 0;\ b\ <\ 8;\ ++b)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ v\ |=\ \textcolor{keyword}{static\_cast<}uint64\_t\textcolor{keyword}{>}(data[offset\ +\ i*8\ +\ b])\ <<\ (b*8);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ st[i]\ \string^=\ v;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00159}00159\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00160}00160\ \ \ \ \ \ \ \ \ keccakF1600(st);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00161}00161\ \ \ \ \ \ \ \ \ offset\ +=\ rate;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00162}00162\ \ \ \ \ \ \ \ \ len\ -\/=\ rate;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00163}00163\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00165}00165\ \ \ \ \ \textcolor{comment}{//\ Pad}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00166}00166\ \ \ \ \ uint8\_t\ temp[200]\ =\ \{\};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00167}00167\ \ \ \ \ std::memcpy(temp,\ data\ +\ offset,\ len);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00168}00168\ \ \ \ \ temp[len]\ =\ 0x01;\ \ \textcolor{comment}{//\ Keccak\ padding\ (not\ SHA-\/3\ which\ uses\ 0x06)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00169}00169\ \ \ \ \ temp[rate\ -\/\ 1]\ |=\ 0x80;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ rate\ /\ 8;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00172}00172\ \ \ \ \ \ \ \ \ uint64\_t\ v\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ b\ =\ 0;\ b\ <\ 8;\ ++b)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ v\ |=\ \textcolor{keyword}{static\_cast<}uint64\_t\textcolor{keyword}{>}(temp[i*8\ +\ b])\ <<\ (b*8);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00175}00175\ \ \ \ \ \ \ \ \ st[i]\ \string^=\ v;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00176}00176\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00177}00177\ \ \ \ \ keccakF1600(st);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00179}00179\ \ \ \ \ \textcolor{comment}{//\ Squeeze\ -\/\ 32\ bytes}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00180}00180\ \ \ \ \ QByteArray\ result(32,\ \textcolor{charliteral}{'\(\backslash\)0'});}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00181}00181\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 4;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ b\ =\ 0;\ b\ <\ 8;\ ++b)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ result[i*8\ +\ b]\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}\textcolor{keyword}{>}((st[i]\ >>\ (b*8))\ \&\ 0xff);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00184}00184\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00185}00185\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00186}00186\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00188}00188\ \}\ \textcolor{comment}{//\ anonymous\ namespace}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00190}00190\ QString\ MultiChainWallet::keccak256Address(\textcolor{keyword}{const}\ QByteArray\&\ uncompressedPubkey)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00191}00191\ \ \ \ \ \textcolor{comment}{//\ ETH\ address\ =\ last\ 20\ bytes\ of\ Keccak256(pubkey[1:65])}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00192}00192\ \ \ \ \ QByteArray\ pubBytes\ =\ uncompressedPubkey.mid(1);\ \textcolor{comment}{//\ remove\ 0x04\ prefix}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00193}00193\ \ \ \ \ QByteArray\ hash\ =\ keccak256(pubBytes);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00194}00194\ \ \ \ \ QByteArray\ addr20\ =\ hash.right(20);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00196}00196\ \ \ \ \ \textcolor{comment}{//\ EIP-\/55\ checksum\ encoding}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00197}00197\ \ \ \ \ QString\ addrHex\ =\ addr20.toHex().toLower();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00198}00198\ \ \ \ \ QByteArray\ hashOfAddr\ =\ keccak256(addrHex.toLatin1());}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00200}00200\ \ \ \ \ QString\ checksummed\ =\ \textcolor{stringliteral}{"{}0x"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00201}00201\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 40;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00202}00202\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ hashNibble\ =\ (\textcolor{keyword}{static\_cast<}uint8\_t\textcolor{keyword}{>}(hashOfAddr[i/2])\ >>\ ((i\ \%\ 2\ ==\ 0)\ ?\ 4\ :\ 0))\ \&\ 0xf;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00203}00203\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hashNibble\ >=\ 8)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ checksummed\ +=\ addrHex[i].toUpper();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00205}00205\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ checksummed\ +=\ addrHex[i];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00207}00207\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00208}00208\ \ \ \ \ \textcolor{keywordflow}{return}\ checksummed;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00209}00209\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00211}00211\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00212}00212\ \textcolor{comment}{//\ \ Derive\ all\ chains}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00213}00213\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00215}\doxymbox{\hyperlink{classomni_1_1_multi_chain_wallet_a2e854d24a1f9bd0d1dddab75b870a0ec}{00215}}\ QList<ChainAddress>\ \doxymbox{\hyperlink{classomni_1_1_multi_chain_wallet_a2e854d24a1f9bd0d1dddab75b870a0ec}{MultiChainWallet::deriveAll}}(\textcolor{keyword}{const}\ QByteArray\&\ seed,\ \textcolor{keywordtype}{int}\ count)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00216}00216\ \ \ \ \ QList<ChainAddress>\ all;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00217}00217\ \ \ \ \ all.append(deriveOmniDomains(seed,\ count));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00218}00218\ \ \ \ \ all.append(deriveBtc(seed,\ count));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00220}00220\ \ \ \ \ \textcolor{comment}{//\ ETH\ (+\ BNB,\ OP\ share\ same\ keys)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00221}00221\ \ \ \ \ all.append(deriveEthChain(seed,\ \textcolor{stringliteral}{"{}ETH"{}},\ 60,\ count));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00222}00222\ \ \ \ \ \textcolor{comment}{//\ BNB\ and\ OP\ use\ same\ derivation\ as\ ETH}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00223}00223\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ ethAddrs\ =\ deriveEthChain(seed,\ \textcolor{stringliteral}{"{}BNB"{}},\ 60,\ count);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ a\ :\ ethAddrs)\ a.chain\ =\ \textcolor{stringliteral}{"{}BNB"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00226}00226\ \ \ \ \ \ \ \ \ all.append(ethAddrs);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00227}00227\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00228}00228\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ ethAddrs\ =\ deriveEthChain(seed,\ \textcolor{stringliteral}{"{}OP"{}},\ 60,\ count);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ a\ :\ ethAddrs)\ a.chain\ =\ \textcolor{stringliteral}{"{}OP"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00231}00231\ \ \ \ \ \ \ \ \ all.append(ethAddrs);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00232}00232\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00234}00234\ \ \ \ \ \textcolor{comment}{//\ ATOM\ (Bech32\ secp256k1)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00235}00235\ \ \ \ \ all.append(deriveSecp256k1Chain(seed,\ \textcolor{stringliteral}{"{}ATOM"{}},\ 118,\ \textcolor{stringliteral}{"{}BECH32"{}},\ \textcolor{stringliteral}{"{}cosmos"{}},\ -\/1,\ count));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00237}00237\ \ \ \ \ \textcolor{comment}{//\ XRP\ (Base58Check,\ version\ 0)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00238}00238\ \ \ \ \ all.append(deriveSecp256k1Chain(seed,\ \textcolor{stringliteral}{"{}XRP"{}},\ 144,\ \textcolor{stringliteral}{"{}BASE58"{}},\ \textcolor{stringliteral}{"{}"{}},\ 0,\ count));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00240}00240\ \ \ \ \ \textcolor{comment}{//\ LTC\ (Bech32\ SegWit,\ purpose\ 84)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00241}00241\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00242}00242\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ master\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{crypto::masterKeyFromSeed}}(seed);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ QString\ path\ =\ QString(\textcolor{stringliteral}{"{}m/84'/2'/0'/0/\%1"{}}).arg(i);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \doxymbox{\hyperlink{namespacekey}{key}}\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{crypto::derivePath}}(master,\ path);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ pub\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{crypto::privateToPublicKey}}(\doxymbox{\hyperlink{namespacekey}{key}}.key);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ h160\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{crypto::hash160}}(pub);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ QString\ addr\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{crypto::pubkeyHashToAddress}}(h160,\ \textcolor{stringliteral}{"{}ltc"{}});}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_chain_address}{ChainAddress}}\ ca;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00251}00251\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a7bf0d60a23397b7e2563f4f126cb4d48}{chain}}\ =\ \textcolor{stringliteral}{"{}LTC"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_adcb39d8967b6bbd9d660d531d1d87aa9}{addressType}}\ =\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a4cc8a7068d9b35d4d81163ac06708ccc}{address}}\ =\ addr;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a1371997cf69e6466d61cbe494a928996}{derivationPath}}\ =\ path;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_acbe14b93c4c23ef382676d476ed0397a}{publicKeyHex}}\ =\ pub.toHex();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a9b6c1f068bc626d005ef2c7b5a39e244}{coinType}}\ =\ 2;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a3e4fe1fcde044196b173646c53739401}{purpose}}\ =\ 84;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00258}00258\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_af06859a126202e129c8bf0c7f3e60ea9}{index}}\ =\ i;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ all.append(ca);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00260}00260\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00261}00261\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00263}00263\ \ \ \ \ \textcolor{comment}{//\ DOGE\ (P2PKH,\ version\ 30)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00264}00264\ \ \ \ \ all.append(deriveSecp256k1Chain(seed,\ \textcolor{stringliteral}{"{}DOGE"{}},\ 3,\ \textcolor{stringliteral}{"{}P2PKH"{}},\ \textcolor{stringliteral}{"{}"{}},\ 30,\ count));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00266}00266\ \ \ \ \ \textcolor{comment}{//\ BCH\ (P2PKH,\ version\ 0)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00267}00267\ \ \ \ \ all.append(deriveSecp256k1Chain(seed,\ \textcolor{stringliteral}{"{}BCH"{}},\ 145,\ \textcolor{stringliteral}{"{}P2PKH"{}},\ \textcolor{stringliteral}{"{}"{}},\ 0,\ count));}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00268}00268\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00269}00269\ \ \ \ \ \textcolor{comment}{//\ Ed25519\ chains\ -\/\ derive\ using\ secp256k1\ path\ (simplified)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00270}00270\ \ \ \ \ \textcolor{comment}{//\ In\ production,\ these\ would\ use\ SLIP-\/10\ Ed25519,\ but\ for\ display}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00271}00271\ \ \ \ \ \textcolor{comment}{//\ we\ derive\ the\ path\ and\ show\ it\ as\ "{}Ed25519\ (secp256k1\ seed)"{}}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00272}00272\ \ \ \ \ QStringList\ ed25519Chains\ =\ \{\textcolor{stringliteral}{"{}SOL"{}},\ \textcolor{stringliteral}{"{}ADA"{}},\ \textcolor{stringliteral}{"{}DOT"{}},\ \textcolor{stringliteral}{"{}EGLD"{}},\ \textcolor{stringliteral}{"{}XLM"{}}\};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00273}00273\ \ \ \ \ QList<int>\ ed25519CoinTypes\ =\ \{501,\ 1815,\ 354,\ 508,\ 148\};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00274}00274\ \ \ \ \ QStringList\ ed25519Types\ =\ \{\textcolor{stringliteral}{"{}ED25519"{}},\ \textcolor{stringliteral}{"{}ED25519"{}},\ \textcolor{stringliteral}{"{}SS58"{}},\ \textcolor{stringliteral}{"{}BECH32"{}},\ \textcolor{stringliteral}{"{}ED25519"{}}\};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00276}00276\ \ \ \ \ \textcolor{keyword}{auto}\ master\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{crypto::masterKeyFromSeed}}(seed);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00277}00277\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c\ =\ 0;\ c\ <\ ed25519Chains.size();\ ++c)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00278}00278\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ QString\ path\ =\ QString(\textcolor{stringliteral}{"{}m/44'/\%1'/0'/0/\%2"{}}).arg(ed25519CoinTypes[c]).arg(i);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \doxymbox{\hyperlink{namespacekey}{key}}\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{crypto::derivePath}}(master,\ path);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ pub\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{crypto::privateToPublicKey}}(\doxymbox{\hyperlink{namespacekey}{key}}.key);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_chain_address}{ChainAddress}}\ ca;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a7bf0d60a23397b7e2563f4f126cb4d48}{chain}}\ =\ ed25519Chains[c];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_adcb39d8967b6bbd9d660d531d1d87aa9}{addressType}}\ =\ ed25519Types[c];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a1371997cf69e6466d61cbe494a928996}{derivationPath}}\ =\ path;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_acbe14b93c4c23ef382676d476ed0397a}{publicKeyHex}}\ =\ pub.toHex();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a9b6c1f068bc626d005ef2c7b5a39e244}{coinType}}\ =\ ed25519CoinTypes[c];}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a3e4fe1fcde044196b173646c53739401}{purpose}}\ =\ 44;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_af06859a126202e129c8bf0c7f3e60ea9}{index}}\ =\ i;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00292}00292\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Generate\ a\ representative\ address}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00293}00293\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ h160\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{crypto::hash160}}(pub);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ed25519Chains[c]\ ==\ \textcolor{stringliteral}{"{}SOL"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a4cc8a7068d9b35d4d81163ac06708ccc}{address}}\ =\ base58Check(QByteArray(1,\ \textcolor{charliteral}{'\(\backslash\)0'})\ +\ pub.left(32)).left(44);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00296}00296\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (ed25519Chains[c]\ ==\ \textcolor{stringliteral}{"{}EGLD"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a4cc8a7068d9b35d4d81163ac06708ccc}{address}}\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{crypto::pubkeyHashToAddress}}(h160,\ \textcolor{stringliteral}{"{}erd"{}});}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (ed25519Chains[c]\ ==\ \textcolor{stringliteral}{"{}ADA"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a4cc8a7068d9b35d4d81163ac06708ccc}{address}}\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{crypto::pubkeyHashToAddress}}(h160,\ \textcolor{stringliteral}{"{}addr"{}});}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00300}00300\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (ed25519Chains[c]\ ==\ \textcolor{stringliteral}{"{}DOT"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00301}00301\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a4cc8a7068d9b35d4d81163ac06708ccc}{address}}\ =\ base58Check(QByteArray(1,\ \textcolor{charliteral}{'\(\backslash\)0'})\ +\ h160).left(48);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (ed25519Chains[c]\ ==\ \textcolor{stringliteral}{"{}XLM"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.\doxymbox{\hyperlink{structomni_1_1_chain_address_a4cc8a7068d9b35d4d81163ac06708ccc}{address}}\ =\ \textcolor{stringliteral}{"{}G"{}}\ +\ pub.left(32).toHex().left(55).toUpper();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ all.append(ca);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00306}00306\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00307}00307\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00308}00308\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00309}00309\ \ \ \ \ \textcolor{keywordflow}{return}\ all;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00310}00310\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00312}00312\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00313}00313\ \textcolor{comment}{//\ \ OMNI\ 5\ PQ\ Domains}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00314}00314\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00315}00315\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00316}00316\ QList<ChainAddress>\ MultiChainWallet::deriveOmniDomains(\textcolor{keyword}{const}\ QByteArray\&\ seed,\ \textcolor{keywordtype}{int}\ count)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00317}00317\ \ \ \ \ QList<ChainAddress>\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00318}00318\ \ \ \ \ \textcolor{keyword}{struct\ }Domain\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00319}00319\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ coinType;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00320}00320\ \ \ \ \ \ \ \ \ QString\ name;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00321}00321\ \ \ \ \ \ \ \ \ QString\ algorithm;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00322}00322\ \ \ \ \ \ \ \ \ QString\ hrp;\ \ \textcolor{comment}{//\ Bech32\ human-\/readable\ prefix}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00323}00323\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00324}00324\ \ \ \ \ QList<Domain>\ domains\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00325}00325\ \ \ \ \ \ \ \ \ \{777,\ \textcolor{stringliteral}{"{}omnibus.omni"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}ML-\/DSA-\/87\ +\ ML-\/KEM-\/768"{}},\ \textcolor{stringliteral}{"{}ob"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00326}00326\ \ \ \ \ \ \ \ \ \{778,\ \textcolor{stringliteral}{"{}omnibus.love"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}ML-\/DSA-\/87\ (Dilithium-\/5)"{}},\ \textcolor{stringliteral}{"{}ob\_k1\_"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00327}00327\ \ \ \ \ \ \ \ \ \{779,\ \textcolor{stringliteral}{"{}omnibus.food"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}Falcon-\/512"{}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ob\_f5\_"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00328}00328\ \ \ \ \ \ \ \ \ \{780,\ \textcolor{stringliteral}{"{}omnibus.rent"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}SLH-\/DSA\ (SPHINCS+)"{}},\ \ \ \ \ \ \textcolor{stringliteral}{"{}ob\_d5\_"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00329}00329\ \ \ \ \ \ \ \ \ \{781,\ \textcolor{stringliteral}{"{}omnibus.vacation"{}},\ \textcolor{stringliteral}{"{}Falcon-\/Light\ /\ AES-\/128"{}},\ \ \textcolor{stringliteral}{"{}ob\_s3\_"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00330}00330\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00332}00332\ \ \ \ \ \textcolor{keyword}{auto}\ master\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{crypto::masterKeyFromSeed}}(seed);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00333}00333\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00334}00334\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ dom\ :\ domains)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00335}00335\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00336}00336\ \ \ \ \ \ \ \ \ \ \ \ \ QString\ path\ =\ QString(\textcolor{stringliteral}{"{}m/44'/\%1'/0'/0/\%2"{}}).arg(dom.coinType).arg(i);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00337}00337\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ key\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{crypto::derivePath}}(master,\ path);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00338}00338\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ pub\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{crypto::privateToPublicKey}}(key.key);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00339}00339\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ h160\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{crypto::hash160}}(pub);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00340}00340\ \ \ \ \ \ \ \ \ \ \ \ \ QString\ addr\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{crypto::pubkeyHashToAddress}}(h160,\ dom.hrp);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00341}00341\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00342}00342\ \ \ \ \ \ \ \ \ \ \ \ \ ChainAddress\ ca;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00343}00343\ \ \ \ \ \ \ \ \ \ \ \ \ ca.chain\ =\ \textcolor{stringliteral}{"{}OMNI"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00344}00344\ \ \ \ \ \ \ \ \ \ \ \ \ ca.domain\ =\ dom.name;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00345}00345\ \ \ \ \ \ \ \ \ \ \ \ \ ca.addressType\ =\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00346}00346\ \ \ \ \ \ \ \ \ \ \ \ \ ca.address\ =\ addr;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00347}00347\ \ \ \ \ \ \ \ \ \ \ \ \ ca.derivationPath\ =\ path;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00348}00348\ \ \ \ \ \ \ \ \ \ \ \ \ ca.publicKeyHex\ =\ pub.toHex();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00349}00349\ \ \ \ \ \ \ \ \ \ \ \ \ ca.coinType\ =\ dom.coinType;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00350}00350\ \ \ \ \ \ \ \ \ \ \ \ \ ca.purpose\ =\ 44;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00351}00351\ \ \ \ \ \ \ \ \ \ \ \ \ ca.index\ =\ i;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00352}00352\ \ \ \ \ \ \ \ \ \ \ \ \ result.append(ca);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00353}00353\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00354}00354\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00355}00355\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00356}00356\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00358}00358\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00359}00359\ \textcolor{comment}{//\ \ BTC\ 4\ address\ types}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00360}00360\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00361}00361\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00362}00362\ QList<ChainAddress>\ MultiChainWallet::deriveBtc(\textcolor{keyword}{const}\ QByteArray\&\ seed,\ \textcolor{keywordtype}{int}\ count)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00363}00363\ \ \ \ \ QList<ChainAddress>\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00364}00364\ \ \ \ \ \textcolor{keyword}{auto}\ master\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{crypto::masterKeyFromSeed}}(seed);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00366}00366\ \ \ \ \ \textcolor{keyword}{struct\ }BtcType\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00367}00367\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ purpose;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00368}00368\ \ \ \ \ \ \ \ \ QString\ addressType;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00369}00369\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00370}00370\ \ \ \ \ QList<BtcType>\ types\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00371}00371\ \ \ \ \ \ \ \ \ \{44,\ \textcolor{stringliteral}{"{}LEGACY\_P2PKH"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00372}00372\ \ \ \ \ \ \ \ \ \{49,\ \textcolor{stringliteral}{"{}SEGWIT\_P2SH"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00373}00373\ \ \ \ \ \ \ \ \ \{84,\ \textcolor{stringliteral}{"{}NATIVE\_SEGWIT"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00374}00374\ \ \ \ \ \ \ \ \ \{86,\ \textcolor{stringliteral}{"{}TAPROOT"{}}\},}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00375}00375\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00376}00376\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00377}00377\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ bt\ :\ types)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00378}00378\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00379}00379\ \ \ \ \ \ \ \ \ \ \ \ \ QString\ path\ =\ QString(\textcolor{stringliteral}{"{}m/\%1'/0'/0'/0/\%2"{}}).arg(bt.purpose).arg(i);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00380}00380\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ key\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{crypto::derivePath}}(master,\ path);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00381}00381\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ pub\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{crypto::privateToPublicKey}}(key.key);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00382}00382\ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ h160\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{crypto::hash160}}(pub);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00383}00383\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00384}00384\ \ \ \ \ \ \ \ \ \ \ \ \ ChainAddress\ ca;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00385}00385\ \ \ \ \ \ \ \ \ \ \ \ \ ca.chain\ =\ \textcolor{stringliteral}{"{}BTC"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00386}00386\ \ \ \ \ \ \ \ \ \ \ \ \ ca.addressType\ =\ bt.addressType;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00387}00387\ \ \ \ \ \ \ \ \ \ \ \ \ ca.derivationPath\ =\ path;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00388}00388\ \ \ \ \ \ \ \ \ \ \ \ \ ca.publicKeyHex\ =\ pub.toHex();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00389}00389\ \ \ \ \ \ \ \ \ \ \ \ \ ca.coinType\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00390}00390\ \ \ \ \ \ \ \ \ \ \ \ \ ca.purpose\ =\ bt.purpose;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00391}00391\ \ \ \ \ \ \ \ \ \ \ \ \ ca.index\ =\ i;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00392}00392\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00393}00393\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (bt.purpose\ ==\ 44)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00394}00394\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Legacy\ P2PKH:\ 1...}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00395}00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.address\ =\ base58Check(QByteArray(1,\ \textcolor{stringliteral}{'\(\backslash\)x00'})\ +\ h160);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00396}00396\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (bt.purpose\ ==\ 49)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00397}00397\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ SegWit\ P2SH:\ 3...}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00398}00398\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ redeem\ =\ QByteArray(\textcolor{stringliteral}{"{}\(\backslash\)x00\(\backslash\)x14"{}},\ 2)\ +\ h160;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00399}00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ redeemHash\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{crypto::hash160}}(redeem);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00400}00400\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.address\ =\ base58Check(QByteArray(1,\ \textcolor{stringliteral}{'\(\backslash\)x05'})\ +\ redeemHash);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00401}00401\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (bt.purpose\ ==\ 84)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00402}00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Native\ SegWit:\ bc1q...}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00403}00403\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.address\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{crypto::pubkeyHashToAddress}}(h160,\ \textcolor{stringliteral}{"{}bc"{}});}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00404}00404\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (bt.purpose\ ==\ 86)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00405}00405\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Taproot:\ bc1p...\ (x-\/only\ pubkey)}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00406}00406\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QByteArray\ xOnly\ =\ pub.mid(1,\ 32);\ \textcolor{comment}{//\ remove\ prefix\ byte}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00407}00407\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Bech32m\ with\ witness\ version\ 1}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00408}00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Simplified:\ use\ pubkey\ hash\ for\ now}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00409}00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.address\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{crypto::pubkeyHashToAddress}}(h160,\ \textcolor{stringliteral}{"{}bc"{}});}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ca.address.replace(\textcolor{stringliteral}{"{}bc1q"{}},\ \textcolor{stringliteral}{"{}bc1p"{}});\ \textcolor{comment}{//\ taproot\ indicator}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00411}00411\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00412}00412\ \ \ \ \ \ \ \ \ \ \ \ \ result.append(ca);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00413}00413\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00414}00414\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00415}00415\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00416}00416\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00417}00417\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00418}00418\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00419}00419\ \textcolor{comment}{//\ \ Generic\ secp256k1\ chain}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00420}00420\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00421}00421\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00422}00422\ QList<ChainAddress>\ MultiChainWallet::deriveSecp256k1Chain(}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00423}00423\ \ \ \ \ \textcolor{keyword}{const}\ QByteArray\&\ seed,\ \textcolor{keyword}{const}\ QString\&\ chain,\ \textcolor{keywordtype}{int}\ coinType,}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00424}00424\ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ addressType,\ \textcolor{keyword}{const}\ QString\&\ hrp,\ \textcolor{keywordtype}{int}\ versionByte,\ \textcolor{keywordtype}{int}\ count)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00425}00425\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00426}00426\ \ \ \ \ QList<ChainAddress>\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00427}00427\ \ \ \ \ \textcolor{keyword}{auto}\ master\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{crypto::masterKeyFromSeed}}(seed);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00428}00428\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00429}00429\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00430}00430\ \ \ \ \ \ \ \ \ QString\ path\ =\ QString(\textcolor{stringliteral}{"{}m/44'/\%1'/0'/0/\%2"{}}).arg(coinType).arg(i);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00431}00431\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ key\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{crypto::derivePath}}(master,\ path);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00432}00432\ \ \ \ \ \ \ \ \ QByteArray\ pub\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{crypto::privateToPublicKey}}(key.key);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00433}00433\ \ \ \ \ \ \ \ \ QByteArray\ h160\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{crypto::hash160}}(pub);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00434}00434\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00435}00435\ \ \ \ \ \ \ \ \ ChainAddress\ ca;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00436}00436\ \ \ \ \ \ \ \ \ ca.chain\ =\ chain;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00437}00437\ \ \ \ \ \ \ \ \ ca.addressType\ =\ addressType;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00438}00438\ \ \ \ \ \ \ \ \ ca.derivationPath\ =\ path;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00439}00439\ \ \ \ \ \ \ \ \ ca.publicKeyHex\ =\ pub.toHex();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00440}00440\ \ \ \ \ \ \ \ \ ca.coinType\ =\ coinType;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00441}00441\ \ \ \ \ \ \ \ \ ca.purpose\ =\ 44;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00442}00442\ \ \ \ \ \ \ \ \ ca.index\ =\ i;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00443}00443\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00444}00444\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!hrp.isEmpty())\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ ca.address\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{crypto::pubkeyHashToAddress}}(h160,\ hrp);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00446}00446\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00447}00447\ \ \ \ \ \ \ \ \ \ \ \ \ ca.address\ =\ base58Check(QByteArray(1,\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}\textcolor{keyword}{>}(versionByte))\ +\ h160);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00448}00448\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00449}00449\ \ \ \ \ \ \ \ \ result.append(ca);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00450}00450\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00451}00451\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00452}00452\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00453}00453\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00454}00454\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00455}00455\ \textcolor{comment}{//\ \ Ethereum\ /\ EVM\ chains}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00456}00456\ \textcolor{comment}{//\ ══════════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00457}00457\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00458}00458\ QList<ChainAddress>\ MultiChainWallet::deriveEthChain(}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00459}00459\ \ \ \ \ \textcolor{keyword}{const}\ QByteArray\&\ seed,\ \textcolor{keyword}{const}\ QString\&\ chain,\ \textcolor{keywordtype}{int}\ coinType,\ \textcolor{keywordtype}{int}\ count)}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00460}00460\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00461}00461\ \ \ \ \ QList<ChainAddress>\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00462}00462\ \ \ \ \ \textcolor{keyword}{auto}\ master\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{crypto::masterKeyFromSeed}}(seed);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00463}00463\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00464}00464\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00465}00465\ \ \ \ \ \ \ \ \ QString\ path\ =\ QString(\textcolor{stringliteral}{"{}m/44'/\%1'/0'/0/\%2"{}}).arg(coinType).arg(i);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00466}00466\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ key\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{crypto::derivePath}}(master,\ path);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00467}00467\ \ \ \ \ \ \ \ \ QByteArray\ pub\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a55f28e9f746c45b54a9a3b4bc4c600f7}{crypto::privateToUncompressedPublicKey}}(key.key);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00468}00468\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00469}00469\ \ \ \ \ \ \ \ \ ChainAddress\ ca;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00470}00470\ \ \ \ \ \ \ \ \ ca.chain\ =\ chain;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00471}00471\ \ \ \ \ \ \ \ \ ca.addressType\ =\ \textcolor{stringliteral}{"{}EOA"{}};}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00472}00472\ \ \ \ \ \ \ \ \ ca.address\ =\ keccak256Address(pub);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00473}00473\ \ \ \ \ \ \ \ \ ca.derivationPath\ =\ path;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00474}00474\ \ \ \ \ \ \ \ \ ca.publicKeyHex\ =\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{crypto::privateToPublicKey}}(key.key).toHex();}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00475}00475\ \ \ \ \ \ \ \ \ ca.coinType\ =\ coinType;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00476}00476\ \ \ \ \ \ \ \ \ ca.purpose\ =\ 44;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00477}00477\ \ \ \ \ \ \ \ \ ca.index\ =\ i;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00478}00478\ \ \ \ \ \ \ \ \ result.append(ca);}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00479}00479\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00480}00480\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00481}00481\ \}}
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00482}00482\ }
+\DoxyCodeLine{\Hypertarget{_multi_chain_8cpp_source_l00483}00483\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

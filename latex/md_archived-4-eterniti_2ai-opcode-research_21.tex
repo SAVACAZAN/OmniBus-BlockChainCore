@@ -1,0 +1,1068 @@
+\chapter{Omni\+Bus Blockchain -\/ OPCODES \& CONSTANTS REFERENCE }
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21}{}\label{md_archived-4-eterniti_2ai-opcode-research_21}\index{OmniBus Blockchain -\/ OPCODES \& CONSTANTS REFERENCE@{OmniBus Blockchain -\/ OPCODES \& CONSTANTS REFERENCE}}
+\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md25}%
+\Hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md25}%
+
+
+\begin{quote}
+{\bfseries{Scop:\+}} Referință centralizată pentru toate opcodurile, constantele, enum-\/urile și codurile de mesaje. {\bfseries{Generat automat la:\+}} 2026-\/03-\/31 20:\+27:\+26 {\bfseries{Scanat de:\+}} \doxylink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py} \end{quote}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md27}{}\doxysection{\texorpdfstring{⚠️ NOTĂ}{⚠️ NOTĂ}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md27}
+Acest document este generat automat de {\ttfamily \doxylink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py}}. Pentru a actualiza, rulează:\+ {\ttfamily python \doxylink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py} -\/-\/update}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md29}{}\doxysection{\texorpdfstring{📊 CONSTANTE DESCOPERITE}{📊 CONSTANTE DESCOPERITE}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md29}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md30}{}\doxysubsection{\texorpdfstring{core\textbackslash{}bech32.\+zig}{core\textbackslash{}bech32.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md30}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily OB\+\_\+\+HRP}  &{\ttfamily "{}ob"{}}  &─── Omni\+Bus convenience ────────────────────────────────────...  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md31}{}\doxysubsection{\texorpdfstring{core\textbackslash{}binary\+\_\+codec.\+zig}{core\textbackslash{}binary\+\_\+codec.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md31}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Sub\+Block}  &{\ttfamily sub\+\_\+block\+\_\+mod.\+Sub\+Block}  &\\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md32}{}\doxysubsection{\texorpdfstring{core\textbackslash{}bip32\+\_\+wallet.\+zig}{core\textbackslash{}bip32\+\_\+wallet.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md32}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily DOMAINS} \texorpdfstring{$\vert$}{|} {\ttfamily \+[\+\_\+]\+Domain\{ .\{ .name = "{}omnibus.\+omni"{}, .algorithm = "{}Dilithium-\/5 + Kyber-\/768"{}, .prefix...} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md33}{}\doxysubsection{\texorpdfstring{core\textbackslash{}block.\+zig}{core\textbackslash{}block.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md33}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+BLOCK\+\_\+\+SIZE}  &{\ttfamily usize = 1\+\_\+048\+\_\+576}  &/\+ Maximum block size in bytes (1 MB, like Dogecoin/\+\+Bitcoin l...  \\
+{\ttfamily MAX\+\_\+\+BLOCK\+\_\+\+TX}  &{\ttfamily usize = 4\+\_\+096}  &/\+ Maximum transactions per block /\+ Reduced from 10,000 to 4,...  \\
+{\ttfamily Merkle\+Proof}  &{\ttfamily light\+\_\+client\+\_\+mod.\+Merkle\+Proof}  &\\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md34}{}\doxysubsection{\texorpdfstring{core\textbackslash{}block\+\_\+filter.\+zig}{core\textbackslash{}block\+\_\+filter.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md34}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Filter\+Type} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ Basic filter:\+ all script\+Pub\+Keys + OP\+\_\+\+RETURN data basic = 0, /\+/\+/\+ Extend...} \texorpdfstring{$\vert$}{|} unlike BIP-\/37 Bloom filters which leak address info. /\+ Filte... \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md35}{}\doxysubsection{\texorpdfstring{core\textbackslash{}blockchain.\+zig}{core\textbackslash{}blockchain.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md35}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily BLOCK\+\_\+\+REWARD\+\_\+\+SAT}  &{\ttfamily u64 = 8\+\_\+333\+\_\+333}  &/\+ Block reward:\+ 0.\+08333333 OMNI in SAT (9 decimale:\+ 1 OMNI =...  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &\\
+{\ttfamily COINBASE\+\_\+\+MATURITY}  &{\ttfamily u32 = 100}  &/\+ Coinbase maturity:\+ block rewards nu pot fi cheltuite inain...  \\
+{\ttfamily DUST\+\_\+\+THRESHOLD\+\_\+\+SAT}  &{\ttfamily u64 = 100}  &/\+ Dust threshold:\+ TX cu amount sub aceasta valoare sunt resp...  \\
+{\ttfamily FEE\+\_\+\+BURN\+\_\+\+PCT}  &{\ttfamily u64 = 50}  &/\+ Fee burn percentage (0-\/100):\+ ce procent din fees se ard (c...  \\
+{\ttfamily HALVING\+\_\+\+INTERVAL}  &{\ttfamily u64 = 126\+\_\+144\+\_\+000}  &4 ani × 365.\+25 zile × 86400 sec/\+zi  \\
+{\ttfamily MAX\+\_\+\+DIFFICULTY}  &{\ttfamily u32 = 256}  &\\
+{\ttfamily MAX\+\_\+\+ORPHAN\+\_\+\+POOL}  &{\ttfamily usize = 64}  &/\+ Maximum orphan blocks kept in the pool (prevent memory exh...  \\
+{\ttfamily MAX\+\_\+\+REORG\+\_\+\+DEPTH}  &{\ttfamily usize = 100}  &/\+ Maximum reorg depth:\+ deeper chain reorganizations are reje...  \\
+{\ttfamily MAX\+\_\+\+SUPPLY\+\_\+\+SAT}  &{\ttfamily u64 = 21\+\_\+000\+\_\+000\+\_\+000\+\_\+000\+\_\+000}  &/\+ Numarul total de SAT emisi vreodata:\+ 21,000,000 × 10\texorpdfstring{$^\wedge$}{\string^}9 = 2...  \\
+{\ttfamily MIN\+\_\+\+DIFFICULTY}  &{\ttfamily u32 = 1}  &/\+ Dificultate minima si maxima permisa /\+ Extended range:\+ MAX...  \\
+{\ttfamily RETARGET\+\_\+\+INTERVAL}  &{\ttfamily u64 = 2016}  &/\+ Difficulty retarget:\+ la fiecare 2016 blocuri (ca Bitcoin)  \\
+{\ttfamily TARGET\+\_\+\+BLOCK\+\_\+\+TIME\+\_\+S}  &{\ttfamily i64 = 1}  &/\+ Timp tinta per bloc:\+ 1 secunda (Omni\+Bus block time)  \\
+{\ttfamily TARGET\+\_\+\+INTERVAL\+\_\+S}  &{\ttfamily i64 = @int\+Cast(\+RETARGET\+\_\+\+INTERVAL)}  &/\+ Timp tinta total pentru un interval retarget:\+ 2016 secunde...  \\
+{\ttfamily TX\+\_\+\+MIN\+\_\+\+FEE}  &{\ttfamily u64 = 1}  &/\+ Minimum fee per transaction (1 SAT anti-\/spam, same as memp...  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md36}{}\doxysubsection{\texorpdfstring{core\textbackslash{}blockchain\+\_\+v2.\+zig}{core\textbackslash{}blockchain\+\_\+v2.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md36}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Archive\+Manager}  &{\ttfamily archive\+\_\+manager\+\_\+mod.\+Archive\+Manager}  &\\
+{\ttfamily Binary\+Decoder}  &{\ttfamily binary\+\_\+codec.\+Binary\+Decoder}  &\\
+{\ttfamily Binary\+Encoder}  &{\ttfamily binary\+\_\+codec.\+Binary\+Encoder}  &\\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &\\
+{\ttfamily Prune\+Config}  &{\ttfamily prune\+\_\+config.\+Prune\+Config}  &\\
+{\ttfamily Prune\+Stats}  &{\ttfamily prune\+\_\+config.\+Prune\+Stats}  &\\
+{\ttfamily Shard\+Config}  &{\ttfamily shard\+\_\+config.\+Shard\+Config}  &\\
+{\ttfamily Sub\+Block}  &{\ttfamily sub\+\_\+block\+\_\+mod.\+Sub\+Block}  &\\
+{\ttfamily Sub\+Block\+Engine}  &{\ttfamily sub\+\_\+block\+\_\+mod.\+Sub\+Block\+Engine}  &\\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md37}{}\doxysubsection{\texorpdfstring{core\textbackslash{}bls\+\_\+signatures.\+zig}{core\textbackslash{}bls\+\_\+signatures.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md37}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily BLS\+\_\+\+PUBKEY\+\_\+\+SIZE}  &{\ttfamily usize = 48}  &/\+ Production:\+ replace inner crypto with actual BLS12-\/381 via...  \\
+{\ttfamily BLS\+\_\+\+SECKEY\+\_\+\+SIZE}  &{\ttfamily usize = 32}  &/\+ BLS Secret Key (32 bytes scalar)  \\
+{\ttfamily BLS\+\_\+\+SIG\+\_\+\+SIZE}  &{\ttfamily usize = 96}  &/\+ BLS Signature (96 bytes on BLS12-\/381 curve)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md38}{}\doxysubsection{\texorpdfstring{core\textbackslash{}bootstrap.\+zig}{core\textbackslash{}bootstrap.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md38}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily DISCOVERY\+\_\+\+INTERVAL\+\_\+S}  &{\ttfamily i64 = 300}  &/\+ Periodic discovery interval in seconds (5 minutes)  \\
+{\ttfamily MAX\+\_\+\+PEERS}  &{\ttfamily usize = 32}  &/\+ Maximum peers to keep in the known list  \\
+{\ttfamily MAX\+\_\+\+PEERS\+\_\+\+PER\+\_\+\+SUBNET}  &{\ttfamily usize = 2}  &/\+ Maximum peers from same /\+16 subnet (anti-\/eclipse)  \\
+{\ttfamily MIN\+\_\+\+DIVERSE\+\_\+\+PEERS}  &{\ttfamily usize = 4}  &/\+ Minimum diverse peers for eclipse attack resistance /\+ Node...  \\
+{\ttfamily MIN\+\_\+\+MINERS\+\_\+\+FOR\+\_\+\+MINING}  &{\ttfamily usize = 10}  &/\+ Check if ready to start mining /\+ Minimum miners required b...  \\
+{\ttfamily MSG\+\_\+\+GET\+\_\+\+PEERS}  &{\ttfamily u8 = 0x10}  &/\+ Mesaj PEX:\+ cerere lista de peeri  \\
+{\ttfamily MSG\+\_\+\+PEER\+\_\+\+LIST}  &{\ttfamily u8 = 0x11}  &/\+ Mesaj PEX:\+ raspuns cu lista de peeri  \\
+{\ttfamily PEERS\+\_\+\+DAT\+\_\+\+PATH}  &{\ttfamily "{}data/\+peers.\+dat"{}}  &─── B12:\+ Peer Persistence — save/\+load peers from data/\+peers....  \\
+{\ttfamily PEER\+\_\+\+TIMEOUT\+\_\+S}  &{\ttfamily i64 = 1800}  &/\+ Unresponsive peer timeout in seconds (30 minutes)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md39}{}\doxysubsection{\texorpdfstring{core\textbackslash{}bread\+\_\+ledger.\+zig}{core\textbackslash{}bread\+\_\+ledger.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md39}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily BREAD\+\_\+\+PRICE\+\_\+\+SAT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000}  &--- CONSTANTE -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---...  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Bread\+Voucher\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ pending = 0, /\+/\+ emis, neredeemed redeemed = 1, /\+/\+ redeemed la un mercha...} \texorpdfstring{$\vert$}{|} --- TIPURI -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily VOUCHER\+\_\+\+EXPIRY\+\_\+\+BLOCKS} \texorpdfstring{$\vert$}{|} {\ttfamily u64 = 30 \texorpdfstring{$\ast$}{*} 86\+\_\+400} \texorpdfstring{$\vert$}{|} /\+ Voucher expira in 30 zile = 30 \texorpdfstring{$\ast$}{*} 86400 blocuri \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md40}{}\doxysubsection{\texorpdfstring{core\textbackslash{}bridge\+\_\+relay.\+zig}{core\textbackslash{}bridge\+\_\+relay.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md40}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily BRIDGE\+\_\+\+FEE\+\_\+\+BPS}  &{\ttfamily u64 = 10}  &/\+ Fee bridge:\+ 0.\+1\% (in basis points:\+ 10/\+10000)  \\
+{\ttfamily BRIDGE\+\_\+\+MAX\+\_\+\+RELAYERS}  &{\ttfamily u8 = 9}  &\\
+{\ttfamily BRIDGE\+\_\+\+REQUIRED\+\_\+\+SIGS}  &{\ttfamily u8 = 2}  &--- CONSTANTE -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---...  \\
+{\ttfamily BRIDGE\+\_\+\+TIMEOUT\+\_\+\+BLOCKS}  &{\ttfamily u64 = 100}  &/\+ Timeout in blocuri pentru o operatie de bridge  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Bridge\+Op\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ pending = 0, /\+/\+ Initiata, asteptam confirmari confirmed = 1, /\+/\+ N/\+M rela...} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Bridge\+Op\+Type} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ lock\+\_\+and\+\_\+mint = 1, /\+/\+ Extern → OMNI:\+ lock pe \doxylink{namespacechain}{chain} extern, mint wrapped pe OMNI ...} \texorpdfstring{$\vert$}{|} --- TIPURI -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Chain\+Id} \texorpdfstring{$\vert$}{|} {\ttfamily oracle\+\_\+mod.\+Chain\+Id} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Exchange\+Id} \texorpdfstring{$\vert$}{|} {\ttfamily oracle\+\_\+mod.\+Exchange\+Id} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md41}{}\doxysubsection{\texorpdfstring{core\textbackslash{}chain\+\_\+config.\+zig}{core\textbackslash{}chain\+\_\+config.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md41}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Chain\+Id} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u32) \{ /\+/\+/\+ Mainnet Omni\+Bus mainnet = 1, /\+/\+/\+ Testnet (faucet, no real value) ...} \texorpdfstring{$\vert$}{|} /\+ -\/ Solana:\+ Cluster configs (mainnet/\+devnet/\+testnet) /\+ Cha... \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md42}{}\doxysubsection{\texorpdfstring{core\textbackslash{}compact\+\_\+blocks.\+zig}{core\textbackslash{}compact\+\_\+blocks.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md42}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+COMPACT\+\_\+\+TX}  &{\ttfamily usize = 10\+\_\+000}  &/\+ Maximum TX IDs in a compact block  \\
+{\ttfamily MAX\+\_\+\+PREFILLED}  &{\ttfamily usize = 100}  &/\+ Maximum prefilled TX in a compact block  \\
+{\ttfamily SHORT\+\_\+\+TXID\+\_\+\+SIZE}  &{\ttfamily usize = 6}  &/\+ Omni\+Bus:\+ adaptat pentru 1s blocks si sub-\/block engine /\+ Sh...  \\
+{\ttfamily SIPHASH\+\_\+\+KEY\+\_\+\+SIZE}  &{\ttfamily usize = 16}  &/\+ Sip\+Hash key size (used for short TX ID derivation)  \\
+{\ttfamily Short\+Tx\+Id}  &{\ttfamily \+[SHORT\+\_\+\+TXID\+\_\+\+SIZE]\+u8}  &/\+ Short TX ID:\+ first 6 bytes of Sip\+Hash(\+TX hash, nonce)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md43}{}\doxysubsection{\texorpdfstring{core\textbackslash{}compact\+\_\+transaction.\+zig}{core\textbackslash{}compact\+\_\+transaction.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md43}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md44}{}\doxysubsection{\texorpdfstring{core\textbackslash{}consensus.\+zig}{core\textbackslash{}consensus.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md44}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md45}{}\doxysubsection{\texorpdfstring{core\textbackslash{}dns\+\_\+registry.\+zig}{core\textbackslash{}dns\+\_\+registry.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md45}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+ENTRIES}  &{\ttfamily usize = 1024}  &/\+ Maximum registry entries (per-\/node tracking, full registry...  \\
+{\ttfamily MAX\+\_\+\+NAME\+\_\+\+LEN}  &{\ttfamily usize = 25}  &/\+ dns\+\_\+registry = human-\/readable names mapped to addresses...  \\
+{\ttfamily MIN\+\_\+\+NAME\+\_\+\+LEN}  &{\ttfamily usize = 3}  &/\+ Minimum name length  \\
+{\ttfamily REGISTER\+\_\+\+COST\+\_\+\+SAT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000}  &/\+ Registration cost in SAT (1 OMNI)  \\
+{\ttfamily RENEWAL\+\_\+\+PERIOD\+\_\+\+BLOCKS}  &{\ttfamily u64 = 31\+\_\+557\+\_\+600}  &/\+ Renewal period in blocks (\texorpdfstring{$\sim$}{\string~}1 year = 365.\+25 \texorpdfstring{$\ast$}{*} 86400 blocks ...  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md46}{}\doxysubsection{\texorpdfstring{core\textbackslash{}domain\+\_\+minter.\+zig}{core\textbackslash{}domain\+\_\+minter.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md46}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Domain\+Type} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ \doxylink{namespaceomni}{omni} = 0, /\+/\+ ob\+\_\+omni\+\_\+ — ML-\/\+KEM-\/768 — identity, non-\/transferabil k1 = 1, /\+/\+...} \texorpdfstring{$\vert$}{|} --- TIPURI -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+DOMAINS} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 65\+\_\+536} \texorpdfstring{$\vert$}{|} --- DOMAIN REGISTRY -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+LEVEL} \texorpdfstring{$\vert$}{|} {\ttfamily u8 = 100} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+NAME\+\_\+\+LEN} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 32} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md47}{}\doxysubsection{\texorpdfstring{core\textbackslash{}finality.\+zig}{core\textbackslash{}finality.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md47}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily CHECKPOINT\+\_\+\+INTERVAL}  &{\ttfamily u64 = 64}  &/\+ -\/ Finalized blocks can NEVER be reverted (unlike Po\+W-\/onl...  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Checkpoint\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ Proposed but not yet justified Pending = 0, /\+/\+/\+ Justified:\+ 2/\+3+ valida...} \texorpdfstring{$\vert$}{|} /\+ Checkpoint status \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+CHECKPOINTS} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 256} \texorpdfstring{$\vert$}{|} /\+ Maximum number of tracked checkpoints \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+VALIDATORS} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 128} \texorpdfstring{$\vert$}{|} /\+ Maximum validators \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SOFT\+\_\+\+FINALITY\+\_\+\+CONFIRMS} \texorpdfstring{$\vert$}{|} {\ttfamily u32 = 6} \texorpdfstring{$\vert$}{|} /\+ Minimum confirmations for soft finality (like Bitcoin\textquotesingle{}s 6 ... \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md48}{}\doxysubsection{\texorpdfstring{core\textbackslash{}genesis.\+zig}{core\textbackslash{}genesis.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md48}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &\\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &\\
+{\ttfamily GENESIS\+\_\+\+HASH}  &{\ttfamily "{}0000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8"{}}  &/\+ Hash genesis — deterministic, hardcodat dupa primul calcul...  \\
+{\ttfamily GENESIS\+\_\+\+MESSAGE}  &{\ttfamily "{}26/\+\+Mar/\+2026 Omni\+Bus born — 600x faster than Bitcoin — Ada Spark verified — ob\+\_\+omni\+\_\+"{}}  &/\+ Mesajul embedded in genesis — dovada ca blocul nu a fost p...  \\
+{\ttfamily GENESIS\+\_\+\+TIMESTAMP}  &{\ttfamily i64 = 1\+\_\+743\+\_\+000\+\_\+000}  &/\+ Timestamp Unix fix pentru genesis (26 Mar 2026 00:\+00:\+00 UT...  \\
+{\ttfamily GENESIS\+\_\+\+VERSION}  &{\ttfamily u32 = 1}  &/\+ Versiunea protocolului la genesis  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md49}{}\doxysubsection{\texorpdfstring{core\textbackslash{}governance.\+zig}{core\textbackslash{}governance.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md49}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+PROPOSALS}  &{\ttfamily usize = 256}  &/\+ Maximum proposals tracked  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Proposal\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ In perioada de depozit (asteapta quorum de deposit) Deposit\+Period = 0, ...} \texorpdfstring{$\vert$}{|} /\+ Starea unei propuneri \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Proposal\+Type} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ Schimbarea unui parametru numeric (fee\+\_\+burn\+\_\+pct, ubi\+\_\+rate, etc.) Param\+Chan...} \texorpdfstring{$\vert$}{|} /\+ EGLD (governance staking), Bitcoin BIP9 (vers... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Vote} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ Yes = 1, No = 2, Abstain = 3, No\+With\+Veto = 4, /\+/\+ No + propunere sa fie...} \texorpdfstring{$\vert$}{|} /\+ Un vot pe o propunere \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md50}{}\doxysubsection{\texorpdfstring{core\textbackslash{}guardian.\+zig}{core\textbackslash{}guardian.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md50}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily GUARDIAN\+\_\+\+ACTIVATION\+\_\+\+DELAY}  &{\ttfamily u64 = 20\+\_\+000}  &/\+ Activare delayed:\+ 20 epochs (previne hijacking instant) /\+ ...  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Guardian\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ Not yet active (in activation delay) pending = 0, /\+/\+/\+ Active — require...} \texorpdfstring{$\vert$}{|} /\+ Guardian status \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+GUARDED\+\_\+\+ACCOUNTS} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 4096} \texorpdfstring{$\vert$}{|} /\+ Maximum accounts tracked \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+GUARDIANS} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 3} \texorpdfstring{$\vert$}{|} /\+ Maximum guardians per account (for future multi-\/guardian) \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md51}{}\doxysubsection{\texorpdfstring{core\textbackslash{}hex\+\_\+utils.\+zig}{core\textbackslash{}hex\+\_\+utils.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md51}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+NONCE}  &{\ttfamily u64 = 4\+\_\+294\+\_\+967\+\_\+296}  &/\+ Maximum nonce for PoW mining (2\texorpdfstring{$^\wedge$}{\string^}32, shared constant)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md52}{}\doxysubsection{\texorpdfstring{core\textbackslash{}kademlia\+\_\+dht.\+zig}{core\textbackslash{}kademlia\+\_\+dht.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md52}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily ALPHA}  &{\ttfamily usize = 3}  &/\+ Alpha:\+ parallel lookups  \\
+{\ttfamily BUCKET\+\_\+\+REFRESH\+\_\+\+INTERVAL}  &{\ttfamily u64 = 3600}  &/\+ Refresh interval in blocks \texorpdfstring{$\sim$}{\string~}1 hour at 1 block/\+s  \\
+{\ttfamily K\+\_\+\+BUCKET\+\_\+\+SIZE}  &{\ttfamily usize = 20}  &/\+ K-\/bucket size (max peers per bucket)  \\
+{\ttfamily MAX\+\_\+\+DHT\+\_\+\+NODES}  &{\ttfamily usize = 256}  &/\+ Max tracked nodes total  \\
+{\ttfamily NODE\+\_\+\+ID\+\_\+\+SIZE}  &{\ttfamily usize = 20}  &/\+ Omni\+Bus:\+ Kademlia for peer discovery + fallback to seed no...  \\
+{\ttfamily NUM\+\_\+\+BUCKETS}  &{\ttfamily usize = 160}  &/\+ Number of buckets (160 for 160-\/bit IDs)  \\
+{\ttfamily Node\+Id}  &{\ttfamily \+[NODE\+\_\+\+ID\+\_\+\+SIZE]\+u8}  &/\+ DHT Node ID  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md53}{}\doxysubsection{\texorpdfstring{core\textbackslash{}main.\+zig}{core\textbackslash{}main.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md53}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Miner\+Wallet\+Pool}  &{\ttfamily miner\+\_\+wallet\+\_\+mod.\+Miner\+Wallet\+Pool}  &── Global Miner Wallet Pool — shared intre RPC thread si min...  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md54}{}\doxysubsection{\texorpdfstring{core\textbackslash{}mempool.\+zig}{core\textbackslash{}mempool.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md54}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MEMPOOL\+\_\+\+EXPIRY\+\_\+\+SEC}  &{\ttfamily i64 = 14 \texorpdfstring{$\ast$}{*} 24 \texorpdfstring{$\ast$}{*} 3600}  &/\+ Expiry time:\+ TX neconfirmata dupa 14 zile e stearsa (ca Bi...  \\
+{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+BYTES}  &{\ttfamily usize = 1\+\_\+048\+\_\+576}  &1 MB per block worth  \\
+{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+MEMORY}  &{\ttfamily usize = 314\+\_\+572\+\_\+800}  &300 MB total (ca Bitcoin Core)  \\
+{\ttfamily MEMPOOL\+\_\+\+MAX\+\_\+\+TX}  &{\ttfamily usize = 10\+\_\+000}  &/\+ Limite mempool  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Mempool\+Error} \texorpdfstring{$\vert$}{|} {\ttfamily error\{ Full, Tx\+Too\+Large, Tx\+Invalid, Tx\+Duplicate, Fee\+Too\+Low, \}} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily TX\+\_\+\+MAX\+\_\+\+BYTES} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 512} \texorpdfstring{$\vert$}{|} max 512 bytes per TX \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily TX\+\_\+\+MIN\+\_\+\+FEE\+\_\+\+SAT} \texorpdfstring{$\vert$}{|} {\ttfamily u64 = 1} \texorpdfstring{$\vert$}{|} min 1 SAT fee (anti-\/spam) \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Transaction} \texorpdfstring{$\vert$}{|} {\ttfamily transaction\+\_\+mod.\+Transaction} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md55}{}\doxysubsection{\texorpdfstring{core\textbackslash{}metachain.\+zig}{core\textbackslash{}metachain.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md55}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Cross\+Shard\+Phase} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ phase1\+\_\+debit = 1, /\+/\+ Suma scăzută din \doxylink{namespaceshard}{shard} sursei phase2\+\_\+credit = 2, /\+/\+ ...} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily METACHAIN\+\_\+\+SHARD} \texorpdfstring{$\vert$}{|} {\ttfamily shard\+\_\+coord\+\_\+mod.\+METACHAIN\+\_\+\+SHARD} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Shard\+Coordinator} \texorpdfstring{$\vert$}{|} {\ttfamily shard\+\_\+coord\+\_\+mod.\+Shard\+Coordinator} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md56}{}\doxysubsection{\texorpdfstring{core\textbackslash{}multisig.\+zig}{core\textbackslash{}multisig.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md56}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+SIGNATURES}  &{\ttfamily usize = 16}  &/\+ Maximum signatures that can be collected  \\
+{\ttfamily MAX\+\_\+\+SIGNERS}  &{\ttfamily usize = 16}  &/\+ Maximum signers in a multisig scheme  \\
+{\ttfamily MULTISIG\+\_\+\+PREFIX}  &{\ttfamily "{}ob\+\_\+ms\+\_\+"{}}  &/\+ Multi\+Sig address prefix (like Bitcoin P2\+SH "{}3..."{})  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md57}{}\doxysubsection{\texorpdfstring{core\textbackslash{}node\+\_\+launcher.\+zig}{core\textbackslash{}node\+\_\+launcher.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md57}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MIN\+\_\+\+PEERS\+\_\+\+FOR\+\_\+\+MINING}  &{\ttfamily usize = 10}  &/\+ Minimum peers/\+miners required before mining can start /\+ Bl...  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md58}{}\doxysubsection{\texorpdfstring{core\textbackslash{}omni\+\_\+brain.\+zig}{core\textbackslash{}omni\+\_\+brain.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md58}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Node\+Type} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ full\+\_\+node = 0, /\+/\+ toate 7 OS-\/uri active light\+\_\+node = 1, /\+/\+ doar Inf...} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Os\+Mode} \texorpdfstring{$\vert$}{|} {\ttfamily os\+\_\+mode\+\_\+mod.\+Os\+Mode} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Os\+Mode\+Manager} \texorpdfstring{$\vert$}{|} {\ttfamily os\+\_\+mode\+\_\+mod.\+Os\+Mode\+Manager} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Supply\+Guard} \texorpdfstring{$\vert$}{|} {\ttfamily spark\+\_\+mod.\+Supply\+Guard} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Synapse\+Scheduler} \texorpdfstring{$\vert$}{|} {\ttfamily synapse\+\_\+mod.\+Synapse\+Scheduler} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md59}{}\doxysubsection{\texorpdfstring{core\textbackslash{}oracle.\+zig}{core\textbackslash{}oracle.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md59}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily CHAINS}  &{\ttfamily usize = 20}  &\\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Chain\+Id} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ \doxylink{namespaceomni}{omni} = 0, btc = 1, eth = 2, egld = 3, sol = 4, ada =...} \texorpdfstring{$\vert$}{|} --- TIPURI -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Exchange\+Id} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ binance = 0, kraken = 1, coinbase = 2, lcx = 3, bybit =...} \texorpdfstring{$\vert$}{|} /\+ Exchange-\/urile de pe care vin preturile \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+EXCHANGES} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 9} \texorpdfstring{$\vert$}{|} --- ORACLE -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+PRICE\+\_\+\+AGE\+\_\+\+MS} \texorpdfstring{$\vert$}{|} {\ttfamily i64 = 60\+\_\+000} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md60}{}\doxysubsection{\texorpdfstring{core\textbackslash{}os\+\_\+mode.\+zig}{core\textbackslash{}os\+\_\+mode.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md60}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Mode\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ inactive = 0, starting = 1, active = 2, suspended = 3, error\+\_\+...} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Os\+Mode} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ Modul de executie ultra-\/low-\/latency (\texorpdfstring{$<$}{<}40µs per ciclu) execution = 0, ...} \texorpdfstring{$\vert$}{|} --- TIPURI -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md61}{}\doxysubsection{\texorpdfstring{core\textbackslash{}p2p.\+zig}{core\textbackslash{}p2p.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md61}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &\\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &\\
+{\ttfamily Gossip\+Block\+Payload}  &{\ttfamily Msg\+Block\+Announce}  &/\+ Gossip Block payload:\+ block announce + block hash for rela...  \\
+{\ttfamily MAX\+\_\+\+BANNED\+\_\+\+PEERS}  &{\ttfamily usize = 256}  &/\+ Max banned peers tracked  \\
+{\ttfamily MAX\+\_\+\+INBOUND}  &{\ttfamily usize = 32}  &─── P2P Hardening Constants ────────────────────────────────...  \\
+{\ttfamily MAX\+\_\+\+OUTBOUND}  &{\ttfamily usize = 8}  &/\+ Max outbound connections  \\
+{\ttfamily MAX\+\_\+\+PEERS}  &{\ttfamily usize = MAX\+\_\+\+INBOUND + MAX\+\_\+\+OUTBOUND}  &/\+ Max total peers (inbound + outbound)  \\
+{\ttfamily MAX\+\_\+\+PEERS\+\_\+\+PER\+\_\+\+SUBNET}  &{\ttfamily usize = 2}  &/\+ Max peers from same /\+16 subnet (anti-\/eclipse)  \\
+{\ttfamily MAX\+\_\+\+RECONNECT\+\_\+\+ATTEMPTS}  &{\ttfamily u8 = 3}  &/\+ Max reconnect attempts before removing a peer  \\
+{\ttfamily MIN\+\_\+\+SUBNET\+\_\+\+DIVERSITY}  &{\ttfamily usize = 4}  &/\+ Minimum distinct /\+16 subnets for diversity  \\
+{\ttfamily MSG\+\_\+\+HEADER\+\_\+\+SIZE}  &{\ttfamily usize = 9}  &\+[6-\/7]\+ checksum u16 — sum simplu al payload (anti-\/corupt...  \\
+{\ttfamily Message\+Type}  &{\ttfamily network\+\_\+mod.\+Message\+Type}  &\\
+{\ttfamily Network\+Node}  &{\ttfamily network\+\_\+mod.\+Network\+Node}  &\\
+{\ttfamily P2\+P\+\_\+\+CONNECT\+\_\+\+TIMEOUT\+\_\+\+MS}  &{\ttfamily u64 = 3\+\_\+000}  &/\+ Timeout conexiune TCP in ms  \\
+{\ttfamily P2\+P\+\_\+\+MAX\+\_\+\+MSG\+\_\+\+BYTES}  &{\ttfamily u32 = 1\+\_\+048\+\_\+576}  &/\+ Marimea maxima a unui mesaj P2P (1 MB)  \\
+{\ttfamily P2\+P\+\_\+\+PORT\+\_\+\+DEFAULT}  &{\ttfamily u16 = 8333}  &/\+ Port implicit P2P (diferit de RPC 8332)  \\
+{\ttfamily P2\+P\+\_\+\+READ\+\_\+\+TIMEOUT\+\_\+\+MS}  &{\ttfamily u64 = 5\+\_\+000}  &/\+ Timeout citire in ms  \\
+{\ttfamily P2\+P\+\_\+\+VERSION}  &{\ttfamily u8 = 1}  &/\+ Versiunea protocolului P2P  \\
+{\ttfamily PEX\+\_\+\+MAX\+\_\+\+PEERS}  &{\ttfamily usize = 100}  &Wire format for peer\+\_\+list:\+ \+[count:\+u16\+LE]\+\+[peer0:\+ ip4+port\+\_\+le...  \\
+{\ttfamily PEX\+\_\+\+PEER\+\_\+\+SIZE}  &{\ttfamily usize = 6}  &4 bytes IP + 2 bytes port  \\
+{\ttfamily RATE\+\_\+\+LIMIT\+\_\+\+BAN\+\_\+\+SCORE}  &{\ttfamily i32 = 50}  &/\+ Ban score added when rate limit is exceeded  \\
+{\ttfamily RATE\+\_\+\+LIMIT\+\_\+\+BYTES\+\_\+\+PER\+\_\+\+SEC}  &{\ttfamily u64 = 10 \texorpdfstring{$\ast$}{*} 1024 \texorpdfstring{$\ast$}{*} 1024}  &/\+ Rate limit:\+ max bytes per second per peer (10 MB)  \\
+{\ttfamily RATE\+\_\+\+LIMIT\+\_\+\+MSG\+\_\+\+PER\+\_\+\+SEC}  &{\ttfamily u32 = 100}  &/\+ Rate limit:\+ max messages per second per peer  \\
+{\ttfamily RECONNECT\+\_\+\+DELAY\+\_\+\+SEC}  &{\ttfamily i64 = 30}  &/\+ Delay before reconnect attempt (seconds)  \\
+{\ttfamily SPV\+\_\+\+HEADER\+\_\+\+SIZE}  &{\ttfamily usize = 124}  &\+[num\+\_\+hash\+\_\+funcs:\+ u8]\+\+[bits:\+ 512 bytes]\+ = 513 bytes /\+ Size ...  \\
+{\ttfamily SPV\+\_\+\+MAX\+\_\+\+HEADERS\+\_\+\+PER\+\_\+\+MSG}  &{\ttfamily u32 = 2000}  &/\+ Max headers per batch  \\
+{\ttfamily Sync\+Manager}  &{\ttfamily sync\+\_\+mod.\+Sync\+Manager}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md62}{}\doxysubsection{\texorpdfstring{core\textbackslash{}payment\+\_\+channel.\+zig}{core\textbackslash{}payment\+\_\+channel.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md62}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Channel\+State} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ opening = 0, /\+/\+ Funding TX submitted, waiting for confirmations open = 1, ...} \texorpdfstring{$\vert$}{|} /\+ Channel lifecycle states \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily DISPUTE\+\_\+\+WINDOW\+\_\+\+BLOCKS} \texorpdfstring{$\vert$}{|} {\ttfamily u64 = 144} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+CHANNELS} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 64} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+CHANNEL\+\_\+\+AMOUNT} \texorpdfstring{$\vert$}{|} {\ttfamily u64 = 21\+\_\+000\+\_\+000 \texorpdfstring{$\ast$}{*} 1\+\_\+000\+\_\+000\+\_\+000} \texorpdfstring{$\vert$}{|} 21M OMNI in SAT \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily MAX\+\_\+\+HTLCS\+\_\+\+PER\+\_\+\+CHANNEL} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 16} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SAT\+\_\+\+PER\+\_\+\+OMNI} \texorpdfstring{$\vert$}{|} {\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md63}{}\doxysubsection{\texorpdfstring{core\textbackslash{}peer\+\_\+scoring.\+zig}{core\textbackslash{}peer\+\_\+scoring.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md63}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily BAN\+\_\+\+DURATION\+\_\+\+SEC}  &{\ttfamily i64 = 86400}  &/\+ Ban duration in seconds 24 ore  \\
+{\ttfamily BAN\+\_\+\+THRESHOLD}  &{\ttfamily i32 = -\/100}  &/\+ ETH:\+ peer reputation in Dev\+P2P /\+ Ban threshold — peer bann...  \\
+{\ttfamily MAX\+\_\+\+TRACKED\+\_\+\+PEERS}  &{\ttfamily usize = 256}  &/\+ Maximum tracked peers  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md64}{}\doxysubsection{\texorpdfstring{core\textbackslash{}pq\+\_\+crypto.\+zig}{core\textbackslash{}pq\+\_\+crypto.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md64}
+\texorpdfstring{$\vert$}{|} Constantă \texorpdfstring{$\vert$}{|} Valoare \texorpdfstring{$\vert$}{|} Descriere \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|}-\/-\/-\/-\/-\/-\/-\/-\/---\texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily CIPHERTEXT\+\_\+\+SIZE} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 1088} \texorpdfstring{$\vert$}{|} u (k\texorpdfstring{$\ast$}{*}256\texorpdfstring{$\ast$}{*}du/\+8=960) \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} v (256\texorpdfstring{$\ast$}{*}dv/\+8=128) \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Kyber768} \texorpdfstring{$\vert$}{|} {\ttfamily Ml\+Kem768} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 4896} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 1281} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 128} \texorpdfstring{$\vert$}{|} SK.\+seed (32) \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} SK.\+prf (32) \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} PK.\+seed (32) \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} PK.\+root (32) \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SECRET\+\_\+\+KEY\+\_\+\+SIZE} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 2400} \texorpdfstring{$\vert$}{|} s\+\_\+hat (1152) \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} pk (1184) \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} H(pk) (32) \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} z (32) \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SHARED\+\_\+\+SECRET\+\_\+\+SIZE} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 32} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SIGNATURE\+\_\+\+MAX} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 4627} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SIGNATURE\+\_\+\+MAX} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 752} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SIGNATURE\+\_\+\+MAX} \texorpdfstring{$\vert$}{|} {\ttfamily usize = 29792} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily SPHINCSPlus} \texorpdfstring{$\vert$}{|} {\ttfamily Slh\+Dsa256s} \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md65}{}\doxysubsection{\texorpdfstring{core\textbackslash{}psbt.\+zig}{core\textbackslash{}psbt.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md65}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily PSBT\+\_\+\+MAGIC}  &{\ttfamily \+[4]\+u8\{ \textquotesingle{}p\textquotesingle{}, \textquotesingle{}s\textquotesingle{}, \textquotesingle{}b\textquotesingle{}, \textquotesingle{}t\textquotesingle{} \}}  &Global:\+ unsigned TX Per-\/input:\+ partial signatures, pubkeys, ...  \\
+{\ttfamily PSBT\+\_\+\+SEPARATOR}  &{\ttfamily 0x\+FF}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md66}{}\doxysubsection{\texorpdfstring{core\textbackslash{}rpc\+\_\+server.\+zig}{core\textbackslash{}rpc\+\_\+server.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md66}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &\\
+{\ttfamily Metrics}  &{\ttfamily benchmark\+\_\+mod.\+Metrics}  &\\
+{\ttfamily RPCContext}  &{\ttfamily Server\+Ctx}  &/\+ Context public expus utilizatorilor externi (alias la Serv...  \\
+{\ttfamily Wallet}  &{\ttfamily wallet\+\_\+mod.\+Wallet}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md67}{}\doxysubsection{\texorpdfstring{core\textbackslash{}script.\+zig}{core\textbackslash{}script.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md67}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+MULTISIG\+\_\+\+SCRIPT\+\_\+\+LEN}  &{\ttfamily usize = 3 + 20 \texorpdfstring{$\ast$}{*} 34}  &/\+ Returns the lock script and its actual length. /\+ Max size:\+...  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Op\+Code} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+ Constants OP\+\_\+0 = 0x00, OP\+\_\+1 = 0x51, OP\+\_\+2 = 0x52, OP\+\_\+3 = 0x53, ...} \texorpdfstring{$\vert$}{|} ─── Op\+Code — Bitcoin-\/compatible script opcodes ─────────────... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Script\+Error} \texorpdfstring{$\vert$}{|} {\ttfamily error\{ Stack\+Overflow, Stack\+Underflow, Invalid\+Script, Invalid\+Opcode, Verify\+Fai...} \texorpdfstring{$\vert$}{|} ─── Script Errors ──────────────────────────────────────────... \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md68}{}\doxysubsection{\texorpdfstring{core\textbackslash{}secp256k1.\+zig}{core\textbackslash{}secp256k1.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md68}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Compressed\+Pubkey}  &{\ttfamily \+[33]\+u8}  &/\+ Compressed public key (33 bytes):\+ 0x02/\+0x03 + X  \\
+{\ttfamily Private\+Key}  &{\ttfamily \+[32]\+u8}  &/\+ Private key (32 bytes)  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Signature} \texorpdfstring{$\vert$}{|} {\ttfamily \+[64]\+u8} \texorpdfstring{$\vert$}{|} /\+ ECDSA signature (64 bytes:\+ R \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} S) \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md69}{}\doxysubsection{\texorpdfstring{core\textbackslash{}shard\+\_\+config.\+zig}{core\textbackslash{}shard\+\_\+config.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md69}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Sub\+Block}  &{\ttfamily sub\+\_\+block\+\_\+mod.\+Sub\+Block}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md70}{}\doxysubsection{\texorpdfstring{core\textbackslash{}shard\+\_\+coordinator.\+zig}{core\textbackslash{}shard\+\_\+coordinator.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md70}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+SHARDS}  &{\ttfamily u8 = 32}  &\\
+{\ttfamily METACHAIN\+\_\+\+SHARD}  &{\ttfamily u8 = 0x\+FF}  &\\
+{\ttfamily SHARD\+\_\+\+MERGE\+\_\+\+THRESHOLD}  &{\ttfamily u8 = 20}  &\% capacitate → merge  \\
+{\ttfamily SHARD\+\_\+\+SPLIT\+\_\+\+THRESHOLD}  &{\ttfamily u8 = 80}  &\% capacitate → split  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md71}{}\doxysubsection{\texorpdfstring{core\textbackslash{}spark\+\_\+invariants.\+zig}{core\textbackslash{}spark\+\_\+invariants.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md71}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily BLOCK\+\_\+\+TIME\+\_\+\+MS}  &{\ttfamily u64 = 1\+\_\+000}  &/\+ Block time în milisecunde  \\
+{\ttfamily HALVING\+\_\+\+INTERVAL}  &{\ttfamily u64 = 126\+\_\+144\+\_\+000}  &/\+ Intervalul de halving:\+ 126.\+144.\+000 blocuri (\texorpdfstring{$\sim$}{\string~}4 ani la 1 bl...  \\
+{\ttfamily INITIAL\+\_\+\+REWARD\+\_\+\+SAT}  &{\ttfamily u64 = 83\+\_\+333\+\_\+333}  &/\+ Reward inițial per bloc:\+ 0.\+08333333 OMNI = 83\+\_\+333\+\_\+333 nano...  \\
+{\ttfamily MAX\+\_\+\+HALVINGS}  &{\ttfamily u64 = 64}  &/\+ Numărul maxim de halvings înainte ca reward → 0  \\
+{\ttfamily MAX\+\_\+\+SUPPLY\+\_\+\+SAT}  &{\ttfamily u64 = 21\+\_\+000\+\_\+000 \texorpdfstring{$\ast$}{*} 1\+\_\+000\+\_\+000\+\_\+000}  &cu Spark annotation:\+ pragma Assert (Max\+\_\+\+Supply = 21\+\_\+000\+\_\+000\+\_\+...  \\
+{\ttfamily MICRO\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+KEY}  &{\ttfamily u64 = BLOCK\+\_\+\+TIME\+\_\+\+MS /\+ MICRO\+\_\+\+BLOCK\+\_\+\+TIME\+\_\+\+MS}  &/\+ Numărul de micro-\/blocuri per Key-\/\+Block  \\
+{\ttfamily MICRO\+\_\+\+BLOCK\+\_\+\+TIME\+\_\+\+MS}  &{\ttfamily u64 = 100}  &/\+ Micro-\/block time în milisecunde  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md72}{}\doxysubsection{\texorpdfstring{core\textbackslash{}staking.\+zig}{core\textbackslash{}staking.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md72}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily DOWNTIME\+\_\+\+PENALTY\+\_\+\+PCT}  &{\ttfamily u64 = 1}  &/\+ Only 1\% for extended downtime — NOT a punitive slash, just...  \\
+{\ttfamily MAX\+\_\+\+SLASH\+\_\+\+RECORDS}  &{\ttfamily usize = 64}  &/\+ Maximum slash records per validator  \\
+{\ttfamily MAX\+\_\+\+TOTAL\+\_\+\+SLASH\+\_\+\+RECORDS}  &{\ttfamily usize = 512}  &/\+ Maximum total slash records stored in the engine  \\
+{\ttfamily MAX\+\_\+\+VALIDATORS}  &{\ttfamily usize = 128}  &/\+ Maximum validators in active set  \\
+{\ttfamily MIN\+\_\+\+SLASH\+\_\+\+AMOUNT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000}  &/\+ Minimum amount that can be slashed (0.\+001 OMNI = 1\+\_\+000\+\_\+000...  \\
+{\ttfamily MIN\+\_\+\+UPTIME\+\_\+\+PCT}  &{\ttfamily u8 = 95}  &/\+ Minimum uptime percentage to avoid downtime slashing  \\
+{\ttfamily REPORTER\+\_\+\+REWARD\+\_\+\+PCT}  &{\ttfamily u64 = 10}  &/\+ Reporter receives 10\% of the slashed amount as reward  \\
+{\ttfamily REWARD\+\_\+\+EPOCH\+\_\+\+BLOCKS}  &{\ttfamily u64 = 100}  &/\+ Epochs between reward distributions  \\
+{\ttfamily SLASH\+\_\+\+DOUBLE\+\_\+\+SIGN\+\_\+\+PCT}  &{\ttfamily u64 = 33}  &/\+ Lose 33\% of stake for double-\/signing (cryptographic proof ...  \\
+{\ttfamily SLASH\+\_\+\+DOWNTIME\+\_\+\+PERMILLE}  &{\ttfamily u64 = 10}  &/\+ Slashing percentage for downtime — 0.\+1\% (1/\+1000) — legacy ...  \\
+{\ttfamily SLASH\+\_\+\+EQUIVOCATION\+\_\+\+PCT}  &{\ttfamily u64 = SLASH\+\_\+\+DOUBLE\+\_\+\+SIGN\+\_\+\+PCT}  &/\+ Legacy alias — kept for backward compatibility with existi...  \\
+{\ttfamily SLASH\+\_\+\+INVALID\+\_\+\+BLOCK\+\_\+\+PCT}  &{\ttfamily u64 = 10}  &/\+ Lose 10\% of stake for submitting provably invalid block  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Slash\+Reason} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ Signed 2 different blocks at same height — cryptographic proof required do...} \texorpdfstring{$\vert$}{|} NEVER punish normal users or honest miners. /\+ Slash reason —... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily UNBONDING\+\_\+\+PERIOD} \texorpdfstring{$\vert$}{|} {\ttfamily u64 = 604\+\_\+800} \texorpdfstring{$\vert$}{|} /\+ Unbonding period in blocks (7 days at 1 block/\+sec = 604800... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily VALIDATOR\+\_\+\+MIN\+\_\+\+STAKE} \texorpdfstring{$\vert$}{|} {\ttfamily u64 = 100\+\_\+000\+\_\+000\+\_\+000} \texorpdfstring{$\vert$}{|} /\+ -\/ Solana:\+ SOL delegation to validators /\+ Minimum stake t... \texorpdfstring{$\vert$}{|} \texorpdfstring{$\vert$}{|} {\ttfamily Validator\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ /\+/\+/\+ Registered but not yet active (in queue) pending = 0, /\+/\+/\+ Active valid...} \texorpdfstring{$\vert$}{|} /\+ Validator status \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md73}{}\doxysubsection{\texorpdfstring{core\textbackslash{}sub\+\_\+block.\+zig}{core\textbackslash{}sub\+\_\+block.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md73}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Block}  &{\ttfamily blockchain\+\_\+mod.\+Block}  &\\
+{\ttfamily SUB\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+BLOCK}  &{\ttfamily u8 = 10}  &/\+ Numarul de sub-\/blocuri per bloc principal  \\
+{\ttfamily SUB\+\_\+\+BLOCK\+\_\+\+INTERVAL\+\_\+\+MS}  &{\ttfamily u64 = 75}  &/\+ Intervalul unui sub-\/bloc in ms 10×75ms=750ms + \texorpdfstring{$\sim$}{\string~}250ms over...  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md74}{}\doxysubsection{\texorpdfstring{core\textbackslash{}synapse\+\_\+priority.\+zig}{core\textbackslash{}synapse\+\_\+priority.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md74}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+TASKS}  &{\ttfamily usize = 256}  &--- SYNAPSE SCHEDULER -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---...  \\
+{\ttfamily Os\+Mode}  &{\ttfamily os\+\_\+mode.\+Os\+Mode}  &\\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Priority} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ realtime = 0, /\+/\+ P0:\+ Execution\+OS — nu poate fi intrerupt high = 1, ...} \texorpdfstring{$\vert$}{|} --- TIPURI -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md75}{}\doxysubsection{\texorpdfstring{core\textbackslash{}sync.\+zig}{core\textbackslash{}sync.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md75}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &\\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &p2p\+\_\+mod removed — was causing circular dependency (\doxylink{namespacep2p}{p2p} impor...  \\
+{\ttfamily MAX\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+REQ}  &{\ttfamily u16 = 128}  &/\+ Max blocuri per cerere  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md76}{}\doxysubsection{\texorpdfstring{core\textbackslash{}transaction.\+zig}{core\textbackslash{}transaction.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md76}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+OP\+\_\+\+RETURN}  &{\ttfamily usize = 80}  &/\+ Maximum OP\+\_\+\+RETURN data size (80 bytes, same as Bitcoin)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md77}{}\doxysubsection{\texorpdfstring{core\textbackslash{}tx\+\_\+receipt.\+zig}{core\textbackslash{}tx\+\_\+receipt.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md77}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily EVENT\+\_\+\+APPROVAL}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x8C, 0x5B, 0x\+E1, 0x\+E5 \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &\\
+{\ttfamily EVENT\+\_\+\+SLASH}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x3B, 0x88, 0x1E, 0x5D \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &\\
+{\ttfamily EVENT\+\_\+\+STAKE}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x\+E1, 0x\+FF, 0x\+FC, 0x\+C4 \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &\\
+{\ttfamily EVENT\+\_\+\+TRANSFER}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x\+A9, 0x05, 0x9C, 0x\+BB \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &/\+ Standard event type IDs (fixed, deterministic)  \\
+{\ttfamily MAX\+\_\+\+EVENTS}  &{\ttfamily usize = 16}  &/\+ Ca EGLD:\+ smart contract events /\+ Maximum events per transa...  \\
+{\ttfamily MAX\+\_\+\+EVENT\+\_\+\+DATA}  &{\ttfamily usize = 256}  &/\+ Maximum data bytes per event  \\
+{\ttfamily MAX\+\_\+\+TOPICS}  &{\ttfamily usize = 4}  &/\+ Maximum topics per event  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Tx\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ success = 1, failure = 0, pending = 2, \}} \texorpdfstring{$\vert$}{|} /\+ Transaction execution status \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md78}{}\doxysubsection{\texorpdfstring{core\textbackslash{}ubi\+\_\+distributor.\+zig}{core\textbackslash{}ubi\+\_\+distributor.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md78}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily MAX\+\_\+\+BENEFICIARIES}  &{\ttfamily usize = 1\+\_\+000\+\_\+000\+\_\+000}  &\\
+{\ttfamily UBI\+\_\+\+DAILY\+\_\+\+SAT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000}  &/\+ UBI zilnic per beneficiar in Ciclul 1 (in SAT) /\+ 1 OMNI/\+zi...  \\
+{\ttfamily UBI\+\_\+\+EPOCH\+\_\+\+BLOCKS}  &{\ttfamily u64 = 126\+\_\+144}  &/\+ Epoch UBI:\+ la cate blocuri se face distributia /\+ 126144 bl...  \\
+{\ttfamily UBI\+\_\+\+PER\+\_\+\+EPOCH\+\_\+\+SAT}  &{\ttfamily u64 = UBI\+\_\+\+DAILY\+\_\+\+SAT \texorpdfstring{$\ast$}{*} UBI\+\_\+\+EPOCH\+\_\+\+BLOCKS /\+ 86\+\_\+400}  &/\+ UBI per epoch (proportional cu epoch length) /\+ UBI\+\_\+\+DAILY\+\_\+S...  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md79}{}\doxysubsection{\texorpdfstring{core\textbackslash{}vault\+\_\+engine.\+zig}{core\textbackslash{}vault\+\_\+engine.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md79}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily DOUBLE\+\_\+\+FACTOR\+\_\+\+PCT}  &{\ttfamily u64 = 200}  &/\+ Factor de dublare:\+ NAV \texorpdfstring{$>$}{>}= deposit \texorpdfstring{$\ast$}{*} DOUBLE\+\_\+\+FACTOR → return...  \\
+{\ttfamily VAULT\+\_\+\+MIN\+\_\+\+LEVEL}  &{\ttfamily u8 = 100}  &--- CONSTANTE -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---...  \\
+{\ttfamily VAULT\+\_\+\+PROTOCOL\+\_\+\+FEE\+\_\+\+PCT}  &{\ttfamily u64 = 10}  &/\+ Fee Vault:\+ 10\% din profit merge la protocol (restul 90\% → ...  \\
+\end{DoxyTable}
+\texorpdfstring{$\vert$}{|} {\ttfamily Vault\+Position\+Status} \texorpdfstring{$\vert$}{|} {\ttfamily enum(u8) \{ active = 0, doubled = 1, /\+/\+ Capitalul returnat, profitul in UBI pool ...} \texorpdfstring{$\vert$}{|} --- TIPURI -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---... \texorpdfstring{$\vert$}{|}\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md80}{}\doxysubsection{\texorpdfstring{core\textbackslash{}ws\+\_\+server.\+zig}{core\textbackslash{}ws\+\_\+server.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md80}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily WS\+\_\+\+PORT}  &{\ttfamily u16 = 8334}  &/\+ Port Web\+Socket (diferit de RPC 8332 si P2P 8333)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md81}{}\doxysubsection{\texorpdfstring{test\textbackslash{}blockchain\+\_\+test.\+zig}{test\textbackslash{}blockchain\+\_\+test.\+zig}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md81}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &\\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &\\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &\\
+{\ttfamily Wallet}  &{\ttfamily wallet\+\_\+mod.\+Wallet}  &\\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md82}{}\doxysection{\texorpdfstring{🔢 ENUM-\/\+URI}{🔢 ENUM-\/\+URI}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md82}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md83}{}\doxysubsection{\texorpdfstring{Bread\+Voucher\+Status}{Bread\+Voucher\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md83}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}bread\+\_\+ledger.\+zig} (linia 26)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily pending}  &0  &emis, neredeemed  \\
+{\ttfamily redeemed}  &1  &redeemed la un merchant  \\
+{\ttfamily expired}  &2  &expirat nefolosit  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md84}{}\doxysubsection{\texorpdfstring{Bridge\+Op\+Status}{Bridge\+Op\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md84}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}bridge\+\_\+relay.\+zig} (linia 40)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily pending}  &0  &Initiata, asteptam confirmari  \\
+{\ttfamily confirmed}  &1  &N/\+M relayeri au confirmat  \\
+{\ttfamily executed}  &2  &Executata (mint/\+redeem facut)  \\
+{\ttfamily failed}  &3  &Timeout sau eroare  \\
+{\ttfamily refunded}  &4  &Returnat utilizatorului  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md85}{}\doxysubsection{\texorpdfstring{Bridge\+Op\+Type}{Bridge\+Op\+Type}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md85}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}bridge\+\_\+relay.\+zig} (linia 35)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily lock\+\_\+and\+\_\+mint}  &1  &Extern → OMNI:\+ lock pe chain extern, mint wrapped pe OMNI  \\
+{\ttfamily burn\+\_\+and\+\_\+redeem}  &2  &OMNI → Extern:\+ burn wrapped pe OMNI, redeem pe chain extern  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md86}{}\doxysubsection{\texorpdfstring{Chain\+Id}{Chain\+Id}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md86}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}chain\+\_\+config.\+zig} (linia 13)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily mainnet}  &1  &-\/  \\
+{\ttfamily testnet}  &2  &-\/  \\
+{\ttfamily devnet}  &3  &-\/  \\
+{\ttfamily regtest}  &4  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md87}{}\doxysubsection{\texorpdfstring{Chain\+Id}{Chain\+Id}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md87}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}oracle.\+zig} (linia 17)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily \doxylink{namespaceomni}{omni}}  &0  &-\/  \\
+{\ttfamily btc}  &1  &-\/  \\
+{\ttfamily eth}  &2  &-\/  \\
+{\ttfamily egld}  &3  &-\/  \\
+{\ttfamily sol}  &4  &-\/  \\
+{\ttfamily ada}  &5  &-\/  \\
+{\ttfamily dot}  &6  &-\/  \\
+{\ttfamily avax}  &7  &-\/  \\
+{\ttfamily matic}  &8  &-\/  \\
+{\ttfamily bnb}  &9  &-\/  \\
+{\ttfamily atom}  &10  &-\/  \\
+{\ttfamily near}  &11  &-\/  \\
+{\ttfamily ftm}  &12  &-\/  \\
+{\ttfamily one}  &13  &-\/  \\
+{\ttfamily zil}  &14  &-\/  \\
+{\ttfamily algo}  &15  &-\/  \\
+{\ttfamily xlm}  &16  &-\/  \\
+{\ttfamily xrp}  &17  &-\/  \\
+{\ttfamily ltc}  &18  &-\/  \\
+{\ttfamily doge}  &19  &-\/  \\
+{\ttfamily pub fn name(self:\+ Chain\+Id) \+[]\+const u8 \{}  &19  &-\/  \\
+{\ttfamily return switch (self) \{}  &20  &-\/  \\
+{\ttfamily .\doxylink{namespaceomni}{omni}}  &\texorpdfstring{$>$}{>} "{}\+OMNI"{}  &-\/  \\
+{\ttfamily .egld}  &\texorpdfstring{$>$}{>} "{}\+EGLD"{}  &-\/  \\
+{\ttfamily .dot}  &\texorpdfstring{$>$}{>} "{}\+DOT"{}  &-\/  \\
+{\ttfamily .bnb}  &\texorpdfstring{$>$}{>} "{}\+BNB"{}  &-\/  \\
+{\ttfamily .ftm}  &\texorpdfstring{$>$}{>} "{}\+FTM"{}  &-\/  \\
+{\ttfamily .algo}  &\texorpdfstring{$>$}{>} "{}\+ALGO"{}  &-\/  \\
+{\ttfamily .ltc}  &\texorpdfstring{$>$}{>} "{}\+LTC"{}  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md88}{}\doxysubsection{\texorpdfstring{Channel\+State}{Channel\+State}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md88}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}lightning.\+zig} (linia 18)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily opening, /\+/\+ Funding TX broadcast, waiting for confirmations}  &0  &-\/  \\
+{\ttfamily active, /\+/\+ Channel is open, can route payments}  &1  &-\/  \\
+{\ttfamily closing, /\+/\+ Cooperative close initiated}  &2  &-\/  \\
+{\ttfamily force\+\_\+closing, /\+/\+ Unilateral close (dispute period)}  &3  &-\/  \\
+{\ttfamily closed, /\+/\+ Channel fully closed on-\/chain}  &4  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md89}{}\doxysubsection{\texorpdfstring{Channel\+State}{Channel\+State}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md89}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}payment\+\_\+channel.\+zig} (linia 25)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily opening}  &0  &Funding TX submitted, waiting for confirmations  \\
+{\ttfamily open}  &1  &Active — off-\/chain payments possible  \\
+{\ttfamily closing}  &2  &One party initiated close, dispute window active  \\
+{\ttfamily settled}  &3  &Final balances on-\/chain, channel done  \\
+{\ttfamily disputed}  &4  &Counterparty submitted old state, challenger responded  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md90}{}\doxysubsection{\texorpdfstring{Checkpoint\+Status}{Checkpoint\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md90}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}finality.\+zig} (linia 30)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Pending}  &0  &-\/  \\
+{\ttfamily Justified}  &1  &-\/  \\
+{\ttfamily Finalized}  &2  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md91}{}\doxysubsection{\texorpdfstring{Conn\+Direction}{Conn\+Direction}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md91}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}p2p.\+zig} (linia 341)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily inbound}  &0  &-\/  \\
+{\ttfamily outbound}  &1  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md92}{}\doxysubsection{\texorpdfstring{Consensus\+Type}{Consensus\+Type}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md92}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}consensus.\+zig} (linia 8)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Proof\+Of\+Work}  &0  &-\/  \\
+{\ttfamily Majority\+Vote}  &1  &-\/  \\
+{\ttfamily PBFT}  &2  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md93}{}\doxysubsection{\texorpdfstring{Cross\+Shard\+Phase}{Cross\+Shard\+Phase}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md93}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}metachain.\+zig} (linia 43)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily phase1\+\_\+debit}  &1  &Suma scăzută din shard sursei  \\
+{\ttfamily phase2\+\_\+credit}  &2  &Suma creditată în shard destinației  \\
+{\ttfamily finalized}  &3  &Ambele faze complete  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md94}{}\doxysubsection{\texorpdfstring{Domain\+Algorithm}{Domain\+Algorithm}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md94}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}pq\+\_\+crypto.\+zig} (linia 535)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Ml\+Dsa87, Falcon512, Slh\+Dsa256s}  &0  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md95}{}\doxysubsection{\texorpdfstring{Domain\+Type}{Domain\+Type}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md95}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}domain\+\_\+minter.\+zig} (linia 20)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily \doxylink{namespaceomni}{omni}}  &0  &ob\+\_\+omni\+\_\+ — ML-\/\+KEM-\/768 — identity, non-\/transferabil  \\
+{\ttfamily k1}  &1  &ob\+\_\+k1\+\_\+ — Dilithium-\/5  \\
+{\ttfamily f5}  &2  &ob\+\_\+f5\+\_\+ — Falcon-\/512  \\
+{\ttfamily d5}  &3  &ob\+\_\+d5\+\_\+ — SLH-\/\+DSA — archival, non-\/transferabil  \\
+{\ttfamily s3}  &4  &ob\+\_\+s3\+\_\+ — Falcon-\/\+Light  \\
+{\ttfamily pub fn prefix(self:\+ Domain\+Type) \+[]\+const u8 \{}  &4  &-\/  \\
+{\ttfamily return switch (self) \{}  &5  &-\/  \\
+{\ttfamily .\doxylink{namespaceomni}{omni}}  &\texorpdfstring{$>$}{>} "{}ob1q"{}  &-\/  \\
+{\ttfamily .k1}  &\texorpdfstring{$>$}{>} "{}ob\+\_\+k1\+\_\+"{}  &-\/  \\
+{\ttfamily .f5}  &\texorpdfstring{$>$}{>} "{}ob\+\_\+f5\+\_\+"{}  &-\/  \\
+{\ttfamily .d5}  &\texorpdfstring{$>$}{>} "{}ob\+\_\+d5\+\_\+"{}  &-\/  \\
+{\ttfamily .s3}  &\texorpdfstring{$>$}{>} "{}ob\+\_\+s3\+\_\+"{}  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md96}{}\doxysubsection{\texorpdfstring{Encoding}{Encoding}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md96}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}bech32.\+zig} (linia 13)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily bech32}  &0  &-\/  \\
+{\ttfamily bech32m}  &1  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md97}{}\doxysubsection{\texorpdfstring{Exchange\+Id}{Exchange\+Id}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md97}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}oracle.\+zig} (linia 53)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily binance}  &0  &-\/  \\
+{\ttfamily kraken}  &1  &-\/  \\
+{\ttfamily coinbase}  &2  &-\/  \\
+{\ttfamily lcx}  &3  &-\/  \\
+{\ttfamily bybit}  &4  &-\/  \\
+{\ttfamily okx}  &5  &-\/  \\
+{\ttfamily uniswap}  &6  &DEX  \\
+{\ttfamily raydium}  &7  &DEX Solana  \\
+{\ttfamily egld\+\_\+dex}  &8  &DEX MultiversX  \\
+{\ttfamily pub fn name(self:\+ Exchange\+Id) \+[]\+const u8 \{}  &8  &-\/  \\
+{\ttfamily return switch (self) \{}  &9  &-\/  \\
+{\ttfamily .binance}  &\texorpdfstring{$>$}{>} "{}\+Binance"{}  &-\/  \\
+{\ttfamily .kraken}  &\texorpdfstring{$>$}{>} "{}\+Kraken"{}  &-\/  \\
+{\ttfamily .coinbase}  &\texorpdfstring{$>$}{>} "{}\+Coinbase"{}  &-\/  \\
+{\ttfamily .lcx}  &\texorpdfstring{$>$}{>} "{}\+LCX"{}  &-\/  \\
+{\ttfamily .bybit}  &\texorpdfstring{$>$}{>} "{}\+Bybit"{}  &-\/  \\
+{\ttfamily .okx}  &\texorpdfstring{$>$}{>} "{}\+OKX"{}  &-\/  \\
+{\ttfamily .uniswap}  &\texorpdfstring{$>$}{>} "{}\+Uniswap"{}  &-\/  \\
+{\ttfamily .raydium}  &\texorpdfstring{$>$}{>} "{}\+Raydium"{}  &-\/  \\
+{\ttfamily .egld\+\_\+dex}  &\texorpdfstring{$>$}{>} "{}\+EGLD-\/\+DEX"{}  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md98}{}\doxysubsection{\texorpdfstring{Filter\+Type}{Filter\+Type}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md98}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}block\+\_\+filter.\+zig} (linia 20)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily basic}  &0  &-\/  \\
+{\ttfamily extended}  &1  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md99}{}\doxysubsection{\texorpdfstring{Guardian\+Status}{Guardian\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md99}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}guardian.\+zig} (linia 30)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily pending}  &0  &-\/  \\
+{\ttfamily active}  &1  &-\/  \\
+{\ttfamily removing}  &2  &-\/  \\
+{\ttfamily removed}  &3  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md100}{}\doxysubsection{\texorpdfstring{HTLCState}{HTLCState}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md100}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}htlc.\+zig} (linia 20)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily pending}  &0  &-\/  \\
+{\ttfamily active}  &1  &-\/  \\
+{\ttfamily claimed}  &2  &-\/  \\
+{\ttfamily refunded}  &3  &-\/  \\
+{\ttfamily expired}  &4  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md101}{}\doxysubsection{\texorpdfstring{Key\+Block\+State}{Key\+Block\+State}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md101}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}sub\+\_\+block.\+zig} (linia 101)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily collecting, /\+/\+ Colecteaza sub-\/blocuri (0-\/9)}  &0  &-\/  \\
+{\ttfamily complete, /\+/\+ 10/\+10 sub-\/blocuri primite}  &1  &-\/  \\
+{\ttfamily finalized, /\+/\+ Hash calculat, gata de adaugat in \doxylink{namespacechain}{chain}}  &2  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md102}{}\doxysubsection{\texorpdfstring{Knock\+Result}{Knock\+Result}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md102}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}p2p.\+zig} (linia 704)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily alone}  &0  &-\/  \\
+{\ttfamily duplicate\+\_\+ip}  &1  &-\/  \\
+{\ttfamily broadcast\+\_\+failed}  &2  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md103}{}\doxysubsection{\texorpdfstring{Message\+Type}{Message\+Type}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md103}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}network.\+zig} (linia 182)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily ping}  &0  &-\/  \\
+{\ttfamily pong}  &1  &-\/  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &2  &-\/  \\
+{\ttfamily transaction}  &3  &-\/  \\
+{\ttfamily sync\+\_\+request}  &4  &-\/  \\
+{\ttfamily sync\+\_\+response}  &5  &-\/  \\
+{\ttfamily peer\+\_\+list}  &6  &-\/  \\
+{\ttfamily mining\+\_\+start}  &7  &-\/  \\
+{\ttfamily mining\+\_\+stop}  &8  &-\/  \\
+{\ttfamily inv, /\+/\+ "{}I have these items"{} (hashes)}  &9  &-\/  \\
+{\ttfamily getdata, /\+/\+ "{}Send me these items"{}}  &10  &-\/  \\
+{\ttfamily tx\+\_\+gossip, /\+/\+ Full TX payload (gossip relay)}  &11  &-\/  \\
+{\ttfamily block\+\_\+gossip, /\+/\+ Full \doxylink{namespaceblock}{block} payload (gossip relay)}  &12  &-\/  \\
+{\ttfamily getblocks, /\+/\+ "{}What blocks do you have after hash X?"{}}  &13  &-\/  \\
+{\ttfamily get\+\_\+peers, /\+/\+ Request \doxylink{namespacepeer}{peer} list from connected \doxylink{namespacenode}{node}}  &14  &-\/  \\
+{\ttfamily getheaders\+\_\+p2p, /\+/\+ Light client requests headers from start\+\_\+height}  &15  &-\/  \\
+{\ttfamily headers\+\_\+p2p, /\+/\+ Full \doxylink{namespacenode}{node} responds with serialized headers}  &16  &-\/  \\
+{\ttfamily getmerkleproof\+\_\+p2p, /\+/\+ Light client requests Merkle proof for a TX hash}  &17  &-\/  \\
+{\ttfamily merkleproof\+\_\+p2p, /\+/\+ Full \doxylink{namespacenode}{node} responds with Merkle inclusion proof}  &18  &-\/  \\
+{\ttfamily filterload, /\+/\+ Light client sends Bloom filter to full \doxylink{namespacenode}{node}}  &19  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md104}{}\doxysubsection{\texorpdfstring{Miner\+Status}{Miner\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md104}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}light\+\_\+miner.\+zig} (linia 99)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily offline}  &0  &-\/  \\
+{\ttfamily connecting}  &1  &-\/  \\
+{\ttfamily mining}  &2  &-\/  \\
+{\ttfamily block\+\_\+found}  &3  &-\/  \\
+{\ttfamily mining\+\_\+error}  &4  &-\/  \\
+{\ttfamily shutdown}  &5  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md105}{}\doxysubsection{\texorpdfstring{Miner\+Status}{Miner\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md105}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}mining\+\_\+pool.\+zig} (linia 22)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily offline}  &0  &-\/  \\
+{\ttfamily idle}  &1  &-\/  \\
+{\ttfamily mining}  &2  &-\/  \\
+{\ttfamily submitted\+\_\+share}  &3  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md106}{}\doxysubsection{\texorpdfstring{Mode\+Status}{Mode\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md106}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}os\+\_\+mode.\+zig} (linia 51)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily inactive}  &0  &-\/  \\
+{\ttfamily starting}  &1  &-\/  \\
+{\ttfamily active}  &2  &-\/  \\
+{\ttfamily suspended}  &3  &-\/  \\
+{\ttfamily error\+\_\+state}  &4  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md107}{}\doxysubsection{\texorpdfstring{Network}{Network}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md107}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}bip32\+\_\+wallet.\+zig} (linia 12)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily mainnet, /\+/\+ "{}OMNI"{}}  &0  &-\/  \\
+{\ttfamily testnet, /\+/\+ "{}TOMNI"{}}  &1  &-\/  \\
+{\ttfamily pub fn label(self:\+ Network) \+[]\+const u8 \{}  &2  &-\/  \\
+{\ttfamily return switch (self) \{}  &3  &-\/  \\
+{\ttfamily .mainnet}  &\texorpdfstring{$>$}{>} "{}\+OMNI"{}  &-\/  \\
+{\ttfamily .testnet}  &\texorpdfstring{$>$}{>} "{}\+TOMNI"{}  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md108}{}\doxysubsection{\texorpdfstring{Node\+Mode}{Node\+Mode}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md108}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}node\+\_\+launcher.\+zig} (linia 8)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily seed, /\+/\+ Bootstrap/\+seed \doxylink{namespacenode}{node}}  &0  &-\/  \\
+{\ttfamily miner, /\+/\+ Mining participant}  &1  &-\/  \\
+{\ttfamily light, /\+/\+ SPV light client — headers only, no full blocks}  &2  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md109}{}\doxysubsection{\texorpdfstring{Node\+Status}{Node\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md109}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}bootstrap.\+zig} (linia 427)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily starting}  &0  &-\/  \\
+{\ttfamily waiting\+\_\+for\+\_\+peers}  &1  &-\/  \\
+{\ttfamily syncing}  &2  &-\/  \\
+{\ttfamily synchronized}  &3  &-\/  \\
+{\ttfamily mining}  &4  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md110}{}\doxysubsection{\texorpdfstring{Node\+Type}{Node\+Type}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md110}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}omni\+\_\+brain.\+zig} (linia 40)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily full\+\_\+node}  &0  &toate 7 OS-\/uri active  \\
+{\ttfamily light\+\_\+node}  &1  &doar Infra\+OS + Blockchain\+OS  \\
+{\ttfamily trading\+\_\+node}  &2  &Execution\+OS + Risk\+OS + Strategy\+OS + Validation\+OS  \\
+{\ttfamily validator\+\_\+node}  &3  &Validation\+OS + Governance\+OS + Blockchain\+OS  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md111}{}\doxysubsection{\texorpdfstring{Op\+Code}{Op\+Code}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md111}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}script.\+zig} (linia 9)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily OP\+\_\+0}  &0x00  &-\/  \\
+{\ttfamily OP\+\_\+1}  &0x51  &-\/  \\
+{\ttfamily OP\+\_\+2}  &0x52  &-\/  \\
+{\ttfamily OP\+\_\+3}  &0x53  &-\/  \\
+{\ttfamily OP\+\_\+\+DUP}  &0x76  &-\/  \\
+{\ttfamily OP\+\_\+\+DROP}  &0x75  &-\/  \\
+{\ttfamily OP\+\_\+\+SWAP}  &0x7c  &-\/  \\
+{\ttfamily OP\+\_\+\+SHA256}  &0xa8  &-\/  \\
+{\ttfamily OP\+\_\+\+HASH160}  &0xa9  &SHA256 + RIPEMD160  \\
+{\ttfamily OP\+\_\+\+CHECKSIG}  &0xac  &Verify ECDSA signature  \\
+{\ttfamily OP\+\_\+\+CHECKMULTISIG}  &0xae  &-\/  \\
+{\ttfamily OP\+\_\+\+EQUAL}  &0x87  &-\/  \\
+{\ttfamily OP\+\_\+\+EQUALVERIFY}  &0x88  &-\/  \\
+{\ttfamily OP\+\_\+\+VERIFY}  &0x69  &-\/  \\
+{\ttfamily OP\+\_\+\+RETURN}  &0x6a  &Marks output as unspendable data carrier  \\
+{\ttfamily OP\+\_\+\+CHECKLOCKTIMEVERIFY}  &0xb1  &BIP-\/65  \\
+{\ttfamily OP\+\_\+\+CHECKSEQUENCEVERIFY}  &0xb2  &BIP-\/112  \\
+{\ttfamily OP\+\_\+\+PUSHDATA1}  &0x4c  &-\/  \\
+{\ttfamily OP\+\_\+\+PUSHDATA2}  &0x4d  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md112}{}\doxysubsection{\texorpdfstring{Os\+Mode}{Os\+Mode}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md112}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}os\+\_\+mode.\+zig} (linia 17)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily execution}  &0  &-\/  \\
+{\ttfamily validation}  &1  &-\/  \\
+{\ttfamily strategy}  &2  &-\/  \\
+{\ttfamily risk}  &3  &-\/  \\
+{\ttfamily infra}  &4  &-\/  \\
+{\ttfamily governance}  &5  &-\/  \\
+{\ttfamily blockchain}  &6  &-\/  \\
+{\ttfamily pub fn name(self:\+ Os\+Mode) \+[]\+const u8 \{}  &6  &-\/  \\
+{\ttfamily return switch (self) \{}  &7  &-\/  \\
+{\ttfamily .execution}  &\texorpdfstring{$>$}{>} "{}\+Execution\+OS"{}  &-\/  \\
+{\ttfamily .validation}  &\texorpdfstring{$>$}{>} "{}\+Validation\+OS"{}  &-\/  \\
+{\ttfamily .strategy}  &\texorpdfstring{$>$}{>} "{}\+Strategy\+OS"{}  &-\/  \\
+{\ttfamily .risk}  &\texorpdfstring{$>$}{>} "{}\+Risk\+OS"{}  &-\/  \\
+{\ttfamily .infra}  &\texorpdfstring{$>$}{>} "{}\+Infra\+OS"{}  &-\/  \\
+{\ttfamily .governance}  &\texorpdfstring{$>$}{>} "{}\+Governance\+OS"{}  &-\/  \\
+{\ttfamily .blockchain}  &\texorpdfstring{$>$}{>} "{}\+Blockchain\+OS"{}  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md113}{}\doxysubsection{\texorpdfstring{PSBTRole}{PSBTRole}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md113}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}psbt.\+zig} (linia 25)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily unsigned, /\+/\+ Created, no signatures yet}  &0  &-\/  \\
+{\ttfamily partially\+\_\+signed, /\+/\+ Some signers have signed}  &1  &-\/  \\
+{\ttfamily fully\+\_\+signed, /\+/\+ All required signatures present}  &2  &-\/  \\
+{\ttfamily finalized, /\+/\+ Ready for broadcast}  &3  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md114}{}\doxysubsection{\texorpdfstring{Pool\+Status}{Pool\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md114}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}light\+\_\+miner.\+zig} (linia 255)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily initializing}  &0  &-\/  \\
+{\ttfamily waiting\+\_\+for\+\_\+miners}  &1  &-\/  \\
+{\ttfamily ready\+\_\+for\+\_\+genesis}  &2  &-\/  \\
+{\ttfamily genesis\+\_\+mining}  &3  &-\/  \\
+{\ttfamily mining}  &4  &-\/  \\
+{\ttfamily pool\+\_\+error}  &5  &-\/  \\
+{\ttfamily shutdown}  &6  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md115}{}\doxysubsection{\texorpdfstring{Priority}{Priority}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md115}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}synapse\+\_\+priority.\+zig} (linia 22)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily realtime}  &0  &P0:\+ Execution\+OS — nu poate fi intrerupt  \\
+{\ttfamily high}  &1  &P1:\+ Risk\+OS, Validation\+OS  \\
+{\ttfamily normal}  &2  &P3:\+ Strategy\+OS, Blockchain\+OS  \\
+{\ttfamily low}  &3  &P5:\+ Infra\+OS  \\
+{\ttfamily background}  &4  &P6:\+ Governance\+OS  \\
+{\ttfamily pub fn can\+Preempt(self:\+ Priority, other:\+ Priority) bool \{}  &4  &-\/  \\
+{\ttfamily return @int\+From\+Enum(self) \texorpdfstring{$<$}{<} @int\+From\+Enum(other);}  &5  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md116}{}\doxysubsection{\texorpdfstring{Proposal\+Status}{Proposal\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md116}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}governance.\+zig} (linia 27)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Deposit\+Period}  &0  &-\/  \\
+{\ttfamily Voting\+Active}  &1  &-\/  \\
+{\ttfamily Approved}  &2  &-\/  \\
+{\ttfamily Rejected}  &3  &-\/  \\
+{\ttfamily Expired}  &4  &-\/  \\
+{\ttfamily Executed}  &5  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md117}{}\doxysubsection{\texorpdfstring{Proposal\+Type}{Proposal\+Type}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md117}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}governance.\+zig} (linia 15)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Param\+Change}  &1  &-\/  \\
+{\ttfamily Protocol\+Upgrade}  &2  &-\/  \\
+{\ttfamily Emergency}  &3  &-\/  \\
+{\ttfamily Text\+Signal}  &4  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md118}{}\doxysubsection{\texorpdfstring{Prune\+Strategy}{Prune\+Strategy}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md118}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}prune\+\_\+config.\+zig} (linia 106)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily keep\+\_\+recent}  &0  &-\/  \\
+{\ttfamily keep\+\_\+recent\+\_\+days}  &1  &-\/  \\
+{\ttfamily keep\+\_\+after\+\_\+checkpoint}  &2  &-\/  \\
+{\ttfamily custom}  &3  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md119}{}\doxysubsection{\texorpdfstring{Result}{Result}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md119}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}consensus.\+zig} (linia 141)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Approved, Rejected, Timeout, Pending}  &0  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md120}{}\doxysubsection{\texorpdfstring{Score\+Event}{Score\+Event}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md120}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}peer\+\_\+scoring.\+zig} (linia 24)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily valid\+\_\+block}  &0  &-\/  \\
+{\ttfamily useful\+\_\+headers}  &1  &-\/  \\
+{\ttfamily ping\+\_\+response}  &2  &-\/  \\
+{\ttfamily valid\+\_\+tx}  &3  &-\/  \\
+{\ttfamily timeout}  &4  &-\/  \\
+{\ttfamily invalid\+\_\+tx}  &5  &-\/  \\
+{\ttfamily invalid\+\_\+block}  &6  &-\/  \\
+{\ttfamily malformed\+\_\+data}  &7  &-\/  \\
+{\ttfamily double\+\_\+spend\+\_\+attempt}  &8  &-\/  \\
+{\ttfamily invalid\+\_\+headers}  &9  &-\/  \\
+{\ttfamily pub fn delta(self:\+ Score\+Event) i32 \{}  &10  &-\/  \\
+{\ttfamily return switch (self) \{}  &11  &-\/  \\
+{\ttfamily .valid\+\_\+block}  &\texorpdfstring{$>$}{>} 1  &-\/  \\
+{\ttfamily .useful\+\_\+headers}  &\texorpdfstring{$>$}{>} 2  &-\/  \\
+{\ttfamily .ping\+\_\+response}  &\texorpdfstring{$>$}{>} 1  &-\/  \\
+{\ttfamily .valid\+\_\+tx}  &\texorpdfstring{$>$}{>} 1  &-\/  \\
+{\ttfamily .timeout}  &\texorpdfstring{$>$}{>} -\/5  &-\/  \\
+{\ttfamily .invalid\+\_\+tx}  &\texorpdfstring{$>$}{>} -\/10  &-\/  \\
+{\ttfamily .invalid\+\_\+block}  &\texorpdfstring{$>$}{>} -\/50  &-\/  \\
+{\ttfamily .malformed\+\_\+data}  &\texorpdfstring{$>$}{>} -\/20  &-\/  \\
+{\ttfamily .double\+\_\+spend\+\_\+attempt}  &\texorpdfstring{$>$}{>} -\/100  &-\/  \\
+{\ttfamily .invalid\+\_\+headers}  &\texorpdfstring{$>$}{>} -\/30  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md121}{}\doxysubsection{\texorpdfstring{Slash\+Reason}{Slash\+Reason}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md121}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}staking.\+zig} (linia 31)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily double\+\_\+sign}  &0  &-\/  \\
+{\ttfamily invalid\+\_\+block}  &1  &-\/  \\
+{\ttfamily downtime}  &2  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md122}{}\doxysubsection{\texorpdfstring{Socks5\+Result}{Socks5\+Result}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md122}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}tor\+\_\+proxy.\+zig} (linia 61)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily success}  &0  &-\/  \\
+{\ttfamily general\+\_\+failure}  &1  &-\/  \\
+{\ttfamily connection\+\_\+refused}  &2  &-\/  \\
+{\ttfamily network\+\_\+unreachable}  &3  &-\/  \\
+{\ttfamily host\+\_\+unreachable}  &4  &-\/  \\
+{\ttfamily ttl\+\_\+expired}  &5  &-\/  \\
+{\ttfamily command\+\_\+not\+\_\+supported}  &6  &-\/  \\
+{\ttfamily address\+\_\+type\+\_\+not\+\_\+supported}  &7  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md123}{}\doxysubsection{\texorpdfstring{Sync\+Status}{Sync\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md123}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}sync.\+zig} (linia 180)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily idle, /\+/\+ Nu sincronizeaza}  &0  &-\/  \\
+{\ttfamily requesting, /\+/\+ A trimis Get\+Headers, asteapta raspuns}  &1  &-\/  \\
+{\ttfamily downloading, /\+/\+ Primeste blocuri}  &2  &-\/  \\
+{\ttfamily synced, /\+/\+ La zi cu reteaua}  &3  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md124}{}\doxysubsection{\texorpdfstring{Tx\+Status}{Tx\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md124}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}tx\+\_\+receipt.\+zig} (linia 22)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily success}  &1  &-\/  \\
+{\ttfamily failure}  &0  &-\/  \\
+{\ttfamily pending}  &2  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md125}{}\doxysubsection{\texorpdfstring{Validator\+Status}{Validator\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md125}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}staking.\+zig} (linia 196)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily pending}  &0  &-\/  \\
+{\ttfamily active}  &1  &-\/  \\
+{\ttfamily unbonding}  &2  &-\/  \\
+{\ttfamily unbonded}  &3  &-\/  \\
+{\ttfamily slashed}  &4  &-\/  \\
+{\ttfamily jailed}  &5  &-\/  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md126}{}\doxysubsection{\texorpdfstring{Vault\+Position\+Status}{Vault\+Position\+Status}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md126}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}vault\+\_\+engine.\+zig} (linia 31)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily active}  &0  &-\/  \\
+{\ttfamily doubled}  &1  &Capitalul returnat, profitul in UBI pool  \\
+{\ttfamily withdrawn}  &2  &User a retras manual  \\
+{\ttfamily liquidated}  &3  &Pozitie lichidata (loss total)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md127}{}\doxysubsection{\texorpdfstring{Vote}{Vote}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md127}
+\texorpdfstring{$\ast$}{*}\+Fișier:\+ {\ttfamily \doxylink{namespacecore}{core}\textbackslash{}governance.\+zig} (linia 43)\texorpdfstring{$\ast$}{*}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variantă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily Yes}  &1  &-\/  \\
+{\ttfamily No}  &2  &-\/  \\
+{\ttfamily Abstain}  &3  &-\/  \\
+{\ttfamily No\+With\+Veto}  &4  &No + propunere sa fie penalizata (Cosmos-\/style)  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md128}{}\doxysection{\texorpdfstring{📨 MESSAGE TYPES (Auto-\/detectate)}{📨 MESSAGE TYPES (Auto-\/detectate)}}\label{md_archived-4-eterniti_2ai-opcode-research_21_autotoc_md128}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Cod  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Nume  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+0  &{\ttfamily ping}  &Message type ping  \\
+1  &{\ttfamily pong}  &Message type pong  \\
+2  &{\ttfamily \doxylink{namespaceblock}{block}}  &Message type block  \\
+3  &{\ttfamily transaction}  &Message type transaction  \\
+4  &{\ttfamily sync\+\_\+request}  &Message type sync\+\_\+request  \\
+5  &{\ttfamily sync\+\_\+response}  &Message type sync\+\_\+response  \\
+6  &{\ttfamily peer\+\_\+list}  &Message type peer\+\_\+list  \\
+7  &{\ttfamily mining\+\_\+start}  &Message type mining\+\_\+start  \\
+8  &{\ttfamily mining\+\_\+stop}  &Message type mining\+\_\+stop  \\
+9  &{\ttfamily inv, /\+/\+ "{}I have these items"{} (hashes)}  &Message type inv, /\+/\+ "{}\+I have these items"{} (hashes)  \\
+10  &{\ttfamily getdata, /\+/\+ "{}Send me these items"{}}  &Message type getdata, /\+/\+ "{}\+Send me these items"{}  \\
+11  &{\ttfamily tx\+\_\+gossip, /\+/\+ Full TX payload (gossip relay)}  &Message type tx\+\_\+gossip, /\+/\+ Full TX payload (gossip relay)  \\
+12  &{\ttfamily block\+\_\+gossip, /\+/\+ Full \doxylink{namespaceblock}{block} payload (gossip relay)}  &Message type block\+\_\+gossip, /\+/\+ Full block payload (gossip relay)  \\
+13  &{\ttfamily getblocks, /\+/\+ "{}What blocks do you have after hash X?"{}}  &Message type getblocks, /\+/\+ "{}\+What blocks do you have after hash X?"{}  \\
+14  &{\ttfamily get\+\_\+peers, /\+/\+ Request \doxylink{namespacepeer}{peer} list from connected \doxylink{namespacenode}{node}}  &Message type get\+\_\+peers, /\+/\+ Request peer list from connected node  \\
+15  &{\ttfamily getheaders\+\_\+p2p, /\+/\+ Light client requests headers from start\+\_\+height}  &Message type getheaders\+\_\+p2p, /\+/\+ Light client requests headers from start\+\_\+height  \\
+16  &{\ttfamily headers\+\_\+p2p, /\+/\+ Full \doxylink{namespacenode}{node} responds with serialized headers}  &Message type headers\+\_\+p2p, /\+/\+ Full node responds with serialized headers  \\
+17  &{\ttfamily getmerkleproof\+\_\+p2p, /\+/\+ Light client requests Merkle proof for a TX hash}  &Message type getmerkleproof\+\_\+p2p, /\+/\+ Light client requests Merkle proof for a TX hash  \\
+18  &{\ttfamily merkleproof\+\_\+p2p, /\+/\+ Full \doxylink{namespacenode}{node} responds with Merkle inclusion proof}  &Message type merkleproof\+\_\+p2p, /\+/\+ Full node responds with Merkle inclusion proof  \\
+19  &{\ttfamily filterload, /\+/\+ Light client sends Bloom filter to full \doxylink{namespacenode}{node}}  &Message type filterload, /\+/\+ Light client sends Bloom filter to full node  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generat automat de \doxylink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py} la 2026-\/03-\/31T20:\+27:\+26.\+129235}
+
+{\bfseries{Statistici scanare:\+}}
+\begin{DoxyItemize}
+\item Constante publice:\+ 250
+\item Enums:\+ 45
+\item Message types:\+ 20
+\item Magic numbers:\+ 0 
+\end{DoxyItemize}

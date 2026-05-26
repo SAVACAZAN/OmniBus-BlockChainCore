@@ -1,0 +1,175 @@
+\chapter{Module:\+ {\ttfamily key\+\_\+encryption} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption}{}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption}\index{Module: $<$tt$>$key\_encryption$<$/tt$>$@{Module: $<$tt$>$key\_encryption$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1753}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1753}%
+
+
+\begin{quote}
+Private key encryption — AES-\/256 with password-\/derived key, password verification, secure key storage. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+key\+\_\+encryption.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 341 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 12
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1755}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1755}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1756}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1756}
+
+\begin{DoxyItemize}
+\item \`{}\+Encrypted\+Key\`{}{\ttfamily Encrypted\+Key}
+\end{DoxyItemize}— Format:\+ ciphertext = \+[encrypted\+\_\+privkey:\+ 32 bytes \texorpdfstring{$\vert$}{|} tag:\+ 16 bytes]\+ iv = nonce GC...
+\begin{DoxyItemize}
+\item \`{}\+Key\+Manager\`{}{\ttfamily Key\+Manager}
+\end{DoxyItemize}— Data structure for key manager. Fields include:\+ password\+\_\+hash, master\+\_\+key, alloc...
+\begin{DoxyItemize}
+\item \`{}\+Mnemonic\`{}{\ttfamily Mnemonic}
+\end{DoxyItemize}— Mnemonic phrase — generare si validare Generarea reala BIP-\/39 e in bip32\+\_\+wallet....\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1757}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1757}
+
+\begin{DoxyItemize}
+\item \`{}init\+With\+Password()\`{}{\ttfamily init\+With\+Password()}
+\end{DoxyItemize}— Initializeaza cu parola — deriveaza master\+\_\+key via PBKDF2
+\begin{DoxyItemize}
+\item \`{}verify\+Password()\`{}{\ttfamily verify\+Password()}
+\end{DoxyItemize}— Verifica parola:\+ re-\/deriveaza master\+\_\+key si compara (constant-\/time) NO...
+\begin{DoxyItemize}
+\item \`{}generate\+Recovery\+Code()\`{}{\ttfamily generate\+Recovery\+Code()}
+\end{DoxyItemize}— Genereaza un cod de recuperare de 16 bytes (SHA-\/256 din master\+\_\+key + t...
+\begin{DoxyItemize}
+\item \`{}validate()\`{}{\ttfamily validate()}
+\end{DoxyItemize}— Valideaza ca mnemonic-\/ul are numar corect de cuvinte (12/\+15/\+18/\+21/\+24)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1759}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1759}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1760}{}\doxysubsection{\texorpdfstring{{\ttfamily Encrypted\+Key}}{{\ttfamily Encrypted\+Key}}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1760}
+Format:\+ ciphertext = \+[encrypted\+\_\+privkey:\+ 32 bytes \texorpdfstring{$\vert$}{|} tag:\+ 16 bytes]\+ iv = nonce GCM (12 bytes, primii 12 folositi din cei 16 stocati) salt = PBKDF2 salt (16 bytes)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily ciphertext}  &{\ttfamily \+[]\+u8}  &Ciphertext  \\
+{\ttfamily salt}  &{\ttfamily \+[16]\+u8}  &Salt  \\
+{\ttfamily iv}  &{\ttfamily \+[16]\+u8}  &Iv  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 24}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1762}{}\doxysubsection{\texorpdfstring{{\ttfamily Key\+Manager}}{{\ttfamily Key\+Manager}}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1762}
+Data structure for key manager. Fields include:\+ password\+\_\+hash, master\+\_\+key, allocator.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily password\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Password\+\_\+hash  \\
+{\ttfamily master\+\_\+key}  &{\ttfamily \+[32]\+u8}  &Master\+\_\+key  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 52}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1764}{}\doxysubsection{\texorpdfstring{{\ttfamily Mnemonic}}{{\ttfamily Mnemonic}}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1764}
+Mnemonic phrase — generare si validare Generarea reala BIP-\/39 e in bip32\+\_\+wallet.\+zig (PBKDF2 + wordlist complet)
+
+{\itshape Defined at line 205}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1766}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1766}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1767}{}\doxysubsection{\texorpdfstring{{\ttfamily init\+With\+Password()}}{{\ttfamily init\+With\+Password()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1767}
+Initializeaza cu parola — deriveaza master\+\_\+key via PBKDF2
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ initWithPassword(password:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !KeyManager\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily password}  &{\ttfamily \+[]\+const u8}  &Password  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Key\+Manager}
+
+{\itshape Defined at line 58}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1769}{}\doxysubsection{\texorpdfstring{{\ttfamily verify\+Password()}}{{\ttfamily verify\+Password()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1769}
+Verifica parola:\+ re-\/deriveaza master\+\_\+key si compara (constant-\/time) NOTA:\+ necesita stocarea salt-\/ului master separat — deocamdata verifica lungimea
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifyPassword(self:\ *const\ KeyManager,\ password:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Manager}  &The instance  \\
+{\ttfamily password}  &{\ttfamily \+[]\+const u8}  &Password  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 165}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1771}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Recovery\+Code()}}{{\ttfamily generate\+Recovery\+Code()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1771}
+Genereaza un cod de recuperare de 16 bytes (SHA-\/256 din master\+\_\+key + timestamp)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateRecoveryCode(self:\ *const\ KeyManager)\ ![16]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Key\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[16]\+u8}
+
+{\itshape Defined at line 183}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1773}{}\doxysubsection{\texorpdfstring{{\ttfamily validate()}}{{\ttfamily validate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2key__encryption_autotoc_md1773}
+Valideaza ca mnemonic-\/ul are numar corect de cuvinte (12/\+15/\+18/\+21/\+24)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validate(mnemonic:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mnemonic}  &{\ttfamily \+[]\+const u8}  &Mnemonic  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 207}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,2 @@
+const seed = try bip39.mnemonicToSeed(mnemonic);
+const address = try btc_address.deriveP2WPKHAddress(seed, 0, 0);

@@ -1,0 +1,204 @@
+\doxysection{double-\/spend-\/tester Namespace Reference}
+\hypertarget{namespacedouble-spend-tester}{}\label{namespacedouble-spend-tester}\index{double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacedouble-spend-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacedouble-spend-tester_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+Any \doxymbox{\hyperlink{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e}{rpc}} (str url, str method, Any params=None, tuple\+[str, str]\+\texorpdfstring{$\vert$}{|}None auth=None, float timeout=10.\+0)
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacedouble-spend-tester_a14d9f557af5ba2420ef9ce2695b6db23}{create\+\_\+raw\+\_\+tx}} (str url, list\+[dict\+[str, Any]\+]\+ inputs, dict\+[str, float]\+ outputs, tuple\+[str, str]\+\texorpdfstring{$\vert$}{|}None auth=None)
+\item 
+dict\+[str, Any]\+\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacedouble-spend-tester_adec5b48f477b1786862d5be39aede86b}{sign\+\_\+raw\+\_\+tx}} (str url, str hex\+\_\+str, tuple\+[str, str]\+\texorpdfstring{$\vert$}{|}None auth=None)
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacedouble-spend-tester_af21d821852f3d83869380261d859d887}{send\+\_\+raw\+\_\+tx}} (str url, str hex\+\_\+str, tuple\+[str, str]\+\texorpdfstring{$\vert$}{|}None auth=None)
+\item 
+int \doxymbox{\hyperlink{namespacedouble-spend-tester_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedouble-spend-tester_a8ce1d073109559a03c78dad67da9df32}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedouble-spend-tester_a13e591dd969b7535f8ac87204075a3ca}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedouble-spend-tester_a0a58f567f2590b7596638ec2138669e1}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedouble-spend-tester_abad4e6d3b3c5ba739bd66337d324aaa3}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedouble-spend-tester_a7325257403f9947da345f4ad964276a2}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacedouble-spend-tester_doc-func-members}
+\Hypertarget{namespacedouble-spend-tester_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacedouble-spend-tester_a14d9f557af5ba2420ef9ce2695b6db23}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!create\_raw\_tx@{create\_raw\_tx}}
+\index{create\_raw\_tx@{create\_raw\_tx}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{create\_raw\_tx()}{create\_raw\_tx()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a14d9f557af5ba2420ef9ce2695b6db23} 
+ str \texorpdfstring{$\vert$}{|} None create\+\_\+raw\+\_\+tx (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{list\+[dict\+[str, Any]\+]\+}]{inputs}{, }\item[{dict\+[str, float]\+}]{outputs}{, }\item[{tuple\+[str, str]\+ \texorpdfstring{$\vert$}{|} None }]{auth}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00066}{66}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacedouble-spend-tester_abf994b8269849d29e07697ea8a840f74}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacedouble-spend-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacedouble-spend-tester_a7431cb90017e54fe695b23d4190db046}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!main@{main}}
+\index{main@{main}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00091}{91}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!rpc@{rpc}}
+\index{rpc@{rpc}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{rpc()}{rpc()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e} 
+ Any rpc (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{str}]{method}{, }\item[{Any }]{params}{ = {\ttfamily None}, }\item[{tuple\+[str, str]\+ \texorpdfstring{$\vert$}{|} None }]{auth}{ = {\ttfamily None}, }\item[{float }]{timeout}{ = {\ttfamily 10.0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+\Hypertarget{namespacedouble-spend-tester_af21d821852f3d83869380261d859d887}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!send\_raw\_tx@{send\_raw\_tx}}
+\index{send\_raw\_tx@{send\_raw\_tx}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{send\_raw\_tx()}{send\_raw\_tx()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_af21d821852f3d83869380261d859d887} 
+ str \texorpdfstring{$\vert$}{|} None send\+\_\+raw\+\_\+tx (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{str}]{hex\+\_\+str}{, }\item[{tuple\+[str, str]\+ \texorpdfstring{$\vert$}{|} None }]{auth}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00081}{81}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacedouble-spend-tester_adec5b48f477b1786862d5be39aede86b}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!sign\_raw\_tx@{sign\_raw\_tx}}
+\index{sign\_raw\_tx@{sign\_raw\_tx}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{sign\_raw\_tx()}{sign\_raw\_tx()}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_adec5b48f477b1786862d5be39aede86b} 
+ dict\+[str, Any]\+ \texorpdfstring{$\vert$}{|} None sign\+\_\+raw\+\_\+tx (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{str}]{hex\+\_\+str}{, }\item[{tuple\+[str, str]\+ \texorpdfstring{$\vert$}{|} None }]{auth}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+
+
+\label{namespacedouble-spend-tester_doc-var-members}
+\Hypertarget{namespacedouble-spend-tester_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacedouble-spend-tester_abad4e6d3b3c5ba739bd66337d324aaa3}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_abad4e6d3b3c5ba739bd66337d324aaa3} 
+str \doxymbox{\hyperlink{namespacedouble}{double}}-\/spend-\/tester.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+\Hypertarget{namespacedouble-spend-tester_a8ce1d073109559a03c78dad67da9df32}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a8ce1d073109559a03c78dad67da9df32} 
+str \doxymbox{\hyperlink{namespacedouble}{double}}-\/spend-\/tester.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+\Hypertarget{namespacedouble-spend-tester_a13e591dd969b7535f8ac87204075a3ca}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!RED@{RED}}
+\index{RED@{RED}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a13e591dd969b7535f8ac87204075a3ca} 
+str \doxymbox{\hyperlink{namespacedouble}{double}}-\/spend-\/tester.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+\Hypertarget{namespacedouble-spend-tester_a7325257403f9947da345f4ad964276a2}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!RESET@{RESET}}
+\index{RESET@{RESET}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a7325257403f9947da345f4ad964276a2} 
+str \doxymbox{\hyperlink{namespacedouble}{double}}-\/spend-\/tester.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+
+\Hypertarget{namespacedouble-spend-tester_a0a58f567f2590b7596638ec2138669e1}\index{double-\/spend-\/tester@{double-\/spend-\/tester}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!double-\/spend-\/tester@{double-\/spend-\/tester}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacedouble-spend-tester_a0a58f567f2590b7596638ec2138669e1} 
+str \doxymbox{\hyperlink{namespacedouble}{double}}-\/spend-\/tester.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{double-spend-tester_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{double-spend-tester_8py_source}{double-\/spend-\/tester.\+py}}.
+

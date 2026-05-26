@@ -1,0 +1,8 @@
+pub const ChainId = enum {
+    omnibus,
+    bitcoin,
+    ethereum,
+    solana,
+    ton,
+    lcx_liberty,
+};

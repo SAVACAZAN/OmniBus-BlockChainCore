@@ -1,0 +1,458 @@
+\doxysection{binary-\/analysis.py}
+\hypertarget{binary-analysis_8py_source}{}\label{binary-analysis_8py_source}\index{tools/EXPLOITS/binary-\/analysis.py@{tools/EXPLOITS/binary-\/analysis.py}}
+\doxymbox{\hyperlink{binary-analysis_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00001}\doxymbox{\hyperlink{namespacebinary-analysis}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00002}\doxymbox{\hyperlink{namespacebinary}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00003}00003\ \textcolor{stringliteral}{binary-\/analysis.py\ —\ OmniBus\ BlockChainCore\ Binary\ Security\ Analyzer}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00005}00005\ \textcolor{stringliteral}{Analyze\ the\ compiled\ zig-\/out/bin/omnibus-\/node.exe\ for\ security\ hardening:}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ NX/DEP\ (non-\/executable\ stack)}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ ASLR/PIE}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Stack\ canaries}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Unsafe\ C\ string\ patterns\ (strcpy,\ sprintf,\ gets)}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Binary\ size,\ sections,\ entry\ point}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00011}00011\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00012}00012\ \textcolor{stringliteral}{Uses\ objdump\ +\ strings\ (Git\ Bash)\ or\ pwntools\ checksec\ when\ available.}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00013}00013\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00015}00015\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00016}00016\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00017}00017\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00018}00018\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00019}00019\ \textcolor{keyword}{import}\ struct}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00020}00020\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00024}\doxymbox{\hyperlink{namespacebinary-analysis_a49accedad87f3f4d5708e045ac5291cc}{00024}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00025}\doxymbox{\hyperlink{namespacebinary-analysis_a7c472af26e5a6cd47e96d74b52e156ab}{00025}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00026}\doxymbox{\hyperlink{namespacebinary-analysis_ad2b547a90f3d1aa37d26ed53286f183a}{00026}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00027}\doxymbox{\hyperlink{namespacebinary-analysis_a858fd88e309de4a42b00d4ca05611cab}{00027}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00028}\doxymbox{\hyperlink{namespacebinary-analysis_aa93c9e5285e4b7343b4c79f179f6fe85}{00028}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00029}\doxymbox{\hyperlink{namespacebinary-analysis_a9176e8b6a6165be1765d21b2bce4682c}{00029}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00031}\doxymbox{\hyperlink{namespacebinary-analysis_a1921473a1771810f6b551781d2b51ec5}{00031}}\ UNSAFE\_PATTERNS\ =\ [}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00032}00032\ \ \ \ \ \textcolor{stringliteral}{"{}strcpy"{}},\ \textcolor{stringliteral}{"{}strcat"{}},\ \textcolor{stringliteral}{"{}sprintf"{}},\ \textcolor{stringliteral}{"{}vsprintf"{}},\ \textcolor{stringliteral}{"{}gets"{}},\ \textcolor{stringliteral}{"{}scanf"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00033}00033\ \ \ \ \ \textcolor{stringliteral}{"{}sscanf"{}},\ \textcolor{stringliteral}{"{}fscanf"{}},\ \textcolor{stringliteral}{"{}realpath"{}},\ \textcolor{stringliteral}{"{}getwd"{}},\ \textcolor{stringliteral}{"{}strtok"{}},\ \textcolor{stringliteral}{"{}tmpnam"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00034}00034\ \ \ \ \ \textcolor{stringliteral}{"{}mktemp"{}},\ \textcolor{stringliteral}{"{}strncpy"{}},\ \ \textcolor{comment}{\#\ included\ but\ less\ severe}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00035}00035\ ]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00037}\doxymbox{\hyperlink{namespacebinary-analysis_a264e41339269201a49de74920fc38096}{00037}}\ SCRIPT\_DIR\ =\ os.path.dirname(os.path.abspath(\_\_file\_\_))}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00038}\doxymbox{\hyperlink{namespacebinary-analysis_a8e7313c0825cbb242516ba7bdcd2ae43}{00038}}\ DEFAULT\_BINARY\ =\ os.path.normpath(os.path.join(SCRIPT\_DIR,\ \textcolor{stringliteral}{"{}.."{}},\ \textcolor{stringliteral}{"{}.."{}},\ \textcolor{stringliteral}{"{}zig-\/out"{}},\ \textcolor{stringliteral}{"{}bin"{}},\ \textcolor{stringliteral}{"{}omnibus-\/node.exe"{}}))}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00041}\doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00042}00042\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00045}\doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00045}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00046}00046\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00049}\doxymbox{\hyperlink{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}{00049}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00050}00050\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00053}\doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{00053}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00054}00054\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00057}\doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{00057}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\_cmd}}(cmd:\ list[str],\ timeout:\ int\ =\ 30)\ -\/>\ tuple[int,\ str,\ str]:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00058}00058\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ command,\ return\ (returncode,\ stdout,\ stderr)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00059}00059\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ proc\ =\ subprocess.run(cmd,\ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ proc.returncode,\ proc.stdout,\ proc.stderr}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{except}\ FileNotFoundError:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1,\ \textcolor{stringliteral}{"{}"{}},\ f\textcolor{stringliteral}{"{}Command\ not\ found:\ \{cmd[0]\}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/2,\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}Command\ timed\ out"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00068}\doxymbox{\hyperlink{namespacebinary-analysis_a4c4b1dcf967f1735f041a526cb6dbcda}{00068}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a4c4b1dcf967f1735f041a526cb6dbcda}{get\_file\_info}}(binary\_path:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00069}00069\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Basic\ file\ metadata."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00070}00070\ \ \ \ \ stat\ =\ os.stat(binary\_path)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}path"{}}:\ binary\_path,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size\_bytes"{}}:\ stat.st\_size,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size\_mb"{}}:\ round(stat.st\_size\ /\ (1024\ *\ 1024),\ 2),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modified"{}}:\ datetime.fromtimestamp(stat.st\_mtime,\ tz=timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00076}00076\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00079}\doxymbox{\hyperlink{namespacebinary-analysis_a4ff3b21c09535007e101b3664d45ad4a}{00079}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a4ff3b21c09535007e101b3664d45ad4a}{parse\_pe\_header}}(binary\_path:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00080}00080\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Parse\ PE\ headers\ for\ security\ characteristics."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00081}00081\ \ \ \ \ result\ =\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}format"{}}:\ \textcolor{stringliteral}{"{}unknown"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nx\_dep"{}}:\ \textcolor{stringliteral}{"{}unknown"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}aslr\_pie"{}}:\ \textcolor{stringliteral}{"{}unknown"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}high\_entropy\_aslr"{}}:\ \textcolor{stringliteral}{"{}unknown"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cfg"{}}:\ \textcolor{stringliteral}{"{}unknown"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}entry\_point"{}}:\ \textcolor{stringliteral}{"{}unknown"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00088}00088\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(binary\_path,\ \textcolor{stringliteral}{"{}rb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ MZ\ header}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ magic\ =\ f.read(2)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ magic\ !=\ b\textcolor{stringliteral}{"{}MZ"{}}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}format"{}}]\ =\ \textcolor{stringliteral}{"{}not\_pe"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}format"{}}]\ =\ \textcolor{stringliteral}{"{}PE"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ PE\ header\ offset\ at\ 0x3C}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ f.seek(0x3C)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ pe\_offset\ =\ struct.unpack(\textcolor{stringliteral}{"{}<I"{}},\ f.read(4))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ PE\ signature}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ f.seek(pe\_offset)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ pe\_sig\ =\ f.read(4)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ pe\_sig\ !=\ b\textcolor{stringliteral}{"{}PE\(\backslash\)x00\(\backslash\)x00"{}}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}format"{}}]\ =\ \textcolor{stringliteral}{"{}invalid\_pe"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ COFF\ header\ (20\ bytes)}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ machine\ =\ struct.unpack(\textcolor{stringliteral}{"{}<H"{}},\ f.read(2))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ num\_sections\ =\ struct.unpack(\textcolor{stringliteral}{"{}<H"{}},\ f.read(2))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ f.read(12)\ \ \textcolor{comment}{\#\ skip\ timestamp,\ symbol\ table,\ etc.}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ optional\_header\_size\ =\ struct.unpack(\textcolor{stringliteral}{"{}<H"{}},\ f.read(2))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ characteristics\ =\ struct.unpack(\textcolor{stringliteral}{"{}<H"{}},\ f.read(2))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}machine"{}}]\ =\ f\textcolor{stringliteral}{"{}0x\{machine:04X\}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}num\_sections"{}}]\ =\ num\_sections}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Optional\ header}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ optional\_header\_size\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ opt\_magic\ =\ struct.unpack(\textcolor{stringliteral}{"{}<H"{}},\ f.read(2))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ is\_pe32\_plus\ =\ opt\_magic\ ==\ 0x20B}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ is\_pe32\_plus:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}format"{}}]\ =\ \textcolor{stringliteral}{"{}PE32+\ (64-\/bit)"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f.read(22)\ \ \textcolor{comment}{\#\ skip\ to\ AddressOfEntryPoint}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry\_rva\ =\ struct.unpack(\textcolor{stringliteral}{"{}<I"{}},\ f.read(4))[0]\ \textcolor{keywordflow}{if}\ \textcolor{keyword}{False}\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Re-\/read\ properly}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f.seek(pe\_offset\ +\ 24\ +\ 16)\ \ \textcolor{comment}{\#\ AddressOfEntryPoint}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry\_rva\ =\ struct.unpack(\textcolor{stringliteral}{"{}<I"{}},\ f.read(4))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}entry\_point"{}}]\ =\ f\textcolor{stringliteral}{"{}0x\{entry\_rva:08X\}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ DllCharacteristics\ at\ offset\ 70\ from\ optional\ header\ start}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f.seek(pe\_offset\ +\ 24\ +\ 70)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dll\_chars\ =\ struct.unpack(\textcolor{stringliteral}{"{}<H"{}},\ f.read(2))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}format"{}}]\ =\ \textcolor{stringliteral}{"{}PE32\ (32-\/bit)"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f.seek(pe\_offset\ +\ 24\ +\ 16)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry\_rva\ =\ struct.unpack(\textcolor{stringliteral}{"{}<I"{}},\ f.read(4))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}entry\_point"{}}]\ =\ f\textcolor{stringliteral}{"{}0x\{entry\_rva:08X\}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f.seek(pe\_offset\ +\ 24\ +\ 70)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dll\_chars\ =\ struct.unpack(\textcolor{stringliteral}{"{}<H"{}},\ f.read(2))[0]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ DllCharacteristics\ flags}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IMAGE\_DLLCHARACTERISTICS\_DYNAMIC\_BASE\ =\ 0x0040\ \ \textcolor{comment}{\#\ ASLR}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IMAGE\_DLLCHARACTERISTICS\_HIGH\_ENTROPY\_VA\ =\ 0x0020}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IMAGE\_DLLCHARACTERISTICS\_NX\_COMPAT\ =\ 0x0100\ \ \textcolor{comment}{\#\ DEP/NX}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IMAGE\_DLLCHARACTERISTICS\_GUARD\_CF\ =\ 0x4000\ \ \textcolor{comment}{\#\ CFG}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}nx\_dep"{}}]\ =\ bool(dll\_chars\ \&\ IMAGE\_DLLCHARACTERISTICS\_NX\_COMPAT)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}aslr\_pie"{}}]\ =\ bool(dll\_chars\ \&\ IMAGE\_DLLCHARACTERISTICS\_DYNAMIC\_BASE)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}high\_entropy\_aslr"{}}]\ =\ bool(dll\_chars\ \&\ IMAGE\_DLLCHARACTERISTICS\_HIGH\_ENTROPY\_VA)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}cfg"{}}]\ =\ bool(dll\_chars\ \&\ IMAGE\_DLLCHARACTERISTICS\_GUARD\_CF)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}dll\_characteristics\_raw"{}}]\ =\ f\textcolor{stringliteral}{"{}0x\{dll\_chars:04X\}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00156}00156\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}error"{}}]\ =\ str(e)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00159}00159\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00162}\doxymbox{\hyperlink{namespacebinary-analysis_a1ba300a3001ab67ddec3d5946332bb19}{00162}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a1ba300a3001ab67ddec3d5946332bb19}{analyze\_sections\_objdump}}(binary\_path:\ str)\ -\/>\ list[dict]:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00163}00163\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Parse\ sections\ via\ objdump\ -\/h."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00164}00164\ \ \ \ \ rc,\ stdout,\ stderr\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\_cmd}}([\textcolor{stringliteral}{"{}objdump"{}},\ \textcolor{stringliteral}{"{}-\/h"{}},\ binary\_path])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00165}00165\ \ \ \ \ \textcolor{keywordflow}{if}\ rc\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Try\ with\ full\ path\ in\ Git\ Bash}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ rc,\ stdout,\ stderr\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\_cmd}}([\textcolor{stringliteral}{"{}C:/Program\ Files/Git/usr/bin/objdump.exe"{}},\ \textcolor{stringliteral}{"{}-\/h"{}},\ binary\_path])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ rc\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ [\{\textcolor{stringliteral}{"{}error"{}}:\ f\textcolor{stringliteral}{"{}objdump\ failed:\ \{stderr.strip()\}"{}}\}]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00171}00171\ \ \ \ \ sections\ =\ []}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00172}00172\ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ stdout.splitlines():}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Match\ section\ lines:\ "{}\ \ 0\ .text\ \ \ 0003a4f0\ \ 0000000140001000\ \ ..."{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ m\ =\ re.match(\textcolor{stringliteral}{r"{}\(\backslash\)s+(\(\backslash\)d+)\(\backslash\)s+(\(\backslash\).\(\backslash\)S+)\(\backslash\)s+([0-\/9a-\/fA-\/F]+)\(\backslash\)s+([0-\/9a-\/fA-\/F]+)\(\backslash\)s+([0-\/9a-\/fA-\/F]+)\(\backslash\)s+([0-\/9a-\/fA-\/F]+)\(\backslash\)s+.*?([\(\backslash\)w,\ ]+)\$"{}},\ line)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ m:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ flags\_str\ =\ m.group(7).strip()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ sections.append(\{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}index"{}}:\ int(m.group(1)),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ m.group(2),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size\_hex"{}}:\ m.group(3),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size\_bytes"{}}:\ int(m.group(3),\ 16),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vma"{}}:\ f\textcolor{stringliteral}{"{}0x\{m.group(4)\}"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}file\_offset"{}}:\ f\textcolor{stringliteral}{"{}0x\{m.group(6)\}"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}flags"{}}:\ flags\_str,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00187}00187\ \ \ \ \ \textcolor{comment}{\#\ Check\ for\ executable\ stack\ (unusual\ .bss\ or\ unnamed\ sections\ with\ EXEC)}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00188}00188\ \ \ \ \ \textcolor{keywordflow}{for}\ sec\ \textcolor{keywordflow}{in}\ sections:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}CODE"{}}\ \textcolor{keywordflow}{in}\ sec.get(\textcolor{stringliteral}{"{}flags"{}},\ \textcolor{stringliteral}{"{}"{}})\ \textcolor{keywordflow}{and}\ sec[\textcolor{stringliteral}{"{}name"{}}]\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}.text"{}},):}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ sec[\textcolor{stringliteral}{"{}warning"{}}]\ =\ \textcolor{stringliteral}{"{}Unexpected\ executable\ section"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00192}00192\ \ \ \ \ \textcolor{keywordflow}{return}\ sections}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00195}\doxymbox{\hyperlink{namespacebinary-analysis_a6944e82a1c1a107610f5525515328ea4}{00195}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a6944e82a1c1a107610f5525515328ea4}{scan\_strings}}(binary\_path:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00196}00196\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scan\ binary\ strings\ for\ unsafe\ C\ patterns."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00197}00197\ \ \ \ \ rc,\ stdout,\ stderr\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\_cmd}}([\textcolor{stringliteral}{"{}strings"{}},\ binary\_path])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{if}\ rc\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ rc,\ stdout,\ stderr\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\_cmd}}([\textcolor{stringliteral}{"{}C:/Program\ Files/Git/usr/bin/strings.exe"{}},\ binary\_path])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ rc\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ f\textcolor{stringliteral}{"{}strings\ command\ failed:\ \{stderr.strip()\}"{}}\}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00203}00203\ \ \ \ \ all\_strings\ =\ stdout.splitlines()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00204}00204\ \ \ \ \ findings\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00206}00206\ \ \ \ \ \textcolor{keyword}{import}\ re\ \textcolor{keyword}{as}\ \_re}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00207}00207\ \ \ \ \ \textcolor{keywordflow}{for}\ pattern\ \textcolor{keywordflow}{in}\ UNSAFE\_PATTERNS:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Use\ word-\/boundary\ matching\ to\ avoid\ false\ positives\ (e.g.,\ "{}widgets"{}\ matching\ "{}gets"{})}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ pat\_re\ =\ \_re.compile(\textcolor{stringliteral}{r'\(\backslash\)b'}\ +\ \_re.escape(pattern)\ +\ \textcolor{stringliteral}{r'\(\backslash\)b'},\ \_re.IGNORECASE)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ matches\ =\ [s\ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ all\_strings\ \textcolor{keywordflow}{if}\ pat\_re.search(s)]}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ matches:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ findings[pattern]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}count"{}}:\ len(matches),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}severity"{}}:\ \textcolor{stringliteral}{"{}HIGH"{}}\ \textcolor{keywordflow}{if}\ pattern\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}strcpy"{}},\ \textcolor{stringliteral}{"{}gets"{}},\ \textcolor{stringliteral}{"{}sprintf"{}})\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}MEDIUM"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}samples"{}}:\ matches[:5],}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00218}00218\ \ \ \ \ \textcolor{comment}{\#\ Also\ check\ for\ common\ crypto\ weaknesses}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00219}00219\ \ \ \ \ crypto\_concerns\ =\ []}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00220}00220\ \ \ \ \ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ all\_strings:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ sl\ =\ s.lower()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}rand()"{}}\ \textcolor{keywordflow}{in}\ sl\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}srand("{}}\ \textcolor{keywordflow}{in}\ sl:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ crypto\_concerns.append(s[:80])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}md5"{}}\ \textcolor{keywordflow}{in}\ sl\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}hmac"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ sl:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ crypto\_concerns.append(s[:80])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00227}00227\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_strings"{}}:\ len(all\_strings),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}unsafe\_patterns\_found"{}}:\ findings,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crypto\_concerns"{}}:\ crypto\_concerns[:10]\ \textcolor{keywordflow}{if}\ crypto\_concerns\ \textcolor{keywordflow}{else}\ [],}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verdict"{}}:\ \textcolor{stringliteral}{"{}CLEAN"{}}\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ findings\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}INVESTIGATE"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00232}00232\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00235}\doxymbox{\hyperlink{namespacebinary-analysis_a771747b3ff6fe7d96ed564f0e4dfa855}{00235}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a771747b3ff6fe7d96ed564f0e4dfa855}{check\_canaries}}(binary\_path:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00236}00236\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ for\ stack\ canary\ /\ stack\ protector\ usage."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00237}00237\ \ \ \ \ rc,\ stdout,\ stderr\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\_cmd}}([\textcolor{stringliteral}{"{}objdump"{}},\ \textcolor{stringliteral}{"{}-\/d"{}},\ binary\_path])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00238}00238\ \ \ \ \ \textcolor{keywordflow}{if}\ rc\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ rc,\ stdout,\ stderr\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\_cmd}}([\textcolor{stringliteral}{"{}C:/Program\ Files/Git/usr/bin/objdump.exe"{}},\ \textcolor{stringliteral}{"{}-\/d"{}},\ binary\_path])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00241}00241\ \ \ \ \ \textcolor{keywordflow}{if}\ rc\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Fallback:\ search\ binary\ for\ known\ canary\ patterns}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(binary\_path,\ \textcolor{stringliteral}{"{}rb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ has\_stack\_chk\ =\ b\textcolor{stringliteral}{"{}\_\_stack\_chk\_fail"{}}\ \textcolor{keywordflow}{in}\ data\ \textcolor{keywordflow}{or}\ b\textcolor{stringliteral}{"{}\_\_stack\_chk\_guard"{}}\ \textcolor{keywordflow}{in}\ data}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ has\_gs\ =\ b\textcolor{stringliteral}{"{}\_\_security\_cookie"{}}\ \textcolor{keywordflow}{in}\ data\ \textcolor{keywordflow}{or}\ b\textcolor{stringliteral}{"{}\_\_GSHandlerCheck"{}}\ \textcolor{keywordflow}{in}\ data}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stack\_canary\_linux"{}}:\ has\_stack\_chk,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stack\_canary\_windows\_gs"{}}:\ has\_gs,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}binary\_scan"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}note"{}}:\ \textcolor{stringliteral}{"{}Zig\ uses\ SafeStack\ by\ default;\ explicit\ canaries\ may\ not\ be\ present"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ str(e)\}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00257}00257\ \ \ \ \ \textcolor{comment}{\#\ Search\ disassembly\ for\ canary\ references}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00258}00258\ \ \ \ \ has\_chk\_fail\ =\ \textcolor{stringliteral}{"{}\_\_stack\_chk\_fail"{}}\ \textcolor{keywordflow}{in}\ stdout}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00259}00259\ \ \ \ \ has\_security\_cookie\ =\ \textcolor{stringliteral}{"{}\_\_security\_cookie"{}}\ \textcolor{keywordflow}{in}\ stdout\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}GSHandler"{}}\ \textcolor{keywordflow}{in}\ stdout}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00260}00260\ \ \ \ \ canary\_count\ =\ stdout.count(\textcolor{stringliteral}{"{}\_\_stack\_chk\_fail"{}})\ +\ stdout.count(\textcolor{stringliteral}{"{}\_\_security\_cookie"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00262}00262\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stack\_canary\_linux"{}}:\ has\_chk\_fail,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stack\_canary\_windows\_gs"{}}:\ has\_security\_cookie,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}canary\_references"{}}:\ canary\_count,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}disassembly\_scan"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}note"{}}:\ \textcolor{stringliteral}{"{}Zig\ relies\ on\ bounds\ checking\ +\ SafeStack\ rather\ than\ traditional\ canaries"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00268}00268\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00271}\doxymbox{\hyperlink{namespacebinary-analysis_a6ffc768ca43815b4e5e476b83f4e64c3}{00271}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a6ffc768ca43815b4e5e476b83f4e64c3}{try\_pwntools\_checksec}}(binary\_path:\ str)\ -\/>\ dict\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00272}00272\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}If\ pwntools\ is\ available,\ use\ checksec\ for\ comprehensive\ analysis."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00273}00273\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \textcolor{keyword}{from}\ pwn\ \textcolor{keyword}{import}\ ELF}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ elf\ =\ ELF(binary\_path,\ checksec=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}arch"{}}:\ elf.arch,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bits"{}}:\ elf.bits,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}canary"{}}:\ elf.canary,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nx"{}}:\ elf.nx,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pie"{}}:\ elf.pie,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}relro"{}}:\ elf.relro\ \textcolor{keywordflow}{if}\ hasattr(elf,\ \textcolor{stringliteral}{"{}relro"{}})\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}N/A"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00284}00284\ \ \ \ \ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00286}00286\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00290}\doxymbox{\hyperlink{namespacebinary-analysis_a7431cb90017e54fe695b23d4190db046}{00290}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebinary-analysis_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00291}00291\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Binary\ Security\ Analyzer\ —\ check\ hardening\ of\ compiled\ Zig\ binaries"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00293}00293\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00294}00294\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/binary"{}},\ \textcolor{stringliteral}{"{}-\/b"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ default=DEFAULT\_BINARY,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Path\ to\ binary\ (default:\ \{DEFAULT\_BINARY\})"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00298}00298\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00299}00299\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/json"{}},\ \textcolor{stringliteral}{"{}-\/j"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ action=\textcolor{stringliteral}{"{}store\_true"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Output\ full\ results\ as\ JSON"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00303}00303\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00304}00304\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/output"{}},\ \textcolor{stringliteral}{"{}-\/o"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ default=\textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Save\ JSON\ report\ to\ file"{}},}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00308}00308\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00309}00309\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00310}00310\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00311}00311\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00312}00312\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ OmniBus\ Binary\ Security\ Analysis\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00313}00313\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00314}00314\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00315}00315\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(args.binary):}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Binary\ not\ found:\ \{args.binary\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Build\ first\ with:\ zig\ build"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Skipping\ binary\ analysis\ —\ no\ binary\ to\ analyze."{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00320}00320\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00321}00321\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now(tz=timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}binary"{}}:\ args.binary,}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00324}00324\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00325}00325\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00326}00326\ \ \ \ \ \textcolor{comment}{\#\ 1.\ File\ info}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00327}00327\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Analyzing:\ \{args.binary\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00328}00328\ \ \ \ \ file\_info\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a4c4b1dcf967f1735f041a526cb6dbcda}{get\_file\_info}}(args.binary)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00329}00329\ \ \ \ \ report[\textcolor{stringliteral}{"{}file\_info"{}}]\ =\ file\_info}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00330}00330\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Size:\ \{file\_info['size\_mb']\}\ MB\ (\{file\_info['size\_bytes']\}\ bytes)"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00332}00332\ \ \ \ \ \textcolor{comment}{\#\ 2.\ PE\ header\ analysis}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00333}00333\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Parsing\ PE\ headers..."{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00334}00334\ \ \ \ \ pe\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a4ff3b21c09535007e101b3664d45ad4a}{parse\_pe\_header}}(args.binary)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00335}00335\ \ \ \ \ report[\textcolor{stringliteral}{"{}pe\_analysis"{}}]\ =\ pe}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00336}00336\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00337}00337\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00338}00338\ \ \ \ \ \textcolor{keywordflow}{if}\ pe.get(\textcolor{stringliteral}{"{}nx\_dep"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}NX/DEP\ enabled\ (non-\/executable\ stack)"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00340}00340\ \ \ \ \ \textcolor{keywordflow}{elif}\ pe.get(\textcolor{stringliteral}{"{}nx\_dep"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{False}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}NX/DEP\ NOT\ enabled\ —\ stack\ may\ be\ executable!"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00342}00342\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}NX/DEP\ status\ unknown:\ \{pe.get('nx\_dep')\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00344}00344\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00345}00345\ \ \ \ \ \textcolor{keywordflow}{if}\ pe.get(\textcolor{stringliteral}{"{}aslr\_pie"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}ASLR/DYNAMIC\_BASE\ enabled"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00347}00347\ \ \ \ \ \textcolor{keywordflow}{elif}\ pe.get(\textcolor{stringliteral}{"{}aslr\_pie"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{False}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00348}00348\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}ASLR\ NOT\ enabled\ —\ fixed\ base\ address!"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00349}00349\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}ASLR\ status\ unknown"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00351}00351\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00352}00352\ \ \ \ \ \textcolor{keywordflow}{if}\ pe.get(\textcolor{stringliteral}{"{}high\_entropy\_aslr"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}High-\/entropy\ ASLR\ (64-\/bit\ randomization)"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00354}00354\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00355}00355\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}High-\/entropy\ ASLR\ not\ detected"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00356}00356\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00357}00357\ \ \ \ \ \textcolor{keywordflow}{if}\ pe.get(\textcolor{stringliteral}{"{}cfg"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Control\ Flow\ Guard\ (CFG)\ enabled"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00359}00359\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}CFG\ not\ enabled\ (optional,\ Zig\ uses\ other\ mitigations)"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00361}00361\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00362}00362\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Entry\ point:\ \{pe.get('entry\_point',\ 'unknown')\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00363}00363\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Format:\ \{pe.get('format',\ 'unknown')\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00364}00364\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00365}00365\ \ \ \ \ \textcolor{comment}{\#\ 3.\ Section\ analysis}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00366}00366\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00367}00367\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Analyzing\ sections..."{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00368}00368\ \ \ \ \ sections\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a1ba300a3001ab67ddec3d5946332bb19}{analyze\_sections\_objdump}}(args.binary)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00369}00369\ \ \ \ \ report[\textcolor{stringliteral}{"{}sections"{}}]\ =\ sections}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00370}00370\ \ \ \ \ \textcolor{keywordflow}{if}\ sections\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ sections[0]:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00371}00371\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ sec\ \textcolor{keywordflow}{in}\ sections:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00372}00372\ \ \ \ \ \ \ \ \ \ \ \ \ size\_kb\ =\ sec[\textcolor{stringliteral}{"{}size\_bytes"{}}]\ /\ 1024}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00373}00373\ \ \ \ \ \ \ \ \ \ \ \ \ warning\ =\ f\textcolor{stringliteral}{"{}\ \{RED\}<<\ \{sec['warning']\}\{RESET\}"{}}\ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}warning"{}}\ \textcolor{keywordflow}{in}\ sec\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00374}00374\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{sec['name']:12s\}\ \{size\_kb:10.1f\}\ KB\ \ \{sec.get('flags',\ '')\}\{warning\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00375}00375\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00376}00376\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Could\ not\ parse\ sections\ (objdump\ not\ available?)"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00377}00377\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00378}00378\ \ \ \ \ \textcolor{comment}{\#\ 4.\ Stack\ canaries}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00379}00379\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00380}00380\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Checking\ stack\ protection..."{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00381}00381\ \ \ \ \ canaries\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a771747b3ff6fe7d96ed564f0e4dfa855}{check\_canaries}}(args.binary)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00382}00382\ \ \ \ \ report[\textcolor{stringliteral}{"{}stack\_protection"{}}]\ =\ canaries}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00383}00383\ \ \ \ \ \textcolor{keywordflow}{if}\ canaries.get(\textcolor{stringliteral}{"{}stack\_canary\_windows\_gs"{}}):}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00384}00384\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Windows\ /GS\ stack\ cookies\ detected"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00385}00385\ \ \ \ \ \textcolor{keywordflow}{elif}\ canaries.get(\textcolor{stringliteral}{"{}stack\_canary\_linux"{}}):}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00386}00386\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Stack\ canary\ (\_\_stack\_chk\_fail)\ detected"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00387}00387\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00388}00388\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}No\ traditional\ stack\ canaries\ —\ Zig\ uses\ bounds\ checking\ +\ SafeStack\ instead"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00389}00389\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00390}00390\ \ \ \ \ \textcolor{comment}{\#\ 5.\ Unsafe\ string\ patterns}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00391}00391\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00392}00392\ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Scanning\ strings\ for\ unsafe\ C\ patterns..."{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00393}00393\ \ \ \ \ strings\_result\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a6944e82a1c1a107610f5525515328ea4}{scan\_strings}}(args.binary)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00394}00394\ \ \ \ \ report[\textcolor{stringliteral}{"{}string\_scan"{}}]\ =\ strings\_result}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00395}00395\ \ \ \ \ \textcolor{keywordflow}{if}\ strings\_result.get(\textcolor{stringliteral}{"{}error"{}}):}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00396}00396\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}String\ scan\ failed:\ \{strings\_result['error']\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00397}00397\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00398}00398\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Total\ strings\ in\ binary:\ \{strings\_result['total\_strings']\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00399}00399\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ strings\_result[\textcolor{stringliteral}{"{}unsafe\_patterns\_found"{}}]:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00400}00400\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ pat,\ info\ \textcolor{keywordflow}{in}\ strings\_result[\textcolor{stringliteral}{"{}unsafe\_patterns\_found"{}}].items():}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00401}00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ info[\textcolor{stringliteral}{"{}severity"{}}]\ ==\ \textcolor{stringliteral}{"{}HIGH"{}}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00402}00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Found\ '\{pat\}'\ x\{info['count']\}\ [\{info['severity']\}]"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00403}00403\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00404}00404\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Found\ '\{pat\}'\ x\{info['count']\}\ [\{info['severity']\}]"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00405}00405\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00406}00406\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}No\ unsafe\ C\ string\ functions\ found\ (expected\ for\ pure\ Zig)"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00407}00407\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00408}00408\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ strings\_result[\textcolor{stringliteral}{"{}crypto\_concerns"{}}]:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00409}00409\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Crypto\ concerns:\ \{len(strings\_result['crypto\_concerns'])\}\ items"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ strings\_result[\textcolor{stringliteral}{"{}crypto\_concerns"{}}][:3]:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00411}00411\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{YELLOW\}\{c\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00412}00412\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00413}00413\ \ \ \ \ \textcolor{comment}{\#\ 6.\ pwntools\ checksec\ (optional)}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00414}00414\ \ \ \ \ pw\ =\ \doxymbox{\hyperlink{namespacebinary-analysis_a6ffc768ca43815b4e5e476b83f4e64c3}{try\_pwntools\_checksec}}(args.binary)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00415}00415\ \ \ \ \ \textcolor{keywordflow}{if}\ pw:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00416}00416\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00417}00417\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}pwntools\ checksec\ results:"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00418}00418\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}pwntools"{}}]\ =\ pw}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00419}00419\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ pw.items():}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00420}00420\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{k\}:\ \{v\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00421}00421\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00422}00422\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00423}00423\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00424}00424\ \ \ \ \ issues\ =\ 0}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00425}00425\ \ \ \ \ \textcolor{keywordflow}{if}\ pe.get(\textcolor{stringliteral}{"{}nx\_dep"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{False}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00426}00426\ \ \ \ \ \ \ \ \ issues\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00427}00427\ \ \ \ \ \textcolor{keywordflow}{if}\ pe.get(\textcolor{stringliteral}{"{}aslr\_pie"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{False}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00428}00428\ \ \ \ \ \ \ \ \ issues\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00429}00429\ \ \ \ \ \textcolor{keywordflow}{if}\ strings\_result.get(\textcolor{stringliteral}{"{}unsafe\_patterns\_found"{}}):}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00430}00430\ \ \ \ \ \ \ \ \ issues\ +=\ len([p\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ strings\_result[\textcolor{stringliteral}{"{}unsafe\_patterns\_found"{}}].values()\ \textcolor{keywordflow}{if}\ p[\textcolor{stringliteral}{"{}severity"{}}]\ ==\ \textcolor{stringliteral}{"{}HIGH"{}}])}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00431}00431\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00432}00432\ \ \ \ \ \textcolor{keywordflow}{if}\ issues\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00433}00433\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}\{BOLD\}\ \ RESULT:\ Binary\ appears\ well-\/hardened\ (0\ critical\ issues)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00434}00434\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00435}00435\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}\{BOLD\}\ \ RESULT:\ \{issues\}\ critical\ issue(s)\ found\ —\ review\ above\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00436}00436\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00437}00437\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00438}00438\ \ \ \ \ report[\textcolor{stringliteral}{"{}summary"{}}]\ =\ \{\textcolor{stringliteral}{"{}critical\_issues"{}}:\ issues\}}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00439}00439\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00440}00440\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00441}00441\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00442}00442\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00443}00443\ \ \ \ \ \textcolor{keywordflow}{if}\ args.output:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00444}00444\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00446}00446\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Report\ saved\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00447}00447\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00448}00448\ \ \ \ \ \textcolor{keywordflow}{return}\ 1\ \textcolor{keywordflow}{if}\ issues\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00449}00449\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00450}00450\ }
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00451}00451\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{binary-analysis_8py_source_l00452}00452\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacebinary-analysis_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

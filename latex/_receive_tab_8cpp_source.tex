@@ -1,0 +1,125 @@
+\doxysection{Receive\+Tab.\+cpp}
+\hypertarget{_receive_tab_8cpp_source}{}\label{_receive_tab_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/ReceiveTab.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/ReceiveTab.cpp}}
+\doxymbox{\hyperlink{_receive_tab_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_receive_tab_8h}{widgets/ReceiveTab.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_address_label_8h}{widgets/AddressLabel.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_q_r_code_widget_8h}{widgets/QRCodeWidget.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_node_service_8h}{core/NodeService.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_wallet_manager_8h}{core/WalletManager.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <QFrame>}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <QClipboard>}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <QApplication>}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00014}00014\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00016}\doxymbox{\hyperlink{classomni_1_1_receive_tab_aaa8e8da960d8ca49e86ef142c28a8a48}{00016}}\ \doxymbox{\hyperlink{classomni_1_1_receive_tab_aaa8e8da960d8ca49e86ef142c28a8a48}{ReceiveTab::ReceiveTab}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00017}00017\ \ \ \ \ :\ QWidget(parent)}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00018}00018\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00019}00019\ \ \ \ \ setupUi();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00021}00021\ \ \ \ \ \textcolor{keyword}{auto}\&\ svc\ =\ \doxymbox{\hyperlink{classomni_1_1_node_service_a1c90711658b40d4fe21ac86ba1d159fd}{NodeService::instance}}();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00022}00022\ \ \ \ \ connect(\&svc,\ \&\doxymbox{\hyperlink{classomni_1_1_node_service_aa5ff1bc4f2d24c4ca50eec73418e16d6}{NodeService::walletUpdated}},\ \textcolor{keyword}{this},\ \&\doxymbox{\hyperlink{classomni_1_1_receive_tab_aa57ffa4a78236b23b222390f43f2a306}{ReceiveTab::onWalletUpdated}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00024}00024\ \ \ \ \ \textcolor{comment}{//\ Also\ listen\ for\ WalletManager\ changes\ (standalone\ wallet\ mode)}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00025}00025\ \ \ \ \ \textcolor{keyword}{auto}\&\ wm\ =\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f}{WalletManager::instance}}();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00026}00026\ \ \ \ \ connect(\&wm,\ \&\doxymbox{\hyperlink{classomni_1_1_wallet_manager_a39fee57b17186763d9c440e6290c81b9}{WalletManager::walletChanged}},\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}](\textcolor{keyword}{const}\ QString\&,\ \textcolor{keyword}{const}\ QString\&)\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\&\ wm2\ =\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f}{WalletManager::instance}}();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00028}00028\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (wm2.isUnlocked())\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00029}00029\ \ \ \ \ \ \ \ \ \ \ \ \ QString\ addr\ =\ wm2.primaryAddress();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00030}00030\ \ \ \ \ \ \ \ \ \ \ \ \ m\_addressLabel-\/>setAddress(addr);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00031}00031\ \ \ \ \ \ \ \ \ \ \ \ \ m\_qrWidget-\/>setData(addr);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00032}00032\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00033}00033\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00034}00034\ \ \ \ \ connect(\&wm,\ \&\doxymbox{\hyperlink{classomni_1_1_wallet_manager_a770d96bbdd19fdba7d12417b2ab23f03}{WalletManager::addressGenerated}},\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}](\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_wallet_address}{WalletAddress}}\&\ addr)\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00035}00035\ \ \ \ \ \ \ \ \ m\_addressLabel-\/>setAddress(addr.\doxymbox{\hyperlink{structomni_1_1_wallet_address_ae9acc12ba156df29327cf9d62451e446}{address}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00036}00036\ \ \ \ \ \ \ \ \ m\_qrWidget-\/>setData(addr.\doxymbox{\hyperlink{structomni_1_1_wallet_address_ae9acc12ba156df29327cf9d62451e446}{address}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00037}00037\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00039}00039\ \ \ \ \ \textcolor{comment}{//\ Initialize\ from\ WalletManager\ if\ already\ unlocked}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{if}\ (wm.isUnlocked())\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00041}00041\ \ \ \ \ \ \ \ \ QString\ addr\ =\ wm.primaryAddress();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!addr.isEmpty())\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ m\_addressLabel-\/>setAddress(addr);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ m\_qrWidget-\/>setData(addr);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00045}00045\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00046}00046\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00047}00047\ \}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00049}00049\ \textcolor{keywordtype}{void}\ ReceiveTab::setupUi()\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00050}00050\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00051}00051\ \ \ \ \ layout-\/>setContentsMargins(24,\ 24,\ 24,\ 24);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00052}00052\ \ \ \ \ layout-\/>setSpacing(16);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00053}00053\ \ \ \ \ layout-\/>setAlignment(Qt::AlignHCenter\ |\ Qt::AlignTop);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00055}00055\ \ \ \ \ \textcolor{keyword}{auto}*\ title\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Receive\ OMNI"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00056}00056\ \ \ \ \ title-\/>setObjectName(\textcolor{stringliteral}{"{}sectionTitle"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00057}00057\ \ \ \ \ title-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00058}00058\ \ \ \ \ layout-\/>addWidget(title);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00060}00060\ \ \ \ \ \textcolor{comment}{//\ QR\ Code}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{keyword}{auto}*\ qrCard\ =\ \textcolor{keyword}{new}\ QFrame;}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00062}00062\ \ \ \ \ qrCard-\/>setObjectName(\textcolor{stringliteral}{"{}card"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00063}00063\ \ \ \ \ qrCard-\/>setFixedSize(240,\ 240);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00064}00064\ \ \ \ \ \textcolor{keyword}{auto}*\ qrLayout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(qrCard);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00065}00065\ \ \ \ \ qrLayout-\/>setContentsMargins(16,\ 16,\ 16,\ 16);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00066}00066\ \ \ \ \ m\_qrWidget\ =\ \textcolor{keyword}{new}\ \doxymbox{\hyperlink{classomni_1_1_q_r_code_widget}{QRCodeWidget}};}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00067}00067\ \ \ \ \ qrLayout-\/>addWidget(m\_qrWidget);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00068}00068\ \ \ \ \ layout-\/>addWidget(qrCard,\ 0,\ Qt::AlignHCenter);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00070}00070\ \ \ \ \ \textcolor{comment}{//\ Address}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00071}00071\ \ \ \ \ \textcolor{keyword}{auto}*\ addrCard\ =\ \textcolor{keyword}{new}\ QFrame;}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00072}00072\ \ \ \ \ addrCard-\/>setObjectName(\textcolor{stringliteral}{"{}cardHighlight"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00073}00073\ \ \ \ \ \textcolor{keyword}{auto}*\ addrLayout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(addrCard);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00074}00074\ \ \ \ \ addrLayout-\/>setContentsMargins(16,\ 12,\ 16,\ 12);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00076}00076\ \ \ \ \ \textcolor{keyword}{auto}*\ addrTitle\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Your\ OmniBus\ Address"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00077}00077\ \ \ \ \ addrTitle-\/>setObjectName(\textcolor{stringliteral}{"{}dimLabel"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00078}00078\ \ \ \ \ addrTitle-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00080}00080\ \ \ \ \ m\_addressLabel\ =\ \textcolor{keyword}{new}\ \doxymbox{\hyperlink{classomni_1_1_address_label}{AddressLabel}}(\textcolor{stringliteral}{"{}Generating..."{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00081}00081\ \ \ \ \ m\_addressLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00082}00082\ \ \ \ \ m\_addressLabel-\/>setWordWrap(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00084}00084\ \ \ \ \ addrLayout-\/>addWidget(addrTitle);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00085}00085\ \ \ \ \ addrLayout-\/>addWidget(m\_addressLabel);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00086}00086\ \ \ \ \ layout-\/>addWidget(addrCard);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00088}00088\ \ \ \ \ \textcolor{comment}{//\ Copy\ button}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00089}00089\ \ \ \ \ \textcolor{keyword}{auto}*\ copyBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Copy\ Address"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00090}00090\ \ \ \ \ copyBtn-\/>setObjectName(\textcolor{stringliteral}{"{}secondaryButton"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00091}00091\ \ \ \ \ copyBtn-\/>setFixedWidth(200);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00092}00092\ \ \ \ \ connect(copyBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00093}00093\ \ \ \ \ \ \ \ \ QApplication::clipboard()-\/>setText(m\_addressLabel-\/>\doxymbox{\hyperlink{classomni_1_1_address_label_ae62402ed253a5cb4c24841289e066435}{address}}());}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00094}00094\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00095}00095\ \ \ \ \ layout-\/>addWidget(copyBtn,\ 0,\ Qt::AlignHCenter);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00097}00097\ \ \ \ \ \textcolor{comment}{//\ Info}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00098}00098\ \ \ \ \ m\_infoLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Share\ this\ address\ to\ receive\ OMNI\ tokens.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Addresses\ start\ with\ 'ob1q'\ (Bech32\ format)."{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00100}00100\ \ \ \ \ m\_infoLabel-\/>setObjectName(\textcolor{stringliteral}{"{}dimLabel"{}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00101}00101\ \ \ \ \ m\_infoLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00102}00102\ \ \ \ \ m\_infoLabel-\/>setWordWrap(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00103}00103\ \ \ \ \ layout-\/>addWidget(m\_infoLabel);}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00105}00105\ \ \ \ \ layout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00106}00106\ \}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00108}\doxymbox{\hyperlink{classomni_1_1_receive_tab_aa57ffa4a78236b23b222390f43f2a306}{00108}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_receive_tab_aa57ffa4a78236b23b222390f43f2a306}{ReceiveTab::onWalletUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\&\ info)\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00109}00109\ \ \ \ \ \textcolor{comment}{//\ Only\ update\ from\ node\ if\ WalletManager\ doesn't\ have\ a\ local\ address}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00110}00110\ \ \ \ \ \textcolor{keyword}{auto}\&\ wm\ =\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f}{WalletManager::instance}}();}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00111}00111\ \ \ \ \ \textcolor{keywordflow}{if}\ (wm.isUnlocked()\ \&\&\ !wm.primaryAddress().isEmpty())\ \{}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Use\ local\ wallet\ address,\ not\ node\ address}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00114}00114\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00115}00115\ \ \ \ \ m\_addressLabel-\/>setAddress(info.\doxymbox{\hyperlink{structomni_1_1_wallet_info_af42e2410b77a05bd7d35da80f88fd3f4}{address}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00116}00116\ \ \ \ \ m\_qrWidget-\/>setData(info.\doxymbox{\hyperlink{structomni_1_1_wallet_info_af42e2410b77a05bd7d35da80f88fd3f4}{address}});}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00117}00117\ \}}
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{_receive_tab_8cpp_source_l00119}00119\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

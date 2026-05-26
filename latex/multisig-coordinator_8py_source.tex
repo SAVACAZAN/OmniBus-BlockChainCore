@@ -1,0 +1,115 @@
+\doxysection{multisig-\/coordinator.py}
+\hypertarget{multisig-coordinator_8py_source}{}\label{multisig-coordinator_8py_source}\index{tools/WALLET/multisig-\/coordinator.py@{tools/WALLET/multisig-\/coordinator.py}}
+\doxymbox{\hyperlink{multisig-coordinator_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00001}\doxymbox{\hyperlink{namespacemultisig-coordinator}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00002}\doxymbox{\hyperlink{namespacemultisig}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Multisig\ Transaction\ Coordinator}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00005}00005\ \textcolor{stringliteral}{Helper\ for\ creating\ and\ collecting\ signatures\ for\ multisig\ transactions.}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00009}00009\ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00011}00011\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00012}00012\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00013}00013\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00015}\doxymbox{\hyperlink{namespacemultisig-coordinator_a3ba8ebc17b6fca2381bd2426d3f9881f}{00015}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00016}\doxymbox{\hyperlink{namespacemultisig-coordinator_a0688480e1bbc4a5901ae6df4df2782da}{00016}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00017}\doxymbox{\hyperlink{namespacemultisig-coordinator_acff045f096dbd16cc947590237cd831b}{00017}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00018}\doxymbox{\hyperlink{namespacemultisig-coordinator_ab9fcfed6e15d2526006d4bf0a87d42fe}{00018}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00021}\doxymbox{\hyperlink{namespacemultisig-coordinator_acd59877dca2a9957888013a6f06aab6d}{00021}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemultisig-coordinator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00022}00022\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00025}\doxymbox{\hyperlink{namespacemultisig-coordinator_aab6bc7867ecbaa72500df27bd5f86521}{00025}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemultisig-coordinator_aab6bc7867ecbaa72500df27bd5f86521}{create\_multisig\_tx}}(inputs:\ List[Dict],\ outputs:\ List[Dict],\ m:\ int,\ n:\ int,\ pubkeys:\ List[str])\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00026}00026\ \ \ \ \ tx\ =\ \{}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inputs"{}}:\ inputs,}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}outputs"{}}:\ outputs,}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}multisig"{}}:\ \{\textcolor{stringliteral}{"{}m"{}}:\ m,\ \textcolor{stringliteral}{"{}n"{}}:\ n,\ \textcolor{stringliteral}{"{}pubkeys"{}}:\ pubkeys,\ \textcolor{stringliteral}{"{}signatures"{}}:\ []\},}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}txid"{}}:\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00032}00032\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00033}00033\ \ \ \ \ \textcolor{comment}{\#\ Compute\ placeholder\ txid}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00034}00034\ \ \ \ \ tx\_bytes\ =\ json.dumps(tx,\ sort\_keys=\textcolor{keyword}{True}).encode()}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00035}00035\ \ \ \ \ tx[\textcolor{stringliteral}{"{}txid"{}}]\ =\ hashlib.sha256(tx\_bytes).hexdigest()[:64]}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{return}\ tx}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00039}\doxymbox{\hyperlink{namespacemultisig-coordinator_a9890ef5bf71ddea584b80df61309755b}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemultisig-coordinator_a9890ef5bf71ddea584b80df61309755b}{add\_signature}}(tx:\ Dict[str,\ Any],\ pubkey:\ str,\ signature\_hex:\ str)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00040}00040\ \ \ \ \ sigs\ =\ tx[\textcolor{stringliteral}{"{}multisig"{}}][\textcolor{stringliteral}{"{}signatures"{}}]}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00041}00041\ \ \ \ \ \textcolor{comment}{\#\ Prevent\ duplicate\ pubkey\ signatures}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00042}00042\ \ \ \ \ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ sigs:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ s[\textcolor{stringliteral}{"{}pubkey"{}}]\ ==\ pubkey:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemultisig-coordinator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Replacing\ signature\ for\ \{pubkey\}"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ s[\textcolor{stringliteral}{"{}signature"{}}]\ =\ signature\_hex}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tx}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00047}00047\ \ \ \ \ sigs.append(\{\textcolor{stringliteral}{"{}pubkey"{}}:\ pubkey,\ \textcolor{stringliteral}{"{}signature"{}}:\ signature\_hex\})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00048}00048\ \ \ \ \ \textcolor{keywordflow}{return}\ tx}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00051}\doxymbox{\hyperlink{namespacemultisig-coordinator_abb904441dfa1712b0f346f7d42963f28}{00051}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemultisig-coordinator_abb904441dfa1712b0f346f7d42963f28}{finalize\_tx}}(tx:\ Dict[str,\ Any])\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00052}00052\ \ \ \ \ m\ =\ tx[\textcolor{stringliteral}{"{}multisig"{}}][\textcolor{stringliteral}{"{}m"{}}]}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{if}\ len(tx[\textcolor{stringliteral}{"{}multisig"{}}][\textcolor{stringliteral}{"{}signatures"{}}])\ >=\ m:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemultisig-coordinator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Transaction\ finalized\ with\ \{len(tx['multisig']['signatures'])\}/\{m\}\ signatures"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemultisig-coordinator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}Not\ enough\ signatures:\ \{len(tx['multisig']['signatures'])\}/\{m\}"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00061}\doxymbox{\hyperlink{namespacemultisig-coordinator_a7431cb90017e54fe695b23d4190db046}{00061}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemultisig-coordinator_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00062}00062\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Multisig\ transaction\ coordinator"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00063}00063\ \ \ \ \ sub\ =\ parser.add\_subparsers(dest=\textcolor{stringliteral}{"{}cmd"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00065}00065\ \ \ \ \ create\_p\ =\ sub.add\_parser(\textcolor{stringliteral}{"{}create"{}},\ help=\textcolor{stringliteral}{"{}Create\ a\ multisig\ tx\ template"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00066}00066\ \ \ \ \ create\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/m"{}},\ type=int,\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Required\ signatures"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00067}00067\ \ \ \ \ create\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/n"{}},\ type=int,\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Total\ signers"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00068}00068\ \ \ \ \ create\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/pubkeys"{}},\ nargs=\textcolor{stringliteral}{"{}+"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Public\ keys"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00069}00069\ \ \ \ \ create\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}multisig-\/tx.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ file"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00071}00071\ \ \ \ \ sign\_p\ =\ sub.add\_parser(\textcolor{stringliteral}{"{}sign"{}},\ help=\textcolor{stringliteral}{"{}Add\ a\ signature"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00072}00072\ \ \ \ \ sign\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/tx"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Tx\ file"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00073}00073\ \ \ \ \ sign\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/pubkey"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Signer\ pubkey"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00074}00074\ \ \ \ \ sign\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/signature"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Signature\ hex"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00075}00075\ \ \ \ \ sign\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}multisig-\/tx.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ file"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00077}00077\ \ \ \ \ finalize\_p\ =\ sub.add\_parser(\textcolor{stringliteral}{"{}finalize"{}},\ help=\textcolor{stringliteral}{"{}Check\ if\ tx\ is\ ready\ to\ broadcast"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00078}00078\ \ \ \ \ finalize\_p.add\_argument(\textcolor{stringliteral}{"{}-\/-\/tx"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Tx\ file"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00080}00080\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00082}00082\ \ \ \ \ \textcolor{keywordflow}{if}\ args.cmd\ ==\ \textcolor{stringliteral}{"{}create"{}}:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ tx\ =\ \doxymbox{\hyperlink{namespacemultisig-coordinator_aab6bc7867ecbaa72500df27bd5f86521}{create\_multisig\_tx}}([],\ [],\ args.m,\ args.n,\ args.pubkeys)}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(tx,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemultisig-coordinator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Created\ \{args.m\}-\/of-\/\{args.n\}\ multisig\ tx\ -\/>\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{if}\ args.cmd\ ==\ \textcolor{stringliteral}{"{}sign"{}}:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.tx,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ tx\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ tx\ =\ \doxymbox{\hyperlink{namespacemultisig-coordinator_a9890ef5bf71ddea584b80df61309755b}{add\_signature}}(tx,\ args.pubkey,\ args.signature)}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(tx,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemultisig-coordinator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Added\ signature\ -\/>\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00098}00098\ \ \ \ \ \textcolor{keywordflow}{if}\ args.cmd\ ==\ \textcolor{stringliteral}{"{}finalize"{}}:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.tx,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ tx\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ ok\ =\ \doxymbox{\hyperlink{namespacemultisig-coordinator_abb904441dfa1712b0f346f7d42963f28}{finalize\_tx}}(tx)}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ 1}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00104}00104\ \ \ \ \ parser.print\_help()}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00108}00108\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{multisig-coordinator_8py_source_l00109}00109\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacemultisig-coordinator_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

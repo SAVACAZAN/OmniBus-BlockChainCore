@@ -1,0 +1,225 @@
+\doxysection{benchmark Namespace Reference}
+\hypertarget{namespacebenchmark}{}\label{namespacebenchmark}\index{benchmark@{benchmark}}
+
+
+-\/consensus  
+
+
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Dict \doxymbox{\hyperlink{namespacebenchmark_ad7064f2a49813d03a08763111b8b27ef}{run\+\_\+zig\+\_\+benchmark}} (str test\+\_\+name, int iterations=1000)
+\item 
+Dict \doxymbox{\hyperlink{namespacebenchmark_a0f11c43859c770b1c412c724f4fea32d}{benchmark\+\_\+hashing}} ()
+\item 
+Dict \doxymbox{\hyperlink{namespacebenchmark_ad158384a8be583cdb24cf2db1cc109fe}{benchmark\+\_\+signature\+\_\+verification}} ()
+\item 
+Dict \doxymbox{\hyperlink{namespacebenchmark_affa2b4c6657b1395629a3f5e0e8ff69a}{benchmark\+\_\+transaction\+\_\+creation}} ()
+\item 
+Dict \doxymbox{\hyperlink{namespacebenchmark_a1a15801f5886bb646710f1abbeaeeae5}{benchmark\+\_\+block\+\_\+processing}} ()
+\item 
+Dict \doxymbox{\hyperlink{namespacebenchmark_a3c0f51aba36c0c353c57d9a8a3e9f6a1}{benchmark\+\_\+mining}} ()
+\item 
+List\+[Dict]\+ \doxymbox{\hyperlink{namespacebenchmark_af14be3a3a2ead10d43bb06b9116a49f8}{run\+\_\+all\+\_\+benchmarks}} ()
+\item 
+\doxymbox{\hyperlink{namespacebenchmark_aee1681d0452456b99460c19b4083e03d}{print\+\_\+report}} (List\+[Dict]\+ results)
+\item 
+\doxymbox{\hyperlink{namespacebenchmark_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacebenchmark_a4092f3bc14fb53f872e2774cea692e3e}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespacebenchmark_a6a596b4a79c19687321793aaf1cf1b7d}{CORE}} = \doxymbox{\hyperlink{namespacebenchmark_a4092f3bc14fb53f872e2774cea692e3e}{ROOT}} /\+ "{}core"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+-\/consensus 
+
+\begin{DoxyVerb}benchmark.py - OmniBus Blockchain Performance Benchmark v1.0
+
+Măsoară performanța critică a blockchain-ului:
+  - Transaction throughput (TPS)
+  - Block processing time
+  - Hash rate pentru mining
+  - Memory usage
+  - P2P message propagation
+  - RPC response time
+
+Usage:
+  python tools/PERFORMANCE/benchmark.py              # All benchmarks
+  python tools/PERFORMANCE/benchmark.py --tps        # Only TPS test
+  python tools/PERFORMANCE/benchmark.py --mining     # Only mining benchmark
+  python tools/PERFORMANCE/benchmark.py --json       # Export results
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Consensus Benchmark
+
+Measures:
+  - Block validation time
+  - Sub-block processing latency
+  - Transaction throughput (TPS)
+
+Outputs: benchmark-results.json
+\end{DoxyVerb}
+ 
+
+\label{namespacebenchmark_doc-func-members}
+\Hypertarget{namespacebenchmark_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacebenchmark_a1a15801f5886bb646710f1abbeaeeae5}\index{benchmark@{benchmark}!benchmark\_block\_processing@{benchmark\_block\_processing}}
+\index{benchmark\_block\_processing@{benchmark\_block\_processing}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{benchmark\_block\_processing()}{benchmark\_block\_processing()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_a1a15801f5886bb646710f1abbeaeeae5} 
+ Dict benchmark\+\_\+block\+\_\+processing (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Benchmark block validation.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacebenchmark_a0f11c43859c770b1c412c724f4fea32d}\index{benchmark@{benchmark}!benchmark\_hashing@{benchmark\_hashing}}
+\index{benchmark\_hashing@{benchmark\_hashing}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{benchmark\_hashing()}{benchmark\_hashing()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_a0f11c43859c770b1c412c724f4fea32d} 
+ Dict benchmark\+\_\+hashing (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Benchmark SHA256 hashing performance.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00062}{62}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacebenchmark_a3c0f51aba36c0c353c57d9a8a3e9f6a1}\index{benchmark@{benchmark}!benchmark\_mining@{benchmark\_mining}}
+\index{benchmark\_mining@{benchmark\_mining}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{benchmark\_mining()}{benchmark\_mining()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_a3c0f51aba36c0c353c57d9a8a3e9f6a1} 
+ Dict benchmark\+\_\+mining (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Benchmark mining hashrate.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00083}{83}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacebenchmark_ad158384a8be583cdb24cf2db1cc109fe}\index{benchmark@{benchmark}!benchmark\_signature\_verification@{benchmark\_signature\_verification}}
+\index{benchmark\_signature\_verification@{benchmark\_signature\_verification}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{benchmark\_signature\_verification()}{benchmark\_signature\_verification()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_ad158384a8be583cdb24cf2db1cc109fe} 
+ Dict benchmark\+\_\+signature\+\_\+verification (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Benchmark signature verification.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacebenchmark_affa2b4c6657b1395629a3f5e0e8ff69a}\index{benchmark@{benchmark}!benchmark\_transaction\_creation@{benchmark\_transaction\_creation}}
+\index{benchmark\_transaction\_creation@{benchmark\_transaction\_creation}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{benchmark\_transaction\_creation()}{benchmark\_transaction\_creation()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_affa2b4c6657b1395629a3f5e0e8ff69a} 
+ Dict benchmark\+\_\+transaction\+\_\+creation (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Benchmark transaction creation.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00073}{73}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacebenchmark_a51af30a60f9f02777c6396b8247e356f}\index{benchmark@{benchmark}!main@{main}}
+\index{main@{main}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00122}{122}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacebenchmark_aee1681d0452456b99460c19b4083e03d}\index{benchmark@{benchmark}!print\_report@{print\_report}}
+\index{print\_report@{print\_report}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{print\_report()}{print\_report()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_aee1681d0452456b99460c19b4083e03d} 
+print\+\_\+report (\begin{DoxyParamCaption}\item[{List\+[Dict]\+}]{results}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print benchmark report.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00107}{107}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacebenchmark_af14be3a3a2ead10d43bb06b9116a49f8}\index{benchmark@{benchmark}!run\_all\_benchmarks@{run\_all\_benchmarks}}
+\index{run\_all\_benchmarks@{run\_all\_benchmarks}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{run\_all\_benchmarks()}{run\_all\_benchmarks()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_af14be3a3a2ead10d43bb06b9116a49f8} 
+ List\+[Dict]\+ run\+\_\+all\+\_\+benchmarks (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run all benchmarks.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00093}{93}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+\Hypertarget{namespacebenchmark_ad7064f2a49813d03a08763111b8b27ef}\index{benchmark@{benchmark}!run\_zig\_benchmark@{run\_zig\_benchmark}}
+\index{run\_zig\_benchmark@{run\_zig\_benchmark}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{run\_zig\_benchmark()}{run\_zig\_benchmark()}}
+{\footnotesize\ttfamily \label{namespacebenchmark_ad7064f2a49813d03a08763111b8b27ef} 
+ Dict run\+\_\+zig\+\_\+benchmark (\begin{DoxyParamCaption}\item[{str}]{test\+\_\+name}{, }\item[{int }]{iterations}{ = {\ttfamily 1000}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run a Zig test group and measure time.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 14
+
+
+\label{namespacebenchmark_doc-var-members}
+\Hypertarget{namespacebenchmark_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacebenchmark_a6a596b4a79c19687321793aaf1cf1b7d}\index{benchmark@{benchmark}!CORE@{CORE}}
+\index{CORE@{CORE}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespacebenchmark_a6a596b4a79c19687321793aaf1cf1b7d} 
+str benchmark.\+CORE = \doxymbox{\hyperlink{namespacebenchmark_a4092f3bc14fb53f872e2774cea692e3e}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+
+\Hypertarget{namespacebenchmark_a4092f3bc14fb53f872e2774cea692e3e}\index{benchmark@{benchmark}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!benchmark@{benchmark}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespacebenchmark_a4092f3bc14fb53f872e2774cea692e3e} 
+benchmark.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{benchmark_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{benchmark_8py_source}{benchmark.\+py}}.
+

@@ -1,0 +1,188 @@
+\doxysection{blockchain\+\_\+vs\+\_\+comparison Namespace Reference}
+\hypertarget{namespaceblockchain__vs__comparison}{}\label{namespaceblockchain__vs__comparison}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_feature_status}{Feature\+Status}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{Comparison\+Feature}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a06cfec35805992d38971c2cdf52d6fe4}{analyze\+\_\+module\+\_\+coverage}} ()
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_aa802d89700cbe9e091594716a43bcaba}{print\+\_\+comparison}} ()
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a6a0db648a8115fa2ae2f7909371b3c38}{print\+\_\+module\+\_\+coverage}} ()
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a313e53925ea23d52bad85a0833e524a9}{print\+\_\+scorecard}} ()
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_adce1fae1ba161a3ed76de52e5498c393}{export\+\_\+json}} (Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_ae0fa700c867785ceccdeea1e9db5ebd8}{export\+\_\+html}} (Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a124f1cde3229174f2640c5aa95965721}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a87746bb3dac4c3982bf323dc2e600321}{CORE}} = \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a124f1cde3229174f2640c5aa95965721}{ROOT}} /\+ "{}core"{}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a1d2fef02449180e368a85d65da8c0d24}{FEATURES}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}blockchain_vs_comparison.py - OmniBus vs Major Blockchains
+
+Comparație detaliată între OmniBus și blockchain-uri majore:
+  - Bitcoin, Ethereum, Solana, MultiversX (EGLD), Dogecoin
+  - Feature matrix complet
+  - Analiză tehnică detaliată
+  - Scorecard per blockchain
+
+Usage:
+  python tools/COMPARISON/blockchain_vs_comparison.py              # Full comparison
+  python tools/COMPARISON/blockchain_vs_comparison.py --chain eth  # Compare with Ethereum
+  python tools/COMPARISON/blockchain_vs_comparison.py --json       # Export JSON
+  python tools/COMPARISON/blockchain_vs_comparison.py --html       # Export HTML
+\end{DoxyVerb}
+ 
+
+\label{namespaceblockchain__vs__comparison_doc-func-members}
+\Hypertarget{namespaceblockchain__vs__comparison_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceblockchain__vs__comparison_a06cfec35805992d38971c2cdf52d6fe4}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!analyze\_module\_coverage@{analyze\_module\_coverage}}
+\index{analyze\_module\_coverage@{analyze\_module\_coverage}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{analyze\_module\_coverage()}{analyze\_module\_coverage()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_a06cfec35805992d38971c2cdf52d6fe4} 
+analyze\+\_\+module\+\_\+coverage (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Analyze which modules implement which features.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00084}{84}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceblockchain__vs__comparison_ae0fa700c867785ceccdeea1e9db5ebd8}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!export\_html@{export\_html}}
+\index{export\_html@{export\_html}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{export\_html()}{export\_html()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_ae0fa700c867785ceccdeea1e9db5ebd8} 
+export\+\_\+html (\begin{DoxyParamCaption}\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Export to HTML.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00245}{245}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceblockchain__vs__comparison_adce1fae1ba161a3ed76de52e5498c393}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!export\_json@{export\_json}}
+\index{export\_json@{export\_json}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{export\_json()}{export\_json()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_adce1fae1ba161a3ed76de52e5498c393} 
+export\+\_\+json (\begin{DoxyParamCaption}\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Export to JSON.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00222}{222}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceblockchain__vs__comparison_a51af30a60f9f02777c6396b8247e356f}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!main@{main}}
+\index{main@{main}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00295}{295}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceblockchain__vs__comparison_aa802d89700cbe9e091594716a43bcaba}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!print\_comparison@{print\_comparison}}
+\index{print\_comparison@{print\_comparison}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{print\_comparison()}{print\_comparison()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_aa802d89700cbe9e091594716a43bcaba} 
+print\+\_\+comparison (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print detailed comparison.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00110}{110}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceblockchain__vs__comparison_a6a0db648a8115fa2ae2f7909371b3c38}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!print\_module\_coverage@{print\_module\_coverage}}
+\index{print\_module\_coverage@{print\_module\_coverage}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{print\_module\_coverage()}{print\_module\_coverage()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_a6a0db648a8115fa2ae2f7909371b3c38} 
+print\+\_\+module\+\_\+coverage (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print module coverage analysis.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00138}{138}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceblockchain__vs__comparison_a313e53925ea23d52bad85a0833e524a9}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!print\_scorecard@{print\_scorecard}}
+\index{print\_scorecard@{print\_scorecard}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{print\_scorecard()}{print\_scorecard()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_a313e53925ea23d52bad85a0833e524a9} 
+print\+\_\+scorecard (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print final scorecard.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00153}{153}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+\label{namespaceblockchain__vs__comparison_doc-var-members}
+\Hypertarget{namespaceblockchain__vs__comparison_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceblockchain__vs__comparison_a87746bb3dac4c3982bf323dc2e600321}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!CORE@{CORE}}
+\index{CORE@{CORE}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_a87746bb3dac4c3982bf323dc2e600321} 
+str blockchain\+\_\+vs\+\_\+comparison.\+CORE = \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a124f1cde3229174f2640c5aa95965721}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+\Hypertarget{namespaceblockchain__vs__comparison_a1d2fef02449180e368a85d65da8c0d24}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!FEATURES@{FEATURES}}
+\index{FEATURES@{FEATURES}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{FEATURES}{FEATURES}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_a1d2fef02449180e368a85d65da8c0d24} 
+list blockchain\+\_\+vs\+\_\+comparison.\+FEATURES}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+
+\Hypertarget{namespaceblockchain__vs__comparison_a124f1cde3229174f2640c5aa95965721}\index{blockchain\_vs\_comparison@{blockchain\_vs\_comparison}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!blockchain\_vs\_comparison@{blockchain\_vs\_comparison}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__vs__comparison_a124f1cde3229174f2640c5aa95965721} 
+blockchain\+\_\+vs\+\_\+comparison.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{blockchain__vs__comparison_8py_source}{blockchain\+\_\+vs\+\_\+comparison.\+py}}.
+

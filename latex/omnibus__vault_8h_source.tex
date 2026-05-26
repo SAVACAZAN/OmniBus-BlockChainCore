@@ -1,0 +1,101 @@
+\doxysection{omnibus\+\_\+vault.\+h}
+\hypertarget{omnibus__vault_8h_source}{}\label{omnibus__vault_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/ada-\/vault/omnibus\_vault.h@{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/ada-\/vault/omnibus\_vault.h}}
+\doxymbox{\hyperlink{omnibus__vault_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00001}00001\ \textcolor{comment}{/*\ ============================================================}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00002}00002\ \textcolor{comment}{\ *\ \ omnibus\_vault.h\ \ -\/-\/\ \ C\ API\ for\ Ada\ SPARK\ Vault\ Library}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00003}00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00004}00004\ \textcolor{comment}{\ *\ \ This\ header\ is\ used\ by\ Qt6\ C++\ GUI\ to\ call\ SPARK-\/verified}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00005}00005\ \textcolor{comment}{\ *\ \ vault\ operations\ compiled\ in\ omnibus\_vault.dll.}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00006}00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00007}00007\ \textcolor{comment}{\ *\ \ All\ crypto\ operations\ (DPAPI\ encrypt/decrypt,\ secure\ wipe)}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00008}00008\ \textcolor{comment}{\ *\ \ run\ through\ SPARK-\/proven\ Ada\ code.}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00009}00009\ \textcolor{comment}{\ *\ ============================================================\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00011}00011\ \textcolor{preprocessor}{\#ifndef\ OMNIBUS\_VAULT\_H}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00012}00012\ \textcolor{preprocessor}{\#define\ OMNIBUS\_VAULT\_H}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00014}00014\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00015}00015\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00016}00016\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00018}00018\ \textcolor{comment}{/*\ ──\ Return\ codes\ ─────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00019}\doxymbox{\hyperlink{omnibus__vault_8h_ac03236f644d2057308102023876d97b2}{00019}}\ \textcolor{preprocessor}{\#define\ VAULT\_OK\ \ \ \ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00020}\doxymbox{\hyperlink{omnibus__vault_8h_aaf2e3ec845c0360e652e7f8384074b0b}{00020}}\ \textcolor{preprocessor}{\#define\ VAULT\_ERR\ \ \ \ \ \ \ -\/1}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00021}\doxymbox{\hyperlink{omnibus__vault_8h_a091dc415f31cadb045c8d555310f4fe2}{00021}}\ \textcolor{preprocessor}{\#define\ VAULT\_NOT\_FOUND\ -\/2}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00022}\doxymbox{\hyperlink{omnibus__vault_8h_a15db5197f05d8b7f5773d2a7b1128540}{00022}}\ \textcolor{preprocessor}{\#define\ VAULT\_LOCKED\ \ \ \ -\/3}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00023}\doxymbox{\hyperlink{omnibus__vault_8h_a88c72218b890828478bb95b867419730}{00023}}\ \textcolor{preprocessor}{\#define\ VAULT\_FULL\ \ \ \ \ \ -\/4}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00025}00025\ \textcolor{comment}{/*\ ──\ Exchange\ IDs\ ─────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00026}\doxymbox{\hyperlink{omnibus__vault_8h_a25f74ca150a873c6ca5b0cc7f404f901}{00026}}\ \textcolor{preprocessor}{\#define\ VAULT\_EX\_LCX\ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00027}\doxymbox{\hyperlink{omnibus__vault_8h_a6fe13266f1d9b7970558af02bc281201}{00027}}\ \textcolor{preprocessor}{\#define\ VAULT\_EX\_KRAKEN\ \ \ 1}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00028}\doxymbox{\hyperlink{omnibus__vault_8h_acd4dbfb09769aa68df0448421d7915b0}{00028}}\ \textcolor{preprocessor}{\#define\ VAULT\_EX\_COINBASE\ 2}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00029}\doxymbox{\hyperlink{omnibus__vault_8h_a7875e76070049bdac77686bbbbcf69a5}{00029}}\ \textcolor{preprocessor}{\#define\ VAULT\_EX\_COUNT\ \ \ \ 3}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00031}00031\ \textcolor{comment}{/*\ ──\ Key\ status\ ───────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00032}\doxymbox{\hyperlink{omnibus__vault_8h_a3577594d16fd384ccfbd77a6c0195434}{00032}}\ \textcolor{preprocessor}{\#define\ VAULT\_STATUS\_FREE\ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00033}\doxymbox{\hyperlink{omnibus__vault_8h_a222659c31843ee0e8d089d3dadf127ee}{00033}}\ \textcolor{preprocessor}{\#define\ VAULT\_STATUS\_PAID\ \ \ \ \ 1}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00034}\doxymbox{\hyperlink{omnibus__vault_8h_a6148c20fa24220f45e7c013a354983df}{00034}}\ \textcolor{preprocessor}{\#define\ VAULT\_STATUS\_NOT\_PAID\ 2}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00036}00036\ \textcolor{comment}{/*\ ──\ Lifecycle\ ────────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00039}\doxymbox{\hyperlink{omnibus__vault_8h_af578d248dc8d05427695636e66a7f952}{00039}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{omnibus__vault_8h_af578d248dc8d05427695636e66a7f952}{vault\_lib\_init}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00042}\doxymbox{\hyperlink{omnibus__vault_8h_a4f30979987aad9606e5b626932539f2e}{00042}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a4f30979987aad9606e5b626932539f2e}{vault\_init}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00045}\doxymbox{\hyperlink{omnibus__vault_8h_aa8a0cf3ba9ccf2876ee5fce210668ef6}{00045}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_aa8a0cf3ba9ccf2876ee5fce210668ef6}{vault\_lock}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00048}\doxymbox{\hyperlink{omnibus__vault_8h_a49d6c641e6575ee0b639eeccee977ace}{00048}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a49d6c641e6575ee0b639eeccee977ace}{vault\_save}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00051}\doxymbox{\hyperlink{omnibus__vault_8h_a7ca6bacb9b2fbbd6e6b615fb0243119a}{00051}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a7ca6bacb9b2fbbd6e6b615fb0243119a}{vault\_is\_loaded}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00053}00053\ \textcolor{comment}{/*\ ──\ Key\ management\ ───────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00055}\doxymbox{\hyperlink{omnibus__vault_8h_a34d48940916fad4072cdcda28412463c}{00055}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a34d48940916fad4072cdcda28412463c}{vault\_add\_key}}(\textcolor{keywordtype}{int}\ exchange,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ api\_key,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ secret,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ status);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00059}\doxymbox{\hyperlink{omnibus__vault_8h_a603559f83746a43b7f882fbafe6e0732}{00059}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a603559f83746a43b7f882fbafe6e0732}{vault\_delete\_key}}(\textcolor{keywordtype}{int}\ exchange,\ \textcolor{keywordtype}{int}\ slot);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00061}\doxymbox{\hyperlink{omnibus__vault_8h_aef655795a1a79f8b9b3eff60e6d24a96}{00061}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_aef655795a1a79f8b9b3eff60e6d24a96}{vault\_update\_key}}(\textcolor{keywordtype}{int}\ exchange,\ \textcolor{keywordtype}{int}\ slot,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ api\_key,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ secret,\ \textcolor{keywordtype}{int}\ status);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00065}\doxymbox{\hyperlink{omnibus__vault_8h_a3ecbe8c55818329a19352bb9c0dbf733}{00065}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a3ecbe8c55818329a19352bb9c0dbf733}{vault\_set\_status}}(\textcolor{keywordtype}{int}\ exchange,\ \textcolor{keywordtype}{int}\ slot,\ \textcolor{keywordtype}{int}\ status);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00067}00067\ \textcolor{comment}{/*\ ──\ Queries\ ──────────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00069}\doxymbox{\hyperlink{omnibus__vault_8h_ae26e3d0cc07c9f3baefd62d3452cdf31}{00069}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_ae26e3d0cc07c9f3baefd62d3452cdf31}{vault\_key\_count}}(\textcolor{keywordtype}{int}\ exchange);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00070}\doxymbox{\hyperlink{omnibus__vault_8h_a00f4825eabfc9df56a38368308efd451}{00070}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a00f4825eabfc9df56a38368308efd451}{vault\_has\_keys}}(\textcolor{keywordtype}{int}\ exchange);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00075}\doxymbox{\hyperlink{omnibus__vault_8h_af80d123eeebee248755d3aa5f47c6e6c}{00075}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_af80d123eeebee248755d3aa5f47c6e6c}{vault\_get\_key}}(\textcolor{keywordtype}{int}\ exchange,\ \textcolor{keywordtype}{int}\ slot,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ name\_buf,\ \textcolor{keywordtype}{int}\ name\_cap,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ key\_buf,\ \textcolor{keywordtype}{int}\ key\_cap,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ status\_out,\ \textcolor{keywordtype}{int}*\ in\_use\_out);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00081}\doxymbox{\hyperlink{omnibus__vault_8h_aa186e4f2d6ba9c49885d6631a9ad1bf3}{00081}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_aa186e4f2d6ba9c49885d6631a9ad1bf3}{vault\_get\_secret}}(\textcolor{keywordtype}{int}\ exchange,\ \textcolor{keywordtype}{int}\ slot,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ sec\_buf,\ \textcolor{keywordtype}{int}\ sec\_cap);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00084}00084\ \textcolor{comment}{/*\ ──\ DPAPI\ direct\ ─────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00086}\doxymbox{\hyperlink{omnibus__vault_8h_a057c400fc18011f7a688134452714595}{00086}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a057c400fc18011f7a688134452714595}{vault\_encrypt}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ plain,\ \textcolor{keywordtype}{int}\ plain\_len,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ cipher,\ \textcolor{keywordtype}{int}\ cipher\_cap,\ \textcolor{keywordtype}{int}*\ out\_len);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00089}\doxymbox{\hyperlink{omnibus__vault_8h_a2160efb806a366fe83bb1b68ae283ef7}{00089}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{omnibus__vault_8h_a2160efb806a366fe83bb1b68ae283ef7}{vault\_decrypt}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ cipher,\ \textcolor{keywordtype}{int}\ cipher\_len,}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ plain,\ \textcolor{keywordtype}{int}\ plain\_cap,\ \textcolor{keywordtype}{int}*\ out\_len);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00092}00092\ \textcolor{comment}{/*\ ──\ Secure\ wipe\ ──────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00095}\doxymbox{\hyperlink{omnibus__vault_8h_a1efbe8ac1a3ff6ae5e60979e6d2ec236}{00095}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{omnibus__vault_8h_a1efbe8ac1a3ff6ae5e60979e6d2ec236}{vault\_wipe}}(\textcolor{keywordtype}{char}*\ buf,\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00097}00097\ \textcolor{comment}{/*\ ──\ Info\ ──────────────────────────────────────────────────────\ */}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00100}\doxymbox{\hyperlink{omnibus__vault_8h_acb170d46fc3f552db53fe9c16988d28e}{00100}}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \doxymbox{\hyperlink{omnibus__vault_8h_acb170d46fc3f552db53fe9c16988d28e}{vault\_get\_path}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00102}00102\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00103}00103\ \}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00104}00104\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{omnibus__vault_8h_source_l00106}00106\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ OMNIBUS\_VAULT\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

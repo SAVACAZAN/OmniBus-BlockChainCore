@@ -1,0 +1,388 @@
+\doxysection{omni::\+Wallet\+Manager Class Reference}
+\hypertarget{classomni_1_1_wallet_manager}{}\label{classomni_1_1_wallet_manager}\index{omni::WalletManager@{omni::WalletManager}}
+
+
+{\ttfamily \+\#include $<$Wallet\+Manager.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Wallet\+Manager:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Wallet\+Manager:\+
+% FIG 1
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{Create\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a39fee57b17186763d9c440e6290c81b9}{wallet\+Changed}} (const QString \&wallet\+Id, const QString \&wallet\+Name)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a770d96bbdd19fdba7d12417b2ab23f03}{address\+Generated}} (const \doxymbox{\hyperlink{structomni_1_1_wallet_address}{Wallet\+Address}} \&addr)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a0d19e01a8b83fea5860317e4cc99fa69}{wallet\+Locked}} ()
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a424727996953b57a45492125fe5452d6}{wallet\+Unlocked}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+QString \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a50b34bbfe2ca7b11b46487005264599e}{wallet\+Dir}} () const
+\item 
+QList$<$ \doxymbox{\hyperlink{structomni_1_1_wallet_meta}{Wallet\+Meta}} $>$ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ab1da46ca366f5b2356f3e3854bcfd31f}{list\+Wallets}} () const
+\item 
+\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{Create\+Result}} \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a55d9eeae4d1cb5300606a1fe75454002}{create\+Wallet}} (const QString \&name, const QString \&password, int mnemonic\+Words=12, const QString \&passphrase="{}"{})
+\item 
+\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{Create\+Result}} \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a2aa11ccb4554ae6f6d41433a1ac52ac3}{import\+Wallet}} (const QString \&name, const QString \&password, const QString \&mnemonic, const QString \&passphrase="{}"{})
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ad90978d371736c6bed2455ab4f4e2d18}{unlock}} (const QString \&wallet\+Id, const QString \&password)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a867da6436db16586709c4b1005a164c0}{lock}} ()
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_wallet_manager_af796e20edbb9cb8c2d7ea1d8604ab9a0}{is\+Unlocked}} () const
+\item 
+QString \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a683f20571973449f36696ed8f0d6970e}{current\+Wallet\+Id}} () const
+\item 
+QString \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a470e433cf3855e51a38940da6230a955}{current\+Wallet\+Name}} () const
+\item 
+QList$<$ \doxymbox{\hyperlink{structomni_1_1_wallet_address}{Wallet\+Address}} $>$ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ab6767557b7705aac6d0c835403ddf5ef}{addresses}} () const
+\item 
+QString \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a015849f6acfbe9cf2236f3a26c7969eb}{primary\+Address}} () const
+\item 
+\doxymbox{\hyperlink{structomni_1_1_wallet_address}{Wallet\+Address}} \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3e686877688afa10f0ae54de01668115}{generate\+Address}} (const QString \&label="{}"{})
+\item 
+QByte\+Array \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f88c4f3cfe2cd52d136be61ede31f86}{get\+Seed}} () const
+\item 
+QByte\+Array \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a2bcf254ed38af2fce0db95f2fa6ac22d}{get\+Private\+Key}} (int address\+Index) const
+\item 
+QByte\+Array \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a2808272207e4d6502403749c348f17db}{sign\+Transaction}} (const QByte\+Array \&tx\+Hash, int address\+Index=0) const
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a8806be583efef3465e1b637b00bb8a54}{switch\+Wallet}} (const QString \&wallet\+Id, const QString \&password)
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a18ec308df1f6edf24f9321eb415175b3}{delete\+Wallet}} (const QString \&wallet\+Id)
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a6d689086d1fce4baf9134cdb2a9deb69}{rename\+Wallet}} (const QString \&wallet\+Id, const QString \&new\+Name)
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ad5ce005ba673a7993d0a4b72a97ec9d8}{has\+Wallets}} () const
+\item 
+QString \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a17be13c29532c86c972213e13a1df39a}{export\+Mnemonic}} (const QString \&password) const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static Wallet\+Manager \& \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f}{instance}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8h_source_l00042}{42}} of file \doxymbox{\hyperlink{_wallet_manager_8h_source}{Wallet\+Manager.\+h}}.
+
+
+
+\label{classomni_1_1_wallet_manager_doc-func-members}
+\Hypertarget{classomni_1_1_wallet_manager_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_wallet_manager_ab6767557b7705aac6d0c835403ddf5ef}\index{omni::WalletManager@{omni::WalletManager}!addresses@{addresses}}
+\index{addresses@{addresses}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{addresses()}{addresses()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_ab6767557b7705aac6d0c835403ddf5ef} 
+QList$<$ \doxymbox{\hyperlink{structomni_1_1_wallet_address}{Wallet\+Address}} $>$ omni::\+\+Wallet\+Manager::\+addresses (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8h_source_l00075}{75}} of file \doxymbox{\hyperlink{_wallet_manager_8h_source}{Wallet\+Manager.\+h}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_a770d96bbdd19fdba7d12417b2ab23f03}\index{omni::WalletManager@{omni::WalletManager}!addressGenerated@{addressGenerated}}
+\index{addressGenerated@{addressGenerated}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{addressGenerated}{addressGenerated}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a770d96bbdd19fdba7d12417b2ab23f03} 
+void omni::\+\+Wallet\+Manager::\+address\+Generated (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1_wallet_address}{Wallet\+Address}} \&}]{addr}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source_l00191}{191}} of file \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source}{moc\+\_\+\+Wallet\+Manager.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{classomni_1_1_wallet_manager_a55d9eeae4d1cb5300606a1fe75454002}\index{omni::WalletManager@{omni::WalletManager}!createWallet@{createWallet}}
+\index{createWallet@{createWallet}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{createWallet()}{createWallet()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a55d9eeae4d1cb5300606a1fe75454002} 
+\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{Wallet\+Manager::\+\+Create\+Result}} omni::\+\+Wallet\+Manager::\+create\+Wallet (\begin{DoxyParamCaption}\item[{const QString \&}]{name}{, }\item[{const QString \&}]{password}{, }\item[{int}]{mnemonic\+Words}{ = {\ttfamily 12}, }\item[{const QString \&}]{passphrase}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00165}{165}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classomni_1_1_wallet_manager_a683f20571973449f36696ed8f0d6970e}\index{omni::WalletManager@{omni::WalletManager}!currentWalletId@{currentWalletId}}
+\index{currentWalletId@{currentWalletId}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{currentWalletId()}{currentWalletId()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a683f20571973449f36696ed8f0d6970e} 
+QString omni::\+\+Wallet\+Manager::\+current\+Wallet\+Id (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8h_source_l00073}{73}} of file \doxymbox{\hyperlink{_wallet_manager_8h_source}{Wallet\+Manager.\+h}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_a470e433cf3855e51a38940da6230a955}\index{omni::WalletManager@{omni::WalletManager}!currentWalletName@{currentWalletName}}
+\index{currentWalletName@{currentWalletName}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{currentWalletName()}{currentWalletName()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a470e433cf3855e51a38940da6230a955} 
+QString omni::\+\+Wallet\+Manager::\+current\+Wallet\+Name (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8h_source_l00074}{74}} of file \doxymbox{\hyperlink{_wallet_manager_8h_source}{Wallet\+Manager.\+h}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_a18ec308df1f6edf24f9321eb415175b3}\index{omni::WalletManager@{omni::WalletManager}!deleteWallet@{deleteWallet}}
+\index{deleteWallet@{deleteWallet}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{deleteWallet()}{deleteWallet()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a18ec308df1f6edf24f9321eb415175b3} 
+bool omni::\+\+Wallet\+Manager::\+delete\+Wallet (\begin{DoxyParamCaption}\item[{const QString \&}]{wallet\+Id}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00523}{523}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+\Hypertarget{classomni_1_1_wallet_manager_a17be13c29532c86c972213e13a1df39a}\index{omni::WalletManager@{omni::WalletManager}!exportMnemonic@{exportMnemonic}}
+\index{exportMnemonic@{exportMnemonic}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{exportMnemonic()}{exportMnemonic()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a17be13c29532c86c972213e13a1df39a} 
+QString omni::\+\+Wallet\+Manager::\+export\+Mnemonic (\begin{DoxyParamCaption}\item[{const QString \&}]{password}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00559}{559}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+\Hypertarget{classomni_1_1_wallet_manager_a3e686877688afa10f0ae54de01668115}\index{omni::WalletManager@{omni::WalletManager}!generateAddress@{generateAddress}}
+\index{generateAddress@{generateAddress}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{generateAddress()}{generateAddress()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a3e686877688afa10f0ae54de01668115} 
+\doxymbox{\hyperlink{structomni_1_1_wallet_address}{Wallet\+Address}} omni::\+\+Wallet\+Manager::\+generate\+Address (\begin{DoxyParamCaption}\item[{const QString \&}]{label}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00463}{463}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+\Hypertarget{classomni_1_1_wallet_manager_a2bcf254ed38af2fce0db95f2fa6ac22d}\index{omni::WalletManager@{omni::WalletManager}!getPrivateKey@{getPrivateKey}}
+\index{getPrivateKey@{getPrivateKey}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{getPrivateKey()}{getPrivateKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a2bcf254ed38af2fce0db95f2fa6ac22d} 
+QByte\+Array omni::\+\+Wallet\+Manager::\+get\+Private\+Key (\begin{DoxyParamCaption}\item[{int}]{address\+Index}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00501}{501}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{classomni_1_1_wallet_manager_a3f88c4f3cfe2cd52d136be61ede31f86}\index{omni::WalletManager@{omni::WalletManager}!getSeed@{getSeed}}
+\index{getSeed@{getSeed}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{getSeed()}{getSeed()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a3f88c4f3cfe2cd52d136be61ede31f86} 
+QByte\+Array omni::\+\+Wallet\+Manager::\+get\+Seed (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8h_source_l00082}{82}} of file \doxymbox{\hyperlink{_wallet_manager_8h_source}{Wallet\+Manager.\+h}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_ad5ce005ba673a7993d0a4b72a97ec9d8}\index{omni::WalletManager@{omni::WalletManager}!hasWallets@{hasWallets}}
+\index{hasWallets@{hasWallets}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{hasWallets()}{hasWallets()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_ad5ce005ba673a7993d0a4b72a97ec9d8} 
+bool omni::\+\+Wallet\+Manager::\+has\+Wallets (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00148}{148}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_a2aa11ccb4554ae6f6d41433a1ac52ac3}\index{omni::WalletManager@{omni::WalletManager}!importWallet@{importWallet}}
+\index{importWallet@{importWallet}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{importWallet()}{importWallet()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a2aa11ccb4554ae6f6d41433a1ac52ac3} 
+\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{Wallet\+Manager::\+\+Create\+Result}} omni::\+\+Wallet\+Manager::\+import\+Wallet (\begin{DoxyParamCaption}\item[{const QString \&}]{name}{, }\item[{const QString \&}]{password}{, }\item[{const QString \&}]{mnemonic}{, }\item[{const QString \&}]{passphrase}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00262}{262}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+\Hypertarget{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f}\index{omni::WalletManager@{omni::WalletManager}!instance@{instance}}
+\index{instance@{instance}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{instance()}{instance()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f} 
+Wallet\+Manager \& omni::\+\+Wallet\+Manager::\+instance (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00097}{97}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{classomni_1_1_wallet_manager_af796e20edbb9cb8c2d7ea1d8604ab9a0}\index{omni::WalletManager@{omni::WalletManager}!isUnlocked@{isUnlocked}}
+\index{isUnlocked@{isUnlocked}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{isUnlocked()}{isUnlocked()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_af796e20edbb9cb8c2d7ea1d8604ab9a0} 
+bool omni::\+\+Wallet\+Manager::\+is\+Unlocked (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8h_source_l00070}{70}} of file \doxymbox{\hyperlink{_wallet_manager_8h_source}{Wallet\+Manager.\+h}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_ab1da46ca366f5b2356f3e3854bcfd31f}\index{omni::WalletManager@{omni::WalletManager}!listWallets@{listWallets}}
+\index{listWallets@{listWallets}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{listWallets()}{listWallets()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_ab1da46ca366f5b2356f3e3854bcfd31f} 
+QList$<$ \doxymbox{\hyperlink{structomni_1_1_wallet_meta}{Wallet\+Meta}} $>$ omni::\+\+Wallet\+Manager::\+list\+Wallets (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00144}{144}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_a867da6436db16586709c4b1005a164c0}\index{omni::WalletManager@{omni::WalletManager}!lock@{lock}}
+\index{lock@{lock}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{lock()}{lock()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a867da6436db16586709c4b1005a164c0} 
+void omni::\+\+Wallet\+Manager::\+lock (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00398}{398}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{classomni_1_1_wallet_manager_a015849f6acfbe9cf2236f3a26c7969eb}\index{omni::WalletManager@{omni::WalletManager}!primaryAddress@{primaryAddress}}
+\index{primaryAddress@{primaryAddress}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{primaryAddress()}{primaryAddress()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a015849f6acfbe9cf2236f3a26c7969eb} 
+QString omni::\+\+Wallet\+Manager::\+primary\+Address (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00458}{458}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+\Hypertarget{classomni_1_1_wallet_manager_a6d689086d1fce4baf9134cdb2a9deb69}\index{omni::WalletManager@{omni::WalletManager}!renameWallet@{renameWallet}}
+\index{renameWallet@{renameWallet}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{renameWallet()}{renameWallet()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a6d689086d1fce4baf9134cdb2a9deb69} 
+bool omni::\+\+Wallet\+Manager::\+rename\+Wallet (\begin{DoxyParamCaption}\item[{const QString \&}]{wallet\+Id}{, }\item[{const QString \&}]{new\+Name}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00541}{541}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+\Hypertarget{classomni_1_1_wallet_manager_a2808272207e4d6502403749c348f17db}\index{omni::WalletManager@{omni::WalletManager}!signTransaction@{signTransaction}}
+\index{signTransaction@{signTransaction}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{signTransaction()}{signTransaction()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a2808272207e4d6502403749c348f17db} 
+QByte\+Array omni::\+\+Wallet\+Manager::\+sign\+Transaction (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{tx\+Hash}{, }\item[{int}]{address\+Index}{ = {\ttfamily 0}}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00508}{508}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 14
+\Hypertarget{classomni_1_1_wallet_manager_a8806be583efef3465e1b637b00bb8a54}\index{omni::WalletManager@{omni::WalletManager}!switchWallet@{switchWallet}}
+\index{switchWallet@{switchWallet}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{switchWallet()}{switchWallet()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a8806be583efef3465e1b637b00bb8a54} 
+bool omni::\+\+Wallet\+Manager::\+switch\+Wallet (\begin{DoxyParamCaption}\item[{const QString \&}]{wallet\+Id}{, }\item[{const QString \&}]{password}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00518}{518}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 15
+\Hypertarget{classomni_1_1_wallet_manager_ad90978d371736c6bed2455ab4f4e2d18}\index{omni::WalletManager@{omni::WalletManager}!unlock@{unlock}}
+\index{unlock@{unlock}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{unlock()}{unlock()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_ad90978d371736c6bed2455ab4f4e2d18} 
+bool omni::\+\+Wallet\+Manager::\+unlock (\begin{DoxyParamCaption}\item[{const QString \&}]{wallet\+Id}{, }\item[{const QString \&}]{password}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00354}{354}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 16
+Here is the caller graph for this function:\+
+% FIG 17
+\Hypertarget{classomni_1_1_wallet_manager_a39fee57b17186763d9c440e6290c81b9}\index{omni::WalletManager@{omni::WalletManager}!walletChanged@{walletChanged}}
+\index{walletChanged@{walletChanged}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{walletChanged}{walletChanged}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a39fee57b17186763d9c440e6290c81b9} 
+void omni::\+\+Wallet\+Manager::\+wallet\+Changed (\begin{DoxyParamCaption}\item[{const QString \&}]{wallet\+Id}{, }\item[{const QString \&}]{wallet\+Name}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source_l00184}{184}} of file \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source}{moc\+\_\+\+Wallet\+Manager.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 18
+\Hypertarget{classomni_1_1_wallet_manager_a50b34bbfe2ca7b11b46487005264599e}\index{omni::WalletManager@{omni::WalletManager}!walletDir@{walletDir}}
+\index{walletDir@{walletDir}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{walletDir()}{walletDir()}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a50b34bbfe2ca7b11b46487005264599e} 
+QString omni::\+\+Wallet\+Manager::\+wallet\+Dir (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_wallet_manager_8cpp_source_l00110}{110}} of file \doxymbox{\hyperlink{_wallet_manager_8cpp_source}{Wallet\+Manager.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 19
+\Hypertarget{classomni_1_1_wallet_manager_a0d19e01a8b83fea5860317e4cc99fa69}\index{omni::WalletManager@{omni::WalletManager}!walletLocked@{walletLocked}}
+\index{walletLocked@{walletLocked}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{walletLocked}{walletLocked}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a0d19e01a8b83fea5860317e4cc99fa69} 
+void omni::\+\+Wallet\+Manager::\+wallet\+Locked (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source_l00198}{198}} of file \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source}{moc\+\_\+\+Wallet\+Manager.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 20
+\Hypertarget{classomni_1_1_wallet_manager_a424727996953b57a45492125fe5452d6}\index{omni::WalletManager@{omni::WalletManager}!walletUnlocked@{walletUnlocked}}
+\index{walletUnlocked@{walletUnlocked}!omni::WalletManager@{omni::WalletManager}}
+\doxysubsubsection{\texorpdfstring{walletUnlocked}{walletUnlocked}}
+{\footnotesize\ttfamily \label{classomni_1_1_wallet_manager_a424727996953b57a45492125fe5452d6} 
+void omni::\+\+Wallet\+Manager::\+wallet\+Unlocked (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source_l00204}{204}} of file \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp_source}{moc\+\_\+\+Wallet\+Manager.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 21
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\doxymbox{\hyperlink{_wallet_manager_8h}{Wallet\+Manager.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt-\/ada-\/hybrid/\+build/\+omnibus-\/qt-\/ada\+\_\+autogen/\+\+XV4\+ODOVJMH/\+\doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2omnibus-qt-ada__autogen_2_x_v4_o_d_o_v_j_m_h_2moc___wallet_manager_8cpp}{moc\+\_\+\+Wallet\+Manager.\+cpp}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+build/\+src/\+core/\+omnibus-\/core\+\_\+autogen/\+\+EWIEGA46\+WW/\+\doxymbox{\hyperlink{gui-qt_2build_2src_2core_2omnibus-core__autogen_2_e_w_i_e_g_a46_w_w_2moc___wallet_manager_8cpp}{moc\+\_\+\+Wallet\+Manager.\+cpp}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\doxymbox{\hyperlink{_wallet_manager_8cpp}{Wallet\+Manager.\+cpp}}\end{DoxyCompactItemize}

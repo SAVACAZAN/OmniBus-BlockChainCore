@@ -1,0 +1,53 @@
+\doxysection{Main\+Window.\+h}
+\hypertarget{_main_window_8h_source}{}\label{_main_window_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/windows/MainWindow.h@{archived-\/4-\/eterniti/gui-\/qt/src/windows/MainWindow.h}}
+\doxymbox{\hyperlink{_main_window_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QMainWindow>}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QTabWidget>}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QCloseEvent>}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QComboBox>}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <QToolBar>}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00010}00010\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00012}00012\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_status_bar}{StatusBar}};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00013}00013\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_tray_icon}{TrayIcon}};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00015}\doxymbox{\hyperlink{classomni_1_1_main_window}{00015}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_main_window_ace059a4ec2c193d7b11e19d41ef6f1cf}{MainWindow}}\ :\ \textcolor{keyword}{public}\ QMainWindow\ \{}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00016}00016\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00017}00017\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00018}\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{00018}}\ \ \ \ \ \textcolor{keyword}{enum}\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{AppMode}}\ \{\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330ca9c1cdf8d244b59ea73ddbfee8a94c133}{WalletMode}},\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330cabe16bd6cfa43495e109b1b0805a427fb}{NodeMode}}\ \};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00020}00020\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_main_window_ace059a4ec2c193d7b11e19d41ef6f1cf}{MainWindow}}(\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{AppMode}}\ mode,\ QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_main_window_a1ecd100c6eb347b914ed672f8e38a5ce}{setAppMode}}(\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{AppMode}}\ mode);}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00023}\doxymbox{\hyperlink{classomni_1_1_main_window_a09e96454ad6acaf4746f16ecba563d9e}{00023}}\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{AppMode}}\ \doxymbox{\hyperlink{classomni_1_1_main_window_a09e96454ad6acaf4746f16ecba563d9e}{appMode}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_mode;\ \}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00025}00025\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00026}00026\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_main_window_ad370182fb6f8f2eacaa9c54613ea1172}{closeEvent}}(QCloseEvent*\ event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00028}00028\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00029}00029\ \ \ \ \ \textcolor{keywordtype}{void}\ setupMenuBar();}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00030}00030\ \ \ \ \ \textcolor{keywordtype}{void}\ setupTabs();}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00031}00031\ \ \ \ \ \textcolor{keywordtype}{void}\ setupWalletToolbar();}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00032}00032\ \ \ \ \ \textcolor{keywordtype}{void}\ connectSignals();}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00033}00033\ \ \ \ \ \textcolor{keywordtype}{void}\ refreshWalletToolbar();}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00035}00035\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{AppMode}}\ \ \ \ \ m\_mode;}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00036}00036\ \ \ \ \ QTabWidget*\ m\_tabs\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00037}00037\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_status_bar}{StatusBar}}*\ \ m\_statusBar\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00038}00038\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_tray_icon}{TrayIcon}}*\ \ \ m\_trayIcon\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00040}00040\ \ \ \ \ \textcolor{comment}{//\ Wallet\ toolbar}}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00041}00041\ \ \ \ \ QToolBar*\ \ \ m\_walletToolbar\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00042}00042\ \ \ \ \ QComboBox*\ \ m\_walletCombo\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00043}00043\ \ \ \ \ QLabel*\ \ \ \ \ m\_walletAddrLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00044}00044\ \ \ \ \ QLabel*\ \ \ \ \ m\_walletBalanceLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00045}00045\ \};}
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_main_window_8h_source_l00047}00047\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

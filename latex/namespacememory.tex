@@ -1,0 +1,36 @@
+\doxysection{memory Namespace Reference}
+\hypertarget{namespacememory}{}\label{namespacememory}\index{memory@{memory}}
+
+
+-\/pressure-\/test  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/pressure-\/test 
+
+-\/usage-\/analyzer
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Memory Pressure Test.
+
+Sends via RPC (port 8332):
+  - Extremely long string params (1MB)
+  - Deeply nested JSON (100 levels)
+  - Array with 100k elements
+  - Binary data in hex fields
+
+Checks node doesn't crash (ping after each test).
+Reports which inputs caused errors vs crashes.
+Stdlib only (http.client).
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Memory Usage Analyzer
+
+Analyzes stack usage per Zig module for bare-metal constraints.
+Uses regex heuristics on .zig source to estimate max stack frame size.
+
+Outputs: memory-report.json
+\end{DoxyVerb}
+ 

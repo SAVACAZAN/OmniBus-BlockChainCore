@@ -1,0 +1,112 @@
+\chapter{Architectural fix:\+ every state change MUST be a chain TX }
+\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y}{}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y}\index{Architectural fix: every state change MUST be a chain TX@{Architectural fix: every state change MUST be a chain TX}}
+\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md12}%
+\Hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md12}%
+\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md13}{}\doxysection{\texorpdfstring{The bug we just hit (2026-\/04-\/28)}{The bug we just hit (2026-\/04-\/28)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md13}
+After commit {\ttfamily b363095} we removed the in-\/mining-\/loop state save (full chain rewrite was the dominant p99 latency outlier). The argument was:\+ {\itshape "{}the blockchain itself is the database — balances reconstruct from chain replay on startup, restart resyncs from peers."{}}
+
+That is correct {\bfseries{only when every balance change is a TX on chain}}. It was not.
+
+Concrete loss:\+
+
+
+\begin{DoxyItemize}
+\item 54 addresses had successfully called {\ttfamily claimfaucet} (logged in {\ttfamily data/\+testnet/\+faucet-\/claims.\+json})
+\item 51 of those balances vanished at the next restart
+\item Only the 3 addresses with mining rewards survived (because mining rewards ARE proper coinbase TXs in chain blocks)
+\item Rich list now shows 3 entries instead of \texorpdfstring{$\sim$}{\string~}100
+\end{DoxyItemize}
+
+The faucet grants lived in {\ttfamily bc.\+balances} (in-\/memory {\ttfamily String\+Hash\+Map}) without a corresponding TX in any block. Chain replay rebuilt the Hash\+Map from coinbase TXs only → faucet grants gone.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md14}{}\doxysection{\texorpdfstring{The rule}{The rule}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md14}
+{\bfseries{Anything that changes balance MUST be a transaction on chain.}}
+
+If you can\textquotesingle{}t audit it via {\ttfamily getblock} + {\ttfamily gettransaction}, it\textquotesingle{}s a bug. The mempool is the {\itshape only} place TXs live before they hit a block. Once they hit a block, they\textquotesingle{}re permanent. Nothing else exists.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md15}{}\doxysection{\texorpdfstring{What needs to become TX-\/on-\/chain}{What needs to become TX-\/on-\/chain}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md15}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}State today  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Sketch of fix  \\
+{\ttfamily claimfaucet} writes {\ttfamily bc.\+balances} directly  &Create a signed TX {\ttfamily from = faucet wallet} (key from {\ttfamily OMNIBUS\+\_\+\+FAUCET\+\_\+\+PRIVKEY}), {\ttfamily to = user}, {\ttfamily amount = grant}. Push to mempool. Block inclusion → balance materialised through normal apply path.  \\
+{\ttfamily faucet-\/claims.\+json} rate-\/limit file  &Remove. Anti-\/double-\/claim becomes "{}is there a faucet→user TX in the last N blocks?"{} — answered by the address-\/history index that {\ttfamily getaddresshistory} already builds.  \\
+Reputation FOOD/\+\+LOVE/\+\+RENT/\+\+VACATION credits  &Each credit becomes a TX with a custom op-\/return-\/style payload that the apply path interprets. Or a dedicated "{}\+REPUTATION\+\_\+\+CREDIT\+\_\+\+V1"{} TX type with its own validator.  \\
+Agent native-\/action decisions  &Each decision (claim, swap, stake) becomes a signed TX from the agent\textquotesingle{}s derived wallet. The chain validates the signature and enforces the on-\/chain rules; the agent process never edits balances directly.  \\
+Exchange match fills  &Already TX-\/equivalent (paper engine emits per-\/fill JSONL, real engine touches {\ttfamily bc.\+balances}). The real-\/engine path needs the same TX-\/ification:\+ a {\ttfamily MATCH\+\_\+\+SETTLE\+\_\+\+V1} TX so a fresh node replaying the chain reaches the exact same balance state.  \\
+Bridge mint/\+burn  &Already designed as TX in {\ttfamily bridge\+\_\+native.\+zig}; verify nothing else writes balances on the bridge path.  \\
+\end{DoxyTable}
+\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md16}{}\doxysection{\texorpdfstring{What stays in memory (legitimately)}{What stays in memory (legitimately)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md16}
+
+\begin{DoxyItemize}
+\item {\ttfamily bc.\+balances} — kept as a hot read cache. Source of truth is the chain; this is just an O(1) lookup index rebuilt from replay.
+\item Mempool — by definition pre-\/confirmation, pre-\/block. Allowed.
+\item {\ttfamily g\+\_\+clock}, {\ttfamily g\+\_\+oracle\+\_\+fetcher.\+prices}, RDTSC counters — runtime telemetry, not consensus state.
+\item Web\+Socket subscriber lists, RPC connection pool — transport.
+\item {\ttfamily g\+\_\+slot\+\_\+calendar} — derived from validator set + tip hash, can be rebuilt at any time.
+\end{DoxyItemize}
+
+If a value affects who owns what, it must be a TX. Everything else is fair game for in-\/memory.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md17}{}\doxysection{\texorpdfstring{Migration plan (separate dedicated session)}{Migration plan (separate dedicated session)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md17}
+\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md18}{}\doxysubsection{\texorpdfstring{Phase 1 — Faucet TX-\/ification (\texorpdfstring{$\sim$}{\string~}3–4 h)}{Phase 1 — Faucet TX-\/ification (\texorpdfstring{$\sim$}{\string~}3–4 h)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md18}
+
+\begin{DoxyEnumerate}
+\item At startup, derive the faucet wallet from {\ttfamily OMNIBUS\+\_\+\+FAUCET\+\_\+\+PRIVKEY} exactly as we do for the miner wallet. Store as {\ttfamily g\+\_\+faucet\+\_\+wallet}.
+\item Pre-\/mine:\+ include a single coinbase TX in the genesis block that funds {\ttfamily g\+\_\+faucet\+\_\+wallet} with the testnet faucet pool (e.\+g. 1 M OMNI). Or:\+ pin a height-\/0 funding TX checked into {\ttfamily genesis.\+zig}.
+\item Replace the body of {\ttfamily handle\+Faucet\+Claim}:\+
+\begin{DoxyItemize}
+\item sign a real {\ttfamily TX\{from=faucet, to=user, amount=GRANT, fee=0\}}
+\item submit it to the mempool via the same code path as {\ttfamily sendrawtransaction}
+\item return the TX hash to the caller
+\end{DoxyItemize}
+\item Anti-\/double-\/claim:\+ scan address history for {\ttfamily from=faucet, to=user} in the last {\ttfamily FAUCET\+\_\+\+COOLDOWN\+\_\+\+BLOCKS}. If present → reject. No separate JSON file.
+\item Remove {\ttfamily data/\+\texorpdfstring{$<$}{<}chain\texorpdfstring{$>$}{>}/\+faucet-\/claims.json} entirely. Migrate existing claim list to backfilled TXs in a one-\/shot block at migration height (or accept the loss on testnet).
+\end{DoxyEnumerate}\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md19}{}\doxysubsection{\texorpdfstring{Phase 2 — Reputation TX-\/ification (\texorpdfstring{$\sim$}{\string~}4–6 h)}{Phase 2 — Reputation TX-\/ification (\texorpdfstring{$\sim$}{\string~}4–6 h)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md19}
+{\ttfamily reputation\+\_\+manager.\+zig} currently mutates 4 in-\/memory counters per address ({\ttfamily LOVE}, {\ttfamily FOOD}, {\ttfamily RENT}, {\ttfamily VACATION}) on every block. After Phase 1 finishes, design {\ttfamily REPUTATION\+\_\+\+CREDIT\+\_\+\+V1} payload:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily tx.\+kind = .reputation\+\_\+credit}
+\item {\ttfamily tx.\+payload = \{ addr, dimension:\+ love\texorpdfstring{$\vert$}{|}food\texorpdfstring{$\vert$}{|}rent\texorpdfstring{$\vert$}{|}vacation, delta \}}
+\item emitted by the chain itself per block (kind of like coinbase)
+\item signed by the slot-\/leader\textquotesingle{}s miner key
+\end{DoxyItemize}
+
+Validator:\+ rebuild the 4 counters from the TX history.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md20}{}\doxysubsection{\texorpdfstring{Phase 3 — Agent TX-\/ification (\texorpdfstring{$\sim$}{\string~}3 h)}{Phase 3 — Agent TX-\/ification (\texorpdfstring{$\sim$}{\string~}3 h)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md20}
+Agents already submit TXs for their {\ttfamily claim\+\_\+faucet} actions; check that swap/\+stake/\+withdraw also flow through the mempool, not direct state writes. Audit {\ttfamily agent\+\_\+executor.\+zig} for any {\ttfamily bc.\+balances.\+put} calls outside of TX submission.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md21}{}\doxysubsection{\texorpdfstring{Phase 4 — Exchange match settlement (\texorpdfstring{$\sim$}{\string~}5–8 h)}{Phase 4 — Exchange match settlement (\texorpdfstring{$\sim$}{\string~}5–8 h)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md21}
+The hardest. Match fills currently mutate balances directly in the mining loop\textquotesingle{}s RPC handler. Convert to a {\ttfamily MATCH\+\_\+\+SETTLE\+\_\+\+V1} TX:\+
+
+
+\begin{DoxyItemize}
+\item emitted by the real-\/engine matcher when a fill occurs
+\item {\ttfamily payload = \{ taker, maker, base\+\_\+amount, quote\+\_\+amount, fee \}}
+\item block apply path handles balance debits/\+credits with the same code that handles a normal transfer
+\item paper engine stays out of chain (it\textquotesingle{}s already isolated)
+\end{DoxyItemize}
+
+This one\textquotesingle{}s tricky because of nonces — match settlements aren\textquotesingle{}t initiated by a user, so they need a chain-\/level "{}operator nonce"{} or they need to be tied to the slot-\/leader\textquotesingle{}s nonce.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md22}{}\doxysubsection{\texorpdfstring{Phase 5 — Audit + tooling (\texorpdfstring{$\sim$}{\string~}2 h)}{Phase 5 — Audit + tooling (\texorpdfstring{$\sim$}{\string~}2 h)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md22}
+Grep the entire codebase for {\ttfamily bc.\+balances.\+put} and {\ttfamily bc.\+balances.\+get\+Or\+Put}. Every callsite must either be:\+
+\begin{DoxyItemize}
+\item inside {\ttfamily apply\+Transaction} (chain replay path) — fine
+\item inside genesis bootstrap — fine, document it
+\item flagged as a bug
+\end{DoxyItemize}
+
+Add a debug assertion in non-\/replay code paths that fires if {\ttfamily bc.\+balances} is mutated outside {\ttfamily apply\+Transaction}. Catch the next regression before it hits production.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md23}{}\doxysection{\texorpdfstring{Acceptance criteria}{Acceptance criteria}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md23}
+A migration is "{}done"{} when:\+
+
+
+\begin{DoxyEnumerate}
+\item {\ttfamily wipe data/\+\texorpdfstring{$<$}{<}chain\texorpdfstring{$>$}{>}/\+}
+\item start node from genesis
+\item Multiple users claim faucet, mine, trade, withdraw
+\item Stop node with SIGKILL (worst case, no graceful shutdown)
+\item Restart from genesis (force re-\/replay)
+\item {\bfseries{All balances match exactly what they were before the kill.}}
+\end{DoxyEnumerate}
+
+Until that test passes, "{}the chain is the database"{} is a slogan, not a guarantee.\hypertarget{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md24}{}\doxysection{\texorpdfstring{What we do today (interim)}{What we do today (interim)}}\label{md__a_r_c_h___f_i_x___t_x___o_n_l_y_autotoc_md24}
+For testnet, until the migration runs:\+
+
+
+\begin{DoxyItemize}
+\item Restart the testnet seed only with {\ttfamily systemctl restart} (graceful → SIGTERM → save-\/on-\/shutdown still runs, balances persist).
+\item Do NOT {\ttfamily kill -\/9} the node.
+\item Users who lose balance to a hard restart:\+ re-\/claim faucet. It\textquotesingle{}s testnet, no real value lost.
+\end{DoxyItemize}
+
+A complete state snapshot (the old {\ttfamily check\+Auto\+Save} behaviour) was a band-\/aid for this exact scenario. Bringing it back as an async-\/thread 60s-\/tick would mask the root cause; we should fix the root cause instead. 

@@ -1,0 +1,294 @@
+\doxysection{nist-\/ecdsa-\/vectors Namespace Reference}
+\hypertarget{namespacenist-ecdsa-vectors}{}\label{namespacenist-ecdsa-vectors}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a79fbce730b1a31cd0e2f85911ca5381c}{rpc\+\_\+call}} (str host, int port, str method, params=None)
+\item 
+dict \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aea25310dbe76ef60e4297b766dc21008}{test\+\_\+with\+\_\+coincurve}} (dict vector)
+\item 
+dict \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_ac92e1cc046ab2494cd8e727fc216c781}{test\+\_\+with\+\_\+hashlib\+\_\+only}} (dict vector)
+\item 
+\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_ad24e6320e259be6dc00a0ec99e62ea40}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a976283e69d4c2ff8fd2a42cea8aaa653}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a829dcb91abbbb67ef65e724002e21a8f}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a96af4fd12d51fd84d699f765aab91071}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aaf0eaf916df01ed8760c5c6e3336445a}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aaa7148bf6b903bb920091bbd7fa433ff}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_acefa6c33139c0c5cc052e0f89054b074}{RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a46aec13fb72829a0f503d26ba8264fe6}{SHARDS}} = 4
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_af8058ab1a6de0ac972c1a9015824a95b}{MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_addc8d2a7bc566aabc92e4998e6b1e89b}{SAT}} = int(1e9)
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a1fd540b1696bda0b45f52debaf1f446e}{BLOCK\+\_\+\+REWARD}} = 50
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a569868e7e641e30f5c570ede2cb0bcd2}{HALVING\+\_\+\+INTERVAL}} = 210\+\_\+000
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a087b9799d01f50182b3f825603d76999}{SECP256\+K1\+\_\+N}} = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6\+AF48\+A03\+BBFD25\+E8\+CD0364141
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a0e9e2f4a084e8e7fe17fb897936339dc}{SECP256\+K1\+\_\+P}} = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a5052539f28b758092789669d5ea1f32a}{SECP256\+K1\+\_\+\+GX}} = 0x79\+BE667\+EF9\+DCBBAC55\+A06295\+CE870\+B07029\+BFCDB2\+DCE28\+D959\+F2815\+B16\+F81798
+\item 
+int \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aaa2ea3303d9ba5b5de7ab9fbd0d26c00}{SECP256\+K1\+\_\+\+GY}} = 0x483\+ADA7726\+A3\+C4655\+DA4\+FBFC0\+E1108\+A8\+FD17\+B448\+A68554199\+C47\+D08\+FFB10\+D4\+B8
+\item 
+bool \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a86b58a4f6a1db37cb477884e7d273b37}{HAS\+\_\+\+COINCURVE}} = True
+\item 
+list \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aa888e9f732ac5a37c0e3cfc1c4c6feb6}{KNOWN\+\_\+\+VECTORS}}
+\end{DoxyCompactItemize}
+
+
+\label{namespacenist-ecdsa-vectors_doc-func-members}
+\Hypertarget{namespacenist-ecdsa-vectors_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacenist-ecdsa-vectors_a51af30a60f9f02777c6396b8247e356f}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!main@{main}}
+\index{main@{main}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00249}{249}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacenist-ecdsa-vectors_a79fbce730b1a31cd0e2f85911ca5381c}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!rpc\_call@{rpc\_call}}
+\index{rpc\_call@{rpc\_call}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{rpc\_call()}{rpc\_call()}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a79fbce730b1a31cd0e2f85911ca5381c} 
+rpc\+\_\+call (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{str}]{method}{, }\item[{}]{params}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00117}{117}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacenist-ecdsa-vectors_aea25310dbe76ef60e4297b766dc21008}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!test\_with\_coincurve@{test\_with\_coincurve}}
+\index{test\_with\_coincurve@{test\_with\_coincurve}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{test\_with\_coincurve()}{test\_with\_coincurve()}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_aea25310dbe76ef60e4297b766dc21008} 
+ dict test\+\_\+with\+\_\+coincurve (\begin{DoxyParamCaption}\item[{dict}]{vector}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test vector using coincurve library.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00130}{130}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacenist-ecdsa-vectors_ac92e1cc046ab2494cd8e727fc216c781}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!test\_with\_hashlib\_only@{test\_with\_hashlib\_only}}
+\index{test\_with\_hashlib\_only@{test\_with\_hashlib\_only}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{test\_with\_hashlib\_only()}{test\_with\_hashlib\_only()}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_ac92e1cc046ab2494cd8e727fc216c781} 
+ dict test\+\_\+with\+\_\+hashlib\+\_\+only (\begin{DoxyParamCaption}\item[{dict}]{vector}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Minimal test without coincurve — only hash verification.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00199}{199}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+
+
+\label{namespacenist-ecdsa-vectors_doc-var-members}
+\Hypertarget{namespacenist-ecdsa-vectors_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacenist-ecdsa-vectors_a1fd540b1696bda0b45f52debaf1f446e}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!BLOCK\_REWARD@{BLOCK\_REWARD}}
+\index{BLOCK\_REWARD@{BLOCK\_REWARD}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{BLOCK\_REWARD}{BLOCK\_REWARD}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a1fd540b1696bda0b45f52debaf1f446e} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+BLOCK\+\_\+\+REWARD = 50}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_aaf0eaf916df01ed8760c5c6e3336445a}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_aaf0eaf916df01ed8760c5c6e3336445a} 
+str \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a96af4fd12d51fd84d699f765aab91071}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a96af4fd12d51fd84d699f765aab91071} 
+str \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a976283e69d4c2ff8fd2a42cea8aaa653}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a976283e69d4c2ff8fd2a42cea8aaa653} 
+str \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a569868e7e641e30f5c570ede2cb0bcd2}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!HALVING\_INTERVAL@{HALVING\_INTERVAL}}
+\index{HALVING\_INTERVAL@{HALVING\_INTERVAL}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{HALVING\_INTERVAL}{HALVING\_INTERVAL}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a569868e7e641e30f5c570ede2cb0bcd2} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+HALVING\+\_\+\+INTERVAL = 210\+\_\+000}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a86b58a4f6a1db37cb477884e7d273b37}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!HAS\_COINCURVE@{HAS\_COINCURVE}}
+\index{HAS\_COINCURVE@{HAS\_COINCURVE}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{HAS\_COINCURVE}{HAS\_COINCURVE}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a86b58a4f6a1db37cb477884e7d273b37} 
+bool HAS\+\_\+\+COINCURVE = True}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_aa888e9f732ac5a37c0e3cfc1c4c6feb6}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!KNOWN\_VECTORS@{KNOWN\_VECTORS}}
+\index{KNOWN\_VECTORS@{KNOWN\_VECTORS}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{KNOWN\_VECTORS}{KNOWN\_VECTORS}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_aa888e9f732ac5a37c0e3cfc1c4c6feb6} 
+list \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+KNOWN\+\_\+\+VECTORS}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_af8058ab1a6de0ac972c1a9015824a95b}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!MAX\_SUPPLY@{MAX\_SUPPLY}}
+\index{MAX\_SUPPLY@{MAX\_SUPPLY}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{MAX\_SUPPLY}{MAX\_SUPPLY}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_af8058ab1a6de0ac972c1a9015824a95b} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+MAX\+\_\+\+SUPPLY = 21\+\_\+000\+\_\+000}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_ad24e6320e259be6dc00a0ec99e62ea40}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!RED@{RED}}
+\index{RED@{RED}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_ad24e6320e259be6dc00a0ec99e62ea40} 
+str \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_aaa7148bf6b903bb920091bbd7fa433ff}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!RESET@{RESET}}
+\index{RESET@{RESET}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_aaa7148bf6b903bb920091bbd7fa433ff} 
+str \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_acefa6c33139c0c5cc052e0f89054b074}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!RPC\_PORT@{RPC\_PORT}}
+\index{RPC\_PORT@{RPC\_PORT}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{RPC\_PORT}{RPC\_PORT}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_acefa6c33139c0c5cc052e0f89054b074} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+RPC\+\_\+\+PORT = 8332}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_addc8d2a7bc566aabc92e4998e6b1e89b}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!SAT@{SAT}}
+\index{SAT@{SAT}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{SAT}{SAT}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_addc8d2a7bc566aabc92e4998e6b1e89b} 
+\doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+SAT = int(1e9)}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a5052539f28b758092789669d5ea1f32a}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!SECP256K1\_GX@{SECP256K1\_GX}}
+\index{SECP256K1\_GX@{SECP256K1\_GX}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{SECP256K1\_GX}{SECP256K1\_GX}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a5052539f28b758092789669d5ea1f32a} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+SECP256\+K1\+\_\+\+GX = 0x79\+BE667\+EF9\+DCBBAC55\+A06295\+CE870\+B07029\+BFCDB2\+DCE28\+D959\+F2815\+B16\+F81798}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_aaa2ea3303d9ba5b5de7ab9fbd0d26c00}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!SECP256K1\_GY@{SECP256K1\_GY}}
+\index{SECP256K1\_GY@{SECP256K1\_GY}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{SECP256K1\_GY}{SECP256K1\_GY}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_aaa2ea3303d9ba5b5de7ab9fbd0d26c00} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+SECP256\+K1\+\_\+\+GY = 0x483\+ADA7726\+A3\+C4655\+DA4\+FBFC0\+E1108\+A8\+FD17\+B448\+A68554199\+C47\+D08\+FFB10\+D4\+B8}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a087b9799d01f50182b3f825603d76999}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!SECP256K1\_N@{SECP256K1\_N}}
+\index{SECP256K1\_N@{SECP256K1\_N}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{SECP256K1\_N}{SECP256K1\_N}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a087b9799d01f50182b3f825603d76999} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+SECP256\+K1\+\_\+N = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6\+AF48\+A03\+BBFD25\+E8\+CD0364141}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a0e9e2f4a084e8e7fe17fb897936339dc}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!SECP256K1\_P@{SECP256K1\_P}}
+\index{SECP256K1\_P@{SECP256K1\_P}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{SECP256K1\_P}{SECP256K1\_P}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a0e9e2f4a084e8e7fe17fb897936339dc} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+SECP256\+K1\+\_\+P = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a46aec13fb72829a0f503d26ba8264fe6}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!SHARDS@{SHARDS}}
+\index{SHARDS@{SHARDS}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{SHARDS}{SHARDS}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a46aec13fb72829a0f503d26ba8264fe6} 
+int \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+SHARDS = 4}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+
+\Hypertarget{namespacenist-ecdsa-vectors_a829dcb91abbbb67ef65e724002e21a8f}\index{nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!nist-\/ecdsa-\/vectors@{nist-\/ecdsa-\/vectors}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacenist-ecdsa-vectors_a829dcb91abbbb67ef65e724002e21a8f} 
+str \doxymbox{\hyperlink{namespacenist}{nist}}-\/ecdsa-\/vectors.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{nist-ecdsa-vectors_8py_source}{nist-\/ecdsa-\/vectors.\+py}}.
+

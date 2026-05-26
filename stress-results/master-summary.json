@@ -1,0 +1,4266 @@
+{
+  "phase1": {
+    "mainnet": {
+      "pairs": {
+        "0": {
+          "info": {
+            "pair_id": 0,
+            "base": "OMNI",
+            "quote": "USDC",
+            "maker_chains": [
+              {
+                "chain": "OmniBus",
+                "chain_id": 0,
+                "contract": ""
+              }
+            ],
+            "taker_chains": [
+              {
+                "chain": "Base Sepolia",
+                "chain_id": 84532,
+                "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+              },
+              {
+                "chain": "Sepolia",
+                "chain_id": 11155111,
+                "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+              }
+            ]
+          },
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "1": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "2": {
+          "info": {
+            "pair_id": 2,
+            "base": "LCX",
+            "quote": "USDC",
+            "maker_chains": [
+              {
+                "chain": "LCX Liberty",
+                "chain_id": 76847801,
+                "contract": "a4ad3f9bA14500F6F1d991b0D8F897E0E8eDEfFb"
+              }
+            ],
+            "taker_chains": [
+              {
+                "chain": "Base Sepolia",
+                "chain_id": 84532,
+                "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+              },
+              {
+                "chain": "Sepolia",
+                "chain_id": 11155111,
+                "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+              }
+            ]
+          },
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "3": {
+          "info": {
+            "pair_id": 3,
+            "base": "ETH",
+            "quote": "USDC",
+            "maker_chains": [
+              {
+                "chain": "Sepolia",
+                "chain_id": 11155111,
+                "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+              },
+              {
+                "chain": "Base Sepolia",
+                "chain_id": 84532,
+                "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+              }
+            ],
+            "taker_chains": [
+              {
+                "chain": "Base Sepolia",
+                "chain_id": 84532,
+                "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+              },
+              {
+                "chain": "Sepolia",
+                "chain_id": 11155111,
+                "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+              }
+            ]
+          },
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "4": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "5": {
+          "info": {
+            "pair_id": 5,
+            "base": "OMNI",
+            "quote": "LCX",
+            "maker_chains": [
+              {
+                "chain": "OmniBus",
+                "chain_id": 0,
+                "contract": ""
+              }
+            ],
+            "taker_chains": [
+              {
+                "chain": "LCX Liberty",
+                "chain_id": 76847801,
+                "contract": "a4ad3f9bA14500F6F1d991b0D8F897E0E8eDEfFb"
+              }
+            ]
+          },
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "6": {
+          "info": {
+            "pair_id": 6,
+            "base": "OMNI",
+            "quote": "ETH",
+            "maker_chains": [
+              {
+                "chain": "OmniBus",
+                "chain_id": 0,
+                "contract": ""
+              }
+            ],
+            "taker_chains": [
+              {
+                "chain": "Sepolia",
+                "chain_id": 11155111,
+                "contract": "270D74dDAccd7a4ABf668DA6F9b238c042353739"
+              },
+              {
+                "chain": "Base Sepolia",
+                "chain_id": 84532,
+                "contract": "8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6"
+              }
+            ]
+          },
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        }
+      }
+    },
+    "testnet": {
+      "pairs": {
+        "0": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "1": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "2": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "3": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "4": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "5": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        },
+        "6": {
+          "info": null,
+          "asks_count": 0,
+          "bids_count": 0,
+          "best_ask": null,
+          "best_bid": null,
+          "recent_trades_count": 0,
+          "user_orders_count": 0
+        }
+      }
+    },
+    "loop_p50": 68,
+    "loop_p95": 88,
+    "loop_p99": 330,
+    "loop_max": 330
+  },
+  "phase2": {
+    "mainnet": {
+      "grids": [],
+      "statuses": []
+    },
+    "testnet": {
+      "grids": null
+    }
+  },
+  "phase3": {
+    "mainnet": {
+      "swap_listOpen": {
+        "samples": 50,
+        "p50": 76,
+        "p95": 111,
+        "last": []
+      },
+      "htlc_listByAddress": {
+        "samples": 50,
+        "p50": 70,
+        "last": []
+      },
+      "htlc_listPending": {
+        "samples": 50,
+        "p50": 69,
+        "last": []
+      },
+      "swap_statuses": []
+    },
+    "testnet": {
+      "swap_listOpen": {
+        "samples": 50,
+        "p50": 54,
+        "p95": 79,
+        "last": null
+      },
+      "htlc_listByAddress": {
+        "samples": 50,
+        "p50": 61,
+        "last": []
+      },
+      "htlc_listPending": {
+        "samples": 50,
+        "p50": 67,
+        "last": []
+      },
+      "swap_statuses": []
+    }
+  },
+  "phase4": {
+    "mainnet": {
+      "getagents": {
+        "samples": 100,
+        "p50": 52,
+        "p95": 66,
+        "last": null
+      },
+      "agents_detailed": [],
+      "pending_decisions": {
+        "samples": 50,
+        "p50": 52,
+        "last": null
+      }
+    },
+    "testnet": {
+      "getagents": {
+        "samples": 100,
+        "p50": 66,
+        "p95": 123,
+        "last": {
+          "agents": []
+        }
+      },
+      "agents_detailed": [],
+      "agent_list_legacy": {
+        "count": 0,
+        "agents": []
+      },
+      "pending_decisions": {
+        "samples": 50,
+        "p50": 65,
+        "last": {
+          "count": 0,
+          "decisions": []
+        }
+      }
+    }
+  },
+  "phase6": {
+    "snapshots": 110
+  },
+  "phaseStats": {
+    "phase1": {
+      "calls": 56,
+      "errors": 44,
+      "error_rate": "0.7857",
+      "p50": 60,
+      "p95": 120,
+      "p99": 486,
+      "max": 486
+    },
+    "phase1_loop": {
+      "calls": 100,
+      "errors": 100,
+      "error_rate": "1.0000",
+      "p50": 68,
+      "p95": 88,
+      "p99": 330,
+      "max": 330
+    },
+    "phase2": {
+      "calls": 2,
+      "errors": 1,
+      "error_rate": "0.5000",
+      "p50": 90,
+      "p95": 90,
+      "p99": 90,
+      "max": 90
+    },
+    "phase3": {
+      "calls": 300,
+      "errors": 73,
+      "error_rate": "0.2433",
+      "p50": 67,
+      "p95": 105,
+      "p99": 184,
+      "max": 205
+    },
+    "phase4": {
+      "calls": 302,
+      "errors": 151,
+      "error_rate": "0.5000",
+      "p50": 59,
+      "p95": 94,
+      "p99": 160,
+      "max": 203
+    },
+    "phase6": {
+      "calls": 330,
+      "errors": 274,
+      "error_rate": "0.8303",
+      "p50": 163,
+      "p95": 364,
+      "p99": 571,
+      "max": 654
+    }
+  },
+  "errors": [
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:14.233Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:14.312Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unknown pair_id",
+      "ts": "2026-05-10T12:36:14.501Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:14.582Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:14.655Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:14.894Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:14.979Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:15.192Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:15.258Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unknown pair_id",
+      "ts": "2026-05-10T12:36:15.413Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:15.480Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:15.550Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:15.753Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:15.818Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:16.088Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:16.199Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.329Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.379Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.430Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getUserOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.484Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.547Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.610Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.662Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getUserOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.715Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.765Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.814Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.867Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getUserOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.916Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:16.976Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.032Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.080Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getUserOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.137Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.186Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.237Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.290Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getUserOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.344Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.392Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.447Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.506Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getUserOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.553Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_pairInfo",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.611Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_listOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.659Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getRecentTrades",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.722Z"
+    },
+    {
+      "phase": "phase1",
+      "method": "exchange_getUserOrders",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:17.779Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:17.854Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:17.917Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:17.998Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.080Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.155Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.229Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.321Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.414Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.498Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.562Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.635Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.702Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.792Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.858Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:18.929Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.006Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.065Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.132Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.189Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.307Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.389Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.470Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.557Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.635Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.720Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.801Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.874Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:19.959Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.032Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.109Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.186Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.255Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.332Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.415Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.486Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.569Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.646Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.715Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.786Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.857Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.919Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:20.999Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.077Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.165Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.235Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.307Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.394Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.472Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.540Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.601Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.667Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.738Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.811Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.882Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:21.944Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.010Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.090Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.172Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.254Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.329Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.416Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.506Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.583Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.669Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.733Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.799Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.869Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:22.940Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.002Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.055Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.120Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.196Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.258Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.332Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.402Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.487Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.542Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.604Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.684Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.743Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.829Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.907Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:23.969Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.034Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.096Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.177Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.251Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.331Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.391Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.453Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.534Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.622Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.729Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.796Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.889Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:24.957Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:25.063Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:25.174Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:25.265Z"
+    },
+    {
+      "phase": "phase1_loop",
+      "method": "exchange_listOrders",
+      "error": "Method not found",
+      "ts": "2026-05-10T12:36:25.595Z"
+    },
+    {
+      "phase": "phase2",
+      "method": "grid_list",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:25.739Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.307Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.368Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.422Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.478Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.533Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.584Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.636Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.688Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.741Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.794Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.846Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.894Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:38.945Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.017Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.096Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.147Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.207Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.273Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.329Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.386Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.438Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.494Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.549Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.603Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.664Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.718Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.770Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.872Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:39.955Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.015Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.067Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.117Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.177Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.227Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.277Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.330Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.381Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.431Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.483Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.534Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.590Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.648Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.699Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.758Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.809Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.862Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.909Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:40.958Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.015Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "swap_listOpen",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.091Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.138Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.193Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.249Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.312Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.378Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.425Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.492Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.544Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.596Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.653Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.705Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.758Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.809Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.857Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.922Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:41.991Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:42.038Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:42.103Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:42.150Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:42.200Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:42.252Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:42.299Z"
+    },
+    {
+      "phase": "phase3",
+      "method": "htlc_listByAddress",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:42.351Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.309Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.370Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.433Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.493Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.558Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.618Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.670Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.724Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.774Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.821Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.873Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:48.936Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.001Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.067Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.126Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.173Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.225Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.282Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.339Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.395Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.454Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.505Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.576Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.627Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.675Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.727Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.781Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.830Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.885Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.933Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:49.987Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.036Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.083Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.136Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.188Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.242Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.293Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.341Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.393Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.459Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.511Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.561Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.616Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.667Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.722Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.770Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.820Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.873Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.921Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:50.970Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.026Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.075Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.134Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.211Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.263Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.313Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.373Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.424Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.482Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.542Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.591Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.640Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.733Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.786Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.834Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.897Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:51.950Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.010Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.083Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.142Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.199Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.252Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.303Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.355Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.404Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.460Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.508Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.560Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.613Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.667Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.725Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.777Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.837Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.890Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:52.944Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.002Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.052Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.118Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.169Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.222Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.270Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.322Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.369Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.417Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.464Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.515Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.563Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.611Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.664Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "getagents",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.712Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_list",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.763Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.823Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.891Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.941Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:53.995Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.057Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.105Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.154Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.205Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.252Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.300Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.351Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.417Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.477Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.531Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.586Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.635Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.690Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.743Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.793Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.845Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.896Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:54.942Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.015Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.065Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.112Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.169Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.225Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.274Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.324Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.373Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.426Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.477Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.530Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.579Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.634Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.688Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.739Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.793Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.842Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.911Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:55.964Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.138Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.289Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.337Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.399Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.453Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.504Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.553Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.600Z"
+    },
+    {
+      "phase": "phase4",
+      "method": "agent_pending_decisions",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:36:56.648Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:08.214Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:08.260Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:08.346Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:13.573Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:13.745Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:13.802Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:19.018Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:19.189Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:19.243Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:24.569Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:24.730Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:24.787Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:29.982Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:30.136Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:30.185Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:35.409Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:35.579Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:35.623Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:40.796Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:40.997Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:37:41.047Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:27.198Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:32.593Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:32.751Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:32.798Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:37.954Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:38.127Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:38.177Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:43.354Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:43.528Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:43.622Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:48.805Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:48.947Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:49.006Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:54.173Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:54.353Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:54.418Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:59.602Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:59.779Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:39:59.849Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:05.215Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:05.502Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:05.573Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:10.763Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:10.977Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:11.043Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:16.244Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:16.410Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:16.461Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:21.673Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:21.837Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:21.886Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:27.038Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:27.192Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:27.240Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:32.402Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:32.556Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:32.602Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:37.784Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:37.947Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:38.001Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:43.193Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:43.373Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:43.431Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:48.656Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:48.893Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:48.955Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:54.141Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:54.338Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:54.421Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:59.598Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:59.765Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:40:59.817Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:05.011Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:05.318Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:05.392Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:10.556Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:10.722Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:10.772Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:15.927Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:16.230Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:16.280Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:21.444Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:21.592Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:21.648Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:26.816Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:26.965Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:27.029Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:32.198Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:32.364Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:32.411Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:37.575Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:37.747Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:37.795Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:43.008Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:43.226Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:43.316Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:48.495Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:48.663Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:48.715Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:53.910Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:54.077Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:54.122Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:59.322Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:59.569Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:41:59.676Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:04.865Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:05.029Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:05.078Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:10.325Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:10.499Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:10.565Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:15.827Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:16.004Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:16.060Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:21.259Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:21.429Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:21.485Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:26.694Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:26.914Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:26.976Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:32.224Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:32.432Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:32.485Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:37.699Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:37.902Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:37.961Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:43.151Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:43.335Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:43.387Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:48.585Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:48.763Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:48.817Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:54.001Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:54.173Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:54.254Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:59.609Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:59.778Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:42:59.872Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:05.048Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:05.611Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:05.657Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:10.818Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:10.968Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:11.027Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:16.180Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:16.330Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:16.384Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:21.562Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:21.716Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:21.769Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:26.930Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:27.086Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:27.134Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:32.333Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:32.490Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:32.537Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:37.707Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:37.862Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:37.916Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:43.070Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:43.224Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:43.271Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:48.480Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:48.640Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:48.687Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:53.872Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:54.128Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:54.179Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:59.359Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:59.527Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:43:59.579Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:04.752Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:04.921Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:04.997Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:10.311Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:10.480Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:10.557Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:15.790Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:16.095Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:16.169Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:21.429Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:21.919Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:22.007Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:27.185Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:27.410Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:27.478Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:32.636Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:32.801Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:32.851Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:38.049Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:38.235Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:38.289Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:43.490Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:43.697Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:43.761Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:48.958Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:49.152Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:49.203Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:54.383Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:54.550Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:54.606Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:59.816Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:44:59.968Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:00.027Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:05.673Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:05.839Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:05.911Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:11.096Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:11.272Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:11.330Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:16.554Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:16.733Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:16.794Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:21.987Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:22.169Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:22.222Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:27.508Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:27.688Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:27.763Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:32.946Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:33.173Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:33.318Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:38.694Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:39.088Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:39.161Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:44.373Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:44.530Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:44.579Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:49.730Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:49.886Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:49.936Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:55.126Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:55.724Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:45:55.801Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:00.956Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:01.108Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:01.156Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:06.328Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:06.481Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:06.528Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:11.701Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:11.899Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:11.947Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:17.148Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:17.290Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:17.342Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:22.535Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:22.964Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:23.016Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:28.180Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:28.360Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:28.444Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:33.750Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:34.315Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:34.367Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:39.524Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:39.676Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:39.729Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:44.887Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:45.053Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:45.099Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:50.277Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:50.453Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:50.503Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:55.960Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:56.134Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:46:56.180Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:47:01.612Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:47:01.767Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:47:01.824Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getexchangefeed",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:47:06.999Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getallprices",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:47:07.179Z"
+    },
+    {
+      "phase": "phase6",
+      "method": "omnibus_getarbitrage",
+      "error": "Unexpected token '<', \"<html>\r\n<h\"... is not valid JSON",
+      "ts": "2026-05-10T12:47:07.228Z"
+    }
+  ],
+  "error_count": 643,
+  "total_calls": 1090
+}

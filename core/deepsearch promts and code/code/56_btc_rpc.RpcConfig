@@ -1,0 +1,5 @@
+var outputs = std.ArrayList(btc_tx.TxOut).init(allocator);
+try outputs.append(.{.amount = 50000, .script_pubkey = addr1_script});
+try outputs.append(.{.amount = 30000, .script_pubkey = addr2_script});
+
+const result = try builder.build(utxos, outputs.items, change_addr, change_script, fee_rate);

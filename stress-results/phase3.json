@@ -1,0 +1,40 @@
+{
+  "mainnet": {
+    "swap_listOpen": {
+      "samples": 50,
+      "p50": 76,
+      "p95": 111,
+      "last": []
+    },
+    "htlc_listByAddress": {
+      "samples": 50,
+      "p50": 70,
+      "last": []
+    },
+    "htlc_listPending": {
+      "samples": 50,
+      "p50": 69,
+      "last": []
+    },
+    "swap_statuses": []
+  },
+  "testnet": {
+    "swap_listOpen": {
+      "samples": 50,
+      "p50": 54,
+      "p95": 79,
+      "last": null
+    },
+    "htlc_listByAddress": {
+      "samples": 50,
+      "p50": 61,
+      "last": []
+    },
+    "htlc_listPending": {
+      "samples": 50,
+      "p50": 67,
+      "last": []
+    },
+    "swap_statuses": []
+  }
+}

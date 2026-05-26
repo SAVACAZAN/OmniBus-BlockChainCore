@@ -17,6 +17,23 @@ declare global {
   interface Window { __openTx?: (txid: string) => void }
 }
 
+function SchemeTag({ scheme }: { scheme?: string }) {
+  if (!scheme) return null;
+  const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
+  const isSoulbound = scheme.includes("soulbound");
+  const cls = isSoulbound
+    ? "bg-purple-400/10 text-purple-300 border-purple-400/30"
+    : isPQ
+    ? "bg-blue-400/10 text-blue-300 border-blue-400/30"
+    : "bg-green-400/10 text-green-300 border-green-400/30";
+  const short = isSoulbound ? "PQ🔒" : isPQ ? "PQ" : "EC";
+  return (
+    <span className={`inline-block px-1.5 py-0 rounded border text-[9px] font-mono flex-shrink-0 ${cls}`} title={scheme}>
+      {short}
+    </span>
+  );
+}
+
 function ConfirmationBadge({ count }: { count: number }) {
   if (count === 0) {
     return (
@@ -61,43 +78,56 @@ export function RecentTransactions() {
     return () => clearInterval(id);
   }, [state.blockCount]);
 
+  type TxItem = {
+    id: string;
+    from: string;
+    to: string;
+    amount: number;
+    fee: number;
+    status: "pending" | "confirmed";
+    confirmations: number;
+    time: number;
+    scheme?: string;
+  };
+
   // Combine: new endpoint TXs + fallback pending + block rewards
-  const items = recentTxs.length > 0
-    ? recentTxs.slice(0, 15).map((tx: any) => ({
+  const items: TxItem[] = recentTxs.length > 0
+    ? recentTxs.slice(0, 15).map((tx: any): TxItem => ({
         id: tx.txid || tx.id,
         from: tx.from || "",
         to: tx.to || "",
         amount: tx.amount || 0,
         fee: tx.fee || 0,
-        status: tx.status || "pending",
+        status: (tx.status === "confirmed" ? "confirmed" : "pending"),
         confirmations: tx.confirmations ?? 0,
         time: tx.timestamp || Date.now(),
+        scheme: tx.scheme,
       }))
     : [
-        ...state.pendingTxs.slice(0, 10).map((tx) => ({
+        ...state.pendingTxs.slice(0, 10).map((tx): TxItem => ({
           id: tx.txid,
           from: tx.from,
           to: "",
           amount: tx.amount_sat,
           fee: 0,
-          status: "pending" as const,
+          status: "pending",
           confirmations: 0,
           time: tx.timestamp,
         })),
-        ...state.recentBlocks.slice(0, 10).map((block) => ({
+        ...state.recentBlocks.slice(0, 10).map((block): TxItem => ({
           id: `coinbase-${block.height}`,
           from: "coinbase",
           to: block.miner || state.address,
           amount: block.rewardSAT || 0,
           fee: 0,
-          status: "confirmed" as const,
+          status: "confirmed",
           confirmations: Math.max(1, state.blockCount - block.height),
           time: block.timestamp ? block.timestamp * 1000 : Date.now(),
         })),
       ].slice(0, 15);
 
   // Dedupe by id — pending TX + coinbase reward at same block can collide.
-  const uniqueItems = [...new Map(items.map((it) => [it.id, it])).values()];
+  const uniqueItems: TxItem[] = [...new Map<string, TxItem>(items.map((it) => [it.id, it])).values()];
 
   return (
     <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border backdrop-blur-sm">
@@ -153,6 +183,7 @@ export function RecentTransactions() {
                     {item.status}
                   </span>
                   <ConfirmationBadge count={item.confirmations} />
+                  {item.scheme && <SchemeTag scheme={item.scheme} />}
                 </div>
                 <p className="text-[10px] text-mempool-text-dim truncate" title={`${item.from}${item.to ? " -> " + item.to : ""}`}>
                   {item.from === "coinbase" ? (

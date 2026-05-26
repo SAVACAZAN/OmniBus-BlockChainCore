@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-05-17
+
+### Added — pair_id=7 OMNI/LINK + token whitelist for LINK
+
+- `core/token_whitelist.zig`: + LINK (Chainlink) on Sepolia/Base/Arb/OP/Fuji/BNB/Gnosis.
+  pair_id=7 entries for first 4 chains where DEX is deployed.
+- `core/main.zig`: 4 settler bindings for pair 7 (bindings[12..16]).
+- `evm/deploy/`: new scripts `buy_link_sepolia.js`, `sell_link.js`,
+  `buy_link_match.js`, `cancel_link_order.js`, `probe_settle.js`,
+  `settle_link_manual.js`, `check_link_order.js`, `check_link_all2.js`,
+  `bridge_to_scroll.js`, `bridge_to_soneium.js`, `bridge_to_liberty.js`.
+
+### Fixed — silent-fail leak in DEX settler (money-loss class)
+
+Discovered while testing pair 7 e2e: SELL with no `sellerEvm` crossed against
+BUY with on-chain escrow, settler took skip-branch and advanced cursor — buyer's
+LINK stayed locked forever, seller got OMNI internally. Two-part fix:
+
+1. **`core/rpc_server.zig:12779`** — `omni_evm_pair` guard now includes pair_id=7.
+   SELL on any OMNI/<EVM> pair MUST provide `sellerEvm`; BUY MUST provide
+   `evmOrderId` referencing a watcher-confirmed escrow.
+2. **`core/dex_settler.zig:158`** — if `seller_evm` is all-zero but
+   `evm_order_id != 0` (BUY has escrow), refuse to advance cursor. Loud log
+   so operator notices instead of silently leaking the fill.
+
+### Added — RPC error visibility for settler debug
+
+- `core/evm_rpc_client.zig:95` — log first 300 chars of body when JSON-RPC
+  returns `error` field (previously the body was freed and only `RpcReturnedError`
+  surfaced, hiding revert reasons / nonce mismatches / chain id mismatches).
+- `core/dex_settler.zig:280` — log operator address in `submitSettle START`
+  for cross-checking against the on-chain `operator()` slot.
+
+### Known issue — testnet vs founder operator split
+
+Testnet node uses dev mnemonic → slot 2 EVM = `0xb6716976a3ebe8d39aceb04372f22ff8e6802d7a`.
+DEX contracts on all 6 chains have `operator()` = `0xA66235662c363e9915b6353f79df309F67D146A6`
+(founder slot 2). Any `settle()` call from the testnet node reverts as `NotOperator()`.
+Fix path TBD — either run testnet node with founder mnemonic, or redeploy DEX
+on testnets with operator = testnet slot 2. Tracked in DEX_STATUS_2026-05-17.md §5.
+
+### Docs
+
+- New: `DEX_STATUS_2026-05-17.md` — recap state DEX + contracts + bugs + next steps.
+- New: `TOOLS_INDEX.md` — index for ~100 Python tools (audit/report/test/monitoring).
+
 ## [v0.3.2] - 2026-04-25 (later same day)
 
 ### Fixed — DB path wiring + chain selection (was incomplete in v0.3.0)

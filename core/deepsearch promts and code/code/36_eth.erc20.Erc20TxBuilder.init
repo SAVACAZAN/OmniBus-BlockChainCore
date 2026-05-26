@@ -1,0 +1,3 @@
+var generator = sol.address.AddressGenerator.init(allocator);
+const pubkey = try generator.deriveAddress(seed, account, index);
+const address = try sol.address.pubkeyToAddress(pubkey);

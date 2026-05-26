@@ -1,0 +1,241 @@
+\doxysection{oracle\+\_\+verifier.\+Oracle\+Verifier Class Reference}
+\hypertarget{classoracle__verifier_1_1_oracle_verifier}{}\label{classoracle__verifier_1_1_oracle_verifier}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a6ad43a08122b0478b45aa10cfa54618c}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+bool \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_afbd6b1daba4e0fd35bfb5bfba743e038}{is\+\_\+stale}} (self, \doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}} data)
+\item 
+Tuple\+[bool, float]\+ \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a9057495ae91919328f1c617263026194}{detect\+\_\+outlier}} (self, \doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}} data, List\+[float]\+ other\+\_\+prices)
+\item 
+Tuple\+[bool, str]\+ \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a63ee3d29c1010e495e31fbc77b317333}{check\+\_\+manipulation}} (self, str asset, float current\+\_\+price)
+\item 
+\doxymbox{\hyperlink{classoracle__verifier_1_1_verification_result}{Verification\+Result}} \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_afae4409d0b8e61f6695f48d1ee0189aa}{verify\+\_\+consensus}} (self, List\+[\doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}}]\+ prices)
+\item 
+\doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a208fe433dd05713dcd20d7c05df4584f}{add\+\_\+price\+\_\+data}} (self, \doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}} data)
+\item 
+Optional\+[float]\+ \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_aedaa4c3d94c81ad3344643fcd3028d2a}{get\+\_\+recommended\+\_\+price}} (self, str asset)
+\item 
+Dict \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a47928fc24cf2812b272139d2cd005d6b}{generate\+\_\+report}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_ad7ed3b9fae924ae0e6fe092668564bf4}{price\+\_\+history}} = \{\}
+\item 
+dict \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_afcf25cceaec9e9a04e2672ea551968eb}{sources}} = \{\}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a91174a3bfe1a7f00fa90e55cbd0d255c}{STALE\+\_\+\+THRESHOLD\+\_\+\+SECONDS}} = 3600
+\item 
+float \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_ad3e55829cd2ff98a0c91c6459a0848ac}{OUTLIER\+\_\+\+THRESHOLD\+\_\+\+PERCENT}} = 5.\+0
+\item 
+int \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a75adae3791956160c8d4e45ce6db2e94}{MIN\+\_\+\+SOURCES\+\_\+\+FOR\+\_\+\+CONSENSUS}} = 3
+\item 
+dict \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier_a55ab732f65a2af5baffeeee357ef5efb}{ASSET\+\_\+\+THRESHOLDS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Verifies oracle data integrity.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00064}{64}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+
+
+\label{classoracle__verifier_1_1_oracle_verifier_doc-constructors}
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a6ad43a08122b0478b45aa10cfa54618c}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a6ad43a08122b0478b45aa10cfa54618c} 
+oracle\+\_\+verifier.\+Oracle\+Verifier.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00081}{81}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+
+
+\label{classoracle__verifier_1_1_oracle_verifier_doc-func-members}
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a208fe433dd05713dcd20d7c05df4584f}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!add\_price\_data@{add\_price\_data}}
+\index{add\_price\_data@{add\_price\_data}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{add\_price\_data()}{add\_price\_data()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a208fe433dd05713dcd20d7c05df4584f} 
+oracle\+\_\+verifier.\+Oracle\+Verifier.\+add\+\_\+price\+\_\+data (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}}}]{data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Add price data to history.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00222}{222}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a63ee3d29c1010e495e31fbc77b317333}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!check\_manipulation@{check\_manipulation}}
+\index{check\_manipulation@{check\_manipulation}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{check\_manipulation()}{check\_manipulation()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a63ee3d29c1010e495e31fbc77b317333} 
+ Tuple\+[bool, str]\+ oracle\+\_\+verifier.\+Oracle\+Verifier.\+check\+\_\+manipulation (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{asset}{, }\item[{float}]{current\+\_\+price}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check for potential price manipulation.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00108}{108}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a9057495ae91919328f1c617263026194}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!detect\_outlier@{detect\_outlier}}
+\index{detect\_outlier@{detect\_outlier}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{detect\_outlier()}{detect\_outlier()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a9057495ae91919328f1c617263026194} 
+ Tuple\+[bool, float]\+ oracle\+\_\+verifier.\+Oracle\+Verifier.\+detect\+\_\+outlier (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}}}]{data}{, }\item[{List\+[float]\+}]{other\+\_\+prices}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Detect if price is an outlier compared to other sources.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00090}{90}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a47928fc24cf2812b272139d2cd005d6b}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!generate\_report@{generate\_report}}
+\index{generate\_report@{generate\_report}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{generate\_report()}{generate\_report()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a47928fc24cf2812b272139d2cd005d6b} 
+ Dict oracle\+\_\+verifier.\+Oracle\+Verifier.\+generate\+\_\+report (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate verification report for all tracked assets.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00251}{251}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_aedaa4c3d94c81ad3344643fcd3028d2a}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!get\_recommended\_price@{get\_recommended\_price}}
+\index{get\_recommended\_price@{get\_recommended\_price}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{get\_recommended\_price()}{get\_recommended\_price()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_aedaa4c3d94c81ad3344643fcd3028d2a} 
+ Optional\+[float]\+ oracle\+\_\+verifier.\+Oracle\+Verifier.\+get\+\_\+recommended\+\_\+price (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{asset}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get the recommended price for an asset based on verification.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00233}{233}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_afbd6b1daba4e0fd35bfb5bfba743e038}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!is\_stale@{is\_stale}}
+\index{is\_stale@{is\_stale}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{is\_stale()}{is\_stale()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_afbd6b1daba4e0fd35bfb5bfba743e038} 
+ bool oracle\+\_\+verifier.\+Oracle\+Verifier.\+is\+\_\+stale (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}}}]{data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if price data is stale.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00085}{85}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_afae4409d0b8e61f6695f48d1ee0189aa}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!verify\_consensus@{verify\_consensus}}
+\index{verify\_consensus@{verify\_consensus}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{verify\_consensus()}{verify\_consensus()}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_afae4409d0b8e61f6695f48d1ee0189aa} 
+ \doxymbox{\hyperlink{classoracle__verifier_1_1_verification_result}{Verification\+Result}} oracle\+\_\+verifier.\+Oracle\+Verifier.\+verify\+\_\+consensus (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{List\+[\doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}}]\+}]{prices}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify consensus among multiple oracle sources.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00139}{139}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+
+
+\label{classoracle__verifier_1_1_oracle_verifier_doc-variable-members}
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a55ab732f65a2af5baffeeee357ef5efb}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!ASSET\_THRESHOLDS@{ASSET\_THRESHOLDS}}
+\index{ASSET\_THRESHOLDS@{ASSET\_THRESHOLDS}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{ASSET\_THRESHOLDS}{ASSET\_THRESHOLDS}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a55ab732f65a2af5baffeeee357ef5efb} 
+dict oracle\+\_\+verifier.\+Oracle\+Verifier.\+ASSET\+\_\+\+THRESHOLDS\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}BTC"{}}:\ \{\textcolor{stringliteral}{"{}volatility"{}}:\ 0.03,\ \textcolor{stringliteral}{"{}min\_sources"{}}:\ 3\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ETH"{}}:\ \{\textcolor{stringliteral}{"{}volatility"{}}:\ 0.04,\ \textcolor{stringliteral}{"{}min\_sources"{}}:\ 3\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}OMNI"{}}:\ \{\textcolor{stringliteral}{"{}volatility"{}}:\ 0.05,\ \textcolor{stringliteral}{"{}min\_sources"{}}:\ 2\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}USDC"{}}:\ \{\textcolor{stringliteral}{"{}volatility"{}}:\ 0.001,\ \textcolor{stringliteral}{"{}min\_sources"{}}:\ 2\},\ \ \textcolor{comment}{\#\ Stablecoin}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}USDT"{}}:\ \{\textcolor{stringliteral}{"{}volatility"{}}:\ 0.001,\ \textcolor{stringliteral}{"{}min\_sources"{}}:\ 2\},\ \ \textcolor{comment}{\#\ Stablecoin}}
+\DoxyCodeLine{\ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00073}{73}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a75adae3791956160c8d4e45ce6db2e94}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!MIN\_SOURCES\_FOR\_CONSENSUS@{MIN\_SOURCES\_FOR\_CONSENSUS}}
+\index{MIN\_SOURCES\_FOR\_CONSENSUS@{MIN\_SOURCES\_FOR\_CONSENSUS}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{MIN\_SOURCES\_FOR\_CONSENSUS}{MIN\_SOURCES\_FOR\_CONSENSUS}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a75adae3791956160c8d4e45ce6db2e94} 
+int oracle\+\_\+verifier.\+Oracle\+Verifier.\+MIN\+\_\+\+SOURCES\+\_\+\+FOR\+\_\+\+CONSENSUS = 3\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00070}{70}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_ad3e55829cd2ff98a0c91c6459a0848ac}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!OUTLIER\_THRESHOLD\_PERCENT@{OUTLIER\_THRESHOLD\_PERCENT}}
+\index{OUTLIER\_THRESHOLD\_PERCENT@{OUTLIER\_THRESHOLD\_PERCENT}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{OUTLIER\_THRESHOLD\_PERCENT}{OUTLIER\_THRESHOLD\_PERCENT}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_ad3e55829cd2ff98a0c91c6459a0848ac} 
+float oracle\+\_\+verifier.\+Oracle\+Verifier.\+OUTLIER\+\_\+\+THRESHOLD\+\_\+\+PERCENT = 5.\+0\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_ad7ed3b9fae924ae0e6fe092668564bf4}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!price\_history@{price\_history}}
+\index{price\_history@{price\_history}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{price\_history}{price\_history}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_ad7ed3b9fae924ae0e6fe092668564bf4} 
+dict oracle\+\_\+verifier.\+Oracle\+Verifier.\+price\+\_\+history = \{\}}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00082}{82}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_afcf25cceaec9e9a04e2672ea551968eb}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!sources@{sources}}
+\index{sources@{sources}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{sources}{sources}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_afcf25cceaec9e9a04e2672ea551968eb} 
+dict oracle\+\_\+verifier.\+Oracle\+Verifier.\+sources = \{\}}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00083}{83}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+\Hypertarget{classoracle__verifier_1_1_oracle_verifier_a91174a3bfe1a7f00fa90e55cbd0d255c}\index{oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}!STALE\_THRESHOLD\_SECONDS@{STALE\_THRESHOLD\_SECONDS}}
+\index{STALE\_THRESHOLD\_SECONDS@{STALE\_THRESHOLD\_SECONDS}!oracle\_verifier.OracleVerifier@{oracle\_verifier.OracleVerifier}}
+\doxysubsubsection{\texorpdfstring{STALE\_THRESHOLD\_SECONDS}{STALE\_THRESHOLD\_SECONDS}}
+{\footnotesize\ttfamily \label{classoracle__verifier_1_1_oracle_verifier_a91174a3bfe1a7f00fa90e55cbd0d255c} 
+int oracle\+\_\+verifier.\+Oracle\+Verifier.\+STALE\+\_\+\+THRESHOLD\+\_\+\+SECONDS = 3600\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+\+BRIDGE/\+\doxymbox{\hyperlink{oracle__verifier_8py}{oracle\+\_\+verifier.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,270 @@
+\chapter{Module:\+ {\ttfamily ws\+\_\+server} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server}{}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server}\index{Module: $<$tt$>$ws\_server$<$/tt$>$@{Module: $<$tt$>$ws\_server$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3623}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3623}%
+
+
+\begin{quote}
+Web\+Socket server on port 8334 — push new\+\_\+block, new\+\_\+transaction, status events to React frontend in real-\/time. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+ws\+\_\+server.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 420 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 7 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 3
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3625}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3625}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3626}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3626}
+
+\begin{DoxyItemize}
+\item \`{}\+Ws\+Server\`{}{\ttfamily Ws\+Server}
+\end{DoxyItemize}— Stare globala Web\+Socket — lista de conexiuni active
+\begin{DoxyItemize}
+\item \`{}\+Args\`{}{\ttfamily Args}
+\end{DoxyItemize}— Data structure representing a args in the ws\+\_\+server module.
+\begin{DoxyItemize}
+\item \`{}\+Handler\+Args\`{}{\ttfamily Handler\+Args}
+\end{DoxyItemize}— Data structure representing a handler args in the ws\+\_\+server module.
+\begin{DoxyItemize}
+\item \`{}\+Ws\+Client\`{}{\ttfamily Ws\+Client}
+\end{DoxyItemize}— Un client Web\+Socket conectat\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3627}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3627}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3628}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3628}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}attach\+Blockchain()\`{}{\ttfamily attach\+Blockchain()}
+\end{DoxyItemize}— Performs the attach blockchain operation on the ws\+\_\+server module.
+\begin{DoxyItemize}
+\item \`{}start()\`{}{\ttfamily start()}
+\end{DoxyItemize}— Porneste TCP listener + accept loop in thread detasat
+\begin{DoxyItemize}
+\item \`{}broadcast()\`{}{\ttfamily broadcast()}
+\end{DoxyItemize}— Broadcast JSON la toti clientii conectati Apelat din mining loop la fi...
+\begin{DoxyItemize}
+\item \`{}broadcast\+Tx()\`{}{\ttfamily broadcast\+Tx()}
+\end{DoxyItemize}— Trimite eveniment "{}new\+\_\+tx"{} la toti clientii
+\begin{DoxyItemize}
+\item \`{}send\+Text()\`{}{\ttfamily send\+Text()}
+\end{DoxyItemize}— Trimite un frame TEXT Web\+Socket (opcode 1) RFC 6455:\+ \+[0x81]\+\+[len]\+\+[paylo...
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3630}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3630}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3631}{}\doxysubsection{\texorpdfstring{{\ttfamily Ws\+Server}}{{\ttfamily Ws\+Server}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3631}
+Stare globala Web\+Socket — lista de conexiuni active
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily clients}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\texorpdfstring{$\ast$}{*}\+Ws\+Client)}  &Clients  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily mutex}  &{\ttfamily std.\+Thread.\+Mutex}  &Mutex  \\
+{\ttfamily blockchain}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}const Blockchain}  &Blockchain  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3633}{}\doxysubsection{\texorpdfstring{{\ttfamily Args}}{{\ttfamily Args}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3633}
+Data structure representing a args in the ws\+\_\+server module.
+
+{\itshape Defined at line 83}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3635}{}\doxysubsection{\texorpdfstring{{\ttfamily Handler\+Args}}{{\ttfamily Handler\+Args}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3635}
+Data structure representing a handler args in the ws\+\_\+server module.
+
+{\itshape Defined at line 124}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3637}{}\doxysubsection{\texorpdfstring{{\ttfamily Ws\+Client}}{{\ttfamily Ws\+Client}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3637}
+Un client Web\+Socket conectat
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily stream}  &{\ttfamily std.\+net.\+Stream}  &Stream  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily connected}  &{\ttfamily bool}  &Connected  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 291}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3639}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3639}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily WS\+\_\+\+PORT}  &{\ttfamily u16 = 8334}  &W s\+\_\+ p o r t  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3641}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3641}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3642}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3642}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(port:\ u16,\ allocator:\ std.mem.Allocator)\ WsServer\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Ws\+Server}
+
+{\itshape Defined at line 53}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3644}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3644}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *WsServer)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ws\+Server}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 63}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3646}{}\doxysubsection{\texorpdfstring{{\ttfamily attach\+Blockchain()}}{{\ttfamily attach\+Blockchain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3646}
+Performs the attach blockchain operation on the ws\+\_\+server module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ attachBlockchain(self:\ *WsServer,\ bc:\ *const\ Blockchain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ws\+Server}  &The instance  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &Bc  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3648}{}\doxysubsection{\texorpdfstring{{\ttfamily start()}}{{\ttfamily start()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3648}
+Porneste TCP listener + accept loop in thread detasat
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ start(self:\ *WsServer)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ws\+Server}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3650}{}\doxysubsection{\texorpdfstring{{\ttfamily broadcast()}}{{\ttfamily broadcast()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3650}
+Broadcast JSON la toti clientii conectati Apelat din mining loop la fiecare bloc minat
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ broadcast(self:\ *WsServer,\ json:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ws\+Server}  &The instance  \\
+{\ttfamily json}  &{\ttfamily \+[]\+const u8}  &Json  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 227}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3652}{}\doxysubsection{\texorpdfstring{{\ttfamily broadcast\+Tx()}}{{\ttfamily broadcast\+Tx()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3652}
+Trimite eveniment "{}new\+\_\+tx"{} la toti clientii
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ broadcastTx(self:\ *WsServer,\ tx\_id:\ []const\ u8,\ from:\ []const\ u8,\ amount\_sat:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ws\+Server}  &The instance  \\
+{\ttfamily tx\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+id  \\
+{\ttfamily from}  &{\ttfamily \+[]\+const u8}  &From  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 276}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3654}{}\doxysubsection{\texorpdfstring{{\ttfamily send\+Text()}}{{\ttfamily send\+Text()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ws__server_autotoc_md3654}
+Trimite un frame TEXT Web\+Socket (opcode 1) RFC 6455:\+ \+[0x81]\+\+[len]\+\+[payload]\+ — server nu maskeaza
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sendText(self:\ *WsClient,\ text:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ws\+Client}  &The instance  \\
+{\ttfamily text}  &{\ttfamily \+[]\+const u8}  &Text  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 298}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

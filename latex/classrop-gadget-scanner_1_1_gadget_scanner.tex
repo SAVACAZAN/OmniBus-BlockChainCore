@@ -1,0 +1,148 @@
+\doxysection{rop-\/gadget-\/scanner.Gadget\+Scanner Class Reference}
+\hypertarget{classrop-gadget-scanner_1_1_gadget_scanner}{}\label{classrop-gadget-scanner_1_1_gadget_scanner}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a1b1a0318d16d85e07cd3d4dd06b9b58e}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, bytes data, int base\+\_\+addr=0x400000)
+\item 
+tuple\+[int, int]\+ \doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a82a693344f05f423be877aacf8efd88a}{find\+\_\+text\+\_\+section}} (self)
+\item 
+\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a8eea04fee560296b73c5dd5579e4c1b0}{scan\+\_\+ret\+\_\+gadgets}} (self, int text\+\_\+start, int text\+\_\+size, int max\+\_\+lookback=10)
+\item 
+\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a4e54ae09d62480d43696a2b2ef1574a1}{scan\+\_\+syscall\+\_\+gadgets}} (self, int text\+\_\+start, int text\+\_\+size)
+\item 
+dict \doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aa62fa68127f6735b3549667901f602aa}{assess\+\_\+risk}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}} = data
+\item 
+\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aa77d2cff1a5b85302509c449b57a8b48}{base\+\_\+addr}} = base\+\_\+addr
+\item 
+dict\+[str, list]\+ \doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}} = defaultdict(list)
+\item 
+dict\+[str, int]\+ \doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}} = defaultdict(int)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Scan binary data for ROP gadgets.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00073}{73}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+
+
+\label{classrop-gadget-scanner_1_1_gadget_scanner_doc-constructors}
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_a1b1a0318d16d85e07cd3d4dd06b9b58e}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_a1b1a0318d16d85e07cd3d4dd06b9b58e} 
+\doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{bytes}]{data}{, }\item[{int }]{base\+\_\+addr}{ = {\ttfamily 0x400000}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00076}{76}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+
+
+\label{classrop-gadget-scanner_1_1_gadget_scanner_doc-func-members}
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_aa62fa68127f6735b3549667901f602aa}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!assess\_risk@{assess\_risk}}
+\index{assess\_risk@{assess\_risk}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{assess\_risk()}{assess\_risk()}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_aa62fa68127f6735b3549667901f602aa} 
+ dict \doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+assess\+\_\+risk (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Compare gadget counts against hardened/unhardened thresholds.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00241}{241}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_a82a693344f05f423be877aacf8efd88a}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!find\_text\_section@{find\_text\_section}}
+\index{find\_text\_section@{find\_text\_section}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{find\_text\_section()}{find\_text\_section()}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_a82a693344f05f423be877aacf8efd88a} 
+ tuple\+[int, int]\+ \doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+find\+\_\+text\+\_\+section (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find .text section offset and size in PE binary.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00082}{82}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_a8eea04fee560296b73c5dd5579e4c1b0}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!scan\_ret\_gadgets@{scan\_ret\_gadgets}}
+\index{scan\_ret\_gadgets@{scan\_ret\_gadgets}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{scan\_ret\_gadgets()}{scan\_ret\_gadgets()}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_a8eea04fee560296b73c5dd5579e4c1b0} 
+\doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+scan\+\_\+ret\+\_\+gadgets (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int}]{text\+\_\+start}{, }\item[{int}]{text\+\_\+size}{, }\item[{int }]{max\+\_\+lookback}{ = {\ttfamily 10}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find all ret-terminated gadgets.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00112}{112}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_a4e54ae09d62480d43696a2b2ef1574a1}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!scan\_syscall\_gadgets@{scan\_syscall\_gadgets}}
+\index{scan\_syscall\_gadgets@{scan\_syscall\_gadgets}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{scan\_syscall\_gadgets()}{scan\_syscall\_gadgets()}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_a4e54ae09d62480d43696a2b2ef1574a1} 
+\doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+scan\+\_\+syscall\+\_\+gadgets (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int}]{text\+\_\+start}{, }\item[{int}]{text\+\_\+size}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find syscall; ret and int 0x80; ret gadgets.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00213}{213}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+
+
+\label{classrop-gadget-scanner_1_1_gadget_scanner_doc-variable-members}
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_aa77d2cff1a5b85302509c449b57a8b48}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!base\_addr@{base\_addr}}
+\index{base\_addr@{base\_addr}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{base\_addr}{base\_addr}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_aa77d2cff1a5b85302509c449b57a8b48} 
+\doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+base\+\_\+addr = base\+\_\+addr}
+
+
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!data@{data}}
+\index{data@{data}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{data}{data}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b} 
+\doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+data = data}
+
+
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00077}{77}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!gadgets@{gadgets}}
+\index{gadgets@{gadgets}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{gadgets}{gadgets}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e} 
+dict\+[str, list]\+ \doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+gadgets = defaultdict(list)}
+
+
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+\Hypertarget{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}\index{rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}!stats@{stats}}
+\index{stats@{stats}!rop-\/gadget-\/scanner.GadgetScanner@{rop-\/gadget-\/scanner.GadgetScanner}}
+\doxysubsubsection{\texorpdfstring{stats}{stats}}
+{\footnotesize\ttfamily \label{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103} 
+dict\+[str, int]\+ \doxymbox{\hyperlink{namespacerop}{rop}}-\/gadget-\/scanner.\+Gadget\+Scanner.\+stats = defaultdict(int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{rop-gadget-scanner_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{rop-gadget-scanner_8py_source}{rop-\/gadget-\/scanner.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+EXPLOITS/\+\doxymbox{\hyperlink{rop-gadget-scanner_8py}{rop-\/gadget-\/scanner.\+py}}\end{DoxyCompactItemize}

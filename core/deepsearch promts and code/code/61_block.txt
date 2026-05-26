@@ -1,0 +1,109 @@
+Am un proiect blockchain L1 numit OmniBus, scris în Zig. Am deja următoarele componente funcționale:
+
+=== CE EXISTĂ DEJA ===
+
+**Core L1:**
+- UTXO manager cu coin selection (greedy)
+- Mempool cu RBF, orphan tracking, stats
+- Transaction builder și serializer
+- Script engine cu OpCodes, P2PKH, P2SH, multisig
+- Block structure, header, merkle root
+- Consensus (PoW/PoS hybrid - detaliu)
+- Validation rules pentru block/tx
+- Blockchain sync logic (basic)
+- Cross-chain oracle
+
+**Crypto:**
+- secp256k1 ECDSA (low-S enforced)
+- Schnorr (BIP-340) - dar neintegrat cu script engine
+- BLS signatures
+- Post-Quantum: ML-DSA-87, Falcon-512, SLH-DSA, ML-KEM-768 (wrapper peste liboqs)
+- BIP-32 HD wallet, BIP-39 mnemonic, BIP-44 multi-coin
+- AES-GCM, SHA-3, CSPRNG
+
+**Cross-chain & Bridge:**
+- bridge_native.zig (OmniBus ↔ other chains)
+- htlc_btc.zig (HTLC pentru swap BTC)
+- evm_signer.zig + evm_rpc_client.zig
+- cross_chain_oracle.zig
+- atomic_swap.zig
+
+**Networking:**
+- p2p.zig (peer management, handshake)
+- gossip.zig (transaction/block propagation)
+- rpc_server.zig (JSON-RPC)
+- websocket.zig
+- dns_seed.zig
+
+**Storage:**
+- storage.zig (RocksDB/LMDB)
+- indexer.zig (UTXO indexer, transaction index)
+- snapshot.zig, prune.zig
+
+**Wallet Multi-Chain (tocmai construit):**
+- BTC: P2WPKH/P2TR addresses, tx builder, RPC client, fee estimator, sync, PSBT
+- ETH: Address cu EIP-55, EIP-1559 tx builder, ERC-20, contract interaction
+- SOL: Ed25519, Borsh, address/PDA, instruction builder, tx builder, RPC client, SPL tokens
+- TON: Cell, TL-B, addresses (bounceable/non-bounceable), contract (wallet/jetton/nft), tx builder, RPC client
+- Common: types, errors, traits (AddressGenerator, TxBuilder, Signer, RpcClient)
+
+=== CE AM IDENTIFICAT CĂ LIPSEȘTE ===
+
+Pe baza analizei, îmi lipsesc următoarele componente critice pentru a avea un L1 production-grade:
+
+**1. INFRASTRUCTURĂ P2P & CONSENSUS (prioritate maximă)**
+
+1.1. P2P Networking enhancement:
+- Implementare completă libp2p în Zig (sau integrare cu rust-crypto?):
+  - Discovery: Kademlia DHT pentru găsirea peer-ilor
+  - Transport: noise framework cu PQ (ML-KEM-768 + X25519) handshake
+  - Muxing: yamux sau similar pentru multiplexare stream-uri
+  - PubSub: gossip-sub pentru propagare tx/block
+- Handshake protocol cu version negotiation, user agent, genesis hash check
+- Peer scoring și ban management (reputație)
+- Message rate limiting și anti-DDoS
+
+1.2. Consensus Engine (Proof-of-Stake hibrid):
+- Staking contract/logic (bond, unbond, slashing)
+- Validator set management (election, rotation)
+- Block production scheduling (based on stake weight)
+- Finality gadget (de tip Casper FFG sau Tendermint)
+- View change / timeout handling
+- Evidence handling pentru slashable offenses (double signing, etc.)
+
+1.3. Sync enhancements:
+- Fast sync (download headers + state snapshots)
+- Warp sync (trusted state root from peers)
+- Peer-to-peer block download cu batching
+- Checkpoint sync (from trusted checkpoints)
+
+1.4. Mempool improvements:
+- Replace-by-fee complet (deja există parțial)
+- Package relay (pentru child-pays-for-parent - CPFP)
+- Mempool prioritization (by fee, by address)
+- Mempool persistence între restarts
+
+**2. SECURITATE POST-QUANTUM (diferențiator principal)**
+
+2.1. PQ pentru peer-to-peer:
+- Noise handshake cu hybrid KEM: X25519 + ML-KEM-768
+- Session keys ratcheting (double ratchet pentru forward secrecy)
+
+2.2. PQ pentru tranzacții:
+- Hybrid signatures: ML-DSA-65 + Ed25519 (sau secp256k1) implicit
+- Transaction format care suportă multiple signature schemes
+- Upgrade path pentru existing keys
+
+2.3. PQ pentru bridge-uri cross-chain:
+- HTLC-uri cu commitment PQ
+- Oracle signatures cu PQ
+
+2.4. HSM integration:
+- PKCS#11 wrapper pentru a suporta HSM-uri hardware
+- Remote signer pattern (separate signing service)
+
+**3. BLOCK EXPLORER (infrastructură vizibilă)**
+
+3.1. Backend (Rust/Go/Typescript, separate de node):
+- PostgreSQL pentru stocare date istorice
+- Indexer care ascultă events din node și popul

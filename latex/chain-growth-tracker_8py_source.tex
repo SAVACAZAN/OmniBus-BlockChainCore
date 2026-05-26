@@ -1,0 +1,186 @@
+\doxysection{chain-\/growth-\/tracker.py}
+\hypertarget{chain-growth-tracker_8py_source}{}\label{chain-growth-tracker_8py_source}\index{tools/MONITORING/chain-\/growth-\/tracker.py@{tools/MONITORING/chain-\/growth-\/tracker.py}}
+\doxymbox{\hyperlink{chain-growth-tracker_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00001}\doxymbox{\hyperlink{namespacechain-growth-tracker}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00002}\doxymbox{\hyperlink{namespacechain}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ BlockChainCore\ —\ Chain\ Growth\ Tracker}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00004}00004\ \textcolor{stringliteral}{==============================================}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00005}00005\ \textcolor{stringliteral}{Monitors\ the\ omnibus-\/chain.dat\ file\ size\ over\ time\ and\ logs\ growth}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00006}00006\ \textcolor{stringliteral}{data\ to\ MONITORING/data/chain-\/growth.csv.\ \ Calculates\ the\ growth\ rate}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00007}00007\ \textcolor{stringliteral}{in\ bytes/hour\ and\ raises\ alerts\ when\ growth\ stops\ (node\ not\ mining)}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00008}00008\ \textcolor{stringliteral}{or\ grows\ abnormally\ fast\ (possible\ spam\ /\ attack).}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00010}00010\ \textcolor{stringliteral}{Uses\ only\ Python\ stdlib.}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00011}00011\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00012}00012\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ python\ chain-\/growth-\/tracker.py}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ \ \ python\ chain-\/growth-\/tracker.py\ -\/-\/chain-\/file\ ../../omnibus-\/chain.dat\ -\/-\/interval\ 60}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ \ \ python\ chain-\/growth-\/tracker.py\ -\/-\/max-\/rate\ 50000000\ -\/-\/stale-\/minutes\ 30}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00016}00016\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00018}00018\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00019}00019\ \textcolor{keyword}{import}\ csv}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00020}00020\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00023}00023\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00024}00024\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00026}00026\ \textcolor{comment}{\#\ ──\ ANSI\ colours\ ─────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00027}\doxymbox{\hyperlink{namespacechain-growth-tracker_a6ffce616d3fb2423bf0472c305338c71}{00027}}\ RESET\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00028}\doxymbox{\hyperlink{namespacechain-growth-tracker_a1c6fbfa8e91bac5156a08bd0b8e9cbd6}{00028}}\ BOLD\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00029}\doxymbox{\hyperlink{namespacechain-growth-tracker_a44740c1ee02864c4450bfefe1df6c213}{00029}}\ DIM\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00030}\doxymbox{\hyperlink{namespacechain-growth-tracker_aaa65a6f139c688b8133cc4b33209339e}{00030}}\ RED\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00031}\doxymbox{\hyperlink{namespacechain-growth-tracker_aacf34ea668b35b0c13c91470ce66c4e5}{00031}}\ GREEN\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00032}\doxymbox{\hyperlink{namespacechain-growth-tracker_a97e5b345eecc454a0b446dad96ac632c}{00032}}\ YELLOW\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00033}\doxymbox{\hyperlink{namespacechain-growth-tracker_a7d0c2d0ae192e8e12a3ba945d271643f}{00033}}\ CYAN\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00034}\doxymbox{\hyperlink{namespacechain-growth-tracker_a4158c95598fb253ef4aee0b82334b098}{00034}}\ MAGENTA\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00035}\doxymbox{\hyperlink{namespacechain-growth-tracker_a7e8d609dd34bda8832b35fc85df57797}{00035}}\ BG\_RED\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[41m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00036}\doxymbox{\hyperlink{namespacechain-growth-tracker_a04005c6d5b54c48363d9ac395242470c}{00036}}\ WHITE\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00039}\doxymbox{\hyperlink{namespacechain-growth-tracker_a4e7638e318c5fe723e0da30e989b41fa}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacechain-growth-tracker_a4e7638e318c5fe723e0da30e989b41fa}{format\_bytes}}(n:\ float)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{for}\ unit\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}B"{}},\ \textcolor{stringliteral}{"{}KB"{}},\ \textcolor{stringliteral}{"{}MB"{}},\ \textcolor{stringliteral}{"{}GB"{}},\ \textcolor{stringliteral}{"{}TB"{}}):}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ abs(n)\ <\ 1024:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}\{n:.2f\}\ \{unit\}"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ n\ /=\ 1024}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}\{n:.2f\}\ PB"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00047}\doxymbox{\hyperlink{namespacechain-growth-tracker_ac8bffcff11120790aa343edaf7e62e60}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacechain-growth-tracker_ac8bffcff11120790aa343edaf7e62e60}{ensure\_csv}}(csv\_path:\ Path):}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00048}00048\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Create\ CSV\ with\ header\ if\ it\ doesn't\ exist."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00049}00049\ \ \ \ \ csv\_path.parent.mkdir(parents=\textcolor{keyword}{True},\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ csv\_path.exists():}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(csv\_path,\ \textcolor{stringliteral}{"{}w"{}},\ newline=\textcolor{stringliteral}{"{}"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ writer\ =\ csv.writer(f)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ writer.writerow([\textcolor{stringliteral}{"{}timestamp"{}},\ \textcolor{stringliteral}{"{}epoch"{}},\ \textcolor{stringliteral}{"{}size\_bytes"{}},\ \textcolor{stringliteral}{"{}delta\_bytes"{}},\ \textcolor{stringliteral}{"{}rate\_bytes\_per\_hour"{}},\ \textcolor{stringliteral}{"{}alert"{}}])}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00056}\doxymbox{\hyperlink{namespacechain-growth-tracker_ac2bf00216bc29ea389562f46dd06ca63}{00056}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacechain-growth-tracker_ac2bf00216bc29ea389562f46dd06ca63}{append\_row}}(csv\_path:\ Path,\ row:\ list):}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00057}00057\ \ \ \ \ \textcolor{keyword}{with}\ open(csv\_path,\ \textcolor{stringliteral}{"{}a"{}},\ newline=\textcolor{stringliteral}{"{}"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ writer\ =\ csv.writer(f)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ writer.writerow(row)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00062}\doxymbox{\hyperlink{namespacechain-growth-tracker_a9827ce58ea1376603f05a02dbdb368e0}{00062}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacechain-growth-tracker_a9827ce58ea1376603f05a02dbdb368e0}{print\_banner}}():}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00063}00063\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00064}00064\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ ╔══════════════════════════════════════════╗"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00065}00065\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ ║\ \ \ OmniBus\ Chain\ Growth\ Tracker\ \ \ \ \ \ \ \ \ \ \ ║"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00066}00066\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ ╚══════════════════════════════════════════╝"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00067}00067\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00070}\doxymbox{\hyperlink{namespacechain-growth-tracker_a51af30a60f9f02777c6396b8247e356f}{00070}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacechain-growth-tracker_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00071}00071\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}Track\ omnibus-\/chain.dat\ growth\ over\ time"{}},}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ epilog=(}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Examples:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ chain-\/growth-\/tracker.py\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ chain-\/growth-\/tracker.py\ -\/-\/interval\ 30\ -\/-\/stale-\/minutes\ 15\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ chain-\/growth-\/tracker.py\ -\/-\/chain-\/file\ /data/omnibus-\/chain.dat"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00080}00080\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00081}00081\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).resolve().parent}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00082}00082\ \ \ \ \ default\_chain\ =\ script\_dir.parent.parent\ /\ \textcolor{stringliteral}{"{}omnibus-\/chain.dat"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00084}00084\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/chain-\/file"{}},\ type=str,\ default=str(default\_chain),}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Path\ to\ chain\ data\ file\ (default:\ \{default\_chain\})"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00086}00086\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/interval"{}},\ type=int,\ default=60,}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Check\ interval\ in\ seconds\ (default:\ 60)"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00088}00088\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/max-\/rate"{}},\ type=int,\ default=100\_000\_000,}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Max\ acceptable\ growth\ rate\ bytes/hour\ before\ alert\ (default:\ 100MB/h)"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00090}00090\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/stale-\/minutes"{}},\ type=int,\ default=20,}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Minutes\ without\ growth\ before\ stale\ alert\ (default:\ 20)"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00092}00092\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/csv-\/output"{}},\ type=str,\ default=\textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}CSV\ output\ path\ (default:\ MONITORING/data/chain-\/growth.csv)"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00094}00094\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00096}00096\ \ \ \ \ chain\_path\ =\ Path(args.chain\_file)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00097}00097\ \ \ \ \ csv\_path\ =\ Path(args.csv\_output)\ \textcolor{keywordflow}{if}\ args.csv\_output\ \textcolor{keywordflow}{else}\ (script\_dir\ /\ \textcolor{stringliteral}{"{}data"{}}\ /\ \textcolor{stringliteral}{"{}chain-\/growth.csv"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00099}00099\ \ \ \ \ \doxymbox{\hyperlink{namespacechain-growth-tracker_a9827ce58ea1376603f05a02dbdb368e0}{print\_banner}}()}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00100}00100\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Chain\ file:\{RESET\}\ \ \ \{chain\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00101}00101\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}CSV\ output:\{RESET\}\ \ \ \{csv\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00102}00102\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Interval:\{RESET\}\ \ \ \ \ \{args.interval\}s"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00103}00103\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Max\ rate:\{RESET\}\ \ \ \ \ \{format\_bytes(args.max\_rate)\}/h"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00104}00104\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Stale\ after:\{RESET\}\ \ \{args.stale\_minutes\}\ min"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00105}00105\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ chain\_path.exists():}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}WARNING:\{RESET\}\ Chain\ file\ not\ found\ yet:\ \{chain\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}Will\ start\ tracking\ once\ the\ file\ appears.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00111}00111\ \ \ \ \ \doxymbox{\hyperlink{namespacechain-growth-tracker_ac8bffcff11120790aa343edaf7e62e60}{ensure\_csv}}(csv\_path)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00113}00113\ \ \ \ \ prev\_size\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00114}00114\ \ \ \ \ prev\_time\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00115}00115\ \ \ \ \ last\_growth\_time\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00116}00116\ \ \ \ \ sample\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00118}00118\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ now\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ timestamp\ =\ datetime.now().strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M:\%S"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ chain\_path.exists():}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}[\{timestamp\}]\{RESET\}\ \{YELLOW\}Waiting\ for\ chain\ file...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(args.interval)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ current\_size\ =\ chain\_path.stat().st\_size}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ sample\_count\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ delta\ =\ 0}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ rate\ =\ 0.0}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ alert\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ prev\_size\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{and}\ prev\_time\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ delta\ =\ current\_size\ -\/\ prev\_size}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ elapsed\_hours\ =\ (now\ -\/\ prev\_time)\ /\ 3600.0}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rate\ =\ delta\ /\ elapsed\_hours\ \textcolor{keywordflow}{if}\ elapsed\_hours\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ delta\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_growth\_time\ =\ now}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ stale}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ minutes\_since\_growth\ =\ (now\ -\/\ last\_growth\_time)\ /\ 60.0}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ minutes\_since\_growth\ >=\ args.stale\_minutes:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alert\ =\ \textcolor{stringliteral}{"{}STALE"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BG\_RED\}\{WHITE\}\{BOLD\}\ ALERT\ \{RESET\}\ \{RED\}No\ chain\ growth\ for\ \{minutes\_since\_growth:.0f\}\ min\ —\ node\ may\ not\ be\ mining!\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ explosion}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ rate\ >\ args.max\_rate:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alert\ =\ \textcolor{stringliteral}{"{}RAPID\_GROWTH"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BG\_RED\}\{WHITE\}\{BOLD\}\ ALERT\ \{RESET\}\ \{RED\}Abnormal\ growth\ rate:\ \{format\_bytes(rate)\}/h\ —\ possible\ spam\ attack!\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Log\ to\ CSV}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacechain-growth-tracker_ac2bf00216bc29ea389562f46dd06ca63}{append\_row}}(csv\_path,\ [timestamp,\ int(now),\ current\_size,\ delta,\ f\textcolor{stringliteral}{"{}\{rate:.2f\}"{}},\ alert])}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Print\ status\ line}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ delta\_str\ =\ f\textcolor{stringliteral}{"{}+\{format\_bytes(delta)\}"{}}\ \textcolor{keywordflow}{if}\ delta\ >\ 0\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}\{format\_bytes(delta)\}"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ delta\_colour\ =\ GREEN\ \textcolor{keywordflow}{if}\ delta\ >\ 0\ \textcolor{keywordflow}{else}\ (YELLOW\ \textcolor{keywordflow}{if}\ delta\ ==\ 0\ \textcolor{keywordflow}{else}\ RED)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ rate\_str\ =\ \doxymbox{\hyperlink{namespacechain-growth-tracker_a4e7638e318c5fe723e0da30e989b41fa}{format\_bytes}}(abs(rate))}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ \{DIM\}[\{timestamp\}]\{RESET\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Size:\ \{BOLD\}\{format\_bytes(current\_size)\}\{RESET\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Delta:\ \{delta\_colour\}\{delta\_str\}\{RESET\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Rate:\ \{MAGENTA\}\{rate\_str\}/h\{RESET\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{'\ \ '\ +\ RED\ +\ alert\ +\ RESET\ if\ alert\ else\ ''\}"{}}}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ prev\_size\ =\ current\_size}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ prev\_time\ =\ now}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(args.interval)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00173}00173\ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{YELLOW\}Tracker\ stopped\ after\ \{sample\_count\}\ samples.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Data\ saved\ to:\ \{csv\_path\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ sys.exit(0)}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00179}00179\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{chain-growth-tracker_8py_source_l00180}00180\ \ \ \ \ \doxymbox{\hyperlink{namespacechain-growth-tracker_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

@@ -1,0 +1,93 @@
+\doxysection{tx Namespace Reference}
+\hypertarget{namespacetx}{}\label{namespacetx}\index{tx@{tx}}
+
+
+-\/stress-\/sim  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/stress-\/sim 
+
+-\/stress-\/sim2
+
+\begin{DoxyVerb}tx-stress-sim.py — Long-running TX simulation for OmniBus testnet.
+
+Purpose
+-------
+Run for 1 hour, 24 hours, or custom duration, generating a steady stream of
+transactions across multiple "levels" so we can stress the chain without
+hand-typing curl commands. Lets us watch:
+
+  - mempool fill / drain behavior
+  - block production rate when mempool is non-empty
+  - balance propagation to fresh addresses
+  - Rich List growth over time
+  - faucet refill cadence
+  - whether any TX gets silently dropped
+
+Levels
+------
+  L0 — base load (1 tx every 60s, miner→miner). Produces organic chain traffic
+       at a rate any healthy chain should handle for any duration.
+  L1 — light burst (1 tx every 10s, between 4 derived addresses). Tests
+       multi-address state updates and Rich List sorting.
+  L2 — moderate burst (5 tx every 10s, fan-out from miner to 8 derived
+       addresses). Tests mempool capacity at low rate.
+  L3 — stress (20 tx every 10s, randomized small amounts). Designed to
+       overlap multiple blocks and reveal locking / race issues.
+
+Usage
+-----
+  python tx-stress-sim.py --level 0 --duration 1h
+  python tx-stress-sim.py --level 1 --duration 24h
+  python tx-stress-sim.py --level 2 --duration 30m --rpc http://127.0.0.1:18333
+  python tx-stress-sim.py --level 3 --duration 2h --report-every 60
+
+The script never touches keys directly — it calls `sendtransaction` RPC,
+which signs with the node's wallet (OMNIBUS_MNEMONIC env). To stress-test
+on the public VPS, set --rpc to https://omnibusblockchain.cc:8443/api-testnet.
+
+Stops cleanly on Ctrl+C and prints a final report.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}tx-stress-sim2.py — Long-running TX simulation for OmniBus testnet.
+
+Run for 1h, 24h, or custom duration, generating a steady stream of transactions
+across multiple "levels" so we can stress the chain without hand-typing curl.
+
+Watching:
+  - mempool fill / drain behavior
+  - block production rate when mempool is non-empty
+  - balance propagation to fresh addresses
+  - Rich List growth over time
+  - faucet refill cadence
+  - whether any TX gets silently dropped
+
+Levels
+------
+  L0 — base load    : 2 tx / 30s,  amounts 1k–10k SAT  (forever-safe)
+  L1 — light burst  : 3 tx / 8s,   amounts 10k–100k SAT
+  L2 — moderate     : 15 tx / 10s, amounts 10k–50k SAT (mempool steady fill)
+  L3 — stress       : 50 tx / 10s, amounts 1k–20k SAT  (race-test, overlap blocks)
+  L4 — extreme      : 100 tx / 8s, amounts 1k–15k SAT  (push to limits)
+
+Usage
+-----
+  # Local node, default testnet RPC
+  python tx-stress-sim2.py --level 0 --duration 1h
+
+  # VPS testnet (needs OMNIBUS_RPC_TOKEN env var):
+  export OMNIBUS_RPC_TOKEN=31926ece...
+  python tx-stress-sim2.py --level 1 --duration 24h \\
+      --rpc http://omnibusblockchain.cc:18332
+
+  # Burst mode + detailed stats
+  python tx-stress-sim2.py --level 3 --duration 30m --burst-mode --detailed-stats
+
+  # Custom recipient pool size (rotates through real testnet addresses)
+  python tx-stress-sim2.py --level 2 --num-addresses 8 --duration 2h
+\end{DoxyVerb}
+ 

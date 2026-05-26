@@ -1,0 +1,318 @@
+\doxysection{binary-\/analysis Namespace Reference}
+\hypertarget{namespacebinary-analysis}{}\label{namespacebinary-analysis}\index{binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+tuple\+[int, str, str]\+ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{run\+\_\+cmd}} (list\+[str]\+ cmd, int timeout=30)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a4c4b1dcf967f1735f041a526cb6dbcda}{get\+\_\+file\+\_\+info}} (str binary\+\_\+path)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a4ff3b21c09535007e101b3664d45ad4a}{parse\+\_\+pe\+\_\+header}} (str binary\+\_\+path)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacebinary-analysis_a1ba300a3001ab67ddec3d5946332bb19}{analyze\+\_\+sections\+\_\+objdump}} (str binary\+\_\+path)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a6944e82a1c1a107610f5525515328ea4}{scan\+\_\+strings}} (str binary\+\_\+path)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a771747b3ff6fe7d96ed564f0e4dfa855}{check\+\_\+canaries}} (str binary\+\_\+path)
+\item 
+dict\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacebinary-analysis_a6ffc768ca43815b4e5e476b83f4e64c3}{try\+\_\+pwntools\+\_\+checksec}} (str binary\+\_\+path)
+\item 
+int \doxymbox{\hyperlink{namespacebinary-analysis_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a49accedad87f3f4d5708e045ac5291cc}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a7c472af26e5a6cd47e96d74b52e156ab}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_ad2b547a90f3d1aa37d26ed53286f183a}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a858fd88e309de4a42b00d4ca05611cab}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_aa93c9e5285e4b7343b4c79f179f6fe85}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a9176e8b6a6165be1765d21b2bce4682c}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+list \doxymbox{\hyperlink{namespacebinary-analysis_a1921473a1771810f6b551781d2b51ec5}{UNSAFE\+\_\+\+PATTERNS}}
+\item 
+\doxymbox{\hyperlink{namespacebinary-analysis_a264e41339269201a49de74920fc38096}{SCRIPT\+\_\+\+DIR}} = os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+))
+\item 
+\doxymbox{\hyperlink{namespacebinary-analysis_a8e7313c0825cbb242516ba7bdcd2ae43}{DEFAULT\+\_\+\+BINARY}} = os.\+path.\+normpath(os.\+path.\+join(\doxymbox{\hyperlink{namespacebinary-analysis_a264e41339269201a49de74920fc38096}{SCRIPT\+\_\+\+DIR}}, "{}.."{}, "{}.."{}, "{}zig-\/out"{}, "{}bin"{}, "{}omnibus-\/node.\+exe"{}))
+\end{DoxyCompactItemize}
+
+
+\label{namespacebinary-analysis_doc-func-members}
+\Hypertarget{namespacebinary-analysis_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacebinary-analysis_a1ba300a3001ab67ddec3d5946332bb19}\index{binary-\/analysis@{binary-\/analysis}!analyze\_sections\_objdump@{analyze\_sections\_objdump}}
+\index{analyze\_sections\_objdump@{analyze\_sections\_objdump}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{analyze\_sections\_objdump()}{analyze\_sections\_objdump()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a1ba300a3001ab67ddec3d5946332bb19} 
+ list\+[dict]\+ analyze\+\_\+sections\+\_\+objdump (\begin{DoxyParamCaption}\item[{str}]{binary\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse sections via objdump -h.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00162}{162}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacebinary-analysis_a771747b3ff6fe7d96ed564f0e4dfa855}\index{binary-\/analysis@{binary-\/analysis}!check\_canaries@{check\_canaries}}
+\index{check\_canaries@{check\_canaries}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{check\_canaries()}{check\_canaries()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a771747b3ff6fe7d96ed564f0e4dfa855} 
+ dict check\+\_\+canaries (\begin{DoxyParamCaption}\item[{str}]{binary\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check for stack canary / stack protector usage.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00235}{235}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacebinary-analysis_a4c4b1dcf967f1735f041a526cb6dbcda}\index{binary-\/analysis@{binary-\/analysis}!get\_file\_info@{get\_file\_info}}
+\index{get\_file\_info@{get\_file\_info}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{get\_file\_info()}{get\_file\_info()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a4c4b1dcf967f1735f041a526cb6dbcda} 
+ dict get\+\_\+file\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{binary\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Basic file metadata.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}\index{binary-\/analysis@{binary-\/analysis}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{binary-\/analysis@{binary-\/analysis}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{binary-\/analysis@{binary-\/analysis}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}\index{binary-\/analysis@{binary-\/analysis}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacebinary-analysis_a7431cb90017e54fe695b23d4190db046}\index{binary-\/analysis@{binary-\/analysis}!main@{main}}
+\index{main@{main}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00290}{290}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacebinary-analysis_a4ff3b21c09535007e101b3664d45ad4a}\index{binary-\/analysis@{binary-\/analysis}!parse\_pe\_header@{parse\_pe\_header}}
+\index{parse\_pe\_header@{parse\_pe\_header}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{parse\_pe\_header()}{parse\_pe\_header()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a4ff3b21c09535007e101b3664d45ad4a} 
+ dict parse\+\_\+pe\+\_\+header (\begin{DoxyParamCaption}\item[{str}]{binary\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse PE headers for security characteristics.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}\index{binary-\/analysis@{binary-\/analysis}!run\_cmd@{run\_cmd}}
+\index{run\_cmd@{run\_cmd}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{run\_cmd()}{run\_cmd()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4} 
+ tuple\+[int, str, str]\+ run\+\_\+cmd (\begin{DoxyParamCaption}\item[{list\+[str]\+}]{cmd}{, }\item[{int }]{timeout}{ = {\ttfamily 30}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run command, return (returncode, stdout, stderr).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacebinary-analysis_a6944e82a1c1a107610f5525515328ea4}\index{binary-\/analysis@{binary-\/analysis}!scan\_strings@{scan\_strings}}
+\index{scan\_strings@{scan\_strings}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{scan\_strings()}{scan\_strings()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a6944e82a1c1a107610f5525515328ea4} 
+ dict scan\+\_\+strings (\begin{DoxyParamCaption}\item[{str}]{binary\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scan binary strings for unsafe C patterns.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00195}{195}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespacebinary-analysis_a6ffc768ca43815b4e5e476b83f4e64c3}\index{binary-\/analysis@{binary-\/analysis}!try\_pwntools\_checksec@{try\_pwntools\_checksec}}
+\index{try\_pwntools\_checksec@{try\_pwntools\_checksec}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{try\_pwntools\_checksec()}{try\_pwntools\_checksec()}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a6ffc768ca43815b4e5e476b83f4e64c3} 
+ dict \texorpdfstring{$\vert$}{|} None try\+\_\+pwntools\+\_\+checksec (\begin{DoxyParamCaption}\item[{str}]{binary\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}If pwntools is available, use checksec for comprehensive analysis.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00271}{271}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 15
+
+
+\label{namespacebinary-analysis_doc-var-members}
+\Hypertarget{namespacebinary-analysis_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacebinary-analysis_aa93c9e5285e4b7343b4c79f179f6fe85}\index{binary-\/analysis@{binary-\/analysis}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_aa93c9e5285e4b7343b4c79f179f6fe85} 
+str \doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_a858fd88e309de4a42b00d4ca05611cab}\index{binary-\/analysis@{binary-\/analysis}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a858fd88e309de4a42b00d4ca05611cab} 
+str \doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_a8e7313c0825cbb242516ba7bdcd2ae43}\index{binary-\/analysis@{binary-\/analysis}!DEFAULT\_BINARY@{DEFAULT\_BINARY}}
+\index{DEFAULT\_BINARY@{DEFAULT\_BINARY}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{DEFAULT\_BINARY}{DEFAULT\_BINARY}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a8e7313c0825cbb242516ba7bdcd2ae43} 
+\doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+DEFAULT\+\_\+\+BINARY = os.\+path.\+normpath(os.\+path.\+join(\doxymbox{\hyperlink{namespacebinary-analysis_a264e41339269201a49de74920fc38096}{SCRIPT\+\_\+\+DIR}}, "{}.."{}, "{}.."{}, "{}zig-\/out"{}, "{}bin"{}, "{}omnibus-\/node.\+exe"{}))}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_a49accedad87f3f4d5708e045ac5291cc}\index{binary-\/analysis@{binary-\/analysis}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a49accedad87f3f4d5708e045ac5291cc} 
+str \doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_a7c472af26e5a6cd47e96d74b52e156ab}\index{binary-\/analysis@{binary-\/analysis}!RED@{RED}}
+\index{RED@{RED}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a7c472af26e5a6cd47e96d74b52e156ab} 
+str \doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_a9176e8b6a6165be1765d21b2bce4682c}\index{binary-\/analysis@{binary-\/analysis}!RESET@{RESET}}
+\index{RESET@{RESET}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a9176e8b6a6165be1765d21b2bce4682c} 
+str \doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_a264e41339269201a49de74920fc38096}\index{binary-\/analysis@{binary-\/analysis}!SCRIPT\_DIR@{SCRIPT\_DIR}}
+\index{SCRIPT\_DIR@{SCRIPT\_DIR}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{SCRIPT\_DIR}{SCRIPT\_DIR}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a264e41339269201a49de74920fc38096} 
+\doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+SCRIPT\+\_\+\+DIR = os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+))}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_a1921473a1771810f6b551781d2b51ec5}\index{binary-\/analysis@{binary-\/analysis}!UNSAFE\_PATTERNS@{UNSAFE\_PATTERNS}}
+\index{UNSAFE\_PATTERNS@{UNSAFE\_PATTERNS}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{UNSAFE\_PATTERNS}{UNSAFE\_PATTERNS}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_a1921473a1771810f6b551781d2b51ec5} 
+list \doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+UNSAFE\+\_\+\+PATTERNS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}strcpy"{}},\ \textcolor{stringliteral}{"{}strcat"{}},\ \textcolor{stringliteral}{"{}sprintf"{}},\ \textcolor{stringliteral}{"{}vsprintf"{}},\ \textcolor{stringliteral}{"{}gets"{}},\ \textcolor{stringliteral}{"{}scanf"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}sscanf"{}},\ \textcolor{stringliteral}{"{}fscanf"{}},\ \textcolor{stringliteral}{"{}realpath"{}},\ \textcolor{stringliteral}{"{}getwd"{}},\ \textcolor{stringliteral}{"{}strtok"{}},\ \textcolor{stringliteral}{"{}tmpnam"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}mktemp"{}},\ \textcolor{stringliteral}{"{}strncpy"{}},\ \ \textcolor{comment}{\#\ included\ but\ less\ severe}}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+
+\Hypertarget{namespacebinary-analysis_ad2b547a90f3d1aa37d26ed53286f183a}\index{binary-\/analysis@{binary-\/analysis}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!binary-\/analysis@{binary-\/analysis}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacebinary-analysis_ad2b547a90f3d1aa37d26ed53286f183a} 
+str \doxymbox{\hyperlink{namespacebinary}{binary}}-\/analysis.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{binary-analysis_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{binary-analysis_8py_source}{binary-\/analysis.\+py}}.
+

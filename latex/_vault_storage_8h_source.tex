@@ -1,0 +1,107 @@
+\doxysection{Vault\+Storage.\+h}
+\hypertarget{_vault_storage_8h_source}{}\label{_vault_storage_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/VaultStorage.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/VaultStorage.h}}
+\doxymbox{\hyperlink{_vault_storage_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00001}00001\ \textcolor{comment}{//\ ============================================================}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00002}00002\ \textcolor{comment}{//\ \ VaultStorage.h\ \ —\ \ Multi-\/key\ API\ vault\ (DPAPI\ encrypted)}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00003}00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00004}00004\ \textcolor{comment}{//\ \ Same\ DPAPI\ +\ OMNV\ v4\ binary\ format\ as\ SuperVault.}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00005}00005\ \textcolor{comment}{//\ \ Storage:\ \ \%APPDATA\%\(\backslash\)OmniBus-\/Qt\(\backslash\)exchange-\/keys.vault}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00006}00006\ \textcolor{comment}{//\ \ Crypto:\ \ \ Windows\ DPAPI\ (tied\ to\ current\ user\ account)}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00007}00007\ \textcolor{comment}{//\ \ Memory:\ \ \ keys\ in\ plaintext\ while\ app\ runs,\ zeroed\ on\ Lock}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00008}00008\ \textcolor{comment}{//\ ============================================================}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00009}00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <QString>}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <QVector>}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00013}00013\ \textcolor{preprocessor}{\#include\ <QByteArray>}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00014}00014\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00016}00016\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00018}00018\ \textcolor{comment}{//\ ───\ Exchanges\ ───────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00019}\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{00019}}\ \textcolor{keyword}{enum}\ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ \{}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00020}00020\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a331a6fe17b554349b9f5f7d008615dfd}{VAULT\_LCX}}\ \ \ \ \ \ =\ 0,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00021}00021\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a3f5911fce70910db7893ab6400ab0aa2}{VAULT\_KRAKEN}}\ \ \ =\ 1,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00022}00022\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a682a84c8a4b8b5fcc2e32a7bd2d03fc9}{VAULT\_COINBASE}}\ =\ 2,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00023}00023\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a1c74b532493dd6c7f821957bffcaf657}{VAULT\_EXCHANGE\_COUNT}}\ =\ 3}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00024}00024\ \};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00026}00026\ \textcolor{comment}{//\ ───\ Key\ status\ ──────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00027}\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{00027}}\ \textcolor{keyword}{enum}\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ :\ uint8\_t\ \{}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00028}00028\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\_STATUS\_FREE}}\ \ \ \ =\ 0,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00029}00029\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fab9f163851a60ec20d410a259f83ad018}{KEY\_STATUS\_PAID}}\ \ \ \ =\ 1,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00030}00030\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0c17a6316b813e95935f454e95af985f}{KEY\_STATUS\_NOTPAID}}\ =\ 2}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00031}00031\ \};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00033}00033\ \textcolor{comment}{//\ ───\ Constants\ ───────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00034}00034\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{namespaceomni_ae83fed5868379190383b0dfab1d3829c}{VAULT\_MAX\_KEYS}}\ \ \ \ \ =\ 8;}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00035}\doxymbox{\hyperlink{namespaceomni_ae187891f2a7871f7d8e26d3c89f1563b}{00035}}\ \textcolor{keyword}{constexpr}\ uint32\_t\ \doxymbox{\hyperlink{namespaceomni_ae187891f2a7871f7d8e26d3c89f1563b}{VAULT\_MAGIC}}\ \ \ =\ 0x4F4D4E56;\ \textcolor{comment}{//\ "{}OMNV"{}}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00036}\doxymbox{\hyperlink{namespaceomni_a95a3199ca4c23fc2cbeb8ec5893c13fd}{00036}}\ \textcolor{keyword}{constexpr}\ uint32\_t\ \doxymbox{\hyperlink{namespaceomni_a95a3199ca4c23fc2cbeb8ec5893c13fd}{VAULT\_VERSION}}\ =\ 4;}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00038}00038\ \textcolor{comment}{//\ ───\ Key\ entry\ ───────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00039}00039\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{VaultKeyEntry}}\ \{}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00040}00040\ \ \ \ \ QString\ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry_acd17424bed3c717a0df0ff7de84cb0ef}{name}};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00041}00041\ \ \ \ \ QString\ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry_a85cee91e92ae485d318c0fc43d6966aa}{apiKey}};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00042}00042\ \ \ \ \ QString\ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry_ad81589027761de6cd0cc87ef1572aaa3}{apiSecret}};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00043}00043\ \ \ \ \ uint8\_t\ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry_ad7064b85b856cdfd877f8537a167f2de}{status}}\ =\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\_STATUS\_FREE}};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00044}00044\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry_ada235ce0924d4ea158493486edc119df}{inUse}}\ \ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00045}00045\ \};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00047}00047\ \textcolor{comment}{//\ ───\ VaultStorage\ singleton\ ──────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00048}\doxymbox{\hyperlink{classomni_1_1_vault_storage}{00048}}\ \textcolor{keyword}{class\ }VaultStorage\ \{}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00049}00049\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00050}00050\ \ \ \ \ \textcolor{keyword}{static}\ VaultStorage\&\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a0c7a0560c0ab92d0c6c30f71579c94e7}{instance}}();}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00052}00052\ \ \ \ \ \textcolor{comment}{//\ Lifecycle}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00053}00053\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a6822b440c14f7c47e6400dcc03e5cc64}{init}}();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ load\ from\ disk\ (or\ create\ empty)}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00054}00054\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_aa605bbaabd9d6362a3ba46ebd387accb}{save}}();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ encrypt\ +\ write\ to\ disk}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00055}00055\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a70719a5a7c2ab8139bd84ee892726554}{lock}}();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ SecureZeroMemory\ all\ keys\ in\ RAM}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00057}00057\ \ \ \ \ \textcolor{comment}{//\ Key\ management}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00058}00058\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a4126d6aa500a72c41fbe56336a17dea7}{addKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keyword}{const}\ QString\&\ name,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ apiKey,\ \textcolor{keyword}{const}\ QString\&\ apiSecret,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ status\ =\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\_STATUS\_FREE}});}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00061}00061\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_acda8a1d478215566b537b30128f4ee88}{deleteKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00062}00062\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_ac35318eb56709ca8da1633ef5f54a919}{updateKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ name,\ \textcolor{keyword}{const}\ QString\&\ apiKey,}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ apiSecret,\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ status);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00066}00066\ \ \ \ \ \textcolor{comment}{//\ Queries}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00067}00067\ \ \ \ \ QVector<VaultKeyEntry>\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a649db17159381e5827854779a5476d1e}{listKeys}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00068}00068\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{VaultKeyEntry}}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a97d26729e7651d6f76432a6f6224a566}{getKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00069}00069\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_ae2c9ce9d3b602460ec9b8f46d24b0c3d}{keyCount}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00070}00070\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a01f98836eb324e3306dc22aa9335e87f}{hasKeys}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00072}00072\ \ \ \ \ \textcolor{comment}{//\ Status}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00073}00073\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_ac0c87d4cf2a1ee773aee497b6cb557a6}{setStatus}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot,\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ status);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00075}00075\ \ \ \ \ \textcolor{comment}{//\ Helpers}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00076}00076\ \ \ \ \ \textcolor{keyword}{static}\ QString\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_aa617c99a759ca098aec4f2250d249d88}{exchangeName}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00077}00077\ \ \ \ \ \textcolor{keyword}{static}\ QString\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a5c0454dd37edd53061ef508380e394b6}{statusName}}(\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ st);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00078}00078\ \ \ \ \ \textcolor{keyword}{static}\ QString\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_afdcd281f98e045f31413ff13275c9d19}{vaultFilePath}}();}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00080}\doxymbox{\hyperlink{classomni_1_1_vault_storage_a76dac9c8c81bdc422737fb5c136c122d}{00080}}\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a76dac9c8c81bdc422737fb5c136c122d}{isLoaded}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_loaded;\ \}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00082}00082\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00083}00083\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_vault_storage}{VaultStorage}}();}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00084}00084\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_vault_storage}{\string~VaultStorage}}();}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00086}00086\ \ \ \ \ \textcolor{comment}{//\ DPAPI\ helpers}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00087}00087\ \ \ \ \ \textcolor{keyword}{static}\ QByteArray\ dpapiEncrypt(\textcolor{keyword}{const}\ QByteArray\&\ plain);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00088}00088\ \ \ \ \ \textcolor{keyword}{static}\ QByteArray\ dpapiDecrypt(\textcolor{keyword}{const}\ QByteArray\&\ cipher);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00090}00090\ \ \ \ \ \textcolor{comment}{//\ Serialization}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00091}00091\ \ \ \ \ QByteArray\ serialize()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00092}00092\ \ \ \ \ \textcolor{keywordtype}{bool}\ deserialize(\textcolor{keyword}{const}\ QByteArray\&\ data);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00094}00094\ \ \ \ \ \textcolor{comment}{//\ Secure\ wipe\ a\ QString}}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00095}00095\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ secureWipe(QString\&\ s);}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00097}00097\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{VaultKeyEntry}}\ m\_stores[\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a1c74b532493dd6c7f821957bffcaf657}{VAULT\_EXCHANGE\_COUNT}}][\doxymbox{\hyperlink{namespaceomni_ae83fed5868379190383b0dfab1d3829c}{VAULT\_MAX\_KEYS}}];}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00098}00098\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_loaded\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00099}00099\ \};}
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{_vault_storage_8h_source_l00101}00101\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

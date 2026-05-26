@@ -1,0 +1,11 @@
+// Get balance
+const balance = try btc_client.getBalance(address);
+
+// Get UTXOs
+const utxos = try btc_client.getUtxos(address);
+
+// Send transaction
+const txid = try btc_client.sendTransaction(raw_tx);
+
+// Estimate fee
+const fees = try btc_client.estimateFee();

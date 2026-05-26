@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['a_20chain_20tx_0',['Architectural fix: every state change MUST be a chain TX',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html',1,'']]],
+  ['a_20single_20run_1',['Best vs worst observed in a single run',['../md__k_i_m_i___p_r_o_m_p_t.html#autotoc_md63',1,'']]],
+  ['acceptance_20criteria_2',['Acceptance criteria',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md23',1,'']]],
+  ['actually_20does_3',['What Bitcoin actually does',['../md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e.html#autotoc_md1',1,'']]],
+  ['added_4',['Added',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md43',1,'']]],
+  ['added_20—_207_20missing_20standard_20bitcoin_20rpc_20methods_5',['Added — 7 missing standard Bitcoin RPC methods',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md29',1,'']]],
+  ['added_20—_20bech32_20addresses_20full_20btc_20parity_20115_6',['Added — Bech32 Addresses + Full BTC Parity (115%)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md39',1,'']]],
+  ['added_20—_20multi_20chain_20selection_20mainnet_20testnet_20regtest_7',['Added — Multi-chain Selection (Mainnet / Testnet / Regtest)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md33',1,'']]],
+  ['addresses_20full_20btc_20parity_20115_8',['Added — Bech32 Addresses + Full BTC Parity (115%)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md39',1,'']]],
+  ['agent_20tx_20ification_203_20h_9',['Phase 3 — Agent TX-ification (~3 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md20',1,'']]],
+  ['already_20implemented_20currently_10',['&lt;span class=&quot;tt&quot;&gt;core/utxo.zig&lt;/span&gt; (excerpts — already implemented, currently',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md71',1,'']]],
+  ['alternative_20architectures_20for_20omnibus_20block_20rate_20problem_11',['Prompt for Kimi — alternative architectures for OmniBus block-rate problem',['../md__k_i_m_i___p_r_o_m_p_t.html',1,'']]],
+  ['and_20lost_12',['Best ever observed (and lost)',['../md__k_i_m_i___p_r_o_m_p_t.html#autotoc_md62',1,'']]],
+  ['api_20—_20port_208332_13',['RPC API — port 8332',['../md__r_e_a_d_m_e.html#autotoc_md102',1,'']]],
+  ['applyblock_20spend_20the_20inputs_14',['B.1 — Make &lt;span class=&quot;tt&quot;&gt;applyBlock&lt;/span&gt; spend the inputs',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md76',1,'']]],
+  ['approximate_15',['Where UTXO is currently populated (line numbers approximate)',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md72',1,'']]],
+  ['architectural_20fix_3a_20every_20state_20change_20must_20be_20a_20chain_20tx_16',['Architectural fix: every state change MUST be a chain TX',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html',1,'']]],
+  ['architecture_17',['Architecture',['../md__c_l_a_u_d_e.html#autotoc_md47',1,'']]],
+  ['architecture_20current_20working_18',['Architecture (current, working)',['../md__k_i_m_i___p_r_o_m_p_t.html#autotoc_md58',1,'']]],
+  ['architecture_20spec_19',['Bitcoin-style Storage Refactor — Architecture Spec',['../md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e.html',1,'']]],
+  ['architectures_20for_20omnibus_20block_20rate_20problem_20',['Prompt for Kimi — alternative architectures for OmniBus block-rate problem',['../md__k_i_m_i___p_r_o_m_p_t.html',1,'']]],
+  ['assertion_21',['B.3 — Audit assertion',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md78',1,'']]],
+  ['audit_20assertion_22',['B.3 — Audit assertion',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md78',1,'']]],
+  ['audit_20tooling_202_20h_23',['Phase 5 — Audit + tooling (~2 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md22',1,'']]],
+  ['authors_24',['Co-Authors',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md37',1,'']]]
+];

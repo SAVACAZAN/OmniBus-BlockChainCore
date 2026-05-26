@@ -1,0 +1,150 @@
+\doxysection{prompt\+\_\+generator.\+Prompt\+Generator Class Reference}
+\hypertarget{classprompt__generator_1_1_prompt_generator}{}\label{classprompt__generator_1_1_prompt_generator}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_a8b0f9215caab29b561614dc8e72990a3}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+str \doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_a6be30de85f2b893d4c8f9e9bd8631137}{get\+\_\+zig\+\_\+version}} (self)
+\item 
+Dict \doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_a543b0065890fed338c3a7b74ea285b76}{get\+\_\+project\+\_\+stats}} (self)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_a03538d3b55eedc2174659a940d74bff4}{get\+\_\+recent\+\_\+commits}} (self, int count=3)
+\item 
+str \doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_a918c1e5453736e0ba261a15916511c12}{get\+\_\+build\+\_\+status}} (self)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_a3c01f98f82175a7942eb066803ed2eb2}{get\+\_\+relevant\+\_\+todos}} (self, Optional\+[str]\+ keyword=None)
+\item 
+str \doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_ac00f1c994f9711a0d6fc7305cbb24f24}{generate\+\_\+prompt}} (self, str task, bool include\+\_\+todos=True, Optional\+[List\+[str]\+]\+ include\+\_\+files=None)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classprompt__generator_1_1_prompt_generator_a055561aec191170373148ee9c0131b4b}{project\+\_\+root}} = project\+\_\+root
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Generează prompturi pentru agenți AI.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+
+
+\label{classprompt__generator_1_1_prompt_generator_doc-constructors}
+\Hypertarget{classprompt__generator_1_1_prompt_generator_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classprompt__generator_1_1_prompt_generator_a8b0f9215caab29b561614dc8e72990a3}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_a8b0f9215caab29b561614dc8e72990a3} 
+prompt\+\_\+generator.\+Prompt\+Generator.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+
+
+\label{classprompt__generator_1_1_prompt_generator_doc-func-members}
+\Hypertarget{classprompt__generator_1_1_prompt_generator_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classprompt__generator_1_1_prompt_generator_ac00f1c994f9711a0d6fc7305cbb24f24}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!generate\_prompt@{generate\_prompt}}
+\index{generate\_prompt@{generate\_prompt}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{generate\_prompt()}{generate\_prompt()}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_ac00f1c994f9711a0d6fc7305cbb24f24} 
+ str prompt\+\_\+generator.\+Prompt\+Generator.\+generate\+\_\+prompt (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{task}{, }\item[{bool }]{include\+\_\+todos}{ = {\ttfamily True}, }\item[{Optional\+[List\+[str]\+]\+ }]{include\+\_\+files}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generează promptul complet.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00140}{140}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+\Hypertarget{classprompt__generator_1_1_prompt_generator_a918c1e5453736e0ba261a15916511c12}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!get\_build\_status@{get\_build\_status}}
+\index{get\_build\_status@{get\_build\_status}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{get\_build\_status()}{get\_build\_status()}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_a918c1e5453736e0ba261a15916511c12} 
+ str prompt\+\_\+generator.\+Prompt\+Generator.\+get\+\_\+build\+\_\+status (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică statusul build-ului.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00094}{94}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classprompt__generator_1_1_prompt_generator_a543b0065890fed338c3a7b74ea285b76}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!get\_project\_stats@{get\_project\_stats}}
+\index{get\_project\_stats@{get\_project\_stats}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{get\_project\_stats()}{get\_project\_stats()}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_a543b0065890fed338c3a7b74ea285b76} 
+ Dict prompt\+\_\+generator.\+Prompt\+Generator.\+get\+\_\+project\+\_\+stats (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ia statistici despre proiect.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{classprompt__generator_1_1_prompt_generator_a03538d3b55eedc2174659a940d74bff4}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!get\_recent\_commits@{get\_recent\_commits}}
+\index{get\_recent\_commits@{get\_recent\_commits}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{get\_recent\_commits()}{get\_recent\_commits()}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_a03538d3b55eedc2174659a940d74bff4} 
+ List\+[str]\+ prompt\+\_\+generator.\+Prompt\+Generator.\+get\+\_\+recent\+\_\+commits (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int }]{count}{ = {\ttfamily 3}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ia commit-urile recente.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{classprompt__generator_1_1_prompt_generator_a3c01f98f82175a7942eb066803ed2eb2}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!get\_relevant\_todos@{get\_relevant\_todos}}
+\index{get\_relevant\_todos@{get\_relevant\_todos}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{get\_relevant\_todos()}{get\_relevant\_todos()}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_a3c01f98f82175a7942eb066803ed2eb2} 
+ List\+[str]\+ prompt\+\_\+generator.\+Prompt\+Generator.\+get\+\_\+relevant\+\_\+todos (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Optional\+[str]\+ }]{keyword}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ia TODO-uri relevante.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00108}{108}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{classprompt__generator_1_1_prompt_generator_a6be30de85f2b893d4c8f9e9bd8631137}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!get\_zig\_version@{get\_zig\_version}}
+\index{get\_zig\_version@{get\_zig\_version}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{get\_zig\_version()}{get\_zig\_version()}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_a6be30de85f2b893d4c8f9e9bd8631137} 
+ str prompt\+\_\+generator.\+Prompt\+Generator.\+get\+\_\+zig\+\_\+version (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ia versiunea Zig.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+
+
+\label{classprompt__generator_1_1_prompt_generator_doc-variable-members}
+\Hypertarget{classprompt__generator_1_1_prompt_generator_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classprompt__generator_1_1_prompt_generator_a055561aec191170373148ee9c0131b4b}\index{prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!prompt\_generator.PromptGenerator@{prompt\_generator.PromptGenerator}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classprompt__generator_1_1_prompt_generator_a055561aec191170373148ee9c0131b4b} 
+prompt\+\_\+generator.\+Prompt\+Generator.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{prompt__generator_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{prompt__generator_8py_source}{prompt\+\_\+generator.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{prompt__generator_8py}{prompt\+\_\+generator.\+py}}\end{DoxyCompactItemize}

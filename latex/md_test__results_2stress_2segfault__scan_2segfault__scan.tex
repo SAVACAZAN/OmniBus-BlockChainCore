@@ -1,0 +1,195 @@
+\chapter{Segfault Scan Report — Omni\+Bus Block\+Chain\+Core }
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan}{}\label{md_test__results_2stress_2segfault__scan_2segfault__scan}\index{Segfault Scan Report — OmniBus BlockChainCore@{Segfault Scan Report — OmniBus BlockChainCore}}
+\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9839}%
+\Hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9839}%
+
+
+{\bfseries{Scan date:\+}} 2026-\/04-\/25 {\bfseries{Scope:\+}} {\ttfamily core/\+\texorpdfstring{$\ast$}{*}.\doxylink{namespacezig}{zig}} (Zig 0.\+15.\+2) {\bfseries{Trigger investigated:\+}} Segfault at {\ttfamily Thread.\+zig:\+509} in {\ttfamily call\+Fn} under stress RPC + active mining {\bfseries{Reference logs:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+results/\+comparison/\+02\+\_\+omnibus\+\_\+scanner/\+node.\+log} (lines 76-\/93)
+\item {\ttfamily test\+\_\+results/\+comparison/\+02\+\_\+omnibus\+\_\+scanner/\+node2.\+log} (lines 76-\/93)
+\end{DoxyItemize}
+
+The crash addresses ({\ttfamily 0x24decf10080}, {\ttfamily 0x24ded280080}, {\ttfamily 0x1ed3a330080}, {\ttfamily 0x1ed3a350080}) are all aligned at {\ttfamily 0x...0080} — looks like dereferencing a struct field at offset 0x80 of an already-\/freed/\+corrupted heap chunk. The offset is the same on each crash, which is consistent with a use-\/after-\/free on a recurring struct (likely {\ttfamily Block}, {\ttfamily Peer\+Connection}, or {\ttfamily Ws\+Client}).
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9841}{}\doxysection{\texorpdfstring{Summary}{Summary}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9841}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Severity  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Count  \\
+HIGH  &5  \\
+MEDIUM  &6  \\
+LOW  &2  \\
+{\bfseries{Total}}  &{\bfseries{13}}  \\
+\end{DoxyTable}
+
+
+13 dangerous sites flagged in 4 files. Categories:\+
+\begin{DoxyItemize}
+\item {\bfseries{Missing mutex on shared collection}} (5 sites) — strongest match for the crash
+\item {\bfseries{By-\/value return of struct holding heap slices}} (1 site) — root primitive
+\item {\bfseries{Non-\/atomic read-\/modify-\/write counters}} (2 sites)
+\item {\bfseries{Cross-\/thread destroy-\/before-\/lock}} (1 site)
+\item {\bfseries{Cross-\/thread mutation of scalar shared state}} (2 sites)
+\item {\bfseries{Allocator pressure}} (1 site, low)
+\item {\bfseries{get\+Block\+Count caller contract}} (1 site, low)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9843}{}\doxysection{\texorpdfstring{Most probable cause of {\ttfamily Thread.\+zig:\+509} segfault}{Most probable cause of {\ttfamily Thread.\+zig:\+509} segfault}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9843}
+{\bfseries{Race on {\ttfamily P2\+PNode.\+peers:\+ Array\+List(\+Peer\+Connection)} between RPC handler thread and P2P accept/\+clean threads}} — secondary suspect:\+ {\bfseries{race on {\ttfamily Blockchain.\+chain} between mining loop and unlocked RPC {\ttfamily getlatestblock} /\+ {\ttfamily getbestblockhash} handlers}}.
+
+Both share the same shape:\+ an {\ttfamily Array\+List} is {\ttfamily append}-\/ed (or {\ttfamily swap\+Remove}-\/ed) on one thread while another thread iterates {\ttfamily .items} and dereferences slice fields of struct elements. When the underlying buffer is reallocated, the reader follows a stale pointer at offset 0x80 → segfault.
+
+The RPC server is the prime suspect because:\+
+\begin{DoxyEnumerate}
+\item The crash occurs immediately after {\ttfamily \+[RPC]\+ HTTP JSON-\/\+RPC 2.\+0 listening on \href{http://0.0.0.0:8332}{\texttt{http:\+/\+/\+0.\+0.\+0.\+0:\+8332}}} (log line 75-\/76).
+\item The trigger reported by the user is "{}100+ sequential RPC calls while mining active"{} — exactly the contention pattern.
+\item {\ttfamily P2\+PNode} has {\bfseries{zero}} mutex protection on {\ttfamily self.\+peers}. {\ttfamily Blockchain} has a mutex but it is {\bfseries{not}} acquired in {\ttfamily getlatestblock}, {\ttfamily getbestblockhash}, {\ttfamily getmempoolstats}, {\ttfamily getnetworkinfo}, {\ttfamily getpoolstats}.
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9845}{}\doxysection{\texorpdfstring{Top 3 priority fixes}{Top 3 priority fixes}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9845}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9846}{}\doxysubsection{\texorpdfstring{1. Add {\ttfamily peers\+\_\+mutex} to {\ttfamily P2\+PNode} and lock all {\ttfamily self.\+peers} access {\itshape (HIGHEST priority)}}{1. Add {\ttfamily peers\+\_\+mutex} to {\ttfamily P2\+PNode} and lock all {\ttfamily self.\+peers} access {\itshape (HIGHEST priority)}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9846}
+{\bfseries{File:\+}} {\ttfamily core/\+p2p.\+zig}
+
+{\ttfamily P2\+PNode.\+peers} is mutated by {\ttfamily connect\+To()} (append, line 922), by {\ttfamily clean\+Dead\+Peers()} (swap\+Remove, line 1158), and read by 25+ call sites including RPC handlers, broadcast loops, gossip maintenance, and per-\/peer threads. There is currently {\bfseries{no synchronization}} at all.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ P2PNode\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ peers:\ ArrayList(PeerConnection),}
+\DoxyCodeLine{\ \ \ \ peers\_mutex:\ std.Thread.Mutex\ =\ .\{\},\ \ //\ ADD}
+\DoxyCodeLine{\ \ \ \ inbound\_count:\ std.atomic.Value(u32)\ =\ .\{\ .raw\ =\ 0\ \},\ \ \ //\ promote}
+\DoxyCodeLine{\ \ \ \ outbound\_count:\ std.atomic.Value(u32)\ =\ .\{\ .raw\ =\ 0\ \},\ \ //\ promote}
+\DoxyCodeLine{\ \ \ \ ...}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+Lock around every {\ttfamily peers.\+append}, {\ttfamily peers.\+swap\+Remove}, and every iteration. For long iterations (broadcast), snapshot the list under lock then iterate the snapshot.\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9847}{}\doxysubsection{\texorpdfstring{2. Acquire {\ttfamily bc.\+mutex} in unlocked RPC handlers {\itshape (HIGH priority)}}{2. Acquire {\ttfamily bc.\+mutex} in unlocked RPC handlers {\itshape (HIGH priority)}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9847}
+{\bfseries{File:\+}} {\ttfamily core/\+rpc\+\_\+server.\+zig}
+
+The following handlers touch {\ttfamily ctx.\+bc} without locking and run concurrently with the mining loop\textquotesingle{}s {\ttfamily chain.\+append}:\+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Function  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Line  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Reads  \\
+{\ttfamily handle\+Get\+Latest\+Block}  &\texorpdfstring{$\sim$}{\string~}325  &{\ttfamily get\+Latest\+Block()} then {\ttfamily blk.\+hash}, {\ttfamily blk.\+transactions.\+items.\+len}  \\
+{\ttfamily handle\+Get\+Best\+Block\+Hash}  &\texorpdfstring{$\sim$}{\string~}1968  &{\ttfamily get\+Latest\+Block()} then {\ttfamily blk.\+hash}  \\
+{\ttfamily handle\+Pool\+Stats}  &\texorpdfstring{$\sim$}{\string~}870  &{\ttfamily ctx.\+bc.\+mempool.\+items.\+len}  \\
+{\ttfamily handle\+Net\+Info}  &\texorpdfstring{$\sim$}{\string~}917  &{\ttfamily p2p.\+peers.\+items.\+len} and {\ttfamily bc.\+mempool.\+items.\+len}  \\
+{\ttfamily handle\+Mp\+Stats}  &\texorpdfstring{$\sim$}{\string~}885  &{\ttfamily ctx.\+bc.\+mempool.\+items.\+len}  \\
+\end{DoxyTable}
+
+
+Pattern:\+ lock → snapshot scalars + dupe strings into local buffer → unlock → format. Never hold {\ttfamily allocator.\+alloc\+Print} calls while the mutex is held.\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9848}{}\doxysubsection{\texorpdfstring{3. Make {\ttfamily get\+Latest\+Block} /\+ {\ttfamily get\+Block} lock-\/aware {\itshape (HIGH priority — root primitive)}}{3. Make {\ttfamily get\+Latest\+Block} /\+ {\ttfamily get\+Block} lock-\/aware {\itshape (HIGH priority — root primitive)}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9848}
+{\bfseries{File:\+}} {\ttfamily core/\+blockchain.\+zig}
+
+{\ttfamily get\+Latest\+Block} returns {\ttfamily Block} by value but {\ttfamily Block} contains {\ttfamily array\+\_\+list.\+Managed(\+Transaction)} (heap pointer) and slice fields ({\ttfamily hash}, {\ttfamily previous\+\_\+hash}). The returned struct is logically a borrow with no enforced lifetime. Every caller currently can race against mining.
+
+Two acceptable fixes:\+
+\begin{DoxyItemize}
+\item {\bfseries{Option A}} (strict):\+ require caller to hold {\ttfamily self.\+mutex}; add {\ttfamily assert(self.\+mutex.\+try\+Lock() == false)} debug check at top.
+\item {\bfseries{Option B}} (safe-\/default):\+ return {\ttfamily Block\+Snapshot} — a flat POD struct with copied scalars and {\ttfamily \+[64]\+u8} hash buffers; do the deep copy inside {\ttfamily get\+Latest\+Block} while holding the lock internally.
+\end{DoxyItemize}
+
+Option B is preferred for RPC — handlers can stay concise and any future caller is safe.
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9850}{}\doxysection{\texorpdfstring{Full site list}{Full site list}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9850}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Severity  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Line  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Category  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+1  &HIGH  &core/\+blockchain.\+zig  &1019  &Borrow-\/without-\/lock  &{\ttfamily get\+Latest\+Block} returns Block by value with live heap slice/\+pointer fields  \\
+2  &HIGH  &core/\+rpc\+\_\+server.\+zig  &325  &Missing mutex  &{\ttfamily handle\+Get\+Latest\+Block} accesses blk fields without bc.\+mutex  \\
+3  &HIGH  &core/\+rpc\+\_\+server.\+zig  &1973  &Missing mutex  &{\ttfamily handle\+Get\+Best\+Block\+Hash} reads blk.\+hash without bc.\+mutex  \\
+4  &HIGH  &core/\+rpc\+\_\+server.\+zig  &902  &Missing mutex (peers)  &{\ttfamily handle\+Peers} iterates {\ttfamily p2p.\+peers.\+items} with no peers\+\_\+mutex  \\
+5  &HIGH  &core/\+p2p.\+zig  &922  &Append without mutex  &{\ttfamily self.\+peers.\+append(conn)} with no synchronization vs concurrent readers  \\
+6  &HIGH  &core/\+p2p.\+zig  &1158  &swap\+Remove without mutex  &{\ttfamily clean\+Dead\+Peers} mutates {\ttfamily self.\+peers} while RPC iterates  \\
+7  &MEDIUM  &core/\+rpc\+\_\+server.\+zig  &869  &Missing mutex  &{\ttfamily handle\+Pool\+Stats} reads {\ttfamily ctx.\+bc.\+mempool.\+items.\+len} unlocked  \\
+8  &MEDIUM  &core/\+rpc\+\_\+server.\+zig  &917  &Missing mutex  &{\ttfamily handle\+Net\+Info} reads peers.\+items.\+len + mempool.\+items.\+len unlocked  \\
+9  &MEDIUM  &core/\+p2p.\+zig  &1556  &Non-\/atomic counter  &{\ttfamily node.\+inbound\+\_\+count += 1/\+-\/= 1} racy across handler threads  \\
+10  &MEDIUM  &core/\+p2p.\+zig  &1599  &Cross-\/thread shared state  &{\ttfamily dispatch\+Message} writes node.\+chain\+\_\+height /\+ peer.\+height without lock  \\
+11  &MEDIUM  &core/\+ws\+\_\+server.\+zig  &211  &Free-\/before-\/lock  &{\ttfamily remove\+Client} closes stream + sets connected=false BEFORE acquiring srv.\+mutex  \\
+12  &LOW  &core/\+blockchain.\+zig  &1023  &Caller-\/contract  &{\ttfamily get\+Block\+Count} len read encourages unlocked compound reads in callers  \\
+13  &LOW  &core/\+rpc\+\_\+server.\+zig  &149  &Allocator pressure  &4 concurrent RPC threads sharing GPA — amplifies latent UB elsewhere  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9852}{}\doxysection{\texorpdfstring{Code snippets for top sites}{Code snippets for top sites}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9852}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9853}{}\doxysubsection{\texorpdfstring{Site 1 — {\ttfamily core/\+blockchain.\+zig:\+1019}}{Site 1 — {\ttfamily core/\+blockchain.\+zig:\+1019}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9853}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ FIXME:\ SEGFAULT-\/RISK\ [scan-\/2026-\/04-\/25]\ HIGH}
+\DoxyCodeLine{pub\ fn\ getLatestBlock(self:\ *Blockchain)\ Block\ \{}
+\DoxyCodeLine{\ \ \ \ return\ self.chain.items[self.chain.items.len\ -\/\ 1];}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9854}{}\doxysubsection{\texorpdfstring{Site 5 — {\ttfamily core/\+p2p.\+zig:\+922}}{Site 5 — {\ttfamily core/\+p2p.\+zig:\+922}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9854}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ FIXME:\ SEGFAULT-\/RISK\ [scan-\/2026-\/04-\/25]\ HIGH}
+\DoxyCodeLine{try\ self.peers.append(conn);\ \ \ //\ realloc\ may\ invalidate\ readers}
+\DoxyCodeLine{self.outbound\_count\ +=\ 1;\ \ \ \ \ \ \ //\ racy\ r-\/m-\/w}
+
+\end{DoxyCode}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9855}{}\doxysubsection{\texorpdfstring{Site 4 — {\ttfamily core/\+rpc\+\_\+server.\+zig:\+902}}{Site 4 — {\ttfamily core/\+rpc\+\_\+server.\+zig:\+902}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9855}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ FIXME:\ SEGFAULT-\/RISK\ [scan-\/2026-\/04-\/25]\ HIGH}
+\DoxyCodeLine{fn\ handlePeers(ctx:\ *ServerCtx,\ id:\ u64)\ ![]u8\ \{}
+\DoxyCodeLine{\ \ \ \ ...}
+\DoxyCodeLine{\ \ \ \ for\ (p2p.peers.items)\ |peer|\ \{\ \ //\ no\ mutex;\ reallocator\ races\ here}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ...peer.node\_id...\ peer.host...}
+
+\end{DoxyCode}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9856}{}\doxysubsection{\texorpdfstring{Site 2 — {\ttfamily core/\+rpc\+\_\+server.\+zig:\+\texorpdfstring{$\sim$}{\string~}325}}{Site 2 — {\ttfamily core/\+rpc\+\_\+server.\+zig:\+\texorpdfstring{$\sim$}{\string~}325}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9856}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ FIXME:\ SEGFAULT-\/RISK\ [scan-\/2026-\/04-\/25]\ HIGH}
+\DoxyCodeLine{fn\ handleGetLatestBlock(ctx:\ *ServerCtx,\ id:\ u64)\ ![]u8\ \{}
+\DoxyCodeLine{\ \ \ \ const\ blk\ =\ ctx.bc.getLatestBlock();}
+\DoxyCodeLine{\ \ \ \ return\ std.fmt.allocPrint(ctx.allocator,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}...,\(\backslash\)"{}hash\(\backslash\)"{}:\(\backslash\)"{}\{s\}\(\backslash\)"{},\(\backslash\)"{}previousHash\(\backslash\)"{}:\(\backslash\)"{}\{s\}\(\backslash\)"{},..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .\{\ ...,\ blk.hash,\ blk.previous\_hash,\ ...,\ blk.transactions.items.len\ \});}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9857}{}\doxysubsection{\texorpdfstring{Site 11 — {\ttfamily core/\+ws\+\_\+server.\+zig:\+211}}{Site 11 — {\ttfamily core/\+ws\+\_\+server.\+zig:\+211}}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9857}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ FIXME:\ SEGFAULT-\/RISK\ [scan-\/2026-\/04-\/25]\ MEDIUM}
+\DoxyCodeLine{fn\ removeClient(srv:\ *WsServer,\ client:\ *WsClient)\ void\ \{}
+\DoxyCodeLine{\ \ \ \ client.stream.close();\ \ \ \ \ \ \ \ //\ <-\/-\/\ before\ lock!}
+\DoxyCodeLine{\ \ \ \ client.connected\ =\ false;\ \ \ \ \ //\ <-\/-\/\ before\ lock!}
+\DoxyCodeLine{\ \ \ \ srv.mutex.lock();}
+\DoxyCodeLine{\ \ \ \ defer\ srv.mutex.unlock();}
+\DoxyCodeLine{\ \ \ \ ...}
+\DoxyCodeLine{\ \ \ \ srv.allocator.destroy(client);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9859}{}\doxysection{\texorpdfstring{Files modified (FIXME comments only — no logic changes)}{Files modified (FIXME comments only — no logic changes)}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9859}
+
+\begin{DoxyItemize}
+\item {\ttfamily core/\+blockchain.\+zig} — 2 FIXME comments (sites \#1, \#12)
+\item {\ttfamily core/\+rpc\+\_\+server.\+zig} — 6 FIXME comments (sites \#2, \#3, \#4, \#7, \#8, \#13)
+\item {\ttfamily core/\+p2p.\+zig} — 4 FIXME comments (sites \#5, \#6, \#9, \#10)
+\item {\ttfamily core/\+ws\+\_\+server.\+zig} — 1 FIXME comment (site \#11)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9861}{}\doxysection{\texorpdfstring{Notes on what was NOT flagged}{Notes on what was NOT flagged}}\label{md_test__results_2stress_2segfault__scan_2segfault__scan_autotoc_md9861}
+
+\begin{DoxyItemize}
+\item {\bfseries{{\ttfamily Thread.\+spawn} arg lifetime}}:\+ Reviewed {\ttfamily RPCThread\+Args} in {\ttfamily main.\+zig:\+195} and the WS/\+\+P2P heap-\/allocated arg structs in {\ttfamily ws\+\_\+server.\+zig:\+84} /\+ {\ttfamily p2p.\+zig:\+1506}. All are either passed by value containing only pointers to objects whose lifetime is {\ttfamily \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_2_show_includes_2main_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{main()}} itself (which never returns while threads run), or are heap-\/allocated with explicit {\ttfamily defer destroy(args)} inside the worker. Not a bug.
+\item \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}{\ttfamily @ptr\+Cast} between size-\/different types\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}:\+ All 6 occurrences in {\ttfamily core/\+} are {\ttfamily @align\+Cast(@ptr\+Cast(...))} round-\/trips between matching opaque pointer ABIs — safe.
+\item {\bfseries{GPA thread-\/safety}}:\+ {\ttfamily General\+Purpose\+Allocator(.\{\})\{\}} defaults to {\ttfamily thread\+\_\+safe = !builtin.single\+\_\+threaded} in 0.\+15.\+2, so concurrent use is safe (slow but correct). 
+\end{DoxyItemize}

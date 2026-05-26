@@ -1,0 +1,75 @@
+\doxysection{Node\+Service.\+h}
+\hypertarget{_node_service_8h_source}{}\label{_node_service_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/NodeService.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/NodeService.h}}
+\doxymbox{\hyperlink{_node_service_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QObject>}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QTimer>}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_rpc_client_8h}{core/RpcClient.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_web_socket_client_8h}{core/WebSocketClient.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00009}00009\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00011}00011\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_transaction_table_model}{TransactionTableModel}};}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00012}00012\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_block_table_model}{BlockTableModel}};}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00013}00013\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_peer_table_model}{PeerTableModel}};}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00014}00014\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_miner_table_model}{MinerTableModel}};}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00016}\doxymbox{\hyperlink{classomni_1_1_node_service}{00016}}\ \textcolor{keyword}{class\ }NodeService\ :\ \textcolor{keyword}{public}\ QObject\ \{}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00017}00017\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00018}00018\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00019}00019\ \ \ \ \ \textcolor{keyword}{static}\ NodeService\&\ \doxymbox{\hyperlink{classomni_1_1_node_service_a1c90711658b40d4fe21ac86ba1d159fd}{instance}}();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a684ff2d7f81a583edd66629f91c67e5f}{start}}();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a05155977e53d8d4522d92db24ab78787}{stop}}();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00024}\doxymbox{\hyperlink{classomni_1_1_node_service_ac4d59a120a7a793e5b5f120e38ae38e8}{00024}}\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_rpc_client}{RpcClient}}*\ \ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_node_service_ac4d59a120a7a793e5b5f120e38ae38e8}{rpc}}()\ \ \{\ \textcolor{keywordflow}{return}\ \&m\_rpc;\ \}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00025}\doxymbox{\hyperlink{classomni_1_1_node_service_abc20bae117bd22044b3cb2b1e096eb78}{00025}}\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_web_socket_client}{WebSocketClient}}*\ \doxymbox{\hyperlink{classomni_1_1_node_service_abc20bae117bd22044b3cb2b1e096eb78}{ws}}()\ \ \ \{\ \textcolor{keywordflow}{return}\ \&m\_ws;\ \}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00027}00027\ \ \ \ \ \textcolor{comment}{//\ Current\ state}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00028}\doxymbox{\hyperlink{classomni_1_1_node_service_a213b54a9d4eb28dcbb5458773fdf4c19}{00028}}\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_node_service_a213b54a9d4eb28dcbb5458773fdf4c19}{walletInfo}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_wallet;\ \}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00029}\doxymbox{\hyperlink{classomni_1_1_node_service_a2faf1d799b71e2504355fa66faaa9a3d}{00029}}\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_network_info}{NetworkInfo}}\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_node_service_a2faf1d799b71e2504355fa66faaa9a3d}{networkInfo}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_network;\ \}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00030}\doxymbox{\hyperlink{classomni_1_1_node_service_ae20802f240755519e8fac2d494eb5dc6}{00030}}\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_mempool_stats}{MempoolStats}}\ \ \ \ \doxymbox{\hyperlink{classomni_1_1_node_service_ae20802f240755519e8fac2d494eb5dc6}{mempoolStats}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_mempool;\ \}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00031}\doxymbox{\hyperlink{classomni_1_1_node_service_acc54dedd6dc5b56baf24986a5f3aab3f}{00031}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_node_service_acc54dedd6dc5b56baf24986a5f3aab3f}{blockHeight}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_blockHeight;\ \}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00032}\doxymbox{\hyperlink{classomni_1_1_node_service_a647d9b9910a5db3928b493e0bf6d8f30}{00032}}\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_node_service_a647d9b9910a5db3928b493e0bf6d8f30}{wsConnected}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ws.isConnected();\ \}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00034}00034\ signals:}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00035}00035\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_aa5ff1bc4f2d24c4ca50eec73418e16d6}{walletUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\&\ info);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00036}00036\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_af3c72ea8c2a040424fac4e238f4476dc}{networkUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_network_info}{NetworkInfo}}\&\ info);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00037}00037\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a07f54978b78d93159ee868c0df243eb8}{mempoolUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_mempool_stats}{MempoolStats}}\&\ stats);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00038}00038\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_ace623e0feb22df40d45cdaea4c3eab18}{blockHeightChanged}}(\textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00039}00039\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a99cee222630294c7c7a0b1e9ba6b15e5}{newBlockReceived}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\&\ \doxymbox{\hyperlink{namespaceblock}{block}});}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00040}00040\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a819e15725fbaa76d92e2c3c340cfca82}{newTxReceived}}(\textcolor{keyword}{const}\ QString\&\ txid,\ \textcolor{keyword}{const}\ QString\&\ from,\ qint64\ amountSat);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00041}00041\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a8ae52d6cd7e785e86bdafc8ad9366766}{wsConnectionChanged}}(\textcolor{keywordtype}{bool}\ connected);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00042}00042\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a40d8590023f2c7f1ecde8c4cebfeaa56}{nodeOffline}}();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00043}00043\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_node_service_a000f1b6e89e53d37d1f5fc8616a84d36}{nodeOnline}}();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00045}00045\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00046}00046\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_node_service}{NodeService}}(QObject*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00048}00048\ \ \ \ \ \textcolor{keywordtype}{void}\ fetchInitialData();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00049}00049\ \ \ \ \ \textcolor{keywordtype}{void}\ pollData();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00050}00050\ \ \ \ \ \textcolor{keywordtype}{void}\ pollMinersAndNetwork();}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00052}00052\ \ \ \ \ \textcolor{keywordtype}{void}\ onWsBlock(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\&\ \doxymbox{\hyperlink{namespaceblock}{block}});}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00053}00053\ \ \ \ \ \textcolor{keywordtype}{void}\ onWsTx(\textcolor{keyword}{const}\ QString\&\ txid,\ \textcolor{keyword}{const}\ QString\&\ from,\ qint64\ amountSat);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00054}00054\ \ \ \ \ \textcolor{keywordtype}{void}\ onWsStatus(\textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{namespacedifficulty}{difficulty}});}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00055}00055\ \ \ \ \ \textcolor{keywordtype}{void}\ onWsConnChanged(\textcolor{keywordtype}{bool}\ connected);}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00057}00057\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_rpc_client}{RpcClient}}\ \ \ \ \ \ \ m\_rpc;}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00058}00058\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_web_socket_client}{WebSocketClient}}\ m\_ws;}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00059}00059\ \ \ \ \ QTimer\ \ \ \ \ \ \ \ \ \ m\_pollTimer;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ 10s\ fallback}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00060}00060\ \ \ \ \ QTimer\ \ \ \ \ \ \ \ \ \ m\_minerTimer;\ \ \ \ \ \ \ \textcolor{comment}{//\ 30s\ miner/network\ refresh}}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00062}00062\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_wallet_info}{WalletInfo}}\ \ \ \ \ \ m\_wallet;}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00063}00063\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_network_info}{NetworkInfo}}\ \ \ \ \ m\_network;}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00064}00064\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_mempool_stats}{MempoolStats}}\ \ \ \ m\_mempool;}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00065}00065\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ m\_blockHeight\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00066}00066\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ \ \ m\_nodeOnline\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00067}00067\ \};}
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{_node_service_8h_source_l00069}00069\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

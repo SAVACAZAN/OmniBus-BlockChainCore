@@ -1,0 +1,83 @@
+\chapter{Omni\+Bus Blockchain — Master Audit Report v2.\+0 }
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t}\index{OmniBus Blockchain — Master Audit Report v2.0@{OmniBus Blockchain — Master Audit Report v2.0}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3902}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3902}%
+
+
+{\bfseries{Date:\+}} 2026-\/03-\/31 19:\+42 {\bfseries{Tool:\+}} FULLBTCDEV/\+omnibus\+\_\+audit.\+py (dynamic, no hardcoded lists) {\bfseries{Modules:\+}} 78 scanned from core/\+\texorpdfstring{$\ast$}{*}.zig
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3904}{}\doxysection{\texorpdfstring{Summary}{Summary}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3904}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metric  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  \\
+Modules (total)  &78  \\
+Modules (real)  &76  \\
+Modules with tests  &76  \\
+Lines of code  &26,512  \\
+Public functions  &1058  \\
+Inline tests  &866  \\
+Test ratio  &81.\+9\%  \\
+Structs  &221  \\
+Enums  &45  \\
+Dependency edges  &172  \\
+Circular deps  &4  \\
+Layer violations  &2  \\
+Isolated modules  &1  \\
+Security critical  &0  \\
+Missing API docs  &0  \\
+Test suites  &9/\+10 passed  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3906}{}\doxysection{\texorpdfstring{Circular Dependencies}{Circular Dependencies}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3906}
+
+\begin{DoxyItemize}
+\item {\ttfamily blockchain -\/\texorpdfstring{$>$}{>} database -\/\texorpdfstring{$>$}{>} blockchain}
+\item {\ttfamily bootstrap -\/\texorpdfstring{$>$}{>} \doxylink{namespacep2p}{p2p} -\/\texorpdfstring{$>$}{>} peer\+\_\+scoring -\/\texorpdfstring{$>$}{>} bootstrap}
+\item {\ttfamily bootstrap -\/\texorpdfstring{$>$}{>} \doxylink{namespacep2p}{p2p} -\/\texorpdfstring{$>$}{>} bootstrap}
+\item {\ttfamily \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_23_831_80_2_compiler_id_c_x_x_2_c_make_c_x_x_compiler_id_8cpp_a0ddf1224851353fc92bfbff6f499fa97}{main} -\/\texorpdfstring{$>$}{>} rpc\+\_\+server -\/\texorpdfstring{$>$}{>} \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_23_831_80_2_compiler_id_c_x_x_2_c_make_c_x_x_compiler_id_8cpp_a0ddf1224851353fc92bfbff6f499fa97}{main}}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3907}{}\doxysection{\texorpdfstring{Layer Violations}{Layer Violations}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3907}
+
+\begin{DoxyItemize}
+\item {\ttfamily blockchain\+\_\+v2} (L2) imports {\ttfamily shard\+\_\+config} (L5)
+\item {\ttfamily database} (L2) imports {\ttfamily storage} (L4)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3908}{}\doxysection{\texorpdfstring{Test Results}{Test Results}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3908}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Suite  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+test-\/crypto  &PASS  \\
+test-\/chain  &PASS  \\
+test-\/net  &PASS  \\
+test-\/shard  &PASS  \\
+test-\/storage  &PASS  \\
+test-\/light  &PASS  \\
+test-\/pq  &PASS  \\
+test-\/wallet  &PASS  \\
+test-\/econ  &FAIL  \\
+test-\/bench  &PASS  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3909}{}\doxysection{\texorpdfstring{Modules Without Tests}{Modules Without Tests}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3909}
+
+\begin{DoxyItemize}
+\item main
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3910}{}\doxysection{\texorpdfstring{Top 10 Largest Modules}{Top 10 Largest Modules}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_m_a_s_t_e_r___a_u_d_i_t___r_e_p_o_r_t_autotoc_md3910}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{r,bg=\tableheadbgcolor,font=\bfseries}LOC  \\
+\SetCell{c}1  &\doxylink{namespacep2p}{p2p}  &\SetCell{r}2,019  \\
+\SetCell{c}2  &rpc\+\_\+server  &\SetCell{r}1,510  \\
+\SetCell{c}3  &blockchain  &\SetCell{r}1,499  \\
+\SetCell{c}4  &database  &\SetCell{r}881  \\
+\SetCell{c}5  &staking  &\SetCell{r}752  \\
+\SetCell{c}6  &payment\+\_\+channel  &\SetCell{r}728  \\
+\SetCell{c}7  &bip32\+\_\+wallet  &\SetCell{r}654  \\
+\SetCell{c}8  &light\+\_\+client  &\SetCell{r}639  \\
+\SetCell{c}9  &mempool  &\SetCell{r}612  \\
+\SetCell{c}10  &bootstrap  &\SetCell{r}586  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+ {\itshape Generated by \doxylink{omnibus__audit_8py}{omnibus\+\_\+audit.\+py} v2.\+0 — 2026-\/03-\/31 19:\+42} 

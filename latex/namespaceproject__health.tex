@@ -1,0 +1,157 @@
+\doxysection{project\+\_\+health Namespace Reference}
+\hypertarget{namespaceproject__health}{}\label{namespaceproject__health}\index{project\_health@{project\_health}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classproject__health_1_1_health_status}{Health\+Status}}
+\item 
+class \doxymbox{\hyperlink{classproject__health_1_1_colors}{Colors}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Tuple\+[bool, str]\+ \doxymbox{\hyperlink{namespaceproject__health_a0c4fc87778cfa3e5825584c835e426fb}{get\+\_\+zig\+\_\+version}} ()
+\item 
+bool \doxymbox{\hyperlink{namespaceproject__health_ae186e4d00e7fd17c2aa006ea4c54ebdd}{check\+\_\+version\+\_\+meets\+\_\+min}} (str version, str min\+\_\+version)
+\item 
+Tuple\+[bool, Optional\+[str]\+]\+ \doxymbox{\hyperlink{namespaceproject__health_a879b634c4835d40f1c19bcf21eec34f8}{check\+\_\+liboqs}} ()
+\item 
+Tuple\+[int, int, int, int]\+ \doxymbox{\hyperlink{namespaceproject__health_a7183fcad6479afd86499edef39219f0d}{count\+\_\+zig\+\_\+files}} (Path root\+\_\+dir)
+\item 
+Dict\+[str, bool]\+ \doxymbox{\hyperlink{namespaceproject__health_a01e6314e77caac22d0a2512ce43988e9}{check\+\_\+project\+\_\+structure}} (Path root\+\_\+dir)
+\item 
+\doxymbox{\hyperlink{classproject__health_1_1_health_status}{Health\+Status}} \doxymbox{\hyperlink{namespaceproject__health_af68a696327b81f926e114f4c0633fa54}{analyze\+\_\+project}} (Path root\+\_\+dir)
+\item 
+\doxymbox{\hyperlink{namespaceproject__health_a4504c7225db2ebdf501a7bdb4e234901}{print\+\_\+status}} (\doxymbox{\hyperlink{classproject__health_1_1_health_status}{Health\+Status}} status, bool use\+\_\+colors=True)
+\item 
+\doxymbox{\hyperlink{namespaceproject__health_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}OmniBus Blockchain - Project Health Check
+=========================================
+
+Check rapid al stării proiectului pentru AI agents.
+Fără dependințe externe - rulează în <1 secundă.
+
+Utilizare:
+    python project_health.py
+    python project_health.py --json     # Output JSON pentru parsare
+    python project_health.py --quiet    # Doar cod de ieșire (0=OK, 1=probleme)
+
+Autor: OmniBus AI Collective
+Versiune: 1.0.0
+\end{DoxyVerb}
+ 
+
+\label{namespaceproject__health_doc-func-members}
+\Hypertarget{namespaceproject__health_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceproject__health_af68a696327b81f926e114f4c0633fa54}\index{project\_health@{project\_health}!analyze\_project@{analyze\_project}}
+\index{analyze\_project@{analyze\_project}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{analyze\_project()}{analyze\_project()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_af68a696327b81f926e114f4c0633fa54} 
+ \doxymbox{\hyperlink{classproject__health_1_1_health_status}{Health\+Status}} analyze\+\_\+project (\begin{DoxyParamCaption}\item[{Path}]{root\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Analizează starea completă a proiectului.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00191}{191}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceproject__health_a879b634c4835d40f1c19bcf21eec34f8}\index{project\_health@{project\_health}!check\_liboqs@{check\_liboqs}}
+\index{check\_liboqs@{check\_liboqs}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{check\_liboqs()}{check\_liboqs()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_a879b634c4835d40f1c19bcf21eec34f8} 
+ Tuple\+[bool, Optional\+[str]\+]\+ check\+\_\+liboqs (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică dacă liboqs e instalat.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00113}{113}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceproject__health_a01e6314e77caac22d0a2512ce43988e9}\index{project\_health@{project\_health}!check\_project\_structure@{check\_project\_structure}}
+\index{check\_project\_structure@{check\_project\_structure}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{check\_project\_structure()}{check\_project\_structure()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_a01e6314e77caac22d0a2512ce43988e9} 
+ Dict\+[str, bool]\+ check\+\_\+project\+\_\+structure (\begin{DoxyParamCaption}\item[{Path}]{root\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică structura de bază a proiectului.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00179}{179}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceproject__health_ae186e4d00e7fd17c2aa006ea4c54ebdd}\index{project\_health@{project\_health}!check\_version\_meets\_min@{check\_version\_meets\_min}}
+\index{check\_version\_meets\_min@{check\_version\_meets\_min}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{check\_version\_meets\_min()}{check\_version\_meets\_min()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_ae186e4d00e7fd17c2aa006ea4c54ebdd} 
+ bool check\+\_\+version\+\_\+meets\+\_\+min (\begin{DoxyParamCaption}\item[{str}]{version}{, }\item[{str}]{min\+\_\+version}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică dacă versiunea e >= min_version.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00103}{103}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceproject__health_a7183fcad6479afd86499edef39219f0d}\index{project\_health@{project\_health}!count\_zig\_files@{count\_zig\_files}}
+\index{count\_zig\_files@{count\_zig\_files}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{count\_zig\_files()}{count\_zig\_files()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_a7183fcad6479afd86499edef39219f0d} 
+ Tuple\+[int, int, int, int]\+ count\+\_\+zig\+\_\+files (\begin{DoxyParamCaption}\item[{Path}]{root\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Numără fișierele Zig, testele, liniile de cod.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00142}{142}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceproject__health_a0c4fc87778cfa3e5825584c835e426fb}\index{project\_health@{project\_health}!get\_zig\_version@{get\_zig\_version}}
+\index{get\_zig\_version@{get\_zig\_version}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{get\_zig\_version()}{get\_zig\_version()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_a0c4fc87778cfa3e5825584c835e426fb} 
+ Tuple\+[bool, str]\+ get\+\_\+zig\+\_\+version (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Detectează versiunea Zig instalată.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00086}{86}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceproject__health_a51af30a60f9f02777c6396b8247e356f}\index{project\_health@{project\_health}!main@{main}}
+\index{main@{main}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00305}{305}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceproject__health_a4504c7225db2ebdf501a7bdb4e234901}\index{project\_health@{project\_health}!print\_status@{print\_status}}
+\index{print\_status@{print\_status}!project\_health@{project\_health}}
+\doxysubsubsection{\texorpdfstring{print\_status()}{print\_status()}}
+{\footnotesize\ttfamily \label{namespaceproject__health_a4504c7225db2ebdf501a7bdb4e234901} 
+print\+\_\+status (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classproject__health_1_1_health_status}{Health\+Status}}}]{status}{, }\item[{bool }]{use\+\_\+colors}{ = {\ttfamily True}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Afișează starea într-un format uman-citibil.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{project__health_8py_source_l00233}{233}} of file \doxymbox{\hyperlink{project__health_8py_source}{project\+\_\+health.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9

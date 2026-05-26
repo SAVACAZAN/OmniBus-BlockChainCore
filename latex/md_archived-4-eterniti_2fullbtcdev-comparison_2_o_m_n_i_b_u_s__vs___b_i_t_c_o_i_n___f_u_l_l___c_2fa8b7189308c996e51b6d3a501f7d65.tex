@@ -1,0 +1,50 @@
+\chapter{
+\begin{DoxyEnumerate}
+\item Mining \& Consensus 
+\end{DoxyEnumerate}}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65}\index{6. Mining \& Consensus@{6. Mining \& Consensus}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65_autotoc_md3928}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65_autotoc_md3928}%
+
+
+\begin{quote}
+Omni\+Bus vs Bitcoin — Category 6/\+10 Generated:\+ 2026-\/03-\/31 19:\+42 \end{quote}
+
+
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}BTC  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}OMNI  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}101  &Proof of Work (PoW)  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &SHA256d PoW  \\
+\SetCell{c}102  &Nonce Search  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Brute-\/force mining  \\
+\SetCell{c}103  &Difficulty Target  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Dynamic target  \\
+\SetCell{c}104  &Difficulty Adjustment  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Every 2016 blocks  \\
+\SetCell{c}105  &Block Reward  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &50 OMNI start  \\
+\SetCell{c}106  &Halving Schedule  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Every 210K blocks  \\
+\SetCell{c}107  &Coinbase TX Creation  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &First TX in block  \\
+\SetCell{c}108  &Mining Pool Protocol  &\SetCell{c}Y  &\SetCell{c}Y  &mining\+\_\+pool.\+zig  &Pool coordination  \\
+\SetCell{c}109  &Stratum Client  &\SetCell{c}Y  &\SetCell{c}N  &-\/  &miner-\/client.\+js (Node.\+js)  \\
+\SetCell{c}110  &Chain Reorganization  &\SetCell{c}Y  &\SetCell{c}Y  &blockchain.\+zig  &Fork resolution  \\
+\SetCell{c}111  &Light Miner  &\SetCell{c}N  &\SetCell{c}+  &light\+\_\+miner.\+zig  &Low-\/resource mining \+[EXTRA]\+  \\
+\SetCell{c}112  &Sub-\/block Engine  &\SetCell{c}N  &\SetCell{c}+  &sub\+\_\+block.\+zig  &10x faster finality \+[EXTRA]\+  \\
+\SetCell{c}113  &Casper FFG Finality  &\SetCell{c}N  &\SetCell{c}+  &finality.\+zig  &PoS finality layer \+[EXTRA]\+  \\
+\SetCell{c}114  &Staking /\+ Validators  &\SetCell{c}N  &\SetCell{c}+  &staking.\+zig  &Validator system \+[EXTRA]\+  \\
+\SetCell{c}115  &Governance Voting  &\SetCell{c}N  &\SetCell{c}+  &governance.\+zig  &On-\/chain governance \+[EXTRA]\+  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{BTC has:\+ 10 items}} {\bfseries{Omni\+Bus:\+ 14 implemented, 0 partial, 1 missing, 5 extras}} {\bfseries{Score:\+ 140\%}} (14/\+10 BTC features + 5 unique extras)\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65_autotoc_md3930}{}\doxysubsection{\texorpdfstring{Missing (TODO):\+}{Missing (TODO):\+}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65_autotoc_md3930}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Stratum Client — miner-\/client.\+js (Node.\+js)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65_autotoc_md3931}{}\doxysubsection{\texorpdfstring{Extras (Omni\+Bus-\/only):\+}{Extras (Omni\+Bus-\/only):\+}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_2fa8b7189308c996e51b6d3a501f7d65_autotoc_md3931}
+
+\begin{DoxyItemize}
+\item Light Miner — Low-\/resource mining \+[EXTRA]\+
+\item Sub-\/block Engine — 10x faster finality \+[EXTRA]\+
+\item Casper FFG Finality — PoS finality layer \+[EXTRA]\+
+\item Staking /\+ Validators — Validator system \+[EXTRA]\+
+\item Governance Voting — On-\/chain governance \+[EXTRA]\+ 
+\end{DoxyItemize}

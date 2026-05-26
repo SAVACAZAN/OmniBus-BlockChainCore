@@ -1,0 +1,454 @@
+\doxysection{omni::\+Rpc\+Client Class Reference}
+\hypertarget{classomni_1_1_rpc_client}{}\label{classomni_1_1_rpc_client}\index{omni::RpcClient@{omni::RpcClient}}
+
+
+{\ttfamily \+\#include $<$Rpc\+Client.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Rpc\+Client:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Rpc\+Client:\+
+% FIG 1
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_rpc_client_a7b41f9a51bc3c5999f8777938da2ba16}{Rpc\+Client}} (QObject \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a5c10d655a0fe3ff3298f9da72f075720}{set\+Endpoint}} (const QString \&host, int port)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a8fe06b8d394c14787a81750421ae37eb}{raw\+Request}} (const QString \&method, const QJson\+Array \&params, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a1a819f91e27898704eea3c1f74af7ea1}{get\+Block\+Count}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a2514af3a2e2a4bacd8de6c4a765c1cfc}{get\+Latest\+Block}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a8b626810dffc18840caeef70b992ab93}{get\+Block}} (int index, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_adf733903ba1ddc1aa2e78e2a3978787e}{get\+Blocks}} (int from\+Height, int count, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a4532252bb0d69f45fc9a11e41a89707e}{get\+Headers}} (int from\+Height, int count, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_aeb36504768fbfdb168e28f3c7192a40a}{get\+Status}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_aaad71d1ec602f4e375fd3d647bb0800e}{get\+Performance}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_aa1ea718e365fc6f883a79744b37b08a9}{get\+Merkle\+Proof}} (const QString \&txid, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a6d61576bad2ca9a877f2d95bfccce1ed}{get\+Balance}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a84ea1ea0d48b1076af1144a348ae3d04}{get\+Transaction}} (const QString \&txid, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_ad611793062156c942192caf0385fdcee}{get\+Transactions}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a3b094418f184dda08077870f6806b405}{get\+Address\+History}} (const QString \&address, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a1369adc29d320ff84083d740580fb9ca}{list\+Transactions}} (int count, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a6d759a2db670bc24e1b824a477d19815}{send\+Transaction}} (const QString \&to, qint64 amount\+Sat, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a4d2fb5f1a20feb52ef925a5ebb3ac720}{send\+Op\+Return}} (const QString \&data, qint64 fee\+Sat, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a22c0876acdd905d678026e5a4252a3c7}{get\+Nonce}} (const QString \&address, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a96595cae50a97f147a8b4d819d813b0b}{get\+Mempool\+Size}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a24cfd422258779b7af4c68886f7a4b9e}{get\+Mempool\+Stats}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a371d600a9f450f66f61eab37eaa5a8fe}{get\+Network\+Info}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_af91e6a514bae958c152b57ee0fd427cc}{get\+Peers}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a7b32e956181f0167fc277219873d3f78}{get\+Sync\+Status}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a321aca97dd416dc63eaae925653d8d04}{get\+Node\+List}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a0cd8febf1533551795bdb899be24d578}{get\+Miner\+Info}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a802d42d8d6f5c01da76903c43ba151f1}{get\+Miner\+Stats}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a79b10235d0c5a9d8e3381d2fa61ee8c1}{get\+Pool\+Stats}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a3ed83adcbae167ced0ff665dd8e2d370}{register\+Miner}} (const QJson\+Object \&data, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a6b9570077e9dccf05e53e27a3a6fe47a}{estimate\+Fee}} (\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_ac1df3513f6b76450eb887d3ba67c9fc9}{miner\+Send\+Tx}} (const QString \&from, const QString \&to, qint64 amount, qint64 fee, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a29a189cfc719dc2eda210f195a087536}{get\+Staking\+Info}} (const QString \&addr, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a22f259b9e9737f9b4e725ab47fad97aa}{get\+Slash\+History}} (const QString \&addr, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_rpc_client_a18b7f8197cf5d2777d72e92fc2dfe4a0}{submit\+Slash\+Evidence}} (const QJson\+Object \&evidence, \doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}} cb)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8h_source_l00013}{13}} of file \doxymbox{\hyperlink{_rpc_client_8h_source}{Rpc\+Client.\+h}}.
+
+
+
+\label{classomni_1_1_rpc_client_doc-constructors}
+\Hypertarget{classomni_1_1_rpc_client_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_rpc_client_a7b41f9a51bc3c5999f8777938da2ba16}\index{omni::RpcClient@{omni::RpcClient}!RpcClient@{RpcClient}}
+\index{RpcClient@{RpcClient}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{RpcClient()}{RpcClient()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a7b41f9a51bc3c5999f8777938da2ba16} 
+omni::\+\+Rpc\+Client::\+\+Rpc\+Client (\begin{DoxyParamCaption}\item[{QObject \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00009}{9}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+
+
+\label{classomni_1_1_rpc_client_doc-func-members}
+\Hypertarget{classomni_1_1_rpc_client_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_rpc_client_a6b9570077e9dccf05e53e27a3a6fe47a}\index{omni::RpcClient@{omni::RpcClient}!estimateFee@{estimateFee}}
+\index{estimateFee@{estimateFee}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{estimateFee()}{estimateFee()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a6b9570077e9dccf05e53e27a3a6fe47a} 
+void omni::\+\+Rpc\+Client::\+estimate\+Fee (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00100}{100}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a3b094418f184dda08077870f6806b405}\index{omni::RpcClient@{omni::RpcClient}!getAddressHistory@{getAddressHistory}}
+\index{getAddressHistory@{getAddressHistory}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getAddressHistory()}{getAddressHistory()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a3b094418f184dda08077870f6806b405} 
+void omni::\+\+Rpc\+Client::\+get\+Address\+History (\begin{DoxyParamCaption}\item[{const QString \&}]{address}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00079}{79}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a6d61576bad2ca9a877f2d95bfccce1ed}\index{omni::RpcClient@{omni::RpcClient}!getBalance@{getBalance}}
+\index{getBalance@{getBalance}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getBalance()}{getBalance()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a6d61576bad2ca9a877f2d95bfccce1ed} 
+void omni::\+\+Rpc\+Client::\+get\+Balance (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00076}{76}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a8b626810dffc18840caeef70b992ab93}\index{omni::RpcClient@{omni::RpcClient}!getBlock@{getBlock}}
+\index{getBlock@{getBlock}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getBlock()}{getBlock()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a8b626810dffc18840caeef70b992ab93} 
+void omni::\+\+Rpc\+Client::\+get\+Block (\begin{DoxyParamCaption}\item[{int}]{index}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00068}{68}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a1a819f91e27898704eea3c1f74af7ea1}\index{omni::RpcClient@{omni::RpcClient}!getBlockCount@{getBlockCount}}
+\index{getBlockCount@{getBlockCount}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getBlockCount()}{getBlockCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a1a819f91e27898704eea3c1f74af7ea1} 
+void omni::\+\+Rpc\+Client::\+get\+Block\+Count (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00066}{66}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{classomni_1_1_rpc_client_adf733903ba1ddc1aa2e78e2a3978787e}\index{omni::RpcClient@{omni::RpcClient}!getBlocks@{getBlocks}}
+\index{getBlocks@{getBlocks}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getBlocks()}{getBlocks()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_adf733903ba1ddc1aa2e78e2a3978787e} 
+void omni::\+\+Rpc\+Client::\+get\+Blocks (\begin{DoxyParamCaption}\item[{int}]{from\+Height}{, }\item[{int}]{count}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00069}{69}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a4532252bb0d69f45fc9a11e41a89707e}\index{omni::RpcClient@{omni::RpcClient}!getHeaders@{getHeaders}}
+\index{getHeaders@{getHeaders}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getHeaders()}{getHeaders()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a4532252bb0d69f45fc9a11e41a89707e} 
+void omni::\+\+Rpc\+Client::\+get\+Headers (\begin{DoxyParamCaption}\item[{int}]{from\+Height}{, }\item[{int}]{count}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00070}{70}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a2514af3a2e2a4bacd8de6c4a765c1cfc}\index{omni::RpcClient@{omni::RpcClient}!getLatestBlock@{getLatestBlock}}
+\index{getLatestBlock@{getLatestBlock}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getLatestBlock()}{getLatestBlock()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a2514af3a2e2a4bacd8de6c4a765c1cfc} 
+void omni::\+\+Rpc\+Client::\+get\+Latest\+Block (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00067}{67}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a96595cae50a97f147a8b4d819d813b0b}\index{omni::RpcClient@{omni::RpcClient}!getMempoolSize@{getMempoolSize}}
+\index{getMempoolSize@{getMempoolSize}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getMempoolSize()}{getMempoolSize()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a96595cae50a97f147a8b4d819d813b0b} 
+void omni::\+\+Rpc\+Client::\+get\+Mempool\+Size (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00086}{86}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a24cfd422258779b7af4c68886f7a4b9e}\index{omni::RpcClient@{omni::RpcClient}!getMempoolStats@{getMempoolStats}}
+\index{getMempoolStats@{getMempoolStats}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getMempoolStats()}{getMempoolStats()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a24cfd422258779b7af4c68886f7a4b9e} 
+void omni::\+\+Rpc\+Client::\+get\+Mempool\+Stats (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00087}{87}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_aa1ea718e365fc6f883a79744b37b08a9}\index{omni::RpcClient@{omni::RpcClient}!getMerkleProof@{getMerkleProof}}
+\index{getMerkleProof@{getMerkleProof}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getMerkleProof()}{getMerkleProof()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_aa1ea718e365fc6f883a79744b37b08a9} 
+void omni::\+\+Rpc\+Client::\+get\+Merkle\+Proof (\begin{DoxyParamCaption}\item[{const QString \&}]{txid}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00073}{73}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a0cd8febf1533551795bdb899be24d578}\index{omni::RpcClient@{omni::RpcClient}!getMinerInfo@{getMinerInfo}}
+\index{getMinerInfo@{getMinerInfo}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getMinerInfo()}{getMinerInfo()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a0cd8febf1533551795bdb899be24d578} 
+void omni::\+\+Rpc\+Client::\+get\+Miner\+Info (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00096}{96}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a802d42d8d6f5c01da76903c43ba151f1}\index{omni::RpcClient@{omni::RpcClient}!getMinerStats@{getMinerStats}}
+\index{getMinerStats@{getMinerStats}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getMinerStats()}{getMinerStats()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a802d42d8d6f5c01da76903c43ba151f1} 
+void omni::\+\+Rpc\+Client::\+get\+Miner\+Stats (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00097}{97}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a371d600a9f450f66f61eab37eaa5a8fe}\index{omni::RpcClient@{omni::RpcClient}!getNetworkInfo@{getNetworkInfo}}
+\index{getNetworkInfo@{getNetworkInfo}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getNetworkInfo()}{getNetworkInfo()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a371d600a9f450f66f61eab37eaa5a8fe} 
+void omni::\+\+Rpc\+Client::\+get\+Network\+Info (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00090}{90}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a321aca97dd416dc63eaae925653d8d04}\index{omni::RpcClient@{omni::RpcClient}!getNodeList@{getNodeList}}
+\index{getNodeList@{getNodeList}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getNodeList()}{getNodeList()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a321aca97dd416dc63eaae925653d8d04} 
+void omni::\+\+Rpc\+Client::\+get\+Node\+List (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00093}{93}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a22c0876acdd905d678026e5a4252a3c7}\index{omni::RpcClient@{omni::RpcClient}!getNonce@{getNonce}}
+\index{getNonce@{getNonce}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getNonce()}{getNonce()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a22c0876acdd905d678026e5a4252a3c7} 
+void omni::\+\+Rpc\+Client::\+get\+Nonce (\begin{DoxyParamCaption}\item[{const QString \&}]{address}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00083}{83}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_af91e6a514bae958c152b57ee0fd427cc}\index{omni::RpcClient@{omni::RpcClient}!getPeers@{getPeers}}
+\index{getPeers@{getPeers}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getPeers()}{getPeers()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_af91e6a514bae958c152b57ee0fd427cc} 
+void omni::\+\+Rpc\+Client::\+get\+Peers (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00091}{91}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_aaad71d1ec602f4e375fd3d647bb0800e}\index{omni::RpcClient@{omni::RpcClient}!getPerformance@{getPerformance}}
+\index{getPerformance@{getPerformance}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getPerformance()}{getPerformance()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_aaad71d1ec602f4e375fd3d647bb0800e} 
+void omni::\+\+Rpc\+Client::\+get\+Performance (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00072}{72}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a79b10235d0c5a9d8e3381d2fa61ee8c1}\index{omni::RpcClient@{omni::RpcClient}!getPoolStats@{getPoolStats}}
+\index{getPoolStats@{getPoolStats}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getPoolStats()}{getPoolStats()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a79b10235d0c5a9d8e3381d2fa61ee8c1} 
+void omni::\+\+Rpc\+Client::\+get\+Pool\+Stats (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00098}{98}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a22f259b9e9737f9b4e725ab47fad97aa}\index{omni::RpcClient@{omni::RpcClient}!getSlashHistory@{getSlashHistory}}
+\index{getSlashHistory@{getSlashHistory}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getSlashHistory()}{getSlashHistory()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a22f259b9e9737f9b4e725ab47fad97aa} 
+void omni::\+\+Rpc\+Client::\+get\+Slash\+History (\begin{DoxyParamCaption}\item[{const QString \&}]{addr}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00107}{107}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a29a189cfc719dc2eda210f195a087536}\index{omni::RpcClient@{omni::RpcClient}!getStakingInfo@{getStakingInfo}}
+\index{getStakingInfo@{getStakingInfo}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getStakingInfo()}{getStakingInfo()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a29a189cfc719dc2eda210f195a087536} 
+void omni::\+\+Rpc\+Client::\+get\+Staking\+Info (\begin{DoxyParamCaption}\item[{const QString \&}]{addr}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00106}{106}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_aeb36504768fbfdb168e28f3c7192a40a}\index{omni::RpcClient@{omni::RpcClient}!getStatus@{getStatus}}
+\index{getStatus@{getStatus}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getStatus()}{getStatus()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_aeb36504768fbfdb168e28f3c7192a40a} 
+void omni::\+\+Rpc\+Client::\+get\+Status (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00071}{71}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a7b32e956181f0167fc277219873d3f78}\index{omni::RpcClient@{omni::RpcClient}!getSyncStatus@{getSyncStatus}}
+\index{getSyncStatus@{getSyncStatus}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getSyncStatus()}{getSyncStatus()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a7b32e956181f0167fc277219873d3f78} 
+void omni::\+\+Rpc\+Client::\+get\+Sync\+Status (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00092}{92}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a84ea1ea0d48b1076af1144a348ae3d04}\index{omni::RpcClient@{omni::RpcClient}!getTransaction@{getTransaction}}
+\index{getTransaction@{getTransaction}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getTransaction()}{getTransaction()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a84ea1ea0d48b1076af1144a348ae3d04} 
+void omni::\+\+Rpc\+Client::\+get\+Transaction (\begin{DoxyParamCaption}\item[{const QString \&}]{txid}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00077}{77}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_ad611793062156c942192caf0385fdcee}\index{omni::RpcClient@{omni::RpcClient}!getTransactions@{getTransactions}}
+\index{getTransactions@{getTransactions}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{getTransactions()}{getTransactions()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_ad611793062156c942192caf0385fdcee} 
+void omni::\+\+Rpc\+Client::\+get\+Transactions (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00078}{78}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a1369adc29d320ff84083d740580fb9ca}\index{omni::RpcClient@{omni::RpcClient}!listTransactions@{listTransactions}}
+\index{listTransactions@{listTransactions}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{listTransactions()}{listTransactions()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a1369adc29d320ff84083d740580fb9ca} 
+void omni::\+\+Rpc\+Client::\+list\+Transactions (\begin{DoxyParamCaption}\item[{int}]{count}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00080}{80}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_ac1df3513f6b76450eb887d3ba67c9fc9}\index{omni::RpcClient@{omni::RpcClient}!minerSendTx@{minerSendTx}}
+\index{minerSendTx@{minerSendTx}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{minerSendTx()}{minerSendTx()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_ac1df3513f6b76450eb887d3ba67c9fc9} 
+void omni::\+\+Rpc\+Client::\+miner\+Send\+Tx (\begin{DoxyParamCaption}\item[{const QString \&}]{from}{, }\item[{const QString \&}]{to}{, }\item[{qint64}]{amount}{, }\item[{qint64}]{fee}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00101}{101}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a8fe06b8d394c14787a81750421ae37eb}\index{omni::RpcClient@{omni::RpcClient}!rawRequest@{rawRequest}}
+\index{rawRequest@{rawRequest}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{rawRequest()}{rawRequest()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a8fe06b8d394c14787a81750421ae37eb} 
+void omni::\+\+Rpc\+Client::\+raw\+Request (\begin{DoxyParamCaption}\item[{const QString \&}]{method}{, }\item[{const QJson\+Array \&}]{params}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00061}{61}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a3ed83adcbae167ced0ff665dd8e2d370}\index{omni::RpcClient@{omni::RpcClient}!registerMiner@{registerMiner}}
+\index{registerMiner@{registerMiner}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{registerMiner()}{registerMiner()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a3ed83adcbae167ced0ff665dd8e2d370} 
+void omni::\+\+Rpc\+Client::\+register\+Miner (\begin{DoxyParamCaption}\item[{const QJson\+Object \&}]{data}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00099}{99}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a4d2fb5f1a20feb52ef925a5ebb3ac720}\index{omni::RpcClient@{omni::RpcClient}!sendOpReturn@{sendOpReturn}}
+\index{sendOpReturn@{sendOpReturn}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{sendOpReturn()}{sendOpReturn()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a4d2fb5f1a20feb52ef925a5ebb3ac720} 
+void omni::\+\+Rpc\+Client::\+send\+Op\+Return (\begin{DoxyParamCaption}\item[{const QString \&}]{data}{, }\item[{qint64}]{fee\+Sat}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00082}{82}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a6d759a2db670bc24e1b824a477d19815}\index{omni::RpcClient@{omni::RpcClient}!sendTransaction@{sendTransaction}}
+\index{sendTransaction@{sendTransaction}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{sendTransaction()}{sendTransaction()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a6d759a2db670bc24e1b824a477d19815} 
+void omni::\+\+Rpc\+Client::\+send\+Transaction (\begin{DoxyParamCaption}\item[{const QString \&}]{to}{, }\item[{qint64}]{amount\+Sat}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00081}{81}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+\Hypertarget{classomni_1_1_rpc_client_a5c10d655a0fe3ff3298f9da72f075720}\index{omni::RpcClient@{omni::RpcClient}!setEndpoint@{setEndpoint}}
+\index{setEndpoint@{setEndpoint}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{setEndpoint()}{setEndpoint()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a5c10d655a0fe3ff3298f9da72f075720} 
+void omni::\+\+Rpc\+Client::\+set\+Endpoint (\begin{DoxyParamCaption}\item[{const QString \&}]{host}{, }\item[{int}]{port}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00016}{16}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{classomni_1_1_rpc_client_a18b7f8197cf5d2777d72e92fc2dfe4a0}\index{omni::RpcClient@{omni::RpcClient}!submitSlashEvidence@{submitSlashEvidence}}
+\index{submitSlashEvidence@{submitSlashEvidence}!omni::RpcClient@{omni::RpcClient}}
+\doxysubsubsection{\texorpdfstring{submitSlashEvidence()}{submitSlashEvidence()}}
+{\footnotesize\ttfamily \label{classomni_1_1_rpc_client_a18b7f8197cf5d2777d72e92fc2dfe4a0} 
+void omni::\+\+Rpc\+Client::\+submit\+Slash\+Evidence (\begin{DoxyParamCaption}\item[{const QJson\+Object \&}]{evidence}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a82ca9d7956ba123a56c94874ab70a4b5}{Rpc\+Callback}}}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_rpc_client_8cpp_source_l00108}{108}} of file \doxymbox{\hyperlink{_rpc_client_8cpp_source}{Rpc\+Client.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\doxymbox{\hyperlink{_rpc_client_8h}{Rpc\+Client.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\doxymbox{\hyperlink{_rpc_client_8cpp}{Rpc\+Client.\+cpp}}\end{DoxyCompactItemize}

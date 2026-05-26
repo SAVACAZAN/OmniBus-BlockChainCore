@@ -1,0 +1,221 @@
+\doxysection{double-\/spend-\/tester.py}
+\hypertarget{double-spend-tester_8py_source}{}\label{double-spend-tester_8py_source}\index{tools/EXPLOITS/double-\/spend-\/tester.py@{tools/EXPLOITS/double-\/spend-\/tester.py}}
+\doxymbox{\hyperlink{double-spend-tester_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00001}\doxymbox{\hyperlink{namespacedouble-spend-tester}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00002}\doxymbox{\hyperlink{namespacedouble}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00003}00003\ \textcolor{stringliteral}{double-\/spend-\/tester.py}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00005}00005\ \textcolor{stringliteral}{Test\ double-\/spend\ protection\ on\ a\ BlockChainCore\ network:}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ 1.\ Create\ two\ conflicting\ transactions\ spending\ the\ same\ input}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ \ \ \ to\ two\ different\ recipients.}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ 2.\ Send\ tx-\/A\ to\ node\ group\ A\ and\ tx-\/B\ to\ node\ group\ B}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ \ \ \ simultaneously\ (or\ as\ fast\ as\ possible).}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ 3.\ Wait\ for\ block\ inclusion\ /\ confirmation.}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ 4.\ Verify\ that\ only\ one\ transaction\ survives\ consensus;}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ \ the\ other\ is\ evicted\ from\ mempool\ or\ never\ confirmed.}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00014}00014\ \textcolor{stringliteral}{Outputs:\ double-\/spend-\/report.json}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00015}00015\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00017}00017\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00020}00020\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00023}00023\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00024}00024\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00026}00026\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00028}\doxymbox{\hyperlink{namespacedouble-spend-tester_a8ce1d073109559a03c78dad67da9df32}{00028}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00029}\doxymbox{\hyperlink{namespacedouble-spend-tester_a13e591dd969b7535f8ac87204075a3ca}{00029}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00030}\doxymbox{\hyperlink{namespacedouble-spend-tester_a0a58f567f2590b7596638ec2138669e1}{00030}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00031}\doxymbox{\hyperlink{namespacedouble-spend-tester_abad4e6d3b3c5ba739bd66337d324aaa3}{00031}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00032}\doxymbox{\hyperlink{namespacedouble-spend-tester_a7325257403f9947da345f4ad964276a2}{00032}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00035}\doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00036}00036\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00039}\doxymbox{\hyperlink{namespacedouble-spend-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00043}\doxymbox{\hyperlink{namespacedouble-spend-tester_abf994b8269849d29e07697ea8a840f74}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00047}\doxymbox{\hyperlink{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00048}00048\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00051}00051\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00052}00052\ \textcolor{comment}{\#\ RPC\ helpers}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00053}00053\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00054}\doxymbox{\hyperlink{namespacedouble-spend-tester_a3c4881ef4f7938735ee4a74e57da9d7e}{00054}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc}{rpc}}(url:\ str,\ method:\ str,\ params:\ Any\ =\ \textcolor{keywordtype}{None},\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},\ timeout:\ float\ =\ 10.0)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00055}00055\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{if}\ params\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}params"{}}]\ =\ params}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ auth=auth,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ data\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}\_error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00066}\doxymbox{\hyperlink{namespacedouble-spend-tester_a14d9f557af5ba2420ef9ce2695b6db23}{00066}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_a14d9f557af5ba2420ef9ce2695b6db23}{create\_raw\_tx}}(url:\ str,\ inputs:\ list[dict[str,\ Any]],\ outputs:\ dict[str,\ float],}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ str\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00068}00068\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(url,\ \textcolor{stringliteral}{"{}createrawtransaction"{}},\ [inputs,\ outputs],\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(result,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ result:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00074}\doxymbox{\hyperlink{namespacedouble-spend-tester_adec5b48f477b1786862d5be39aede86b}{00074}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_adec5b48f477b1786862d5be39aede86b}{sign\_raw\_tx}}(url:\ str,\ hex\_str:\ str,\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict[str,\ Any]\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00075}00075\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(url,\ \textcolor{stringliteral}{"{}signrawtransactionwithwallet"{}},\ [hex\_str],\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(result,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ result:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00078}00078\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00081}\doxymbox{\hyperlink{namespacedouble-spend-tester_af21d821852f3d83869380261d859d887}{00081}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_af21d821852f3d83869380261d859d887}{send\_raw\_tx}}(url:\ str,\ hex\_str:\ str,\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ str\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00082}00082\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(url,\ \textcolor{stringliteral}{"{}sendrawtransaction"{}},\ [hex\_str],\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00083}00083\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(result,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ result:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00088}00088\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00089}00089\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00090}00090\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00091}\doxymbox{\hyperlink{namespacedouble-spend-tester_a7431cb90017e54fe695b23d4190db046}{00091}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedouble-spend-tester_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00092}00092\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Test\ double-\/spend\ protection."{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00093}00093\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/node-\/a"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ help=\textcolor{stringliteral}{"{}Node\ A\ RPC\ URL"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00094}00094\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/node-\/b"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8333"{}},\ help=\textcolor{stringliteral}{"{}Node\ B\ RPC\ URL"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00095}00095\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00096}00096\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00097}00097\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/wait-\/blocks"{}},\ type=int,\ default=3,\ help=\textcolor{stringliteral}{"{}Blocks\ to\ wait"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00098}00098\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}tools/EXPLOITS/double-\/spend-\/report.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00099}00099\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00101}00101\ \ \ \ \ auth\ =\ (args.user,\ args.password)\ \textcolor{keywordflow}{if}\ args.user\ \textcolor{keywordflow}{or}\ args.password\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00103}00103\ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Preparing\ double-\/spend\ test\ …"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00105}00105\ \ \ \ \ \textcolor{comment}{\#\ Get\ an\ unspent\ output\ from\ node\ A\ wallet\ (or\ use\ a\ dummy\ for\ offline\ mode)}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00106}00106\ \ \ \ \ utxos\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(args.node\_a,\ \textcolor{stringliteral}{"{}listunspent"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(utxos,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ utxos:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Cannot\ reach\ node\ A;\ running\ in\ structural\ /\ offline\ mode"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ utxos\ =\ []}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00111}00111\ \ \ \ \ \textcolor{keywordflow}{if}\ utxos:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ utxo\ =\ utxos[0]}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ txid\ =\ utxo[\textcolor{stringliteral}{"{}txid"{}}]}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ vout\ =\ utxo[\textcolor{stringliteral}{"{}vout"{}}]}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ amount\ =\ utxo[\textcolor{stringliteral}{"{}amount"{}}]}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00116}00116\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ txid\ =\ \textcolor{stringliteral}{"{}a"{}}\ *\ 64}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ vout\ =\ 0}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ amount\ =\ 50.0}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Using\ dummy\ UTXO;\ live\ test\ not\ possible"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00122}00122\ \ \ \ \ input\_spec\ =\ [\{\textcolor{stringliteral}{"{}txid"{}}:\ txid,\ \textcolor{stringliteral}{"{}vout"{}}:\ vout\}]}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00123}00123\ \ \ \ \ output\_a\ =\ \{\textcolor{stringliteral}{"{}addr\_A\_receive"{}}:\ amount\ -\/\ 0.001\}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00124}00124\ \ \ \ \ output\_b\ =\ \{\textcolor{stringliteral}{"{}addr\_B\_receive"{}}:\ amount\ -\/\ 0.001\}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00126}00126\ \ \ \ \ \textcolor{comment}{\#\ Create\ raw\ transactions}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00127}00127\ \ \ \ \ raw\_a\ =\ \doxymbox{\hyperlink{namespacedouble-spend-tester_a14d9f557af5ba2420ef9ce2695b6db23}{create\_raw\_tx}}(args.node\_a,\ input\_spec,\ output\_a,\ auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00128}00128\ \ \ \ \ raw\_b\ =\ \doxymbox{\hyperlink{namespacedouble-spend-tester_a14d9f557af5ba2420ef9ce2695b6db23}{create\_raw\_tx}}(args.node\_a,\ input\_spec,\ output\_b,\ auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00130}00130\ \ \ \ \ signed\_a\ =\ \doxymbox{\hyperlink{namespacedouble-spend-tester_adec5b48f477b1786862d5be39aede86b}{sign\_raw\_tx}}(args.node\_a,\ raw\_a,\ auth)\ \textcolor{keywordflow}{if}\ raw\_a\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00131}00131\ \ \ \ \ signed\_b\ =\ \doxymbox{\hyperlink{namespacedouble-spend-tester_adec5b48f477b1786862d5be39aede86b}{sign\_raw\_tx}}(args.node\_a,\ raw\_b,\ auth)\ \textcolor{keywordflow}{if}\ raw\_b\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00133}00133\ \ \ \ \ hex\_a\ =\ signed\_a.get(\textcolor{stringliteral}{"{}hex"{}})\ \textcolor{keywordflow}{if}\ signed\_a\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00134}00134\ \ \ \ \ hex\_b\ =\ signed\_b.get(\textcolor{stringliteral}{"{}hex"{}})\ \textcolor{keywordflow}{if}\ signed\_b\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00136}00136\ \ \ \ \ send\_results:\ dict[str,\ Any]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{if}\ hex\_a\ \textcolor{keywordflow}{and}\ hex\_b:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Broadcasting\ conflicting\ transactions\ simultaneously\ …"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Simultaneous\ send\ (as\ close\ as\ possible)}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ threading}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }send\_to(url:\ str,\ hex\_str:\ str,\ label:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ send\_results[label]\ =\ \doxymbox{\hyperlink{namespacedouble-spend-tester_af21d821852f3d83869380261d859d887}{send\_raw\_tx}}(url,\ hex\_str,\ auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ t1\ =\ threading.Thread(target=send\_to,\ args=(args.node\_a,\ hex\_a,\ \textcolor{stringliteral}{"{}tx\_a"{}}))}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ t2\ =\ threading.Thread(target=send\_to,\ args=(args.node\_b,\ hex\_b,\ \textcolor{stringliteral}{"{}tx\_b"{}}))}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ t1.start();\ t2.start()}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ t1.join();\ t2.join()}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Tx-\/A\ result:\ \{send\_results.get('tx\_a')\}"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Tx-\/B\ result:\ \{send\_results.get('tx\_b')\}"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00153}00153\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Could\ not\ create/sign\ transactions"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00156}00156\ \ \ \ \ \textcolor{comment}{\#\ Wait\ for\ blocks\ and\ check\ inclusion}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00157}00157\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ isinstance(utxos,\ dict):}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Waiting\ \{args.wait\_blocks\}\ blocks\ …"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ initial\_height\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(args.node\_a,\ \textcolor{stringliteral}{"{}getblockcount"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ isinstance(initial\_height,\ dict):}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(2)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(args.node\_a,\ \textcolor{stringliteral}{"{}getblockcount"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(current,\ dict):}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ current\ >=\ initial\_height\ +\ args.wait\_blocks:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00169}00169\ \ \ \ \ \textcolor{comment}{\#\ Check\ mempool\ /\ chain\ for\ surviving\ tx}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00170}00170\ \ \ \ \ mempool\_a\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(args.node\_a,\ \textcolor{stringliteral}{"{}getrawmempool"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00171}00171\ \ \ \ \ mempool\_b\ =\ \doxymbox{\hyperlink{namespacerpc}{rpc}}(args.node\_b,\ \textcolor{stringliteral}{"{}getrawmempool"{}},\ auth=auth)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00173}00173\ \ \ \ \ in\_mempool\_a\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00174}00174\ \ \ \ \ in\_mempool\_b\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(mempool\_a,\ list)\ \textcolor{keywordflow}{and}\ send\_results.get(\textcolor{stringliteral}{"{}tx\_a"{}})\ \textcolor{keywordflow}{in}\ mempool\_a:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ in\_mempool\_a\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00177}00177\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(mempool\_b,\ list)\ \textcolor{keywordflow}{and}\ send\_results.get(\textcolor{stringliteral}{"{}tx\_b"{}})\ \textcolor{keywordflow}{in}\ mempool\_b:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ in\_mempool\_b\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00180}00180\ \ \ \ \ \textcolor{comment}{\#\ If\ both\ are\ in\ mempool,\ that's\ a\ failure\ of\ isolation}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00181}00181\ \ \ \ \ both\_survived\ =\ in\_mempool\_a\ \textcolor{keywordflow}{and}\ in\_mempool\_b}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00182}00182\ \ \ \ \ neither\_survived\ =\ \textcolor{keywordflow}{not}\ in\_mempool\_a\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ in\_mempool\_b}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00184}00184\ \ \ \ \ \textcolor{keywordflow}{if}\ both\_survived:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Both\ conflicting\ transactions\ survived\ —\ double-\/spend\ protection\ failure!"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00186}00186\ \ \ \ \ \textcolor{keywordflow}{elif}\ neither\_survived\ \textcolor{keywordflow}{and}\ send\_results:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Neither\ transaction\ in\ mempool\ —\ may\ have\ been\ replaced\ or\ rejected"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00188}00188\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Only\ one\ conflicting\ transaction\ survived"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00191}00191\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_a"{}}:\ args.node\_a,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_b"{}}:\ args.node\_b,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}utxo"{}}:\ \{\textcolor{stringliteral}{"{}txid"{}}:\ txid,\ \textcolor{stringliteral}{"{}vout"{}}:\ vout,\ \textcolor{stringliteral}{"{}amount"{}}:\ amount\},}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tx\_a\_hex"{}}:\ hex\_a,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tx\_b\_hex"{}}:\ hex\_b,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}send\_results"{}}:\ send\_results,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}in\_mempool\_a"{}}:\ in\_mempool\_a,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}in\_mempool\_b"{}}:\ in\_mempool\_b,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}both\_survived"{}}:\ both\_survived,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}protection\_working"{}}:\ \textcolor{keywordflow}{not}\ both\_survived,}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00203}00203\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00205}00205\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00206}00206\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00207}00207\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00210}00210\ \ \ \ \ \doxymbox{\hyperlink{namespacedouble-spend-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Double-\/spend\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{return}\ 0\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ both\_survived\ \textcolor{keywordflow}{else}\ 1}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00214}00214\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{double-spend-tester_8py_source_l00215}00215\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacedouble-spend-tester_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

@@ -1,0 +1,173 @@
+# OmniBus Blockchain — Local Testnet (3-node federation)
+# =========================================================
+#
+# Start: docker-compose -f docker-compose.testnet.yml up
+# Logs:  docker-compose -f docker-compose.testnet.yml logs -f
+# Stop:  docker-compose -f docker-compose.testnet.yml down
+# Purge: docker-compose -f docker-compose.testnet.yml down -v
+#
+# Node roles:
+#   - seed (primary): listens on P2P 9001, serves as bootstrap node
+#   - miner-1: connects to seed, starts mining after sync
+#   - miner-2: connects to seed, starts mining after sync
+#
+# Port mapping:
+#   Seed RPC:    localhost:18332  (testnet standard)
+#   Seed WS:     localhost:18334
+#   Seed P2P:    localhost:9001
+#   Miner-1 RPC: localhost:18333
+#   Miner-2 RPC: localhost:18334
+#
+# Example: Check chain height
+#   curl -s -X POST http://127.0.0.1:18332 \
+#     -H "Content-Type: application/json" \
+#     -d '{"jsonrpc":"2.0","method":"getblockcount","params":[],"id":1}' | jq
+
+version: "3.8"
+
+services:
+  # ── Seed Node (Primary) ──────────────────────────────────────────────────
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnibus-testnet-seed
+    hostname: seed
+    command:
+      - "--mode"
+      - "seed"
+      - "--node-id"
+      - "testnet-seed-1"
+      - "--primary"
+      - "--port"
+      - "9001"
+      - "--rpc-port"
+      - "8332"
+      - "--ws-port"
+      - "8334"
+    environment:
+      OMNIBUS_CHAIN: "testnet"
+      OMNIBUS_LOG_LEVEL: "info"
+    ports:
+      - "18332:8332"   # RPC (testnet standard port 18332)
+      - "18334:8334"   # WebSocket
+      - "9001:9001"    # P2P
+    volumes:
+      - testnet-seed-data:/omnibus/data
+    networks:
+      - omnibus-testnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X", "POST", "http://localhost:8332", "-H", "Content-Type: application/json", "-d", '{"jsonrpc":"2.0","method":"getblockcount","params":[],"id":1}']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ── Miner Node 1 ────────────────────────────────────────────────────────
+  miner-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnibus-testnet-miner-1
+    hostname: miner-1
+    command:
+      - "--mode"
+      - "miner"
+      - "--node-id"
+      - "testnet-miner-1"
+      - "--seed-host"
+      - "seed"
+      - "--seed-port"
+      - "9001"
+      - "--port"
+      - "9002"
+      - "--rpc-port"
+      - "8332"
+      - "--ws-port"
+      - "8334"
+    environment:
+      OMNIBUS_CHAIN: "testnet"
+      OMNIBUS_LOG_LEVEL: "info"
+      OMNIBUS_MNEMONIC: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+    ports:
+      - "18333:8332"   # RPC
+      - "9002:9002"    # P2P
+    volumes:
+      - testnet-miner-1-data:/omnibus/data
+    networks:
+      - omnibus-testnet
+    depends_on:
+      seed:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X", "POST", "http://localhost:8332", "-H", "Content-Type: application/json", "-d", '{"jsonrpc":"2.0","method":"getmininginfo","params":[],"id":1}']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ── Miner Node 2 ────────────────────────────────────────────────────────
+  miner-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnibus-testnet-miner-2
+    hostname: miner-2
+    command:
+      - "--mode"
+      - "miner"
+      - "--node-id"
+      - "testnet-miner-2"
+      - "--seed-host"
+      - "seed"
+      - "--seed-port"
+      - "9001"
+      - "--port"
+      - "9003"
+      - "--rpc-port"
+      - "8332"
+      - "--ws-port"
+      - "8334"
+    environment:
+      OMNIBUS_CHAIN: "testnet"
+      OMNIBUS_LOG_LEVEL: "info"
+      OMNIBUS_MNEMONIC: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+    ports:
+      - "18334:8332"   # RPC (local port collision avoided: 18334)
+      - "9003:9003"    # P2P
+    volumes:
+      - testnet-miner-2-data:/omnibus/data
+    networks:
+      - omnibus-testnet
+    depends_on:
+      seed:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X", "POST", "http://localhost:8332", "-H", "Content-Type: application/json", "-d", '{"jsonrpc":"2.0","method":"getpeerinfo","params":[],"id":1}']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  testnet-seed-data:
+    driver: local
+  testnet-miner-1-data:
+    driver: local
+  testnet-miner-2-data:
+    driver: local
+
+networks:
+  omnibus-testnet:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-omnibus-testnet
+
+# Post-startup verification:
+#   docker-compose -f docker-compose.testnet.yml exec seed \
+#     curl -s -X POST http://localhost:8332 \
+#       -H "Content-Type: application/json" \
+#       -d '{"jsonrpc":"2.0","method":"getblockcount","params":[],"id":1}' | jq

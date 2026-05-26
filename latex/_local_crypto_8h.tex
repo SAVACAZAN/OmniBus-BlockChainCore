@@ -1,0 +1,73 @@
+\doxysection{archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\+Local\+Crypto.h File Reference}
+\hypertarget{_local_crypto_8h}{}\label{_local_crypto_8h}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/LocalCrypto.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/LocalCrypto.h}}
+{\ttfamily \+\#include $<$QByte\+Array$>$}\newline
+{\ttfamily \+\#include $<$QString$>$}\newline
+{\ttfamily \+\#include $<$QString\+List$>$}\newline
+{\ttfamily \+\#include $<$array$>$}\newline
+{\ttfamily \+\#include $<$cstdint$>$}\newline
+{\ttfamily \+\#include $<$vector$>$}\newline
+Include dependency graph for Local\+Crypto.\+h:\+
+% FIG 0
+This graph shows which files directly or indirectly include this file:\+
+% FIG 1
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{omni::\+crypto::\+\+Extended\+Key}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceomni}{omni}}
+\item 
+namespace \doxymbox{\hyperlink{namespaceomni_1_1crypto}{omni::\+crypto}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a1b92c6c411b3e45ae0fdba166e245311}{omni::\+crypto::\+sha256}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a80d023ff288c77dd24290ab62cad269c}{omni::\+crypto::\+double\+Sha256}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a0886555b24eb5fd875992e91049caccd}{omni::\+crypto::\+hmac\+Sha512}} (const QByte\+Array \&key, const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_aa0c074fd79467c4253b91f2287d5a3b4}{omni::\+crypto::\+sha512}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a14ffdb97a40bf9b3046dea5e64596565}{omni::\+crypto::\+ripemd160}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{omni::\+crypto::\+hash160}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a0ae370714077f54426f4e59d509e7db7}{omni::\+crypto::\+pbkdf2\+Hmac\+Sha512}} (const QByte\+Array \&password, const QByte\+Array \&salt, int iterations, int key\+Len)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a49fec41db5c1757a2fc911a1fe957d37}{omni::\+crypto::\+aes256\+Encrypt}} (const QByte\+Array \&plaintext, const QByte\+Array \&key, const QByte\+Array \&iv)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_af90149809fc87f2b018ba817dd1c6b7f}{omni::\+crypto::\+aes256\+Decrypt}} (const QByte\+Array \&ciphertext, const QByte\+Array \&key, const QByte\+Array \&iv)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a4ea864d0aa189b81583db1987a2777e5}{omni::\+crypto::\+random\+Bytes}} (int count)
+\item 
+QString\+List \doxymbox{\hyperlink{namespaceomni_1_1crypto_a7d0a942f3e6fc10bbc54312d74e54948}{omni::\+crypto::\+bip39\+Wordlist}} ()
+\item 
+QString \doxymbox{\hyperlink{namespaceomni_1_1crypto_a64fb10c8cb4589c464e53b61ec2fdb9f}{omni::\+crypto::\+generate\+Mnemonic}} (int word\+Count)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a834109445be202971829ee6408eefbc3}{omni::\+crypto::\+mnemonic\+To\+Seed}} (const QString \&mnemonic, const QString \&passphrase)
+\item 
+bool \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9b799c91888707b20d701e30b0c157ba}{omni::\+crypto::\+validate\+Mnemonic}} (const QString \&mnemonic)
+\item 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{omni::\+crypto::\+master\+Key\+From\+Seed}} (const QByte\+Array \&seed)
+\item 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \doxymbox{\hyperlink{namespaceomni_1_1crypto_a719e5514144de0e1005db64002749bac}{omni::\+crypto::\+derive\+Child}} (const \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \&parent, uint32\+\_\+t index)
+\item 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{omni::\+crypto::\+derive\+Path}} (const \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \&master, const QString \&path)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{omni::\+crypto::\+private\+To\+Public\+Key}} (const QByte\+Array \&priv\+Key)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a55f28e9f746c45b54a9a3b4bc4c600f7}{omni::\+crypto::\+private\+To\+Uncompressed\+Public\+Key}} (const QByte\+Array \&priv\+Key)
+\item 
+QString \doxymbox{\hyperlink{namespaceomni_1_1crypto_a431fba8d04be2febbe4697fc4412e492}{omni::\+crypto::\+pubkey\+To\+Ob1q\+Address}} (const QByte\+Array \&compressed\+Pubkey)
+\item 
+QString \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{omni::\+crypto::\+pubkey\+Hash\+To\+Address}} (const QByte\+Array \&hash20, const QString \&hrp)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a2ac21a02b71a0577d0bd4a67baf829fc}{omni::\+crypto::\+ecdsa\+Sign}} (const QByte\+Array \&hash32, const QByte\+Array \&priv\+Key32)
+\item 
+bool \doxymbox{\hyperlink{namespaceomni_1_1crypto_aabba94a5eeb7d47f32ffd9f3cff31d0d}{omni::\+crypto::\+ecdsa\+Verify}} (const QByte\+Array \&hash32, const QByte\+Array \&signature, const QByte\+Array \&pubkey33)
+\end{DoxyCompactItemize}

@@ -1,0 +1,11 @@
+var builder = eth.tx_builder.EthTxBuilder.init(allocator, chain_id);
+
+const fee = eth.eip1559.DynamicFee{
+    .max_fee_per_gas = 100_000_000_000,
+    .max_priority_fee_per_gas = 2_000_000_000,
+    .base_fee_per_gas = 50_000_000_000,
+};
+
+const tx = try builder.buildEIP1559(nonce, to, value, data, gas_limit, fee, access_list);
+try builder.signEIP1559(&tx, private_key);
+const raw_tx = try builder.serializeEIP1559(&tx);

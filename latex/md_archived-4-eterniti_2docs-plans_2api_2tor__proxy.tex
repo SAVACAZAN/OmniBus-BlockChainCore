@@ -1,0 +1,24 @@
+\chapter{tor\+\_\+proxy.\+zig — API Reference }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy}{}\label{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy}\index{tor\_proxy.zig — API Reference@{tor\_proxy.zig — API Reference}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy_autotoc_md3387}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy_autotoc_md3387}%
+
+
+\begin{quote}
+Auto-\/generated from core/\+tor\+\_\+proxy.\+zig \end{quote}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy_autotoc_md3388}{}\doxysection{\texorpdfstring{Public Functions}{Public Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy_autotoc_md3388}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ TorConfig\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ default()\ TorConfig\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ enabled\_default()\ TorConfig\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ tor\_browser()\ TorConfig\ \{}
+\DoxyCodeLine{pub\ const\ Socks5Result\ =\ enum\ \{}
+\DoxyCodeLine{pub\ fn\ buildSocks5ConnectRequest(target\_host:\ []const\ u8,\ target\_port:\ u16)\ struct\ \{\ handshake:\ [3]u8,\ request:\ [263]u8,\ request\_len:\ usize\ \}\ \{}
+\DoxyCodeLine{pub\ fn\ validateSocks5Auth(response:\ [2]u8)\ bool\ \{}
+\DoxyCodeLine{pub\ fn\ validateSocks5Connect(response:\ [10]u8)\ Socks5Result\ \{}
+\DoxyCodeLine{pub\ fn\ isTorAvailable(config:\ TorConfig)\ bool\ \{}
+\DoxyCodeLine{pub\ fn\ isOnionAddress(host:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy_autotoc_md3389}{}\doxysection{\texorpdfstring{Tests:\+ 7}{Tests:\+ 7}}\label{md_archived-4-eterniti_2docs-plans_2api_2tor__proxy_autotoc_md3389}

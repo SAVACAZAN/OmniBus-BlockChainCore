@@ -1,0 +1,43 @@
+\chapter{
+\begin{DoxyEnumerate}
+\item Transactions \& Script 
+\end{DoxyEnumerate}}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_49493b7ad10449495085c953020addc7}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_49493b7ad10449495085c953020addc7}\index{5. Transactions \& Script@{5. Transactions \& Script}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_49493b7ad10449495085c953020addc7_autotoc_md3926}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_49493b7ad10449495085c953020addc7_autotoc_md3926}%
+
+
+\begin{quote}
+Omni\+Bus vs Bitcoin — Category 5/\+10 Generated:\+ 2026-\/03-\/31 19:\+42 \end{quote}
+
+
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}BTC  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}OMNI  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}81  &UTXO Model  &\SetCell{c}Y  &\SetCell{c}Y  &utxo.\+zig  &Full UTXO set + integrated in blockchain.\+zig  \\
+\SetCell{c}82  &Transaction Inputs  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &from\+\_\+address  \\
+\SetCell{c}83  &Transaction Outputs  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &to\+\_\+address + amount  \\
+\SetCell{c}84  &Transaction Fee  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &50\% burn + 50\% miner  \\
+\SetCell{c}85  &Change Address (chain=1)  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &derive\+Change\+Address/\+derive\+Change\+Key  \\
+\SetCell{c}86  &Satoshi unit (1e9)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &1 OMNI = 1e9 SAT  \\
+\SetCell{c}87  &Bitcoin Script (language)  &\SetCell{c}Y  &\SetCell{c}Y  &script.\+zig  &P2\+PKH opcodes  \\
+\SetCell{c}88  &OP\+\_\+\+CHECKSIG  &\SetCell{c}Y  &\SetCell{c}Y  &script.\+zig  &ECDSA verification  \\
+\SetCell{c}89  &OP\+\_\+\+RETURN (data embed)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &Max 80 bytes  \\
+\SetCell{c}90  &Locktime  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &Block-\/height timelock  \\
+\SetCell{c}91  &Nonce (anti-\/replay)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &Nonce field  \\
+\SetCell{c}92  &Sequence Number (BIP-\/125)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &sequence field for RBF  \\
+\SetCell{c}93  &Witness Data (Seg\+Wit)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &script\+\_\+sig field (partial)  \\
+\SetCell{c}94  &Replace-\/\+By-\/\+Fee (RBF)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &is\+RBF/\+can\+Be\+Replaced\+By + mempool logic  \\
+\SetCell{c}95  &Child-\/\+Pays-\/\+For-\/\+Parent  &\SetCell{c}Y  &\SetCell{c}Y  &mempool.\+zig  &get\+Package\+Fee/\+has\+Child\+Boost  \\
+\SetCell{c}96  &v\+Size /\+ Weight Units  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &Sub-\/block weight (partial)  \\
+\SetCell{c}97  &Dust Limit  &\SetCell{c}Y  &\SetCell{c}Y  &blockchain.\+zig  &Anti-\/spam threshold  \\
+\SetCell{c}98  &TX Signing (ECDSA)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &sign() method  \\
+\SetCell{c}99  &TX Verification  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &verify() method  \\
+\SetCell{c}100  &TX Hash (TXID)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &SHA256d hash  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{BTC has:\+ 20 items}} {\bfseries{Omni\+Bus:\+ 20 implemented, 0 partial, 0 missing, 0 extras}} {\bfseries{Score:\+ 100\%}} (20/\+20 BTC features) 

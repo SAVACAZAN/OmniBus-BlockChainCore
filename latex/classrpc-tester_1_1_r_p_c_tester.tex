@@ -1,0 +1,174 @@
+\doxysection{rpc-\/tester.RPCTester Class Reference}
+\hypertarget{classrpc-tester_1_1_r_p_c_tester}{}\label{classrpc-tester_1_1_r_p_c_tester}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_abeea52666e05e3eefc74443fb14caacf}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str url="{}http:\+/\+/\+127.\+0.\+0.\+1:\+8332"{}, str user="{}"{}, str password="{}"{})
+\item 
+None \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a0aa5af7c44698c0116d371572a9b1ce9}{test\+\_\+methods}} (self)
+\item 
+None \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a69cef8989c7d40426ca4a53e307a20a5}{test\+\_\+error\+\_\+handling}} (self)
+\item 
+None \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_adb7d100b61373d2b99d69eb0a9d9b69d}{stress\+\_\+test}} (self, int concurrency=50, int requests\+\_\+count=500)
+\item 
+Dict\+[str, Any]\+ \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a85c0ef988d1353ad25b1170252561697}{run}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a44683ae8331805cea52b790e4cc3fc2b}{url}} = url
+\item 
+dict \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a1fbf5170c1e8e2bc9bece2daea8222f1}{headers}} = \{"{}Content-\/Type"{}:\+ "{}application/\+json"{}\}
+\item 
+\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e}{session}} = requests.\+Session()
+\item 
+list \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{results}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Dict\+[str, Any]\+ \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}{\+\_\+call}} (self, str method, List\+[Any]\+ params)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+
+
+\label{classrpc-tester_1_1_r_p_c_tester_doc-constructors}
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_abeea52666e05e3eefc74443fb14caacf}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_abeea52666e05e3eefc74443fb14caacf} 
+\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str }]{url}{ = {\ttfamily "{}http:\+/\+/\+127.0.0.1:\+8332"{}}, }\item[{str }]{user}{ = {\ttfamily "{}"{}}, }\item[{str }]{password}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+
+
+\label{classrpc-tester_1_1_r_p_c_tester_doc-func-members}
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!\_call@{\_call}}
+\index{\_call@{\_call}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{\_call()}{\_call()}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce} 
+ Dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+\_\+call (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{method}{, }\item[{List\+[Any]\+}]{params}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_a85c0ef988d1353ad25b1170252561697}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!run@{run}}
+\index{run@{run}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_a85c0ef988d1353ad25b1170252561697} 
+ Dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+run (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00099}{99}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_adb7d100b61373d2b99d69eb0a9d9b69d}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!stress\_test@{stress\_test}}
+\index{stress\_test@{stress\_test}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{stress\_test()}{stress\_test()}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_adb7d100b61373d2b99d69eb0a9d9b69d} 
+ None \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+stress\+\_\+test (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int }]{concurrency}{ = {\ttfamily 50}, }\item[{int }]{requests\+\_\+count}{ = {\ttfamily 500}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_a69cef8989c7d40426ca4a53e307a20a5}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!test\_error\_handling@{test\_error\_handling}}
+\index{test\_error\_handling@{test\_error\_handling}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{test\_error\_handling()}{test\_error\_handling()}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_a69cef8989c7d40426ca4a53e307a20a5} 
+ None \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+test\+\_\+error\+\_\+handling (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00065}{65}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_a0aa5af7c44698c0116d371572a9b1ce9}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!test\_methods@{test\_methods}}
+\index{test\_methods@{test\_methods}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{test\_methods()}{test\_methods()}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_a0aa5af7c44698c0116d371572a9b1ce9} 
+ None \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+test\+\_\+methods (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+
+
+\label{classrpc-tester_1_1_r_p_c_tester_doc-variable-members}
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_a1fbf5170c1e8e2bc9bece2daea8222f1}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!headers@{headers}}
+\index{headers@{headers}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{headers}{headers}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_a1fbf5170c1e8e2bc9bece2daea8222f1} 
+\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+headers = \{"{}Content-\/Type"{}:\+ "{}application/\+json"{}\}}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!results@{results}}
+\index{results@{results}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954} 
+list \doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+results = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!session@{session}}
+\index{session@{session}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{session}{session}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e} 
+\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+session = requests.\+Session()}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+\Hypertarget{classrpc-tester_1_1_r_p_c_tester_a44683ae8331805cea52b790e4cc3fc2b}\index{rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}!url@{url}}
+\index{url@{url}!rpc-\/tester.RPCTester@{rpc-\/tester.RPCTester}}
+\doxysubsubsection{\texorpdfstring{url}{url}}
+{\footnotesize\ttfamily \label{classrpc-tester_1_1_r_p_c_tester_a44683ae8331805cea52b790e4cc3fc2b} 
+\doxymbox{\hyperlink{namespacerpc}{rpc}}-\/tester.\+RPCTester.\+url = url}
+
+
+
+Definition at line \doxymbox{\hyperlink{rpc-tester_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{rpc-tester_8py_source}{rpc-\/tester.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+NETWORK/\+\doxymbox{\hyperlink{rpc-tester_8py}{rpc-\/tester.\+py}}\end{DoxyCompactItemize}

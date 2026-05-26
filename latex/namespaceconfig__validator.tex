@@ -1,0 +1,64 @@
+\doxysection{config\+\_\+validator Namespace Reference}
+\hypertarget{namespaceconfig__validator}{}\label{namespaceconfig__validator}\index{config\_validator@{config\_validator}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classconfig__validator_1_1_validation_error}{Validation\+Error}}
+\item 
+class \doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator}{Toml\+Validator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceconfig__validator_af4852998cf8f6b1bbf152c992705fa78}{print\+\_\+errors}} (List\+[\doxymbox{\hyperlink{classconfig__validator_1_1_validation_error}{Validation\+Error}}]\+ errors)
+\item 
+\doxymbox{\hyperlink{namespaceconfig__validator_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}OmniBus Blockchain - Config Validator
+======================================
+
+Validează fișierele de configurare (omnibus.toml, etc.)
+
+Utilizare:
+    python config_validator.py              # Validează toate config-urile
+    python config_validator.py --file omnibus.toml  # Validare specifică
+    python config_validator.py --fix        # Încearcă să repare problemele
+
+Autor: OmniBus AI Collective
+Versiune: 1.0.0
+\end{DoxyVerb}
+ 
+
+\label{namespaceconfig__validator_doc-func-members}
+\Hypertarget{namespaceconfig__validator_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceconfig__validator_a51af30a60f9f02777c6396b8247e356f}\index{config\_validator@{config\_validator}!main@{main}}
+\index{main@{main}!config\_validator@{config\_validator}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceconfig__validator_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00282}{282}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceconfig__validator_af4852998cf8f6b1bbf152c992705fa78}\index{config\_validator@{config\_validator}!print\_errors@{print\_errors}}
+\index{print\_errors@{print\_errors}!config\_validator@{config\_validator}}
+\doxysubsubsection{\texorpdfstring{print\_errors()}{print\_errors()}}
+{\footnotesize\ttfamily \label{namespaceconfig__validator_af4852998cf8f6b1bbf152c992705fa78} 
+print\+\_\+errors (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classconfig__validator_1_1_validation_error}{Validation\+Error}}]\+}]{errors}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Afișează erorile.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00240}{240}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2

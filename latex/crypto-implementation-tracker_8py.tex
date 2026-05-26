@@ -1,0 +1,55 @@
+\doxysection{tools/\+\+LEARNING/\+crypto-\/implementation-\/tracker.py File Reference}
+\hypertarget{crypto-implementation-tracker_8py}{}\label{crypto-implementation-tracker_8py}\index{tools/LEARNING/crypto-\/implementation-\/tracker.py@{tools/LEARNING/crypto-\/implementation-\/tracker.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacecrypto-implementation-tracker}{crypto-\/implementation-\/tracker}}
+\item 
+namespace \doxymbox{\hyperlink{namespacecrypto}{crypto}}
+\begin{DoxyCompactList}\small\item\em -\/edge-\/cases \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{crypto-\/implementation-\/tracker.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{crypto-\/implementation-\/tracker.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74}{crypto-\/implementation-\/tracker.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_adf0e2aa4d06b5ca38e44721821eca783}{crypto-\/implementation-\/tracker.\+log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{crypto-\/implementation-\/tracker.\+run\+\_\+git}} (list\+[str]\+ args, str cwd)
+\item 
+list\+[dict\+[str, str]\+]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a325d15f9028f8a2ef5e35fc072270b13}{crypto-\/implementation-\/tracker.\+get\+\_\+crypto\+\_\+commits}} (str cwd, int max\+\_\+commits=300)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a67825f85b5121d471419dc0f805e3a7e}{crypto-\/implementation-\/tracker.\+get\+\_\+changed\+\_\+files}} (str cwd, str commit\+\_\+hash)
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837}{crypto-\/implementation-\/tracker.\+get\+\_\+file\+\_\+diff}} (str cwd, str commit\+\_\+hash, str file\+\_\+path)
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}{crypto-\/implementation-\/tracker.\+get\+\_\+file\+\_\+at\+\_\+commit}} (str cwd, str commit\+\_\+hash, str file\+\_\+path)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a34f8790f86e0c2a5ab191d28ba09d434}{crypto-\/implementation-\/tracker.\+classify\+\_\+commit}} (str message)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_aa69cd138a139ff2183fd1ab69911a3e3}{crypto-\/implementation-\/tracker.\+extract\+\_\+bip32\+\_\+paths}} (str source)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3}{crypto-\/implementation-\/tracker.\+extract\+\_\+secp256k1\+\_\+functions}} (str source)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a46937613af41ea6e3f8f3ca996864275}{crypto-\/implementation-\/tracker.\+extract\+\_\+test\+\_\+vectors}} (str source)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a077060df86b0a80c94c057c46dde52aa}{crypto-\/implementation-\/tracker.\+analyze\+\_\+crypto\+\_\+evolution}} (str cwd, int max\+\_\+commits)
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a7431cb90017e54fe695b23d4190db046}{crypto-\/implementation-\/tracker.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a62c2940823227b3e2fcd4f8f289d7e50}{crypto-\/implementation-\/tracker.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a1d319bfebf85b9ecc11670bdb01d8c21}{crypto-\/implementation-\/tracker.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a53eb97caa366fca1b7cc3b18afd7ee96}{crypto-\/implementation-\/tracker.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a6ae08909cb7cad701bf31937904fb13c}{crypto-\/implementation-\/tracker.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a56e480bfbe9a0ff3cdaf4a5b24dd4086}{crypto-\/implementation-\/tracker.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}

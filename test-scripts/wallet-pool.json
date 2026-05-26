@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-05-10T12:46:12.715Z",
+  "note": "Test wallets only. Mnemonics are public test vectors — DO NOT use for real funds.",
+  "wallets": [
+    {
+      "i": 0,
+      "label": "wallet0",
+      "mnemonic": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      "address": "ob1qw6zhsqg29aht23fksk5w54lkgavatpgltqxlvl",
+      "pubKey": "02e897ef1994f5b770ebbc8c71e1d816b1c74ed91a7d58dd647d4f3576819e7bfd",
+      "evm": "0xb069ddac65e9269a9d61a197f0376212cce59e82",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 1,
+      "label": "wallet1",
+      "mnemonic": "test test test test test test test test test test test junk",
+      "address": "ob1qzdupf2evzcus7v2wjv799mvgmn76z45skqhsvz",
+      "pubKey": "02c1bdfa53c9ac869ad5d06c0cf1f28076f5b97efa0d0aba2cbb79f04d28a534b1",
+      "evm": "0x44145a33c8f9afc25f4389f0fcd34255fad44687",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 2,
+      "label": "wallet2",
+      "mnemonic": "legal winner thank year wave sausage worth useful legal winner thank yellow",
+      "address": "ob1qzyw408ktwftv3alx3u0n9v8svce4l30xjtmx6q",
+      "pubKey": "039f6abb1036edd7a012cb8d757fb62511286048714eb003261246570c68feeee1",
+      "evm": "0x815e815a5a97e404c8db838e7c539001f5185197",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 3,
+      "label": "wallet3",
+      "mnemonic": "letter advice cage absurd amount doctor acoustic avoid letter advice cage above",
+      "address": "ob1q3l3p6y2rcmzh8mead7u9x4q8gl35snhups76nv",
+      "pubKey": "0220d632c4c035a00987988e26d756270233c0676486834c9dd49cf7aa4e923a42",
+      "evm": "0x6732a5e1986ad691df658ccff5ec330f9b397f99",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 4,
+      "label": "wallet4",
+      "mnemonic": "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong",
+      "address": "ob1qw8svnzny7xvq4jt3c9c76nqz5cg53w2pltqgc7",
+      "pubKey": "03bba9af9ea0d4f518995baf6a1aeff04d4773a623766545e3783ae5cf72d679de",
+      "evm": "0x155ef16049dffdbbe16c22ffe49fd662d148a1fe",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 5,
+      "label": "wallet5",
+      "mnemonic": "army van defense carry jealous true garbage claim echo media make crunch",
+      "address": "ob1qmp8sdm5dutem6jhns69st8vfd03an0ntytylqf",
+      "pubKey": "03feffa0e97fea339ac724fae1a3105383b05c987599b772fca2a69bca22c79a5f",
+      "evm": "0xaca743d10a30403f90365086ab9efefe7f02d423",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 6,
+      "label": "wallet6",
+      "mnemonic": "vessel ladder alter error federal sibling chat ability sun glass valve picture",
+      "address": "ob1qjlnasrhen20gu8rw8uemepq3l4ylj2xajvsadq",
+      "pubKey": "02d82a4a05c6c167c20ef43535dc4ca81d46eaef3ec3a6965534c7d7ccd9d8ee22",
+      "evm": "0x79ed6e5272f6e06d8992d83ffe3172f4b9551a01",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 7,
+      "label": "wallet7",
+      "mnemonic": "scheme spot photo card baby mountain device kick cradle pact join borrow",
+      "address": "ob1qpkcfsc8qmumktugad9km7ahslrmerkaa9jh80x",
+      "pubKey": "031eeba335a39b5af34e82b5f57fad711ce395e217faaa95d0d54f6ce7b377b153",
+      "evm": "0x79e96317e27c164f6633318a6ef687acf74adddf",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 8,
+      "label": "wallet8",
+      "mnemonic": "pride cool lion squirrel village inhale gravity remind brick wedding seat oxygen",
+      "address": "ob1qkrf7pguggzpdhhzkwp9we5d43t3t2ucsl7vlaa",
+      "pubKey": "03838a647bb9c15f02db26383071213dd7d8ab22e2b5b1d721946159e02c2db02b",
+      "evm": "0x01a5e323a16ae7cd981d1e7d902af89dae4f7ba7",
+      "path": "m/44'/777'/0'/0/0"
+    },
+    {
+      "i": 9,
+      "label": "wallet9",
+      "mnemonic": "panda eyebrow bullet gorilla call smoke muffin taste mesh discover soft ostrich",
+      "address": "ob1q58pq2ej8p7uklgp3qp7u47cmzhw8mzzlfxu0s4",
+      "pubKey": "026718af93ad8667f10ed4a919bb6fc993b77df9e2c4b277991576f7f7c3ef9800",
+      "evm": "0xf2605968241f8bb1c1a5fe596603c1d266c9579e",
+      "path": "m/44'/777'/0'/0/0"
+    }
+  ]
+}

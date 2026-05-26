@@ -1,0 +1,50 @@
+\doxysection{archived-\/4-\/eterniti/\+tools-\/python/\+\+TESTING/\+test\+\_\+runner.py File Reference}
+\hypertarget{_t_e_s_t_i_n_g_2test__runner_8py}{}\label{_t_e_s_t_i_n_g_2test__runner_8py}\index{archived-\/4-\/eterniti/tools-\/python/TESTING/test\_runner.py@{archived-\/4-\/eterniti/tools-\/python/TESTING/test\_runner.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{test\+\_\+runner.\+Test\+Result}}
+\item 
+class \doxymbox{\hyperlink{classtest__runner_1_1_test_suite_result}{test\+\_\+runner.\+Test\+Suite\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacetest__runner}{test\+\_\+runner}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespacetest__runner_a1217fb568b6ed6069d010dc27901f71c}{test\+\_\+runner.\+check\+\_\+prerequisites}} ()
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} \doxymbox{\hyperlink{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}{test\+\_\+runner.\+run\+\_\+zig\+\_\+build\+\_\+test}} (str name, bool verbose=False, int timeout=120)
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} \doxymbox{\hyperlink{namespacetest__runner_a0e58698b95b151481e03e521f2f35896}{test\+\_\+runner.\+run\+\_\+single\+\_\+module\+\_\+test}} (str module\+\_\+name, bool verbose=False)
+\item 
+List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ \doxymbox{\hyperlink{namespacetest__runner_a59fa8d854fb17968cd282076d2e25d7e}{test\+\_\+runner.\+run\+\_\+test\+\_\+directory}} ()
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05}{test\+\_\+runner.\+print\+\_\+group\+\_\+result}} (str group\+\_\+name, dict info, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} result)
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a107aca59d52c2ee330fb5591bda9845f}{test\+\_\+runner.\+print\+\_\+summary}} (Dict\+[str, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ group\+\_\+results, List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ extra\+\_\+results)
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a8da15babdf3c552d023c33e0cec36227}{test\+\_\+runner.\+export\+\_\+json}} (Dict\+[str, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ group\+\_\+results, List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ extra\+\_\+results, Path path)
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a51af30a60f9f02777c6396b8247e356f}{test\+\_\+runner.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{test\+\_\+runner.\+ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_a2aa2ac7439f47449332d1a8008a09b75}{test\+\_\+runner.\+CORE}} = \doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_ada7920a9ab0d986f1967ce172be5f92e}{test\+\_\+runner.\+TEST\+\_\+\+DIR}} = \doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{ROOT}} /\+ "{}test"{}
+\item 
+dict \doxymbox{\hyperlink{namespacetest__runner_a2b778768973caa636037a3a8db029241}{test\+\_\+runner.\+TEST\+\_\+\+GROUPS}}
+\item 
+list \doxymbox{\hyperlink{namespacetest__runner_a9464482942964dd5ea26a2692c14d503}{test\+\_\+runner.\+EXTRA\+\_\+\+TESTABLE}}
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_a1d45c1d44bace7647a6f8a7f07c74d4b}{test\+\_\+runner.\+G}} = "{}\textbackslash{}033\+[94m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_a2f8f94e0e0e1e582a041bddf7b52c23a}{test\+\_\+runner.\+C}} = "{}\textbackslash{}033\+[2m"{}
+\end{DoxyCompactItemize}

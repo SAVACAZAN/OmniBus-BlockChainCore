@@ -1,0 +1,359 @@
+\doxysection{sha256-\/ripemd160-\/vectors.py}
+\hypertarget{sha256-ripemd160-vectors_8py_source}{}\label{sha256-ripemd160-vectors_8py_source}\index{tools/SECURITY/sha256-\/ripemd160-\/vectors.py@{tools/SECURITY/sha256-\/ripemd160-\/vectors.py}}
+\doxymbox{\hyperlink{sha256-ripemd160-vectors_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00001}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00002}\doxymbox{\hyperlink{namespacesha256}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ SHA-\/256\ and\ RIPEMD-\/160\ NIST\ Test\ Vectors.}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00004}00004\ \textcolor{stringliteral}{Hardcoded\ NIST\ SHA-\/256\ vectors\ and\ RIPEMD-\/160\ vectors.}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00005}00005\ \textcolor{stringliteral}{Runs\ via\ Python\ hashlib\ as\ reference.}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00006}00006\ \textcolor{stringliteral}{Cross-\/checks\ with\ Zig\ implementation\ output\ (via\ \`{}zig\ test\ core/ripemd160.zig\`{}\ etc).}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00010}00010\ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00011}00011\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00012}00012\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00013}00013\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00014}00014\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00015}00015\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00017}00017\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00018}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a78fd7189c8879e681902de84bfe915b6}{00018}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00019}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_add9e98e21b7facde9bdf4b01a3a0b4d2}{00019}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00020}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ac087f632bdeb7ec81471f01ad63dc657}{00020}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00021}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_aff9580697deb157e463cee440a46a3d3}{00021}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00022}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a70f251a8a2d4327bc5ace206c6e64ffb}{00022}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00023}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a115ca16cdc60abad91ddd91bd570e247}{00023}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00025}00025\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00026}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a376f5032fafd7bd22c53d594a7702928}{00026}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00027}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a62b4ebdd4c067552d10bb911a023ed32}{00027}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00028}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ae9bcca7606e888e58595c0f6ec3dccb8}{00028}}\ MAX\_SUPPLY\ =\ 21\_000\_000}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00029}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a1fb55452752c1b93c8f985ab5047282b}{00029}}\ SAT\ =\ int(1e9)}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00030}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a1abca64df5beada7f29627ded34face7}{00030}}\ BLOCK\_REWARD\ =\ 50}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00031}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a07480e08a7fff35713b78db7f8519ebd}{00031}}\ HALVING\_INTERVAL\ =\ 210\_000}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00032}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_aabc9d2908c9bd108415529986184e4a4}{00032}}\ CORE\_DIR\ =\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00034}00034\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00035}00035\ \textcolor{comment}{\#\ NIST\ SHA-\/256\ test\ vectors}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00036}00036\ \textcolor{comment}{\#\ Source:\ NIST\ FIPS\ 180-\/4\ and\ NIST\ CSRC\ examples}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00037}00037\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00038}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a967d43a849f7c4cb92cb285a53940dbc}{00038}}\ SHA256\_VECTORS\ =\ [}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00039}00039\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Empty\ string"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00043}00043\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00044}00044\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}abc"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}abc"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00048}00048\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00049}00049\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}448-\/bit\ message"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00053}00053\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00054}00054\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}896-\/bit\ message"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00058}00058\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00059}00059\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}1\ million\ 'a'"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}a"{}}\ *\ 1\_000\_000,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00063}00063\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00064}00064\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Single\ byte\ 0x00"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00068}00068\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00069}00069\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Single\ byte\ 0xFF"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)xff"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00073}00073\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00074}00074\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Bitcoin\ genesis\ block\ header\ hash\ (double\ SHA-\/256\ input)"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}The\ Times\ 03/Jan/2009\ Chancellor\ on\ brink\ of\ second\ bailout\ for\ banks"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{keywordtype}{None},\ \ \textcolor{comment}{\#\ We\ just\ test\ double-\/sha256\ consistency}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\_double"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00079}00079\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00080}00080\ ]}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00082}00082\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00083}00083\ \textcolor{comment}{\#\ RIPEMD-\/160\ test\ vectors}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00084}00084\ \textcolor{comment}{\#\ Source:\ https://homes.esat.kuleuven.be/\string~bosMDx/ripemd160.html}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00085}00085\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00086}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_aaf989ca241cf59a2f23cd1af732e7eee}{00086}}\ RIPEMD160\_VECTORS\ =\ [}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00087}00087\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Empty\ string"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}9c1185a5c5e9fc54612808977ee8f548b2258d31"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00091}00091\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00092}00092\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}a"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}a"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00096}00096\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00097}00097\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}abc"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}abc"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00101}00101\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00102}00102\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}message\ digest"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}message\ digest"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}5d0689ef49d2fae572b881b123a85ffa21595f36"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00106}00106\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00107}00107\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}a-\/z"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}abcdefghijklmnopqrstuvwxyz"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}f71c27109c692c1b56bbdceb5b9d2865b3708dbc"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00111}00111\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00112}00112\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}A-\/Za-\/z0-\/9"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}b0e20b6e3116640286ed3a87a5713079b21f5189"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00116}00116\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00117}00117\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}8x\ 1234567890"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}12345678901234567890123456789012345678901234567890123456789012345678901234567890"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}9b752e45573d4b39f4dbd3323cab82bf63326bfb"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00121}00121\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00122}00122\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}1\ million\ 'a'"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}a"{}}\ *\ 1\_000\_000,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ \textcolor{stringliteral}{"{}52783243c1697bdbe16d37f97f68f08325dc1528"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00126}00126\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00127}00127\ ]}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00130}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a0b574314229aeeb527ef72dc8e6debaf}{00130}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a0b574314229aeeb527ef72dc8e6debaf}{test\_sha256}}(vectors:\ list)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00131}00131\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ SHA-\/256\ test\ vectors."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00132}00132\ \ \ \ \ stats\ =\ \{\textcolor{stringliteral}{"{}total"{}}:\ 0,\ \textcolor{stringliteral}{"{}pass"{}}:\ 0,\ \textcolor{stringliteral}{"{}fail"{}}:\ 0,\ \textcolor{stringliteral}{"{}failures"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00134}00134\ \ \ \ \ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ vectors:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}total"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ data\ =\ v[\textcolor{stringliteral}{"{}input"{}}]}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ expected\ =\ v.get(\textcolor{stringliteral}{"{}expected"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00138}00138\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ computed\ =\ hashlib.sha256(data).hexdigest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ v.get(\textcolor{stringliteral}{"{}test\_double"{}}):}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Test\ double-\/SHA256\ consistency}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ dh1\ =\ hashlib.sha256(hashlib.sha256(data).digest()).hexdigest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ dh2\ =\ hashlib.sha256(hashlib.sha256(data).digest()).hexdigest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ dh1\ ==\ dh2:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}pass"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}fail"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}failures"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ v[\textcolor{stringliteral}{"{}name"{}}],}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}error"{}}:\ \textcolor{stringliteral}{"{}double-\/SHA256\ inconsistency"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ expected\ \textcolor{keywordflow}{and}\ computed\ ==\ expected:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}pass"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ expected:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}fail"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}failures"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ v[\textcolor{stringliteral}{"{}name"{}}],}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ expected[:32]\ +\ \textcolor{stringliteral}{"{}..."{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}got"{}}:\ computed[:32]\ +\ \textcolor{stringliteral}{"{}..."{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ No\ expected\ value,\ just\ verify\ it\ runs}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}pass"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00168}00168\ \ \ \ \ \textcolor{keywordflow}{return}\ stats}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00171}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ad05bbca807249927894a751fd61da248}{00171}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ad05bbca807249927894a751fd61da248}{test\_ripemd160}}(vectors:\ list)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00172}00172\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ RIPEMD-\/160\ test\ vectors."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00173}00173\ \ \ \ \ stats\ =\ \{\textcolor{stringliteral}{"{}total"{}}:\ 0,\ \textcolor{stringliteral}{"{}pass"{}}:\ 0,\ \textcolor{stringliteral}{"{}fail"{}}:\ 0,\ \textcolor{stringliteral}{"{}failures"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ vectors:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}total"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ h\ =\ hashlib.new(\textcolor{stringliteral}{"{}ripemd160"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ h.update(v[\textcolor{stringliteral}{"{}input"{}}])}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ computed\ =\ h.hexdigest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}fail"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}failures"{}}].append(\{\textcolor{stringliteral}{"{}name"{}}:\ v[\textcolor{stringliteral}{"{}name"{}}],\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ computed\ ==\ v[\textcolor{stringliteral}{"{}expected"{}}]:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}pass"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}fail"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}failures"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ v[\textcolor{stringliteral}{"{}name"{}}],}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ v[\textcolor{stringliteral}{"{}expected"{}}],}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}got"{}}:\ computed,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00196}00196\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{return}\ stats}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00200}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ae16aeffb6e6d304f7b16e6410e09e93d}{00200}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ae16aeffb6e6d304f7b16e6410e09e93d}{test\_hash160}}()\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00201}00201\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Test\ HASH160\ (SHA-\/256\ +\ RIPEMD-\/160)\ —\ used\ for\ Bitcoin\ addresses."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00202}00202\ \ \ \ \ stats\ =\ \{\textcolor{stringliteral}{"{}total"{}}:\ 0,\ \textcolor{stringliteral}{"{}pass"{}}:\ 0,\ \textcolor{stringliteral}{"{}fail"{}}:\ 0,\ \textcolor{stringliteral}{"{}failures"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00204}00204\ \ \ \ \ \textcolor{comment}{\#\ Known\ Bitcoin\ HASH160\ vectors}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00205}00205\ \ \ \ \ vectors\ =\ [}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Empty\ input\ HASH160"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}abc\ HASH160"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ b\textcolor{stringliteral}{"{}abc"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Bitcoin\ pubkey-\/like\ HASH160"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}input"{}}:\ bytes.fromhex(\textcolor{stringliteral}{"{}0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"{}}),}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00219}00219\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00220}00220\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00221}00221\ \ \ \ \ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ vectors:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}total"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ sha\ =\ hashlib.sha256(v[\textcolor{stringliteral}{"{}input"{}}]).digest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ ripe\ =\ hashlib.new(\textcolor{stringliteral}{"{}ripemd160"{}},\ sha).digest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Verify\ consistency}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ sha2\ =\ hashlib.sha256(v[\textcolor{stringliteral}{"{}input"{}}]).digest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ ripe2\ =\ hashlib.new(\textcolor{stringliteral}{"{}ripemd160"{}},\ sha2).digest()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ripe\ ==\ ripe2:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}pass"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}fail"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}failures"{}}].append(\{\textcolor{stringliteral}{"{}name"{}}:\ v[\textcolor{stringliteral}{"{}name"{}}],\ \textcolor{stringliteral}{"{}error"{}}:\ \textcolor{stringliteral}{"{}HASH160\ not\ deterministic"{}}\})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}fail"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}failures"{}}].append(\{\textcolor{stringliteral}{"{}name"{}}:\ v[\textcolor{stringliteral}{"{}name"{}}],\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00237}00237\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00238}00238\ \ \ \ \ \textcolor{keywordflow}{return}\ stats}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00241}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a53087ccef64044a8d4ef5674981de40e}{00241}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a53087ccef64044a8d4ef5674981de40e}{try\_zig\_cross\_check}}()\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00242}00242\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Try\ to\ run\ Zig\ tests\ for\ cross-\/checking.\ Non-\/fatal\ if\ Zig\ unavailable."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00243}00243\ \ \ \ \ results\ =\ \{\textcolor{stringliteral}{"{}available"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}tests\_run"{}}:\ 0,\ \textcolor{stringliteral}{"{}tests\_pass"{}}:\ 0\}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00245}00245\ \ \ \ \ \textcolor{comment}{\#\ Try\ core/sha256.zig\ and\ core/ripemd160.zig}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00246}00246\ \ \ \ \ \textcolor{keywordflow}{for}\ zig\_file\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}core/sha256.zig"{}},\ \textcolor{stringliteral}{"{}core/ripemd160.zig"{}}]:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.exists(zig\_file):}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ results[\textcolor{stringliteral}{"{}available"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ proc\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}test"{}},\ zig\_file],}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=30,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ results[\textcolor{stringliteral}{"{}tests\_run"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ proc.returncode\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ results[\textcolor{stringliteral}{"{}tests\_pass"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Zig\ test\ \{zig\_file\}:\ PASS\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Zig\ test\ \{zig\_file\}:\ FAIL\ (non-\/fatal,\ Zig\ build\ issue)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{proc.stderr[:200]\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ FileNotFoundError:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}zig\ compiler\ not\ found\ —\ skipping\ Zig\ cross-\/check\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Zig\ test\ \{zig\_file\}:\ TIMEOUT\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00268}00268\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00269}00269\ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00272}\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a51af30a60f9f02777c6396b8247e356f}{00272}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00273}00273\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ SHA-\/256\ \&\ RIPEMD-\/160\ NIST\ Vectors"{}}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00275}00275\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00276}00276\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00277}00277\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/skip-\/zig"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Skip\ Zig\ cross-\/check"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00278}00278\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00280}00280\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00281}00281\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ SHA-\/256\ \&\ RIPEMD-\/160\ Vectors"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00282}00282\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ SHA-\/256\ vectors:\ \ \ \{len(SHA256\_VECTORS)\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00283}00283\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RIPEMD-\/160\ vectors:\ \{len(RIPEMD160\_VECTORS)\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00284}00284\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RPC:\ \{RPC\_PORT\}\ |\ Shards:\ \{SHARDS\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00285}00285\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Block\ reward:\ \{BLOCK\_REWARD\}\ OMNI\ (halving\ every\ \{HALVING\_INTERVAL:,\}\ blocks)"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00286}00286\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00287}00287\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00288}00288\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00290}00290\ \ \ \ \ \textcolor{comment}{\#\ SHA-\/256}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00291}00291\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[1/4]\ SHA-\/256\ test\ vectors\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00292}00292\ \ \ \ \ sha256\_stats\ =\ \doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a0b574314229aeeb527ef72dc8e6debaf}{test\_sha256}}(SHA256\_VECTORS)}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00293}00293\ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ sha256\_stats[\textcolor{stringliteral}{"{}fail"{}}]\ ==\ 0\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00294}00294\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{color\}\{sha256\_stats['pass']\}/\{sha256\_stats['total']\}\ passed\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00295}00295\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00296}00296\ \ \ \ \ \textcolor{comment}{\#\ RIPEMD-\/160}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00297}00297\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[2/4]\ RIPEMD-\/160\ test\ vectors\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00298}00298\ \ \ \ \ ripemd\_stats\ =\ \doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ad05bbca807249927894a751fd61da248}{test\_ripemd160}}(RIPEMD160\_VECTORS)}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00299}00299\ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ ripemd\_stats[\textcolor{stringliteral}{"{}fail"{}}]\ ==\ 0\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00300}00300\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{color\}\{ripemd\_stats['pass']\}/\{ripemd\_stats['total']\}\ passed\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00302}00302\ \ \ \ \ \textcolor{comment}{\#\ HASH160}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00303}00303\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[3/4]\ HASH160\ consistency\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00304}00304\ \ \ \ \ hash160\_stats\ =\ \doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_ae16aeffb6e6d304f7b16e6410e09e93d}{test\_hash160}}()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00305}00305\ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ hash160\_stats[\textcolor{stringliteral}{"{}fail"{}}]\ ==\ 0\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00306}00306\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{color\}\{hash160\_stats['pass']\}/\{hash160\_stats['total']\}\ passed\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00308}00308\ \ \ \ \ \textcolor{comment}{\#\ Zig\ cross-\/check}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00309}00309\ \ \ \ \ zig\_results\ =\ \{\textcolor{stringliteral}{"{}available"{}}:\ \textcolor{keyword}{False}\}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00310}00310\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.skip\_zig:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[4/4]\ Zig\ cross-\/check\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ zig\_results\ =\ \doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a53087ccef64044a8d4ef5674981de40e}{try\_zig\_cross\_check}}()}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ zig\_results[\textcolor{stringliteral}{"{}available"{}}]:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}No\ Zig\ source\ files\ found\ in\ \{CORE\_DIR\}/\ —\ skipping\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00315}00315\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00316}00316\ \ \ \ \ elapsed\ =\ time.time()\ -\/\ t0}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00317}00317\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00318}00318\ \ \ \ \ total\_pass\ =\ sha256\_stats[\textcolor{stringliteral}{"{}pass"{}}]\ +\ ripemd\_stats[\textcolor{stringliteral}{"{}pass"{}}]\ +\ hash160\_stats[\textcolor{stringliteral}{"{}pass"{}}]}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00319}00319\ \ \ \ \ total\_fail\ =\ sha256\_stats[\textcolor{stringliteral}{"{}fail"{}}]\ +\ ripemd\_stats[\textcolor{stringliteral}{"{}fail"{}}]\ +\ hash160\_stats[\textcolor{stringliteral}{"{}fail"{}}]}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00320}00320\ \ \ \ \ total\ =\ sha256\_stats[\textcolor{stringliteral}{"{}total"{}}]\ +\ ripemd\_stats[\textcolor{stringliteral}{"{}total"{}}]\ +\ hash160\_stats[\textcolor{stringliteral}{"{}total"{}}]}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00322}00322\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tool"{}}:\ \textcolor{stringliteral}{"{}OmniBus\ SHA-\/256/RIPEMD-\/160\ vectors"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sha256"{}}:\ sha256\_stats,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ripemd160"{}}:\ ripemd\_stats,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash160"{}}:\ hash160\_stats,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}zig\_cross\_check"{}}:\ zig\_results,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total"{}}:\ total,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ total\_pass,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00330}00330\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}failed"{}}:\ total\_fail,}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00331}00331\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_seconds"{}}:\ round(elapsed,\ 2),}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verdict"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ total\_fail\ ==\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}},}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00333}00333\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00335}00335\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00336}00336\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00337}00337\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00338}00338\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00340}00340\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ SHA-\/256:\ \ \ \ \ \{sha256\_stats['pass']\}/\{sha256\_stats['total']\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ RIPEMD-\/160:\ \ \{ripemd\_stats['pass']\}/\{ripemd\_stats['total']\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ HASH160:\ \ \ \ \ \{hash160\_stats['pass']\}/\{hash160\_stats['total']\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total:\ \ \ \ \ \ \ \{GREEN\}\{total\_pass\}\{RESET\}\ /\ \{total\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ vc\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Verdict:\ \ \ \ \ \{vc\}\{BOLD\}\{report['verdict']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00347}00347\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Elapsed:\ \ \ \ \ \{elapsed:.2f\}s"{}})}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00349}00349\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00350}00350\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00351}00351\ }
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00352}00352\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{sha256-ripemd160-vectors_8py_source_l00353}00353\ \ \ \ \ \doxymbox{\hyperlink{namespacesha256-ripemd160-vectors_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

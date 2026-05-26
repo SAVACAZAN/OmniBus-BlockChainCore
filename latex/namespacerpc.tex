@@ -1,0 +1,33 @@
+\doxysection{rpc Namespace Reference}
+\hypertarget{namespacerpc}{}\label{namespacerpc}\index{rpc@{rpc}}
+
+
+-\/tester  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/tester 
+
+-\/fuzzer
+
+\begin{DoxyVerb}OmniBus Blockchain Core — JSON-RPC 2.0 Test Suite
+
+Tests each method, verifies error handling, stress tests with concurrent requests.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}rpc-fuzzer.py
+
+Fuzz the JSON-RPC interface of a BlockChainCore node.
+Sends malformed JSON-RPC requests:
+  - missing fields, wrong types
+  - huge payloads
+  - deeply nested objects
+  - SQL injection attempts inside params
+  - null bytes and unicode exploits
+
+Outputs: rpc-vulnerabilities.json
+\end{DoxyVerb}
+ 

@@ -1,0 +1,77 @@
+\chapter{FP Guide }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2fp}{}\label{md_frontend_2node__modules_2date-fns_2docs_2fp}\index{FP Guide@{FP Guide}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6329}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6329}%
+
+
+{\bfseries{date-\/fns}} v2.\+x provides \href{https://en.wikipedia.org/wiki/Functional_programming}{\texttt{functional programming}} (FP) friendly functions, like those in \href{https://github.com/lodash/lodash/wiki/FP-Guide}{\texttt{lodash}}, that support \href{https://en.wikipedia.org/wiki/Currying}{\texttt{currying}}.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6330}{}\doxysection{\texorpdfstring{Table of Contents}{Table of Contents}}\label{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6330}
+
+\begin{DoxyItemize}
+\item UsageUsage
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item Using Function CompositionUsing Function Composition
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6331}{}\doxysection{\texorpdfstring{Usage}{Usage}}\label{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6331}
+FP functions are provided via {\ttfamily \textquotesingle{}date-\/fns/\+fp\textquotesingle{}} submodule.
+
+Functions with options ({\ttfamily format}, {\ttfamily parse}, etc.) have two FP counterparts:\+ one that has the options object as its first argument and one that hasn\textquotesingle{}t. The name of the former has {\ttfamily With\+Options} added to the end of its name.
+
+In {\bfseries{date-\/fns\textquotesingle{}}} FP functions, the order of arguments is reversed.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ addYears,\ formatWithOptions\ \}\ from\ 'date-\/fns/fp'}
+\DoxyCodeLine{import\ \{\ eo\ \}\ from\ 'date-\/fns/locale'}
+\DoxyCodeLine{import\ toUpper\ from\ 'lodash/fp/toUpper'\ //\ 'date-\/fns/fp'\ is\ compatible\ with\ 'lodash/fp'!}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ If\ FP\ function\ has\ not\ received\ enough\ arguments,\ it\ returns\ another\ function}
+\DoxyCodeLine{const\ addFiveYears\ =\ addYears(5)}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Several\ arguments\ can\ be\ curried\ at\ once}
+\DoxyCodeLine{const\ dateToString\ =\ formatWithOptions(\{\ locale:\ eo\ \},\ 'd\ MMMM\ yyyy')}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ dates\ =\ [}
+\DoxyCodeLine{\ \ new\ Date(2017,\ 0\ /*\ Jan\ */,\ 1),}
+\DoxyCodeLine{\ \ new\ Date(2017,\ 1\ /*\ Feb\ */,\ 11),}
+\DoxyCodeLine{\ \ new\ Date(2017,\ 6\ /*\ Jul\ */,\ 2)}
+\DoxyCodeLine{]}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ formattedDates\ =\ dates.map(addFiveYears).map(dateToString).map(toUpper)}
+\DoxyCodeLine{//=>\ ['1\ JANUARO\ 2022',\ '11\ FEBRUARO\ 2022',\ '2\ JULIO\ 2022']}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6332}{}\doxysection{\texorpdfstring{Using Function Composition}{Using Function Composition}}\label{md_frontend_2node__modules_2date-fns_2docs_2fp_autotoc_md6332}
+The main advantage of FP functions is support of functional-\/style \href{https://medium.com/making-internets/why-using-chain-is-a-mistake-9bc1f80d51ba}{\texttt{function composing}}.
+
+In the example above, you can compose {\ttfamily add\+Five\+Years}, {\ttfamily date\+To\+String} and {\ttfamily to\+Upper} into a single function:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ formattedDates\ =\ dates.map((date)\ =>\ toUpper(dateToString(addFiveYears(date))))}
+
+\end{DoxyCode}
+
+
+Or you can use {\ttfamily compose} function provided by \href{https://lodash.com}{\texttt{lodash}} to do the same in more idiomatic way:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ compose\ from\ 'lodash/fp/compose'}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ formattedDates\ =\ dates.map(compose(toUpper,\ dateToString,\ addFiveYears))}
+
+\end{DoxyCode}
+
+
+Or if you prefer natural direction of composing (as opposed to the computationally correct order), you can use lodash\textquotesingle{} {\ttfamily flow} instead:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ flow\ from\ 'lodash/fp/flow'}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ formattedDates\ =\ dates.map(flow(addFiveYears,\ dateToString,\ toUpper))}
+
+\end{DoxyCode}
+ 

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Zig Security Report</title>
+<style>
+body { background: #0a0a0a; color: #0f0; font-family: monospace; margin: 20px; }
+h1 { color: #ff6b35; }
+.critical { background: #3a0000; border-left: 4px solid #ff0000; padding: 10px; margin: 10px 0; }
+.high { background: #2a1a00; border-left: 4px solid #ff6600; padding: 10px; margin: 10px 0; }
+.medium { background: #1a2a00; border-left: 4px solid #ffcc00; padding: 10px; margin: 10px 0; }
+.low { background: #001a2a; border-left: 4px solid #00aaff; padding: 10px; margin: 10px 0; }
+code { background: #000; padding: 2px 5px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+th { background: #333; color: #ffaa00; }
+</style>
+</head>
+<body>
+<h1>ðŸ”’ Zig Blockchain Security Report</h1>
+<p><strong>Target:</strong> C:\Kits work\limaje de programare\1_CORE\BlockChainCore</p>
+<p><strong>Time:</strong> 2026-05-02T00:08:02.990877</p>
+
+<h2>ðŸ“Š Summary</h2>
+<table>
+<tr><th>Total Files</th><td>11,227</td></tr>
+<tr><th>Zig Files</th><td>137</td></tr>
+<tr><th>ðŸ”´ CRITICAL</th><td style="color:#ff4444">192</td></tr>
+<tr><th>ðŸŸ  HIGH</th><td style="color:#ff8844">399</td></tr>
+<tr><th>ðŸŸ¡ MEDIUM</th><td style="color:#ffcc44">2122</td></tr>
+<tr><th>ðŸ”µ LOW</th><td style="color:#44aaff">808</td></tr>
+</table>
+
+<h2>ðŸ”´ CRITICAL Vulnerabilities</h2>
+
+            <div class="critical">
+                <code>test_ecdsa_path.zig:17</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "flush live wheel sun govern atom describe canyon hotel quality broccoli smart";</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>test_ecdsa_path.zig:18</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>var wallet = try wallet_mod.Wallet.fromMnemonic(mnemonic, "", allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>test_ecdsa_path.zig:22</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>std.debug.print("private_key_bytes (first 8): ", .{});</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded private_key, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>test_ecdsa_path.zig:23</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>for (wallet.private_key_bytes[0..8]) |b| std.debug.print("{x:0>2}", .{b});</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded private_key, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_manager.zig:133</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>/// Wallet propriu derivat din mnemonic + wallet_index (BIP-44 m/44'/777'/0'/0/N).</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_manager.zig:640</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>test "addAgentFromMnemonic — derives wallet + sets address from BIP-44" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_manager.zig:641</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_manager.zig:659</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>test "addAgent (legacy) — without mnemonic, canSign() is false" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_wallet.zig:64</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_wallet.zig:79</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>test "deriveAgentWallet — deterministic pentru acelasi mnemonic + index" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_wallet.zig:80</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_wallet.zig:92</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>agent_wallet.zig:103</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:62</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>/// PBKDF2-HMAC-SHA512(password=mnemonic, salt="mnemonic"+passphrase, c=2048, dkLen=64)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded password, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:65</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>return try initFromMnemonicPassphrase(mnemonic, "", allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:70</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>// Salt BIP-39: "mnemonic" + passphrase (UTF-8)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:71</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const prefix = "mnemonic";</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:683</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>test "BIP32 init din mnemonic" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:684</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:692</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:701</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:710</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:718</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:728</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:729</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const wallet = try BIP32Wallet.initFromMnemonicPassphrase(mnemonic, "TREZOR", testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:742</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:773</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:785</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:793</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:810</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:828</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:842</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:860</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bip32_wallet.zig:877</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ab</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bridge_listener.zig:394</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>event.token_address[0] = '0';</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded token, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bridge_listener.zig:395</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>event.token_address[1] = 'x';</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded token, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>bridge_listener.zig:581</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>.token_address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".*,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded token, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>cli.zig:164</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>var w = try wallet_mod.Wallet.fromMnemonic(gen_mnemonic, "", self.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>cli.zig:166</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>std.debug.print("{{\"address\":\"{s}\",\"mnemonic\":\"{s}\"}}\n", .{ w.address, gen_mnemonic });</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>cli.zig:182</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>gen_mnemonic, "", .mainnet, 0, 0, wallet_index, self.allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>cli.zig:193</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>"{{\"index\":{d},\"address\":\"{s}\",\"private_key_hex\":\"{s}\",\"public_key_hex\":\"{s}\"}}\n",</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded private_key, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>cli.zig:197</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>} else if (std.mem.eql(u8, arg, "--mnemonic")) {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>cli.zig:418</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>\\    --mnemonic "flush live wheel sun govern..." --wallet-index 2</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded mnemonic, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>crypto.zig:177</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const encrypted = try Crypto.encryptAES256("secret data!!", key);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded secret, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>crypto.zig:181</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>test "password strength" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded password, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>crypto.zig:182</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>try testing.expect(Crypto.isStrongPassword("MyStrongPass123!") == true);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded password, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>crypto.zig:183</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>try testing.expect(Crypto.isStrongPassword("weak") == false);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded password, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>encrypted_p2p.zig:73</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>// send_key = SHA256("send" || shared_secret)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded secret, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>encrypted_p2p.zig:74</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>// recv_key = SHA256("recv" || shared_secret)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded secret, use environment variables</span>
+            </div>
+            
+
+            <div class="critical">
+                <code>encrypted_p2p.zig:185</code><br>
+                <strong>HARDCODED_SECRET</strong><br>
+                <code>const encrypted = try alice.encrypt("secret data", testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Remove hardcoded secret, use environment variables</span>
+            </div>
+            
+
+<h2>ðŸŸ  HIGH Vulnerabilities</h2>
+
+            <div class="high">
+                <code>test_ecdsa_path.zig:17</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>const mnemonic = "flush live wheel sun govern atom describe canyon hotel quality broccoli smart";</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agents_main.zig:4</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// only. AI agents (which decide trades, claim faucet, etc. based on</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_executor.zig:391</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>test "user rule overrides preset" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:32</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// sa le ridice. Daca queue-ul e plin, decizii noi sunt scapate (drop oldest).</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:171</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Index unde se va pune urmatoarea decizie (round-robin overwrite oldest settled).</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:326</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// sunt nesettled, suprascrie cea mai veche (drop oldest unsettled).</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:331</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>var oldest_settled_idx: ?usize = null;</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:332</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>var oldest_settled_id: u64 = std.math.maxInt(u64);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:339</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>if (self.pending[i].settled and self.pending[i].id < oldest_settled_id) {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:340</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>oldest_settled_id = self.pending[i].id;</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:341</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>oldest_settled_idx = i;</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_manager.zig:344</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>if (target_idx == null) target_idx = oldest_settled_idx;</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>agent_tier.zig:107</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Tranzitie de tier — descrie schimbarea pentru log + RPC events.</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>binary_codec.zig:83</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>pub fn encodeSubBlock(self: *BinaryEncoder, sub: *const SubBlock) !void {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>block.zig:78</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>// Hash block header (includes merkle_root for TX commitment)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:166</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Includes both sent and received TXs, plus coinbase reward pseudo-entries.</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:209</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// DNS registry — set by main after init. Null in tests / nodes that</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:525</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>// The dupe-first approach trades a tiny extra alloc on found_existing</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:999</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>// consistent across all nodes (chain-derived → deterministic).</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:1120</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Returns true if `tx` is a bridge lock: destination = vault address</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:1541</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>//   - dns_registry pointer not attached (test paths, light nodes)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:2008</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>test "Blockchain.getNextAvailableNonce — includes pending mempool TXs" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:2928</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>test "Blockchain.isBridgeLockTx — rejects non-vault destination" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:2944</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>test "Blockchain.isBridgeLockTx — rejects vault dest without OMNIBRIDGE prefix" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:3055</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>test "getMatureBalance excludes immature coinbase" {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>blockchain.zig:3078</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>try testing.expectEqual(@as(u64, 50_000_000_000), bc.getAddressBalance("ob1qminerA")); // total incl</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>block_filter.zig:23</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Extended filter: includes witness data (future use)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:41</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Lista de seed nodes pentru bootstrap initial (DNS seeds ca Bitcoin)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:72</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Conecteaza la seed peers hardcodati si salveaza peerii descoperiti in manager.</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:318</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>// Step 2: Add seed nodes to manager (dedup handles overlap with loaded peers)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:424</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>status: NodeStatus,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:427</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>pub const NodeStatus = enum {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:448</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>.status = NodeStatus.starting,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:522</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>pub fn setStatus(self: *BootstrapNode, status: NodeStatus) void {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:546</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>status: BootstrapNode.NodeStatus,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:549</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Multiple Seed Nodes for redundancy</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:579</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Get all nodes (primary + secondary)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:580</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>pub fn getAllNodes(self: *SeedNodePool) usize {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:584</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Get total peer count across all nodes</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:595</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Check if network is ready (all nodes synchronized)</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:597</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>if (self.primary.status != BootstrapNode.NodeStatus.synchronized) {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:602</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>if (node.status != BootstrapNode.NodeStatus.synchronized) {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:610</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>/// Start mining on all nodes</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:612</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>self.primary.setStatus(BootstrapNode.NodeStatus.mining);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:615</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>node.setStatus(BootstrapNode.NodeStatus.mining);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:618</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>std.debug.print("[NETWORK] Mining started on all seed nodes!\n", .{});</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:638</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>try testing.expectEqual(node.status, BootstrapNode.NodeStatus.starting);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:680</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>try testing.expectEqual(pool.getAllNodes(), 1);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bootstrap.zig:700</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>pool.primary.setStatus(BootstrapNode.NodeStatus.synchronized);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+            <div class="high">
+                <code>bridge_listener.zig:813</code><br>
+                <strong>WEAK_CRYPTO</strong><br>
+                <code>// Insert MAX_SEEN_HASHES + 10 events — oldest should be evicted from dedup</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Replace des with SHA-256 or SHA-3</span>
+            </div>
+            
+
+<h2>ðŸŸ¡ MEDIUM Vulnerabilities</h2>
+
+            <div class="medium">
+                <code>test_ecdsa_path.zig:12</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var arena = std.heap.ArenaAllocator.init(std.testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>test_ecdsa_path.zig:14</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const allocator = arena.allocator();</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>test_ecdsa_path.zig:18</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var wallet = try wallet_mod.Wallet.fromMnemonic(mnemonic, "", allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>test_ecdsa_path.zig:44</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>try tx.sign(wallet.private_key_bytes, allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:23</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>allocator: std.mem.Allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:25</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>pub fn init(allocator: std.mem.Allocator) AgentManager {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:27</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>.agents = std.ArrayList(Agent).init(allocator),</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:28</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>.allocator = allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:73</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var gpa = std.heap.GeneralPurposeAllocator(.{}){};</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:75</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const allocator = gpa.allocator();</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:82</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var manager = AgentManager.init(allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agents_main.zig:37</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>fn handleRpc(allocator: std.mem.Allocator, body: []const u8) ![]u8 {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agents_main.zig:61</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>return std.fmt.allocPrint(allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agents_main.zig:68</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>return std.fmt.allocPrint(allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agents_main.zig:73</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>fn handleConnection(conn: std.net.Server.Connection, allocator: std.mem.Allocator) void {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agents_main.zig:108</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var gpa = std.heap.GeneralPurposeAllocator(.{}){};</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agents_main.zig:110</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const allocator = gpa.allocator();</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agents_main.zig:124</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>handleConnection(conn, allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_config.zig:225</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>pub fn parseJson(allocator: std.mem.Allocator, json_text: []const u8) ParseError!AgentBundle {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_config.zig:226</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const parsed = std.json.parseFromSlice(std.json.Value, allocator, json_text, .{}) catch return Parse</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_config.zig:362</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>pub fn loadFile(allocator: std.mem.Allocator, path: []const u8) ParseError!AgentBundle {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_config.zig:425</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const bundle = try parseJson(testing.allocator, json);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_config.zig:448</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const bundle = try parseJson(testing.allocator, json);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_config.zig:462</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>try testing.expectError(ParseError.UnknownStrategy, parseJson(testing.allocator, json));</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:130</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>/// Adresa wallet derivata (bech32). Buffer fix ca sa nu cerem allocator.</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:163</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>/// Manager fara allocator — slot array fix de MAX_AGENTS.</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:188</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>allocator: std.mem.Allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:197</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const w = try agent_wallet_mod.deriveAgentWallet(mnemonic, config.wallet_index, allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:642</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var arena = std.heap.ArenaAllocator.init(testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:649</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const slot1 = try mgr.addAgentFromMnemonic(cfg1, mnemonic, arena.allocator());</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_manager.zig:650</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const slot2 = try mgr.addAgentFromMnemonic(cfg2, mnemonic, arena.allocator());</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:28</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>allocator: std.mem.Allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:30</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var bip32 = try BIP32Wallet.initFromMnemonic(mnemonic, allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:65</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var arena = std.heap.ArenaAllocator.init(testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:67</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const a = arena.allocator();</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:81</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var arena = std.heap.ArenaAllocator.init(testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:83</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const a = arena.allocator();</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:93</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var arena = std.heap.ArenaAllocator.init(testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:95</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const a = arena.allocator();</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:104</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var arena = std.heap.ArenaAllocator.init(testing.allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>agent_wallet.zig:106</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>const a = arena.allocator();</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:5</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>allocator: std.mem.Allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:11</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>pub fn init(allocator: std.mem.Allocator, archive_path: []const u8, compress: bool) ArchiveManager {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:13</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>.allocator = allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:73</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>pub fn getRestorableBlocks(self: *ArchiveManager, allocator: std.mem.Allocator) ![]RestorableBlock {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:74</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>var restorable = std.array_list.Managed(RestorableBlock).init(allocator);</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:143</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>allocator: std.mem.Allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:146</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>pub fn init(allocator: std.mem.Allocator) ArchiveIndex {</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:148</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>.allocator = allocator,</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+            <div class="medium">
+                <code>archive_manager.zig:149</code><br>
+                <strong>MEMORY_LEAK_RISK</strong><br>
+                <code>.snapshots = std.array_list.Managed(ArchiveSnapshot).init(allocator),</code><br>
+                <span style="color:#00ff00">ðŸ’¡ Fix: Add defer allocator.free(ptr) after allocation</span>
+            </div>
+            
+
+<h2>ðŸ“ Zig Files</h2>
+<ul>
+<li>build.zig</li><li>test_ecdsa_path.zig</li><li>options.zig</li><li>dependencies.zig</li><li>agent_manager.zig</li><li>agents_main.zig</li><li>agent_config.zig</li><li>agent_executor.zig</li><li>agent_manager.zig</li><li>agent_tier.zig</li><li>agent_wallet.zig</li><li>archive_manager.zig</li><li>bech32.zig</li><li>benchmark.zig</li><li>binary_codec.zig</li><li>bip32_wallet.zig</li><li>block.zig</li><li>blockchain.zig</li><li>blockchain_v2.zig</li><li>block_filter.zig</li><li>bls_signatures.zig</li><li>bootstrap.zig</li><li>bread_ledger.zig</li><li>bridge_listener.zig</li><li>bridge_native.zig</li><li>bridge_relay.zig</li><li>chain_config.zig</li><li>cli.zig</li><li>compact_blocks.zig</li><li>compact_transaction.zig</li>
+</ul>
+
+<p><em>Generated by Zig Security Scanner</em></p>
+</body>
+</html>

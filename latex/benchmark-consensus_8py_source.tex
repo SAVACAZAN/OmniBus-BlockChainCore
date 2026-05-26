@@ -1,0 +1,125 @@
+\doxysection{benchmark-\/consensus.py}
+\hypertarget{benchmark-consensus_8py_source}{}\label{benchmark-consensus_8py_source}\index{tools/PERFORMANCE/benchmark-\/consensus.py@{tools/PERFORMANCE/benchmark-\/consensus.py}}
+\doxymbox{\hyperlink{benchmark-consensus_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00001}\doxymbox{\hyperlink{namespacebenchmark-consensus}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Consensus\ Benchmark}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00005}00005\ \textcolor{stringliteral}{Measures:}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Block\ validation\ time}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Sub-\/block\ processing\ latency}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Transaction\ throughput\ (TPS)}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00010}00010\ \textcolor{stringliteral}{Outputs:\ benchmark-\/results.json}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00011}00011\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00013}00013\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00014}00014\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00015}00015\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00016}00016\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00017}00017\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00018}00018\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00020}\doxymbox{\hyperlink{namespacebenchmark-consensus_a92700b7914098825b3519c9b6b45db9e}{00020}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00021}\doxymbox{\hyperlink{namespacebenchmark-consensus_aa1cda8318ab02b36457369abc66d327c}{00021}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00022}\doxymbox{\hyperlink{namespacebenchmark-consensus_acf9b8be2e6542507b842da9c92d50988}{00022}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00023}\doxymbox{\hyperlink{namespacebenchmark-consensus_a5ede0b2c5e903ba95b80e544da63470c}{00023}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00026}\doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{00026}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00027}00027\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00030}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark}{00030}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark}{ConsensusBenchmark}}:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00031}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a641dd25966b783862985f4b28c0722bb}{00031}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a641dd25966b783862985f4b28c0722bb}{\_\_init\_\_}}(self,\ txs\_per\_block:\ int\ =\ 2000,\ num\_blocks:\ int\ =\ 10):}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00032}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_ad0d9c69b25841be4dc62df01de8bcab0}{00032}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_ad0d9c69b25841be4dc62df01de8bcab0}{txs\_per\_block}}\ =\ txs\_per\_block}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00033}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a6386abec841a53063268680affd827dc}{00033}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a6386abec841a53063268680affd827dc}{num\_blocks}}\ =\ num\_blocks}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00034}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{00034}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}:\ Dict[str,\ Any]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00036}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a236e10d8c1dd23fb3f1440ca8007a92f}{00036}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a236e10d8c1dd23fb3f1440ca8007a92f}{\_generate\_block}}(self,\ block\_id:\ int)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ txs\ =\ []}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_ad0d9c69b25841be4dc62df01de8bcab0}{txs\_per\_block}}):}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \ \ \ \ txs.append(\{}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}txid"{}}:\ f\textcolor{stringliteral}{"{}tx-\/\{block\_id\}-\/\{i\}"{}},}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inputs"{}}:\ [\{\textcolor{stringliteral}{"{}prev"{}}:\ \textcolor{stringliteral}{"{}00"{}}\ *\ 32,\ \textcolor{stringliteral}{"{}vout"{}}:\ 0\}],}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}outputs"{}}:\ [\{\textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}om1\{block\_id:04x\}\{i:04x\}"{}},\ \textcolor{stringliteral}{"{}value"{}}:\ random.randint(1000,\ 100000)\}],}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}header"{}}:\ \{\textcolor{stringliteral}{"{}height"{}}:\ block\_id,\ \textcolor{stringliteral}{"{}prev\_hash"{}}:\ \textcolor{stringliteral}{"{}00"{}}\ *\ 32,\ \textcolor{stringliteral}{"{}merkle\_root"{}}:\ \textcolor{stringliteral}{"{}ff"{}}\ *\ 32\},\ \textcolor{stringliteral}{"{}txs"{}}:\ txs\}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00046}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a17adf06fa56ff157b0e4a502785144d6}{00046}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a17adf06fa56ff157b0e4a502785144d6}{benchmark\_block\_validation}}(self)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Block\ Validation\ Benchmark\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ times\_ms:\ List[float]\ =\ []}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ b\ \textcolor{keywordflow}{in}\ range(self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a6386abec841a53063268680affd827dc}{num\_blocks}}):}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ block\ =\ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a236e10d8c1dd23fb3f1440ca8007a92f}{\_generate\_block}}(b)}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ t0\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Simulate\ validation:\ verify\ merkle\ root\ and\ tx\ count}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \_\ =\ len(block[\textcolor{stringliteral}{"{}txs"{}}])}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \_\ =\ block[\textcolor{stringliteral}{"{}header"{}}][\textcolor{stringliteral}{"{}merkle\_root"{}}]}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(0.001)\ \ \textcolor{comment}{\#\ simulate\ 1ms\ base\ validation}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ t1\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ times\_ms.append((t1\ -\/\ t0)\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ avg\_ms\ =\ sum(times\_ms)\ /\ len(times\_ms)}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}[\textcolor{stringliteral}{"{}block\_validation\_ms"{}}]\ =\ \{\textcolor{stringliteral}{"{}avg"{}}:\ avg\_ms,\ \textcolor{stringliteral}{"{}min"{}}:\ min(times\_ms),\ \textcolor{stringliteral}{"{}max"{}}:\ max(times\_ms)\}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Avg\ block\ validation:\ \{avg\_ms:.2f\}\ ms"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}[\textcolor{stringliteral}{"{}block\_validation\_ms"{}}]}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00064}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a49bca9bdd80f5fe50ad7ba5479839f14}{00064}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a49bca9bdd80f5fe50ad7ba5479839f14}{benchmark\_sub\_block\_latency}}(self)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Sub-\/Block\ Latency\ Benchmark\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Simulate\ 4\ shards\ processing\ sub-\/blocks}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ latencies\_ms:\ List[float]\ =\ []}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ shard\ \textcolor{keywordflow}{in}\ range(4):}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ t0\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(0.0005)\ \ \textcolor{comment}{\#\ simulate\ 0.5ms\ sub-\/block\ processing}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ t1\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ latencies\_ms.append((t1\ -\/\ t0)\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ avg\_ms\ =\ sum(latencies\_ms)\ /\ len(latencies\_ms)}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}[\textcolor{stringliteral}{"{}sub\_block\_latency\_ms"{}}]\ =\ \{\textcolor{stringliteral}{"{}avg"{}}:\ avg\_ms,\ \textcolor{stringliteral}{"{}min"{}}:\ min(latencies\_ms),\ \textcolor{stringliteral}{"{}max"{}}:\ max(latencies\_ms)\}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Avg\ sub-\/block\ latency:\ \{avg\_ms:.2f\}\ ms"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}[\textcolor{stringliteral}{"{}sub\_block\_latency\_ms"{}}]}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00079}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a8cbc74413983e564a8211b084434369a}{00079}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a8cbc74413983e564a8211b084434369a}{benchmark\_tps}}(self)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ TPS\ Benchmark\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Simulate\ processing\ a\ batch\ of\ transactions\ as\ fast\ as\ possible}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ batch\_size\ =\ 10\_000}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ t0\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ processed\ =\ 0}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(batch\_size):}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ processed\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ t1\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ elapsed\ =\ t1\ -\/\ t0}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ tps\ =\ batch\_size\ /\ elapsed\ \textcolor{keywordflow}{if}\ elapsed\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}[\textcolor{stringliteral}{"{}tps"{}}]\ =\ \{\textcolor{stringliteral}{"{}throughput"{}}:\ round(tps,\ 2),\ \textcolor{stringliteral}{"{}batch\_size"{}}:\ batch\_size,\ \textcolor{stringliteral}{"{}elapsed\_sec"{}}:\ round(elapsed,\ 4)\}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Throughput:\ \{tps:,.0f\}\ TPS"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}[\textcolor{stringliteral}{"{}tps"{}}]}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00094}\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a9ad8e275a7a40ab6022e6992589af9f4}{00094}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a9ad8e275a7a40ab6022e6992589af9f4}{run}}(self)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Consensus\ Benchmark\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a17adf06fa56ff157b0e4a502785144d6}{benchmark\_block\_validation}}()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a49bca9bdd80f5fe50ad7ba5479839f14}{benchmark\_sub\_block\_latency}}()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a8cbc74413983e564a8211b084434369a}{benchmark\_tps}}()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark_a56bf8ee96a3f2dfc36c96a39e50249cb}{results}}}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00102}\doxymbox{\hyperlink{namespacebenchmark-consensus_a7431cb90017e54fe695b23d4190db046}{00102}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebenchmark-consensus_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00103}00103\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Benchmark\ consensus\ performance"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00104}00104\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/txs"{}},\ type=int,\ default=2000,\ help=\textcolor{stringliteral}{"{}Transactions\ per\ block"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00105}00105\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/blocks"{}},\ type=int,\ default=10,\ help=\textcolor{stringliteral}{"{}Number\ of\ blocks"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00106}00106\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}benchmark-\/results.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00107}00107\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00109}00109\ \ \ \ \ bench\ =\ \doxymbox{\hyperlink{classbenchmark-consensus_1_1_consensus_benchmark}{ConsensusBenchmark}}(txs\_per\_block=args.txs,\ num\_blocks=args.blocks)}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00110}00110\ \ \ \ \ report\ =\ bench.run()}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00112}00112\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00114}00114\ \ \ \ \ \doxymbox{\hyperlink{namespacebenchmark-consensus_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nResults\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00118}00118\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{benchmark-consensus_8py_source_l00119}00119\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacebenchmark-consensus_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

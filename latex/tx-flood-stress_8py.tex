@@ -1,0 +1,68 @@
+\doxysection{tools/\+\+PERFORMANCE/\+tx-\/flood-\/stress.py File Reference}
+\hypertarget{tx-flood-stress_8py}{}\label{tx-flood-stress_8py}\index{tools/PERFORMANCE/tx-\/flood-\/stress.py@{tools/PERFORMANCE/tx-\/flood-\/stress.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{tx-\/flood-\/stress.\+Stress\+Results}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacetx-flood-stress}{tx-\/flood-\/stress}}
+\item 
+namespace \doxymbox{\hyperlink{namespacetx}{tx}}
+\begin{DoxyCompactList}\small\item\em -\/flood-\/stress \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+tuple \doxymbox{\hyperlink{namespacetx-flood-stress_a2f9bf22fd1cac13cf3e5f0d0a20fdbac}{tx-\/flood-\/stress.\+rpc\+\_\+request}} (str host, int port, str method, list params=None)
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_ad1865115e19c8d8e98f1ba48138ad031}{tx-\/flood-\/stress.\+worker\+\_\+valid\+\_\+requests}} (str host, int port, int count, \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{Stress\+Results}} results)
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_af1d950fcf9ada35419145b3942b9ad35}{tx-\/flood-\/stress.\+worker\+\_\+raw\+\_\+tx}} (str host, int port, int count, \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{Stress\+Results}} results)
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_a22f0bfaf37fd281a37552b5caea4e7de}{tx-\/flood-\/stress.\+worker\+\_\+connection\+\_\+hold}} (str host, int port, float duration, \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{Stress\+Results}} results)
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_a72cc99ea8a4d657a5384ea0e4d2112a1}{tx-\/flood-\/stress.\+print\+\_\+dashboard}} (\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{Stress\+Results}} results, str phase)
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_a5ecb900e8fd48b82356288d4dfd186f7}{tx-\/flood-\/stress.\+run\+\_\+phase}} (str name, target, list args\+\_\+list, \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{Stress\+Results}} results, int thread\+\_\+count)
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_a51af30a60f9f02777c6396b8247e356f}{tx-\/flood-\/stress.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacetx-flood-stress_a7568fa98628615cc958f4863de7a5653}{tx-\/flood-\/stress.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetx-flood-stress_a1a7b7a342ae9200ad52d3f75d1d6067a}{tx-\/flood-\/stress.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetx-flood-stress_ae7e9fa7b39fa43aa4fa4165714a8e812}{tx-\/flood-\/stress.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetx-flood-stress_a7307440dc95f9f2ad625140759350861}{tx-\/flood-\/stress.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetx-flood-stress_a45b7f3f9e1be305a2440ba81f426724f}{tx-\/flood-\/stress.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetx-flood-stress_aefc97553a76bff9f24fa036a917dfb31}{tx-\/flood-\/stress.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetx-flood-stress_aa53b7be53ca4e0520ae8c2ac19fd7a14}{tx-\/flood-\/stress.\+CLEAR\+\_\+\+LINE}} = "{}\textbackslash{}033\+[2K\textbackslash{}r"{}
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_a2615db73d0f0240fefa605f8de529cf9}{tx-\/flood-\/stress.\+RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_a56fc3a69978451bf99fe0339ae38374c}{tx-\/flood-\/stress.\+WS\+\_\+\+PORT}} = 8334
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_a3c1b861271a13d57b17685eb0fe29d36}{tx-\/flood-\/stress.\+P2\+P\+\_\+\+PORT}} = 9000
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_aa5b913292ea363cf78e09e9f29c26e0b}{tx-\/flood-\/stress.\+NODE\+\_\+\+BINARY}} = os.\+path.\+join("{}zig-\/out"{}, "{}bin"{}, "{}omnibus-\/node.\+exe"{})
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_a1ab7f65c1d35c4ed315df7733e3ea342}{tx-\/flood-\/stress.\+SHARDS}} = 4
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_abec7bf32d82c8adbd0c391449a3694a3}{tx-\/flood-\/stress.\+SUB\+\_\+\+BLOCKS}} = 10
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_a7525c7b15f59302a61728290ccc120d1}{tx-\/flood-\/stress.\+MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespacetx-flood-stress_a96652bb292479ccee7eb69a2ec16691c}{tx-\/flood-\/stress.\+SAT}} = int(1e9)
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_a1aa1989465b86d9fa9cf53ee9e1059bc}{tx-\/flood-\/stress.\+BLOCK\+\_\+\+REWARD}} = 50
+\item 
+int \doxymbox{\hyperlink{namespacetx-flood-stress_a3531da6277bddb89d09652b6efa95611}{tx-\/flood-\/stress.\+HALVING\+\_\+\+INTERVAL}} = 210\+\_\+000
+\end{DoxyCompactItemize}

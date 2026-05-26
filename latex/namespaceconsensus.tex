@@ -1,0 +1,39 @@
+\doxysection{consensus Namespace Reference}
+\hypertarget{namespaceconsensus}{}\label{namespaceconsensus}\index{consensus@{consensus}}
+
+
+-\/attack-\/sim  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/attack-\/sim 
+
+-\/evolution-\/analyzer
+
+\begin{DoxyVerb}consensus-attack-sim.py
+
+Simulate and estimate feasibility of consensus attacks against a
+BlockChainCore-style network:
+  - 51% attack (hashrate requirement)
+  - selfish mining simulation
+  - eclipse attack (isolation cost)
+  - long-range attack
+  - nothing-at-stake (PoS scenario)
+
+Outputs: attack-feasibility.json with cost estimates.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}consensus-evolution-analyzer.py
+
+Analyze how the consensus layer changed over time using on-chain data
+ queried via RPC or simulation:
+  - Real block times vs target (10 s)
+  - Difficulty adjustment correctness / oscillation
+  - Fork frequency
+
+Outputs: consensus-health-over-time.json
+\end{DoxyVerb}
+ 

@@ -1,0 +1,200 @@
+\doxysection{dependency\+\_\+check.\+Dependency\+Checker Class Reference}
+\hypertarget{classdependency__check_1_1_dependency_checker}{}\label{classdependency__check_1_1_dependency_checker}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_aed0a082bf837c1e79ae2d8aaf29d2b4c}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+Tuple\+[bool, Optional\+[str]\+]\+ \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a243c350926482b6885bed2819d9e5505}{check\+\_\+command}} (self, str cmd)
+\item 
+bool \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a021856554aa5a71d702841b62ba9905e}{check\+\_\+version\+\_\+meets\+\_\+min}} (self, str version, str min\+\_\+version)
+\item 
+\doxymbox{\hyperlink{classdependency__check_1_1_check_result}{Check\+Result}} \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a2b985c41beafd3f399f8db8eb3098e9e}{check\+\_\+liboqs}} (self)
+\item 
+List\+[Tuple\+[int, bool]\+]\+ \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a15f45deb701dee7959696319eae3ef5b}{check\+\_\+ports}} (self)
+\item 
+List\+[\doxymbox{\hyperlink{classdependency__check_1_1_check_result}{Check\+Result}}]\+ \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a1d803927933056099a48bcd8528d8be4}{check\+\_\+all}} (self)
+\item 
+bool \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a483c68a9132a6d71a160f714c4a4be81}{all\+\_\+required\+\_\+ok}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a3bdeb101255ab0bbc44fcd70d8fa7a72}{project\+\_\+root}} = project\+\_\+root
+\item 
+list \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_ac4edfbd87b2e910b32a918c7e93ae995}{results}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+list \doxymbox{\hyperlink{classdependency__check_1_1_dependency_checker_a1488496d86cc25dd18eb780b9e130dfa}{DEPENDENCIES}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Verifică dependințele proiectului.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+
+
+\label{classdependency__check_1_1_dependency_checker_doc-constructors}
+\Hypertarget{classdependency__check_1_1_dependency_checker_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classdependency__check_1_1_dependency_checker_aed0a082bf837c1e79ae2d8aaf29d2b4c}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_aed0a082bf837c1e79ae2d8aaf29d2b4c} 
+dependency\+\_\+check.\+Dependency\+Checker.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00073}{73}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+
+
+\label{classdependency__check_1_1_dependency_checker_doc-func-members}
+\Hypertarget{classdependency__check_1_1_dependency_checker_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classdependency__check_1_1_dependency_checker_a483c68a9132a6d71a160f714c4a4be81}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!all\_required\_ok@{all\_required\_ok}}
+\index{all\_required\_ok@{all\_required\_ok}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{all\_required\_ok()}{all\_required\_ok()}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a483c68a9132a6d71a160f714c4a4be81} 
+ bool dependency\+\_\+check.\+Dependency\+Checker.\+all\+\_\+required\+\_\+ok (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică dacă toate dependințele required sunt OK.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00195}{195}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+\Hypertarget{classdependency__check_1_1_dependency_checker_a1d803927933056099a48bcd8528d8be4}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!check\_all@{check\_all}}
+\index{check\_all@{check\_all}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{check\_all()}{check\_all()}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a1d803927933056099a48bcd8528d8be4} 
+ List\+[\doxymbox{\hyperlink{classdependency__check_1_1_check_result}{Check\+Result}}]\+ dependency\+\_\+check.\+Dependency\+Checker.\+check\+\_\+all (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică toate dependințele.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00173}{173}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+\Hypertarget{classdependency__check_1_1_dependency_checker_a243c350926482b6885bed2819d9e5505}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!check\_command@{check\_command}}
+\index{check\_command@{check\_command}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{check\_command()}{check\_command()}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a243c350926482b6885bed2819d9e5505} 
+ Tuple\+[bool, Optional\+[str]\+]\+ dependency\+\_\+check.\+Dependency\+Checker.\+check\+\_\+command (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{cmd}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică dacă o comandă există și ia versiunea.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00077}{77}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classdependency__check_1_1_dependency_checker_a2b985c41beafd3f399f8db8eb3098e9e}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!check\_liboqs@{check\_liboqs}}
+\index{check\_liboqs@{check\_liboqs}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{check\_liboqs()}{check\_liboqs()}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a2b985c41beafd3f399f8db8eb3098e9e} 
+ \doxymbox{\hyperlink{classdependency__check_1_1_check_result}{Check\+Result}} dependency\+\_\+check.\+Dependency\+Checker.\+check\+\_\+liboqs (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică liboqs separat (opțional).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00122}{122}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{classdependency__check_1_1_dependency_checker_a15f45deb701dee7959696319eae3ef5b}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!check\_ports@{check\_ports}}
+\index{check\_ports@{check\_ports}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{check\_ports()}{check\_ports()}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a15f45deb701dee7959696319eae3ef5b} 
+ List\+[Tuple\+[int, bool]\+]\+ dependency\+\_\+check.\+Dependency\+Checker.\+check\+\_\+ports (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică dacă porturile necesare sunt libere.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00157}{157}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+\Hypertarget{classdependency__check_1_1_dependency_checker_a021856554aa5a71d702841b62ba9905e}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!check\_version\_meets\_min@{check\_version\_meets\_min}}
+\index{check\_version\_meets\_min@{check\_version\_meets\_min}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{check\_version\_meets\_min()}{check\_version\_meets\_min()}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a021856554aa5a71d702841b62ba9905e} 
+ bool dependency\+\_\+check.\+Dependency\+Checker.\+check\+\_\+version\+\_\+meets\+\_\+min (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{version}{, }\item[{str}]{min\+\_\+version}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică dacă versiunea >= min_version.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00106}{106}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+
+
+\label{classdependency__check_1_1_dependency_checker_doc-variable-members}
+\Hypertarget{classdependency__check_1_1_dependency_checker_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classdependency__check_1_1_dependency_checker_a1488496d86cc25dd18eb780b9e130dfa}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!DEPENDENCIES@{DEPENDENCIES}}
+\index{DEPENDENCIES@{DEPENDENCIES}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{DEPENDENCIES}{DEPENDENCIES}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a1488496d86cc25dd18eb780b9e130dfa} 
+list dependency\+\_\+check.\+Dependency\+Checker.\+DEPENDENCIES\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ Dependency(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{'Zig'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ command=\textcolor{stringliteral}{'zig'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ min\_version=\textcolor{stringliteral}{'0.15.0'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ required=\textcolor{keyword}{True},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ install\_help=\textcolor{stringliteral}{'https://ziglang.org/download/\ sau\ "{}choco\ install\ zig"{}\ pe\ Windows'}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ Dependency(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{'Python'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ command=\textcolor{stringliteral}{'python'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ min\_version=\textcolor{stringliteral}{'3.8.0'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ required=\textcolor{keyword}{True},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ install\_help=\textcolor{stringliteral}{'https://python.org\ sau\ "{}choco\ install\ python"{}'}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ Dependency(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{'Git'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ command=\textcolor{stringliteral}{'git'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ min\_version=\textcolor{keywordtype}{None},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ required=\textcolor{keyword}{True},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ install\_help=\textcolor{stringliteral}{'https://git-\/scm.com\ sau\ "{}choco\ install\ git"{}'}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\ \ \ \ ]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+\Hypertarget{classdependency__check_1_1_dependency_checker_a3bdeb101255ab0bbc44fcd70d8fa7a72}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_a3bdeb101255ab0bbc44fcd70d8fa7a72} 
+dependency\+\_\+check.\+Dependency\+Checker.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+\Hypertarget{classdependency__check_1_1_dependency_checker_ac4edfbd87b2e910b32a918c7e93ae995}\index{dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}!results@{results}}
+\index{results@{results}!dependency\_check.DependencyChecker@{dependency\_check.DependencyChecker}}
+\doxysubsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily \label{classdependency__check_1_1_dependency_checker_ac4edfbd87b2e910b32a918c7e93ae995} 
+list dependency\+\_\+check.\+Dependency\+Checker.\+results = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency__check_8py_source_l00075}{75}} of file \doxymbox{\hyperlink{dependency__check_8py_source}{dependency\+\_\+check.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{dependency__check_8py}{dependency\+\_\+check.\+py}}\end{DoxyCompactItemize}

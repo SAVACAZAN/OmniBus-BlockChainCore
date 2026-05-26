@@ -1,0 +1,158 @@
+\doxysection{tx-\/stress-\/sim Namespace Reference}
+\hypertarget{namespacetx-stress-sim}{}\label{namespacetx-stress-sim}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classtx-stress-sim_1_1_level_config}{Level\+Config}}
+\item 
+class \doxymbox{\hyperlink{classtx-stress-sim_1_1_stats}{Stats}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{namespacetx-stress-sim_ac9ab6d0c4e90563cfd586f010baa2f74}{parse\+\_\+duration}} (str s)
+\item 
+Any \doxymbox{\hyperlink{namespacetx-stress-sim_ab1eed24dc1ecc984de8229f787042c10}{rpc}} (str url, str method, list\+[Any]\+\texorpdfstring{$\vert$}{|}None params=None, \texorpdfstring{$\ast$}{*}, float timeout=5.\+0)
+\item 
+tuple\+[int, int]\+ \doxymbox{\hyperlink{namespacetx-stress-sim_a719aaefb29d6ae0104e76b63b1fe3c80}{chain\+\_\+snapshot}} (str rpc\+\_\+url)
+\item 
+tuple\+[bool, str]\+ \doxymbox{\hyperlink{namespacetx-stress-sim_aba8cfc01767686cb28f1f3141af0f46c}{send\+\_\+one}} (str rpc\+\_\+url, str to\+\_\+addr, int amount\+\_\+sat)
+\item 
+None \doxymbox{\hyperlink{namespacetx-stress-sim_a2233b8b21f6c098d05d8c1e55beb4dc4}{report}} (\doxymbox{\hyperlink{classtx-stress-sim_1_1_stats}{Stats}} stats, str rpc\+\_\+url)
+\item 
+int \doxymbox{\hyperlink{namespacetx-stress-sim_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+list \doxymbox{\hyperlink{namespacetx-stress-sim_a45242ec75d7bd20fd8d1d449f5199fbf}{SAMPLE\+\_\+\+RECIPIENTS}}
+\item 
+dict \doxymbox{\hyperlink{namespacetx-stress-sim_ad087e8cd9f1c4fc59b2b8db97768d113}{LEVELS}}
+\end{DoxyCompactItemize}
+
+
+\label{namespacetx-stress-sim_doc-func-members}
+\Hypertarget{namespacetx-stress-sim_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetx-stress-sim_a719aaefb29d6ae0104e76b63b1fe3c80}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!chain\_snapshot@{chain\_snapshot}}
+\index{chain\_snapshot@{chain\_snapshot}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{chain\_snapshot()}{chain\_snapshot()}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_a719aaefb29d6ae0104e76b63b1fe3c80} 
+ tuple\+[int, int]\+ chain\+\_\+snapshot (\begin{DoxyParamCaption}\item[{str}]{rpc\+\_\+url}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}(height, mempool_size). Returns (-1, -1) on RPC failure.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00152}{152}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacetx-stress-sim_a7431cb90017e54fe695b23d4190db046}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!main@{main}}
+\index{main@{main}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00187}{187}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacetx-stress-sim_ac9ab6d0c4e90563cfd586f010baa2f74}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!parse\_duration@{parse\_duration}}
+\index{parse\_duration@{parse\_duration}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{parse\_duration()}{parse\_duration()}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_ac9ab6d0c4e90563cfd586f010baa2f74} 
+ int parse\+\_\+duration (\begin{DoxyParamCaption}\item[{str}]{s}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Accepts strings like '1h', '24h', '30m', '90s'. Returns seconds.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00130}{130}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacetx-stress-sim_a2233b8b21f6c098d05d8c1e55beb4dc4}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!report@{report}}
+\index{report@{report}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{report()}{report()}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_a2233b8b21f6c098d05d8c1e55beb4dc4} 
+ None report (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classtx-stress-sim_1_1_stats}{Stats}}}]{stats}{, }\item[{str}]{rpc\+\_\+url}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00172}{172}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacetx-stress-sim_ab1eed24dc1ecc984de8229f787042c10}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!rpc@{rpc}}
+\index{rpc@{rpc}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{rpc()}{rpc()}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_ab1eed24dc1ecc984de8229f787042c10} 
+ Any rpc (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{str}]{method}{, }\item[{list\+[Any]\+ \texorpdfstring{$\vert$}{|} None }]{params}{ = {\ttfamily None}, }\item[{\texorpdfstring{$\ast$}{*}}]{}{, }\item[{float }]{timeout}{ = {\ttfamily 5.0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00142}{142}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacetx-stress-sim_aba8cfc01767686cb28f1f3141af0f46c}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!send\_one@{send\_one}}
+\index{send\_one@{send\_one}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{send\_one()}{send\_one()}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_aba8cfc01767686cb28f1f3141af0f46c} 
+ tuple\+[bool, str]\+ send\+\_\+one (\begin{DoxyParamCaption}\item[{str}]{rpc\+\_\+url}{, }\item[{str}]{to\+\_\+addr}{, }\item[{int}]{amount\+\_\+sat}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Returns (accepted, txid_or_error).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00161}{161}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+\label{namespacetx-stress-sim_doc-var-members}
+\Hypertarget{namespacetx-stress-sim_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetx-stress-sim_ad087e8cd9f1c4fc59b2b8db97768d113}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!LEVELS@{LEVELS}}
+\index{LEVELS@{LEVELS}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{LEVELS}{LEVELS}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_ad087e8cd9f1c4fc59b2b8db97768d113} 
+dict \doxymbox{\hyperlink{namespacetx}{tx}}-\/stress-\/sim.\+LEVELS}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00082}{82}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+
+\Hypertarget{namespacetx-stress-sim_a45242ec75d7bd20fd8d1d449f5199fbf}\index{tx-\/stress-\/sim@{tx-\/stress-\/sim}!SAMPLE\_RECIPIENTS@{SAMPLE\_RECIPIENTS}}
+\index{SAMPLE\_RECIPIENTS@{SAMPLE\_RECIPIENTS}!tx-\/stress-\/sim@{tx-\/stress-\/sim}}
+\doxysubsubsection{\texorpdfstring{SAMPLE\_RECIPIENTS}{SAMPLE\_RECIPIENTS}}
+{\footnotesize\ttfamily \label{namespacetx-stress-sim_a45242ec75d7bd20fd8d1d449f5199fbf} 
+list \doxymbox{\hyperlink{namespacetx}{tx}}-\/stress-\/sim.\+SAMPLE\+\_\+\+RECIPIENTS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1q5stczt5xxxphedadlqej09f5hww22qhvrj2nln"{}},\ \ \textcolor{comment}{\#\ \#4\ sava.omnibus}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1q8wm5est4fft7mrj937sg9uyaz2nskgttf3ku5u"{}},\ \ \textcolor{comment}{\#\ \#1}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1qpjt7gngkj79663a298schx6dkjxqf37hwfggw2"{}},\ \ \textcolor{comment}{\#\ \#2}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1qqcmwu5txqt5m3wv6p3ugxp6a3q4jsntd0mxyxa"{}},\ \ \textcolor{comment}{\#\ \#3}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1quax5e9hyyzmft2m2lzn735asswsw9gh4gtgess"{}},\ \ \textcolor{comment}{\#\ \#5}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1qcdep7azzrr8t3x8tgn9wp6p69fc884g8g80v09"{}},\ \ \textcolor{comment}{\#\ \#6}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1qdpknh5kapc22fv6s7jv0ntj7kwepqf3hcq4jrj"{}},\ \ \textcolor{comment}{\#\ \#8}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ob1qvetjtq3swujv0jqsmw0gq84fymtfuaz5p5cjdv"{}},\ \ \textcolor{comment}{\#\ \#7\ faucet}}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{tx-stress-sim_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{tx-stress-sim_8py_source}{tx-\/stress-\/sim.\+py}}.
+

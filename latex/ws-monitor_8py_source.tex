@@ -1,0 +1,91 @@
+\doxysection{ws-\/monitor.py}
+\hypertarget{ws-monitor_8py_source}{}\label{ws-monitor_8py_source}\index{tools/NETWORK/ws-\/monitor.py@{tools/NETWORK/ws-\/monitor.py}}
+\doxymbox{\hyperlink{ws-monitor_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00001}\doxymbox{\hyperlink{namespacews-monitor}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00002}\doxymbox{\hyperlink{namespacews}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ WebSocket\ Monitor}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00005}00005\ \textcolor{stringliteral}{Connects\ to\ ws://host:8334,\ logs\ all\ events\ to\ stdout\ and\ optionally\ a\ file.}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00009}00009\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00010}00010\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00011}00011\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00012}00012\ \textcolor{keyword}{import}\ websocket}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00014}\doxymbox{\hyperlink{namespacews-monitor_a9acbdbbdae2e2bb905c743bfd56b65b9}{00014}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00015}\doxymbox{\hyperlink{namespacews-monitor_ad278f32fad7153f95e543f5c6043909d}{00015}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00016}\doxymbox{\hyperlink{namespacews-monitor_a775bd9116af4c9f9a58bb56eca6869c8}{00016}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00017}\doxymbox{\hyperlink{namespacews-monitor_a1d1fb15b8902c1e7ceb57304bed91d1e}{00017}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00020}\doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{00020}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00021}00021\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00024}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor}{00024}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor}{WSMonitor}}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00025}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ac27edb001ea451a522cedad7e4f3bf55}{00025}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ac27edb001ea451a522cedad7e4f3bf55}{\_\_init\_\_}}(self,\ url:\ str\ =\ \textcolor{stringliteral}{"{}ws://127.0.0.1:8334"{}},\ output:\ Optional[str]\ =\ \textcolor{keywordtype}{None}):}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00026}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a5b5f41322dd15c81435f5ec00d6e246a}{00026}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a5b5f41322dd15c81435f5ec00d6e246a}{url}}\ =\ url}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00027}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_abb5a2689da30c1ca0bbfacefadc2d429}{00027}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_abb5a2689da30c1ca0bbfacefadc2d429}{output}}\ =\ output}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00028}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{00028}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{file}}\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00029}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a7c80d770e4f351ae3fdb47b27df3173b}{00029}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a7c80d770e4f351ae3fdb47b27df3173b}{msg\_count}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00031}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a4c68003138a99a706ccad14a32542e94}{00031}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a4c68003138a99a706ccad14a32542e94}{on\_open}}(self,\ ws):}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Connected\ to\ \{self.url\}"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Subscribe\ to\ all\ channels}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ ws.send(json.dumps(\{\textcolor{stringliteral}{"{}subscribe"{}}:\ [\textcolor{stringliteral}{"{}blocks"{}},\ \textcolor{stringliteral}{"{}txs"{}},\ \textcolor{stringliteral}{"{}peers"{}}]\}))}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00036}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_acbe8d9bbc9d9916db1afdae7352d94eb}{00036}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_acbe8d9bbc9d9916db1afdae7352d94eb}{on\_message}}(self,\ ws,\ message):}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a7c80d770e4f351ae3fdb47b27df3173b}{msg\_count}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ ts\ =\ time.strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M:\%S"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ line\ =\ f\textcolor{stringliteral}{"{}[\{ts\}]\ \#\{self.msg\_count\}\ \{message\}"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ line)}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{file}}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{file}}.write(line\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{file}}.flush()}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00045}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_af92237680f10e578d128fa86552bb241}{00045}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_af92237680f10e578d128fa86552bb241}{on\_error}}(self,\ ws,\ error):}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}WS\ Error:\ \{error\}"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00048}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a4fa34416d5fb2a9bc406e92c17f32e3c}{00048}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a4fa34416d5fb2a9bc406e92c17f32e3c}{on\_close}}(self,\ ws,\ close\_status\_code,\ close\_msg):}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Closed:\ \{close\_status\_code\}\ \{close\_msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00051}\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a107e4a532236dc7346b81fb8c7ed86bc}{00051}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a107e4a532236dc7346b81fb8c7ed86bc}{run}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}===\ OmniBus\ WS\ Monitor\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_abb5a2689da30c1ca0bbfacefadc2d429}{output}}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{file}}\ =\ open(self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_abb5a2689da30c1ca0bbfacefadc2d429}{output}},\ \textcolor{stringliteral}{"{}a"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ ws\ =\ websocket.WebSocketApp(}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a5b5f41322dd15c81435f5ec00d6e246a}{url}},}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ on\_open=self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a4c68003138a99a706ccad14a32542e94}{on\_open}},}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ on\_message=self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_acbe8d9bbc9d9916db1afdae7352d94eb}{on\_message}},}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ on\_error=self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_af92237680f10e578d128fa86552bb241}{on\_error}},}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ on\_close=self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_a4fa34416d5fb2a9bc406e92c17f32e3c}{on\_close}},}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ ws.run\_forever(ping\_interval=30,\ ping\_timeout=10)}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacews-monitor_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)nInterrupted\ by\ user"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{file}}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor_ab51858cc85bb0bf445baf3d8ab1cb578}{file}}.close()}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00071}\doxymbox{\hyperlink{namespacews-monitor_a7431cb90017e54fe695b23d4190db046}{00071}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacews-monitor_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00072}00072\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Monitor\ OmniBus\ WebSocket\ events"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00073}00073\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}WS\ host"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00074}00074\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=8334,\ help=\textcolor{stringliteral}{"{}WS\ port"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00075}00075\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ help=\textcolor{stringliteral}{"{}Append\ events\ to\ file"{}})}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00076}00076\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00078}00078\ \ \ \ \ url\ =\ f\textcolor{stringliteral}{"{}ws://\{args.host\}:\{args.port\}"{}}}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00079}00079\ \ \ \ \ mon\ =\ \doxymbox{\hyperlink{classws-monitor_1_1_w_s_monitor}{WSMonitor}}(url=url,\ output=args.output)}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00080}00080\ \ \ \ \ mon.run()}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00084}00084\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{ws-monitor_8py_source_l00085}00085\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacews-monitor_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

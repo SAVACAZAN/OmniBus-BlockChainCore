@@ -1,0 +1,99 @@
+\chapter{Getting Started }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2getting_started}{}\label{md_frontend_2node__modules_2date-fns_2docs_2getting_started}\index{Getting Started@{Getting Started}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6333}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6333}%
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6334}{}\doxysection{\texorpdfstring{Table of Contents}{Table of Contents}}\label{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6334}
+
+\begin{DoxyItemize}
+\item IntroductionIntroduction
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item SubmodulesSubmodules
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item InstallationInstallation
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6335}{}\doxysection{\texorpdfstring{Introduction}{Introduction}}\label{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6335}
+{\bfseries{date-\/fns}} provides the most comprehensive, yet simple and consistent toolset for manipulating {\bfseries{Java\+Script dates}} in {\bfseries{a browser}} \& {\bfseries{Node.\+js}}.
+
+{\bfseries{date-\/fns}} is like \href{https://lodash.com}{\texttt{lodash}} for dates. It has \href{https://date-fns.org/docs/}{\texttt{{\bfseries{200+ functions}} for all occasions}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ format,\ compareAsc\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{}
+\DoxyCodeLine{format(new\ Date(2014,\ 1,\ 11),\ 'MM/dd/yyyy')}
+\DoxyCodeLine{//=>\ '02/11/2014'}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ dates\ =\ [}
+\DoxyCodeLine{\ \ new\ Date(1995,\ 6,\ 2),}
+\DoxyCodeLine{\ \ new\ Date(1987,\ 1,\ 11),}
+\DoxyCodeLine{\ \ new\ Date(1989,\ 6,\ 10),}
+\DoxyCodeLine{]}
+\DoxyCodeLine{dates.sort(compareAsc)}
+\DoxyCodeLine{//=>\ [}
+\DoxyCodeLine{//\ \ \ Wed\ Feb\ 11\ 1987\ 00:00:00,}
+\DoxyCodeLine{//\ \ \ Mon\ Jul\ 10\ 1989\ 00:00:00,}
+\DoxyCodeLine{//\ \ \ Sun\ Jul\ 02\ 1995\ 00:00:00}
+\DoxyCodeLine{//\ ]}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6336}{}\doxysection{\texorpdfstring{Submodules}{Submodules}}\label{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6336}
+{\bfseries{date-\/fns}} includes some optional features as submodules in the npm package. Here is the list of them, in order of nesting:\+
+
+
+\begin{DoxyItemize}
+\item FP — functional programming-\/friendly variations of the functions. See \href{https://date-fns.org/docs/FP-Guide}{\texttt{FP Guide}};
+\item UTC (in development) — variations of the functions which calculate dates in UTC±00:\+00 timezone.
+\end{DoxyItemize}
+
+The later submodules are also included inside the former if you want to use multiple features from the list.
+
+To use submodule features, install the npm packageinstall the npm package and then import a function from a submodule:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ The\ main\ submodule:}
+\DoxyCodeLine{import\ addDays\ from\ 'date-\/fns/addDays'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ FP\ variation:}
+\DoxyCodeLine{import\ addDays\ from\ 'date-\/fns/fp/addDays'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ UTC\ variation:}
+\DoxyCodeLine{import\ addDays\ from\ 'date-\/fns/utc/addDays'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Both\ FP\ and\ UTC:}
+\DoxyCodeLine{import\ addDays\ from\ 'date-\/fns/fp/utc/addDays'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ With\ tree-\/shaking\ enabled:}
+\DoxyCodeLine{import\ \{\ addDays,\ format\ \}\ from\ 'date-\/fns/fp'}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6337}{}\doxysection{\texorpdfstring{Installation}{Installation}}\label{md_frontend_2node__modules_2date-fns_2docs_2getting_started_autotoc_md6337}
+The library is available as an \href{https://www.npmjs.com/package/date-fns}{\texttt{npm package}}.
+
+To install the package, run:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ date-\/fns\ -\/-\/save}
+\DoxyCodeLine{\#\ or}
+\DoxyCodeLine{yarn\ add\ date-\/fns}
+
+\end{DoxyCode}
+
+
+Start using:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ formatDistance,\ subDays\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{}
+\DoxyCodeLine{formatDistance(subDays(new\ Date(),\ 3),\ new\ Date(),\ \{\ addSuffix:\ true\ \})}
+\DoxyCodeLine{//=>\ "{}3\ days\ ago"{}}
+
+\end{DoxyCode}
+ 

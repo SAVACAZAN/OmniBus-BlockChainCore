@@ -1,0 +1,24 @@
+\doxysection{nist Namespace Reference}
+\hypertarget{namespacenist}{}\label{namespacenist}\index{nist@{nist}}
+
+
+-\/ecdsa-\/vectors  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/ecdsa-\/vectors 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — NIST ECDSA Test Vectors for secp256k1.
+
+Hardcoded test vectors from Bitcoin's own test suite.
+Tests:
+  - Derive public key from private key
+  - Verify known signatures
+  - Edge cases: private_key = 1, private_key = n-1, all-zeros msg, all-0xFF msg
+
+If node RPC has signmessage, uses it.  Otherwise uses Python ecdsa/coincurve.
+Compares against core/secp256k1.zig expected behavior.
+\end{DoxyVerb}
+ 

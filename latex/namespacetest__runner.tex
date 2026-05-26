@@ -1,0 +1,320 @@
+\doxysection{test\+\_\+runner Namespace Reference}
+\hypertarget{namespacetest__runner}{}\label{namespacetest__runner}\index{test\_runner@{test\_runner}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classtest__runner_1_1_test_group}{Test\+Group}}
+\item 
+class \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}
+\item 
+class \doxymbox{\hyperlink{classtest__runner_1_1_test_runner}{Test\+Runner}}
+\item 
+class \doxymbox{\hyperlink{classtest__runner_1_1_test_suite_result}{Test\+Suite\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a94b97f1e5b85a7c7f31edc90d67a5899}{print\+\_\+results}} (List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ results, bool verbose=False)
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_aaa39671465165daf1aea103e523910f1}{watch\+\_\+mode}} (\doxymbox{\hyperlink{classtest__runner_1_1_test_runner}{Test\+Runner}} runner, Optional\+[str]\+ group\+\_\+name=None)
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespacetest__runner_a1217fb568b6ed6069d010dc27901f71c}{check\+\_\+prerequisites}} ()
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} \doxymbox{\hyperlink{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}{run\+\_\+zig\+\_\+build\+\_\+test}} (str name, bool verbose=False, int timeout=120)
+\item 
+\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} \doxymbox{\hyperlink{namespacetest__runner_a0e58698b95b151481e03e521f2f35896}{run\+\_\+single\+\_\+module\+\_\+test}} (str module\+\_\+name, bool verbose=False)
+\item 
+List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ \doxymbox{\hyperlink{namespacetest__runner_a59fa8d854fb17968cd282076d2e25d7e}{run\+\_\+test\+\_\+directory}} ()
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05}{print\+\_\+group\+\_\+result}} (str group\+\_\+name, dict info, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} result)
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a107aca59d52c2ee330fb5591bda9845f}{print\+\_\+summary}} (Dict\+[str, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ group\+\_\+results, List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ extra\+\_\+results)
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a8da15babdf3c552d023c33e0cec36227}{export\+\_\+json}} (Dict\+[str, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ group\+\_\+results, List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ extra\+\_\+results, Path path)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_a2aa2ac7439f47449332d1a8008a09b75}{CORE}} = \doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_ada7920a9ab0d986f1967ce172be5f92e}{TEST\+\_\+\+DIR}} = \doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{ROOT}} /\+ "{}test"{}
+\item 
+dict \doxymbox{\hyperlink{namespacetest__runner_a2b778768973caa636037a3a8db029241}{TEST\+\_\+\+GROUPS}}
+\item 
+list \doxymbox{\hyperlink{namespacetest__runner_a9464482942964dd5ea26a2692c14d503}{EXTRA\+\_\+\+TESTABLE}}
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_a1d45c1d44bace7647a6f8a7f07c74d4b}{G}} = "{}\textbackslash{}033\+[94m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest__runner_a2f8f94e0e0e1e582a041bddf7b52c23a}{C}} = "{}\textbackslash{}033\+[2m"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}OmniBus Blockchain - Test Runner
+=================================
+
+Rulează teste selective pe grupe și generează rapoarte.
+Mult mai rapid decât `zig build test` dacă vrei doar un grup.
+
+Utilizare:
+    python test_runner.py              # Toate testele
+    python test_runner.py --group crypto    # Doar teste crypto
+    python test_runner.py --group chain     # Doar teste chain
+    python test_runner.py --file core/p2p.zig  # Teste pentru un fișier
+    python test_runner.py --watch           # Watch mode pentru TDD
+
+Autor: OmniBus AI Collective
+Versiune: 1.0.0
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}test_runner.py - OmniBus Blockchain Test Runner v2.0
+
+Ruleaza toate testele Zig pentru blockchain cu raportare detaliata:
+  - 8 grupuri de teste din build.zig
+  - Teste individuale per modul
+  - Teste din test/ directory
+  - Verbose mode cu output complet
+  - CI mode (JSON output)
+  - Retry failed tests
+
+Usage:
+  python tools/test_runner.py                    # Run all test groups
+  python tools/test_runner.py crypto             # Run test-crypto only
+  python tools/test_runner.py --file secp256k1   # Run single module test
+  python tools/test_runner.py --verbose          # Show full zig output
+  python tools/test_runner.py --ci               # CI mode (JSON)
+  python tools/test_runner.py --list             # List available tests
+  python tools/test_runner.py --retry 2          # Retry failures N times
+\end{DoxyVerb}
+ 
+
+\label{namespacetest__runner_doc-func-members}
+\Hypertarget{namespacetest__runner_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetest__runner_a1217fb568b6ed6069d010dc27901f71c}\index{test\_runner@{test\_runner}!check\_prerequisites@{check\_prerequisites}}
+\index{check\_prerequisites@{check\_prerequisites}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{check\_prerequisites()}{check\_prerequisites()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a1217fb568b6ed6069d010dc27901f71c} 
+ List\+[str]\+ check\+\_\+prerequisites (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if required tools are available.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00130}{130}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacetest__runner_a8da15babdf3c552d023c33e0cec36227}\index{test\_runner@{test\_runner}!export\_json@{export\_json}}
+\index{export\_json@{export\_json}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{export\_json()}{export\_json()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a8da15babdf3c552d023c33e0cec36227} 
+export\+\_\+json (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+}]{group\+\_\+results}{, }\item[{List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+}]{extra\+\_\+results}{, }\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Export results to JSON.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00346}{346}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacetest__runner_a51af30a60f9f02777c6396b8247e356f}\index{test\_runner@{test\_runner}!main@{main}}
+\index{main@{main}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00345}{345}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05}\index{test\_runner@{test\_runner}!print\_group\_result@{print\_group\_result}}
+\index{print\_group\_result@{print\_group\_result}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{print\_group\_result()}{print\_group\_result()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a8e52b4f712df7ac30bb9a2fe0f2a1a05} 
+print\+\_\+group\+\_\+result (\begin{DoxyParamCaption}\item[{str}]{group\+\_\+name}{, }\item[{dict}]{info}{, }\item[{\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}}]{result}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print result for a test group.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00301}{301}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacetest__runner_a94b97f1e5b85a7c7f31edc90d67a5899}\index{test\_runner@{test\_runner}!print\_results@{print\_results}}
+\index{print\_results@{print\_results}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{print\_results()}{print\_results()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a94b97f1e5b85a7c7f31edc90d67a5899} 
+print\+\_\+results (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+}]{results}{, }\item[{bool }]{verbose}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Afișează rezultatele testelor.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00269}{269}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacetest__runner_a107aca59d52c2ee330fb5591bda9845f}\index{test\_runner@{test\_runner}!print\_summary@{print\_summary}}
+\index{print\_summary@{print\_summary}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{print\_summary()}{print\_summary()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a107aca59d52c2ee330fb5591bda9845f} 
+print\+\_\+summary (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+}]{group\+\_\+results}{, }\item[{List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+}]{extra\+\_\+results}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print full test summary.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00314}{314}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacetest__runner_a0e58698b95b151481e03e521f2f35896}\index{test\_runner@{test\_runner}!run\_single\_module\_test@{run\_single\_module\_test}}
+\index{run\_single\_module\_test@{run\_single\_module\_test}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{run\_single\_module\_test()}{run\_single\_module\_test()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a0e58698b95b151481e03e521f2f35896} 
+ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} run\+\_\+single\+\_\+module\+\_\+test (\begin{DoxyParamCaption}\item[{str}]{module\+\_\+name}{, }\item[{bool }]{verbose}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run test for a single .zig file using zig test.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00236}{236}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacetest__runner_a59fa8d854fb17968cd282076d2e25d7e}\index{test\_runner@{test\_runner}!run\_test\_directory@{run\_test\_directory}}
+\index{run\_test\_directory@{run\_test\_directory}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{run\_test\_directory()}{run\_test\_directory()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a59fa8d854fb17968cd282076d2e25d7e} 
+ List\+[\doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}}]\+ run\+\_\+test\+\_\+directory (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run all test files from test/ directory.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00281}{281}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963}\index{test\_runner@{test\_runner}!run\_zig\_build\_test@{run\_zig\_build\_test}}
+\index{run\_zig\_build\_test@{run\_zig\_build\_test}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{run\_zig\_build\_test()}{run\_zig\_build\_test()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a0ea2543cdd3bdd939a547910d42c7963} 
+ \doxymbox{\hyperlink{classtest__runner_1_1_test_result}{Test\+Result}} run\+\_\+zig\+\_\+build\+\_\+test (\begin{DoxyParamCaption}\item[{str}]{name}{, }\item[{bool }]{verbose}{ = {\ttfamily False}, }\item[{int }]{timeout}{ = {\ttfamily 120}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run a zig build test target.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00170}{170}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacetest__runner_aaa39671465165daf1aea103e523910f1}\index{test\_runner@{test\_runner}!watch\_mode@{watch\_mode}}
+\index{watch\_mode@{watch\_mode}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{watch\_mode()}{watch\_mode()}}
+{\footnotesize\ttfamily \label{namespacetest__runner_aaa39671465165daf1aea103e523910f1} 
+watch\+\_\+mode (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classtest__runner_1_1_test_runner}{Test\+Runner}}}]{runner}{, }\item[{Optional\+[str]\+ }]{group\+\_\+name}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Watch mode pentru TDD.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source_l00307}{307}} of file \doxymbox{\hyperlink{agentscripts_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+
+
+\label{namespacetest__runner_doc-var-members}
+\Hypertarget{namespacetest__runner_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetest__runner_a2f8f94e0e0e1e582a041bddf7b52c23a}\index{test\_runner@{test\_runner}!C@{C}}
+\index{C@{C}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{C}{C}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a2f8f94e0e0e1e582a041bddf7b52c23a} 
+str test\+\_\+runner.\+C = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00102}{102}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{namespacetest__runner_a2aa2ac7439f47449332d1a8008a09b75}\index{test\_runner@{test\_runner}!CORE@{CORE}}
+\index{CORE@{CORE}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a2aa2ac7439f47449332d1a8008a09b75} 
+str test\+\_\+runner.\+CORE = \doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{namespacetest__runner_a9464482942964dd5ea26a2692c14d503}\index{test\_runner@{test\_runner}!EXTRA\_TESTABLE@{EXTRA\_TESTABLE}}
+\index{EXTRA\_TESTABLE@{EXTRA\_TESTABLE}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{EXTRA\_TESTABLE}{EXTRA\_TESTABLE}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a9464482942964dd5ea26a2692c14d503} 
+list test\+\_\+runner.\+EXTRA\+\_\+\+TESTABLE}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}bread\_ledger"{}},\ \textcolor{stringliteral}{"{}domain\_minter"{}},\ \textcolor{stringliteral}{"{}spark\_invariants"{}},\ \textcolor{stringliteral}{"{}ubi\_distributor"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}payment\_channel"{}},\ \textcolor{stringliteral}{"{}bridge\_relay"{}},\ \textcolor{stringliteral}{"{}oracle"{}},\ \textcolor{stringliteral}{"{}omni\_brain"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}synapse\_priority"{}},\ \textcolor{stringliteral}{"{}os\_mode"{}},\ \textcolor{stringliteral}{"{}metachain"{}},\ \textcolor{stringliteral}{"{}shard\_coordinator"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}vault\_engine"{}},\ \textcolor{stringliteral}{"{}ws\_server"{}},}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00090}{90}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{namespacetest__runner_a1d45c1d44bace7647a6f8a7f07c74d4b}\index{test\_runner@{test\_runner}!G@{G}}
+\index{G@{G}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{G}{G}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a1d45c1d44bace7647a6f8a7f07c74d4b} 
+str test\+\_\+runner.\+G = "{}\textbackslash{}033\+[94m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00101}{101}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}\index{test\_runner@{test\_runner}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799} 
+test\+\_\+runner.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{namespacetest__runner_ada7920a9ab0d986f1967ce172be5f92e}\index{test\_runner@{test\_runner}!TEST\_DIR@{TEST\_DIR}}
+\index{TEST\_DIR@{TEST\_DIR}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{TEST\_DIR}{TEST\_DIR}}
+{\footnotesize\ttfamily \label{namespacetest__runner_ada7920a9ab0d986f1967ce172be5f92e} 
+str test\+\_\+runner.\+TEST\+\_\+\+DIR = \doxymbox{\hyperlink{namespacetest__runner_a3511bfaef1ed0cc36a8400222db88799}{ROOT}} /\+ "{}test"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+
+\Hypertarget{namespacetest__runner_a2b778768973caa636037a3a8db029241}\index{test\_runner@{test\_runner}!TEST\_GROUPS@{TEST\_GROUPS}}
+\index{TEST\_GROUPS@{TEST\_GROUPS}!test\_runner@{test\_runner}}
+\doxysubsubsection{\texorpdfstring{TEST\_GROUPS}{TEST\_GROUPS}}
+{\footnotesize\ttfamily \label{namespacetest__runner_a2b778768973caa636037a3a8db029241} 
+dict test\+\_\+runner.\+TEST\+\_\+\+GROUPS}
+
+
+
+Definition at line \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{_t_e_s_t_i_n_g_2test__runner_8py_source}{test\+\_\+runner.\+py}}.
+

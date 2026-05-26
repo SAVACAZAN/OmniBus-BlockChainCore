@@ -1,0 +1,29 @@
+\chapter{psbt.\+zig — API Reference }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2psbt}{}\label{md_archived-4-eterniti_2docs-plans_2api_2psbt}\index{psbt.zig — API Reference@{psbt.zig — API Reference}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2psbt_autotoc_md2771}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2psbt_autotoc_md2771}%
+
+
+\begin{quote}
+Auto-\/generated from core/\+psbt.\+zig \end{quote}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2psbt_autotoc_md2772}{}\doxysection{\texorpdfstring{Public Functions}{Public Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2psbt_autotoc_md2772}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ PSBT\_MAGIC\ =\ [4]u8\{\ 'p',\ 's',\ 'b',\ 't'\ \};}
+\DoxyCodeLine{pub\ const\ PSBT\_SEPARATOR\ =\ 0xFF;}
+\DoxyCodeLine{pub\ const\ PSBTRole\ =\ enum\ \{}
+\DoxyCodeLine{pub\ const\ PartialSig\ =\ struct\ \{}
+\DoxyCodeLine{pub\ const\ PSBTInput\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isFullySigned(self:\ *const\ PSBTInput)\ bool\ \{}
+\DoxyCodeLine{pub\ const\ PSBT\_TX\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ create(tx:\ Transaction,\ num\_inputs:\ u32,\ allocator:\ std.mem.Allocator)\ !PSBT\_TX\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ deinit(self:\ *PSBT\_TX)\ void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ addSignature(self:\ *PSBT\_TX,\ input\_index:\ u32,\ pubkey:\ [33]u8,\ signature:\ [64]u8)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ signInput(self:\ *PSBT\_TX,\ input\_index:\ u32,\ private\_key:\ [32]u8)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isComplete(self:\ *const\ PSBT\_TX)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ finalize(self:\ *PSBT\_TX,\ allocator:\ std.mem.Allocator)\ !Transaction\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getProgress(self:\ *const\ PSBT\_TX)\ struct\ \{\ signed:\ u32,\ required:\ u32\ \}\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ serialize(self:\ *const\ PSBT\_TX,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2psbt_autotoc_md2773}{}\doxysection{\texorpdfstring{Tests:\+ 5}{Tests:\+ 5}}\label{md_archived-4-eterniti_2docs-plans_2api_2psbt_autotoc_md2773}

@@ -1,0 +1,94 @@
+\doxysection{tools/\+\+MYTHOS/\+app/\+node\+\_\+modules/\+@tauri-\/apps/\+plugin-\/shell Directory Reference}
+\hypertarget{dir_98b768f29562e9685a7397da2c3c602a}{}\label{dir_98b768f29562e9685a7397da2c3c602a}\index{tools/MYTHOS/app/node\_modules/"@tauri-\/apps/plugin-\/shell Directory Reference@{tools/MYTHOS/app/node\_modules/"@tauri-\/apps/plugin-\/shell Directory Reference}}
+Directory dependency graph for plugin-\/shell:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+!\+[plugin-\/shell]\+(\href{https://github.com/tauri-apps/plugins-workspace/raw/v2/plugins/shell/banner.png}{\texttt{https:\+/\+/\+github.\+com/\+tauri-\/apps/\+plugins-\/workspace/\+raw/\+v2/\+plugins/\+shell/\+banner.\+png}})
+
+Access the system shell. Allows you to spawn child processes and manage files and URLs using their default application.
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Platform  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Supported  \\
+Linux  &✓  \\
+Windows  &✓  \\
+mac\+OS  &✓  \\
+Android  &✓  \\
+i\+OS  &✓  \\
+\end{DoxyTable}
+\hypertarget{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10488}{}\doxysubsubsection{\texorpdfstring{Install}{Install}}\label{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10488}
+{\itshape This plugin requires a Rust version of at least {\bfseries{1.\+77.\+2}}}
+
+There are three general methods of installation that we can recommend.
+
+
+\begin{DoxyEnumerate}
+\item Use crates.\+io and npm (easiest, and requires you to trust that our publishing pipeline worked)
+\item Pull sources directly from Github using git tags /\+ revision hashes (most secure)
+\item Git submodule install this repo in your tauri project and then use file protocol to ingest the source (most secure, but inconvenient to use)
+\end{DoxyEnumerate}
+
+Install the Core plugin by adding the following to your {\ttfamily Cargo.\+toml} file:\+
+
+{\ttfamily src-\/tauri/\+\+Cargo.\+toml}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[dependencies]}
+\DoxyCodeLine{tauri-\/plugin-\/shell\ =\ "{}2.0.0"{}}
+\DoxyCodeLine{\#\ alternatively\ with\ Git:}
+\DoxyCodeLine{tauri-\/plugin-\/shell\ =\ \{\ git\ =\ "{}https://github.com/tauri-\/apps/plugins-\/workspace"{},\ branch\ =\ "{}v2"{}\ \}}
+
+\end{DoxyCode}
+
+
+You can install the Java\+Script Guest bindings using your preferred Java\+Script package manager:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pnpm\ add\ @tauri-\/apps/plugin-\/shell}
+\DoxyCodeLine{\#\ or}
+\DoxyCodeLine{npm\ add\ @tauri-\/apps/plugin-\/shell}
+\DoxyCodeLine{\#\ or}
+\DoxyCodeLine{yarn\ add\ @tauri-\/apps/plugin-\/shell}
+
+\end{DoxyCode}
+\hypertarget{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10489}{}\doxysubsubsection{\texorpdfstring{Usage}{Usage}}\label{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10489}
+First you need to register the core plugin with Tauri:\+
+
+{\ttfamily src-\/tauri/\+src/\+lib.\+rs}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{fn\ main()\ \{}
+\DoxyCodeLine{\ \ \ \ tauri::Builder::default()}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .plugin(tauri\_plugin\_shell::init())}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .run(tauri::generate\_context!())}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .expect("{}error\ while\ running\ tauri\ application"{});}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Afterwards all the plugin\textquotesingle{}s APIs are available through the Java\+Script guest bindings:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ Command\ \}\ from\ '@tauri-\/apps/plugin-\/shell'}
+\DoxyCodeLine{Command.create('git',\ ['commit',\ '-\/m',\ 'the\ commit\ message'])}
+
+\end{DoxyCode}
+\hypertarget{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10490}{}\doxysubsubsection{\texorpdfstring{Contributing}{Contributing}}\label{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10490}
+PRs accepted. Please make sure to read the Contributing Guide before making a pull request.\hypertarget{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10491}{}\doxysubsubsection{\texorpdfstring{Partners}{Partners}}\label{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10491}
+
+\begin{DoxyTable}{1}{}{}{0}
+\SetCell{c}\href{https://crabnebula.dev}{\texttt{ }} \\
+\end{DoxyTable}
+
+
+For the complete list of sponsors please visit our \href{https://tauri.app\#sponsors}{\texttt{website}} and \href{https://opencollective.com/tauri}{\texttt{Open Collective}}.\hypertarget{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10492}{}\doxysubsubsection{\texorpdfstring{License}{License}}\label{dir_98b768f29562e9685a7397da2c3c602a_autotoc_md10492}
+Code:\+ (c) 2015 -\/ Present -\/ The Tauri Programme within The Commons Conservancy.
+
+MIT or MIT/\+\+Apache 2.\+0 where applicable. 

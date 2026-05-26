@@ -1,0 +1,156 @@
+\doxysection{test\+\_\+load.\+c}
+\hypertarget{test__load_8c_source}{}\label{test__load_8c_source}\index{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/test\_load.c@{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/test\_load.c}}
+\doxymbox{\hyperlink{test__load_8c}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00001}00001\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <windows.h>}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00005}\doxymbox{\hyperlink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{00005}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{test__load_8c_ab2391a688166a14a4af286bcc8a8b072}{pass}}\ =\ 0,\ \doxymbox{\hyperlink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{fail}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00006}\doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{00006}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ n,\ \textcolor{keywordtype}{int}\ c)\ \{\ \textcolor{keywordflow}{if}(c)\{printf(\textcolor{stringliteral}{"{}\ \ [PASS]\ \%s\(\backslash\)n"{}},n);\doxymbox{\hyperlink{test__load_8c_ab2391a688166a14a4af286bcc8a8b072}{pass}}++;\}\textcolor{keywordflow}{else}\{printf(\textcolor{stringliteral}{"{}\ \ [FAIL]\ \%s\(\backslash\)n"{}},n);\doxymbox{\hyperlink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{fail}}++;\}\ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00007}\doxymbox{\hyperlink{test__load_8c_ab8e1e5e3ee545236846d21675d6bb016}{00007}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{test__load_8c_ab8e1e5e3ee545236846d21675d6bb016}{hexpr}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ l,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}*\ d,\ \textcolor{keywordtype}{int}\ n)\ \{\ printf(\textcolor{stringliteral}{"{}\ \ \ \ \%s:\ "{}},l);\ \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int}\ i=0;i<n;i++)printf(\textcolor{stringliteral}{"{}\%02x"{}},d[i]);\ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});\ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00009}\doxymbox{\hyperlink{test__load_8c_a840291bc02cba5474a4cb46a9b9566fe}{00009}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{test__load_8c_a840291bc02cba5474a4cb46a9b9566fe}{main}}(\textcolor{keywordtype}{void})\ \{}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00010}00010\ \ \ \ \ printf(\textcolor{stringliteral}{"{}============================================================\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00011}00011\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ OmniBus\ Ada\ SPARK\ DLL\ —\ Test\ Suite\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00012}00012\ \ \ \ \ printf(\textcolor{stringliteral}{"{}============================================================\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00014}00014\ \ \ \ \ HMODULE\ lib\ =\ LoadLibraryA(\textcolor{stringliteral}{"{}ada-\/vault/lib/libomnibus\_vault.dll"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00015}00015\ \ \ \ \ \textcolor{keywordflow}{if}\ (!lib)\ \{\ printf(\textcolor{stringliteral}{"{}FATAL:\ Cannot\ load\ DLL\(\backslash\)n"{}});\ \textcolor{keywordflow}{return}\ 1;\ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00016}00016\ \ \ \ \ printf(\textcolor{stringliteral}{"{}DLL\ loaded\ OK\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00018}00018\ \ \ \ \ \textcolor{comment}{/*\ Resolve\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00019}00019\ \textcolor{preprocessor}{\ \ \ \ \#define\ F(t,n)\ t\ p\_\#\#n\ =\ (t)GetProcAddress(lib,\ \#n)}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00020}00020\ \ \ \ \ \textcolor{keyword}{typedef}\ void(*fv)(void);\ \textcolor{keyword}{typedef}\ int(*fi)(void);\ \textcolor{keyword}{typedef}\ int(*fii)(int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00021}00021\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*fadd)(int,\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00022}00022\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*fdel)(int,int);\ \textcolor{keyword}{typedef}\ int(*fset)(int,int,int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00023}00023\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*fget)(int,int,\textcolor{keywordtype}{char}*,int,\textcolor{keywordtype}{char}*,int,\textcolor{keywordtype}{int}*,\textcolor{keywordtype}{int}*);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00024}00024\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*fgsec)(int,int,\textcolor{keywordtype}{char}*,int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00025}00025\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*fmnem)(\textcolor{keywordtype}{char}*,int);\ \textcolor{keyword}{typedef}\ int(*fmval)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00026}00026\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*fsha)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,int,\textcolor{keywordtype}{char}*,int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00027}00027\ \ \ \ \ \textcolor{keyword}{typedef}\ void(*fwipe)(\textcolor{keywordtype}{char}*,int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*(*fpath)(void);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00029}00029\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*ftxaff)(int,int,int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00030}00030\ \ \ \ \ \textcolor{keyword}{typedef}\ int(*ftxid)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,int,\textcolor{keywordtype}{char}*,int);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00032}00032\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fv,\doxymbox{\hyperlink{omnibus__vault_8h_af578d248dc8d05427695636e66a7f952}{vault\_lib\_init}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fi,\doxymbox{\hyperlink{omnibus__vault_8h_a4f30979987aad9606e5b626932539f2e}{vault\_init}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fi,\doxymbox{\hyperlink{omnibus__vault_8h_aa8a0cf3ba9ccf2876ee5fce210668ef6}{vault\_lock}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00033}00033\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fi,\doxymbox{\hyperlink{omnibus__vault_8h_a49d6c641e6575ee0b639eeccee977ace}{vault\_save}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fi,\doxymbox{\hyperlink{omnibus__vault_8h_a7ca6bacb9b2fbbd6e6b615fb0243119a}{vault\_is\_loaded}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00034}00034\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fadd,\doxymbox{\hyperlink{omnibus__vault_8h_a34d48940916fad4072cdcda28412463c}{vault\_add\_key}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fdel,\doxymbox{\hyperlink{omnibus__vault_8h_a603559f83746a43b7f882fbafe6e0732}{vault\_delete\_key}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00035}00035\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fget,\doxymbox{\hyperlink{omnibus__vault_8h_af80d123eeebee248755d3aa5f47c6e6c}{vault\_get\_key}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fgsec,\doxymbox{\hyperlink{omnibus__vault_8h_aa186e4f2d6ba9c49885d6631a9ad1bf3}{vault\_get\_secret}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00036}00036\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fset,\doxymbox{\hyperlink{omnibus__vault_8h_a3ecbe8c55818329a19352bb9c0dbf733}{vault\_set\_status}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fii,\doxymbox{\hyperlink{omnibus__vault_8h_ae26e3d0cc07c9f3baefd62d3452cdf31}{vault\_key\_count}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00037}00037\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fii,\doxymbox{\hyperlink{omnibus__vault_8h_a00f4825eabfc9df56a38368308efd451}{vault\_has\_keys}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fwipe,\doxymbox{\hyperlink{omnibus__vault_8h_a1efbe8ac1a3ff6ae5e60979e6d2ec236}{vault\_wipe}});\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fpath,\doxymbox{\hyperlink{omnibus__vault_8h_acb170d46fc3f552db53fe9c16988d28e}{vault\_get\_path}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00038}00038\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fmnem,mnemonic\_generate\_12);\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fmnem,mnemonic\_generate\_24);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00039}00039\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fmval,mnemonic\_validate);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00040}00040\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fsha,sha256\_hash);\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(fsha,sha256\_double);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00041}00041\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(ftxaff,tx\_can\_afford);\ \doxymbox{\hyperlink{test__load_8c_a9b44285817d976e93e68bcbb8aa7e4fd}{F}}(ftxid,tx\_compute\_txid);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00043}00043\ \ \ \ \ \textcolor{keywordtype}{int}\ rc;}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00045}00045\ \ \ \ \ \textcolor{comment}{/*\ 1.\ VAULT\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00046}00046\ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/\ 1.\ VAULT\ LIFECYCLE\ -\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00047}00047\ \ \ \ \ \textcolor{keywordflow}{if}(p\_vault\_lib\_init)\ p\_vault\_lib\_init();}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00048}00048\ \ \ \ \ rc\ =\ p\_vault\_init();\ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_init"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00049}00049\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_is\_loaded=1"{}},\ p\_vault\_is\_loaded()==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00050}00050\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ Path:\ \%s\(\backslash\)n"{}},\ p\_vault\_get\_path());}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00052}00052\ \ \ \ \ \textcolor{comment}{/*\ 2.\ KEYS\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00053}00053\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ 2.\ KEY\ MANAGEMENT\ -\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00054}00054\ \ \ \ \ rc\ =\ p\_vault\_add\_key(0,\textcolor{stringliteral}{"{}TestKey1"{}},\textcolor{stringliteral}{"{}ak\_test123456789abc"{}},\textcolor{stringliteral}{"{}secret\_xyz"{}},1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00055}00055\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_add\_key\ LCX"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00056}00056\ \ \ \ \ rc\ =\ p\_vault\_add\_key(1,\textcolor{stringliteral}{"{}KrakenK"{}},\textcolor{stringliteral}{"{}kr\_abcdefghijklmno"{}},\textcolor{stringliteral}{"{}kr\_sec"{}},0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00057}00057\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_add\_key\ Kraken"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00058}00058\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}key\_count\ LCX=1"{}},\ p\_vault\_key\_count(0)==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00059}00059\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}key\_count\ Kraken=1"{}},\ p\_vault\_key\_count(1)==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00060}00060\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}has\_keys\ LCX=1"{}},\ p\_vault\_has\_keys(0)==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00061}00061\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}has\_keys\ Coinbase=0"{}},\ p\_vault\_has\_keys(2)==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00063}00063\ \ \ \ \ \{\ \textcolor{keywordtype}{char}\ n[256]=\{0\},k[256]=\{0\};\ \textcolor{keywordtype}{int}\ st=-\/1,iu=-\/1;}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00064}00064\ \ \ \ \ \ \ rc\ =\ p\_vault\_get\_key(0,0,n,256,k,256,\&st,\&iu);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00065}00065\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_get\_key"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00066}00066\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ in\_use=1"{}},\ iu==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00067}00067\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ status=Paid"{}},\ st==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00068}00068\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ name=TestKey1"{}},\ strcmp(n,\textcolor{stringliteral}{"{}TestKey1"{}})==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00069}00069\ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ name='\%s'\ key='\%s'\(\backslash\)n"{}},n,k);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00070}00070\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00071}00071\ \ \ \ \ \{\ \textcolor{keywordtype}{char}\ s[256]=\{0\};}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00072}00072\ \ \ \ \ \ \ rc\ =\ p\_vault\_get\_secret(0,0,s,256);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00073}00073\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_get\_secret"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00074}00074\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ secret=secret\_xyz"{}},\ strcmp(s,\textcolor{stringliteral}{"{}secret\_xyz"{}})==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00075}00075\ \ \ \ \ \ \ p\_vault\_wipe(s,256);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00076}00076\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ wiped"{}},\ s[0]==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00077}00077\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00078}00078\ \ \ \ \ rc\ =\ p\_vault\_set\_status(0,0,2);\ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}set\_status\ NotPaid"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00079}00079\ \ \ \ \ rc\ =\ p\_vault\_delete\_key(1,0);\ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}delete\ Kraken"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00080}00080\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}Kraken\ count=0"{}},\ p\_vault\_key\_count(1)==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00081}00081\ \ \ \ \ rc\ =\ p\_vault\_save();\ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_save"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00082}00082\ \ \ \ \ rc\ =\ p\_vault\_lock();\ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_lock"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00083}00083\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}is\_loaded=0"{}},\ p\_vault\_is\_loaded()==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00084}00084\ \ \ \ \ rc\ =\ p\_vault\_init();\ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}vault\_init\ reload"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00085}00085\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}LCX\ still\ 1"{}},\ p\_vault\_key\_count(0)==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00086}00086\ \ \ \ \ p\_vault\_delete\_key(0,0);\ p\_vault\_save();}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00088}00088\ \ \ \ \ \textcolor{comment}{/*\ 3.\ SHA-\/256\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00089}00089\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ 3.\ SHA-\/256\ -\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00090}00090\ \ \ \ \ \{\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ h[32]=\{0\};}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00091}00091\ \ \ \ \ \ \ rc\ =\ p\_sha256\_hash(\textcolor{stringliteral}{"{}"{}},0,(\textcolor{keywordtype}{char}*)h,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00092}00092\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}SHA256('')"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00093}00093\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ [0]=0xe3"{}},\ h[0]==0xe3);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00094}00094\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ [1]=0xb0"{}},\ h[1]==0xb0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00095}00095\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ab8e1e5e3ee545236846d21675d6bb016}{hexpr}}(\textcolor{stringliteral}{"{}hash"{}},h,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00096}00096\ \ \ \ \ \ \ rc\ =\ p\_sha256\_hash(\textcolor{stringliteral}{"{}abc"{}},3,(\textcolor{keywordtype}{char}*)h,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00097}00097\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}SHA256('abc')"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00098}00098\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ [0]=0xba"{}},\ h[0]==0xba);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00099}00099\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ab8e1e5e3ee545236846d21675d6bb016}{hexpr}}(\textcolor{stringliteral}{"{}hash"{}},h,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00100}00100\ \ \ \ \ \ \ \textcolor{comment}{/*\ Double\ SHA-\/256\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00101}00101\ \ \ \ \ \ \ rc\ =\ p\_sha256\_double(\textcolor{stringliteral}{"{}abc"{}},3,(\textcolor{keywordtype}{char}*)h,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00102}00102\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}SHA256d('abc')"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00103}00103\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ab8e1e5e3ee545236846d21675d6bb016}{hexpr}}(\textcolor{stringliteral}{"{}dbl"{}},h,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00104}00104\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00106}00106\ \ \ \ \ \textcolor{comment}{/*\ 4.\ MNEMONIC\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00107}00107\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ 4.\ BIP-\/39\ MNEMONIC\ -\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00108}00108\ \ \ \ \ \{\ \textcolor{keywordtype}{char}\ m12[256]=\{0\},\ m24[512]=\{0\};}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00109}00109\ \ \ \ \ \ \ rc\ =\ p\_mnemonic\_generate\_12(m12,256);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00110}00110\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}generate\_12"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00111}00111\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ wc=1;\ \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int}\ i=0;m12[i];i++)\ \textcolor{keywordflow}{if}(m12[i]==\textcolor{charliteral}{'\ '})\ wc++;}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00112}00112\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ 12\ words"{}},\ wc==12);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00113}00113\ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \%s\(\backslash\)n"{}},m12);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00115}00115\ \ \ \ \ \ \ rc\ =\ p\_mnemonic\_generate\_24(m24,512);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00116}00116\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}generate\_24"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00117}00117\ \ \ \ \ \ \ wc=1;\ \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int}\ i=0;m24[i];i++)\ \textcolor{keywordflow}{if}(m24[i]==\textcolor{charliteral}{'\ '})\ wc++;}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00118}00118\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ 24\ words"{}},\ wc==24);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00119}00119\ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \%.60s...\(\backslash\)n"{}},m24);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00121}00121\ \ \ \ \ \ \ rc\ =\ p\_mnemonic\_validate(m12);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00122}00122\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}validate(12)"{}},\ rc==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00123}00123\ \ \ \ \ \ \ rc\ =\ p\_mnemonic\_validate(m24);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00124}00124\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}validate(24)"{}},\ rc==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00125}00125\ \ \ \ \ \ \ rc\ =\ p\_mnemonic\_validate(\textcolor{stringliteral}{"{}bad\ words\ not\ valid\ here\ twelve"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00126}00126\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}validate(garbage)=0"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00127}00127\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00129}00129\ \ \ \ \ \textcolor{comment}{/*\ 5.\ TX\ ENGINE\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00130}00130\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ 5.\ TX\ ENGINE\ -\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00131}00131\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}afford(1000,500,100)=1"{}},\ p\_tx\_can\_afford(1000,500,100)==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00132}00132\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}afford(1000,900,200)=0"{}},\ p\_tx\_can\_afford(1000,900,200)==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00133}00133\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}afford(1000,1000,0)=1"{}},\ p\_tx\_can\_afford(1000,1000,0)==1);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00134}00134\ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}afford(0,1,0)=0"{}},\ p\_tx\_can\_afford(0,1,0)==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00135}00135\ \ \ \ \ \{\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ d[10]=\{1,2,3,4,5,6,7,8,9,10\},\ txid[32]=\{0\};}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00136}00136\ \ \ \ \ \ \ rc\ =\ p\_tx\_compute\_txid((\textcolor{keywordtype}{char}*)d,10,(\textcolor{keywordtype}{char}*)txid,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00137}00137\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}tx\_compute\_txid"{}},\ rc==0);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00138}00138\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ nz=0;\ \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int}\ i=0;i<32;i++)\ \textcolor{keywordflow}{if}(txid[i])\ nz++;}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00139}00139\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ad47d8cabb9118853cdd9c9977925ea23}{check}}(\textcolor{stringliteral}{"{}\ \ not\ all\ zeros"{}},\ nz>5);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00140}00140\ \ \ \ \ \ \ \doxymbox{\hyperlink{test__load_8c_ab8e1e5e3ee545236846d21675d6bb016}{hexpr}}(\textcolor{stringliteral}{"{}TXID"{}},txid,32);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00141}00141\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00143}00143\ \ \ \ \ \textcolor{comment}{/*\ SUMMARY\ */}}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00144}00144\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n============================================================\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00145}00145\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ RESULTS:\ \%d\ passed,\ \%d\ failed,\ \%d\ total\(\backslash\)n"{}},\ \doxymbox{\hyperlink{test__load_8c_ab2391a688166a14a4af286bcc8a8b072}{pass}},\ \doxymbox{\hyperlink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{fail}},\ \doxymbox{\hyperlink{test__load_8c_ab2391a688166a14a4af286bcc8a8b072}{pass}}+\doxymbox{\hyperlink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{fail}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00146}00146\ \ \ \ \ printf(\textcolor{stringliteral}{"{}============================================================\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00148}00148\ \ \ \ \ FreeLibrary(lib);}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00149}00149\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{fail}}>0\ ?\ 1\ :\ 0;}
+\DoxyCodeLine{\Hypertarget{test__load_8c_source_l00150}00150\ \}}
+
+\end{DoxyCode}

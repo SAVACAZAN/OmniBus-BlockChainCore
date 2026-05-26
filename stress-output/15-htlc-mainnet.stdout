@@ -1,0 +1,11 @@
+======================================================================
+OmniBus HTLC / Swap Stress Test
+======================================================================
+RPC:    https://omnibusblockchain.cc:8443/api-mainnet
+Chain:  mainnet
+Mode:   READ-ONLY (dry-run)
+Pairs:  OMNI-ETH, OMNI-BTC, OMNI-LCX
+Flows:  3 per pair (settle, refund, timeout)
+
+FATAL: cannot reach RPC: Unexpected token '<', "<html>
+<h"... is not valid JSON

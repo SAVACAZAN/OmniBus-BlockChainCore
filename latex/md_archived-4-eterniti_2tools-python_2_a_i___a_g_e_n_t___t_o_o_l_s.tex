@@ -1,0 +1,623 @@
+\chapter{Tooluri Python pentru AI Agents -\/ Omni\+Bus Blockchain }
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s}{}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s}\index{Tooluri Python pentru AI Agents -\/ OmniBus Blockchain@{Tooluri Python pentru AI Agents -\/ OmniBus Blockchain}}
+\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4052}%
+\Hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4052}%
+
+
+\begin{quote}
+{\bfseries{Scop:\+}} Toolbox complet pentru AI agents să lucreze eficient cu proiectul fără să consume mulți tokeni. \end{quote}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4054}{}\doxysection{\texorpdfstring{📋 INDEX RAPID}{📋 INDEX RAPID}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4054}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scop  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Timp execuție  \\
+1  &{\ttfamily \doxylink{project__health_8py}{project\+\_\+health.\+py}}  &Check rapid starea proiectului  &\texorpdfstring{$<$}{<}1s  \\
+2  &{\ttfamily \doxylink{quick__check_8py}{quick\+\_\+check.\+py}}  &Verificare sintaxă + build  &2-\/5s  \\
+3  &{\ttfamily \doxylink{dependency__check_8py}{dependency\+\_\+check.\+py}}  &Verifică dependințe externe  &\texorpdfstring{$<$}{<}1s  \\
+4  &{\ttfamily \doxylink{code__metrics_8py}{code\+\_\+metrics.\+py}}  &Statistici cod (LOC, complexitate)  &\texorpdfstring{$<$}{<}1s  \\
+5  &{\ttfamily test\+\_\+runner.\+py}  &Rulează teste specifice  &10-\/60s  \\
+6  &{\ttfamily \doxylink{config__validator_8py}{config\+\_\+validator.\+py}}  &Validează omnibus.\+toml  &\texorpdfstring{$<$}{<}1s  \\
+7  &{\ttfamily rpc\+\_\+validator.\+py}  &Verifică endpoint-\/uri RPC  &2-\/5s  \\
+8  &{\ttfamily \doxylink{security__scan_8py}{security\+\_\+scan.\+py}}  &Scanare vulnerabilități  &2-\/3s  \\
+9  &{\ttfamily doc\+\_\+sync\+\_\+check.\+py}  &Verifică sincronizare cod-\/doc  &\texorpdfstring{$<$}{<}1s  \\
+10  &{\ttfamily module\+\_\+graph.\+py}  &Generează graf dependențe  &\texorpdfstring{$<$}{<}1s  \\
+11  &{\ttfamily \doxylink{todo__extractor_8py}{todo\+\_\+extractor.\+py}}  &Extrage TODO/\+\+FIXME din cod  &\texorpdfstring{$<$}{<}1s  \\
+12  &{\ttfamily gas\+\_\+analyzer.\+py}  &Analizează costuri tranzacții  &\texorpdfstring{$<$}{<}1s  \\
+13  &{\ttfamily consensus\+\_\+monitor.\+py}  &Monitorizează consens în timp real  &Continuu  \\
+14  &{\ttfamily benchmark\+\_\+quick.\+py}  &Benchmark rapid TPS  &10-\/30s  \\
+15  &{\ttfamily fuzz\+\_\+tester.\+py}  &Teste fuzz pentru input-\/uri  &30-\/60s  \\
+16  &{\ttfamily \doxylink{prompt__generator_8py}{prompt\+\_\+generator.\+py}}  &Generează prompt-\/uri pentru alți agenți  &\texorpdfstring{$<$}{<}1s  \\
+17  &{\ttfamily git\+\_\+summary.\+py}  &Sumar schimbări recente  &\texorpdfstring{$<$}{<}1s  \\
+18  &{\ttfamily coverage\+\_\+check.\+py}  &Verifică acoperire teste  &5-\/10s  \\
+19  &{\ttfamily memory\+\_\+analyzer.\+py}  &Analizează utilizare memorie  &2-\/5s  \\
+20  &{\ttfamily api\+\_\+diff.\+py}  &Compară API între versiuni  &\texorpdfstring{$<$}{<}1s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4056}{}\doxysection{\texorpdfstring{🔧 Toolurile în detaliu}{🔧 Toolurile în detaliu}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4056}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4057}{}\doxysubsection{\texorpdfstring{1. {\ttfamily project\+\_\+health.\+py} -\/ Stare generală proiect}{1. {\ttfamily project\+\_\+health.\+py} -\/ Stare generală proiect}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4057}
+{\bfseries{Ce face:\+}}
+\begin{DoxyItemize}
+\item Verifică dacă Zig e instalat și versiunea
+\item Verifică liboqs (opțional)
+\item Numără fișiere .zig, teste, linii de cod
+\item Verifică dacă build.\+zig există
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[OK]\ Zig\ 0.15.2\ detectat}
+\DoxyCodeLine{[OK]\ 79\ fișiere\ .zig}
+\DoxyCodeLine{[OK]\ 3,142\ constante}
+\DoxyCodeLine{[OK]\ 38\ enum-\/uri}
+\DoxyCodeLine{[WARN]\ liboqs\ nu\ e\ detectat\ (opțional)}
+\DoxyCodeLine{[OK]\ Build.zig\ prezent}
+
+\end{DoxyCode}
+
+
+{\bfseries{Pentru agenți:\+}} Run this first before any coding task.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4059}{}\doxysubsection{\texorpdfstring{2. {\ttfamily quick\+\_\+check.\+py} -\/ Verificare rapidă}{2. {\ttfamily quick\+\_\+check.\+py} -\/ Verificare rapidă}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4059}
+{\bfseries{Ce face:\+}}
+\begin{DoxyItemize}
+\item Verifică sintaxa Zig (zig fmt --check)
+\item Încearcă build rapid (fără liboqs)
+\item Verifică testele de bază
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[SINTAXA]\ 79/79\ fișiere\ OK}
+\DoxyCodeLine{[BUILD]\ \ \ Success\ (fără\ liboqs)}
+\DoxyCodeLine{[TESTE]\ \ \ 45/45\ teste\ crypto\ trecute}
+\DoxyCodeLine{[TIMP]\ \ \ \ 3.2s}
+
+\end{DoxyCode}
+
+
+{\bfseries{Pentru agenți:\+}} Use after code changes to verify nothing broke.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4061}{}\doxysubsection{\texorpdfstring{3. {\ttfamily dependency\+\_\+check.\+py} -\/ Verifică sistem}{3. {\ttfamily dependency\+\_\+check.\+py} -\/ Verifică sistem}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4061}
+{\bfseries{Ce verifică:\+}}
+\begin{DoxyItemize}
+\item Zig instalat (versiune minimă 0.\+15.\+0)
+\item liboqs compilat (opțional)
+\item Python 3.\+8+ (pentru tooluri)
+\item Spațiu disk disponibil
+\item Porturi libere (8332, 8333, 8334)
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[DEPENDINȚE]}
+\DoxyCodeLine{\ \ [OK]\ Zig\ 0.15.2}
+\DoxyCodeLine{\ \ [OK]\ Python\ 3.12}
+\DoxyCodeLine{\ \ [WARN]\ liboqs\ -\/\ nu\ e\ detectat\ (opțional)}
+\DoxyCodeLine{\ \ [OK]\ Spațiu:\ 45GB\ disponibil}
+\DoxyCodeLine{\ \ [OK]\ Port\ 8332:\ liber}
+\DoxyCodeLine{\ \ [OK]\ Port\ 8333:\ liber}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4063}{}\doxysubsection{\texorpdfstring{4. {\ttfamily code\+\_\+metrics.\+py} -\/ Metrici cod}{4. {\ttfamily code\+\_\+metrics.\+py} -\/ Metrici cod}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4063}
+{\bfseries{Ce calculează:\+}}
+\begin{DoxyItemize}
+\item Total linii de cod (LOC)
+\item Linii de test
+\item Complexitate medie per fișier
+\item Raport test/\+cod
+\item Cele mai mari fișiere
+\item Duplicate detection (bazic)
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[METRICI\ COD]}
+\DoxyCodeLine{\ \ Fișiere\ .zig:\ \ \ \ \ 79}
+\DoxyCodeLine{\ \ LOC\ total:\ \ \ \ \ \ \ \ 24,547}
+\DoxyCodeLine{\ \ LOC\ teste:\ \ \ \ \ \ \ \ 8,234\ (33\%)}
+\DoxyCodeLine{\ \ Medie/fișier:\ \ \ \ \ 310\ LOC}
+\DoxyCodeLine{\ \ Cel\ mai\ mare:\ \ \ \ \ core/p2p.zig\ (1,247\ LOC)}
+\DoxyCodeLine{\ \ Complexitate:\ \ \ \ \ Medie}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4065}{}\doxysubsection{\texorpdfstring{5. {\ttfamily test\+\_\+runner.\+py} -\/ Rulează teste selectiv}{5. {\ttfamily test\+\_\+runner.\+py} -\/ Rulează teste selectiv}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4065}
+{\bfseries{Ce face:\+}}
+\begin{DoxyItemize}
+\item Rulează teste pe grupuri (crypto, chain, net, etc.)
+\item Generează raport HTML/\+opțiuni text
+\item Compară cu rulări anterioare
+\end{DoxyItemize}
+
+{\bfseries{Utilizare:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/group\ crypto\ \ \ \ \#\ Doar\ teste\ crypto}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/group\ chain\ \ \ \ \ \#\ Doar\ teste\ blockchain}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/failed\ \ \ \ \ \ \ \ \ \ \#\ Doar\ cele\ care\ au\ picat\ ultima\ dată}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/watch\ \ \ \ \ \ \ \ \ \ \ \#\ Watch\ mode\ pentru\ TDD}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4067}{}\doxysubsection{\texorpdfstring{6. {\ttfamily config\+\_\+validator.\+py} -\/ Validează config}{6. {\ttfamily config\+\_\+validator.\+py} -\/ Validează config}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4067}
+{\bfseries{Ce verifică:\+}}
+\begin{DoxyItemize}
+\item omnibus.\+toml sintaxă corectă
+\item Valori în range-\/uri valide
+\item Referințe la fișiere existente
+\item Port-\/uri unice
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[CONFIG]\ omnibus.toml}
+\DoxyCodeLine{\ \ [OK]\ Sintaxă\ TOML\ validă}
+\DoxyCodeLine{\ \ [OK]\ network.port\ =\ 8333\ (în\ range\ 1024-\/65535)}
+\DoxyCodeLine{\ \ [OK]\ database.path\ =\ "{}omnibus-\/chain.dat"{}\ (există)}
+\DoxyCodeLine{\ \ [WARN]\ mining.threads\ =\ 0\ (va\ folosi\ toate\ core-\/urile)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4069}{}\doxysubsection{\texorpdfstring{7. {\ttfamily rpc\+\_\+validator.\+py} -\/ Verifică RPC}{7. {\ttfamily rpc\+\_\+validator.\+py} -\/ Verifică RPC}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4069}
+{\bfseries{Ce face:\+}}
+\begin{DoxyItemize}
+\item Pornește nod temporar
+\item Testează toate endpoint-\/urile RPC
+\item Verifică răspunsurile JSON
+\item Măsoară latență
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[RPC\ TEST]}
+\DoxyCodeLine{\ \ [OK]\ getblockcount\ \ \ \ \ \ \ \ 12ms}
+\DoxyCodeLine{\ \ [OK]\ getbestblockhash\ \ \ \ \ 8ms}
+\DoxyCodeLine{\ \ [OK]\ getmempoolinfo\ \ \ \ \ \ \ 15ms}
+\DoxyCodeLine{\ \ [WARN]\ getpeerinfo\ \ \ \ \ \ \ \ timeout\ (nod\ single)}
+\DoxyCodeLine{\ \ [STATS]\ Medie:\ 11ms,\ Max:\ 15ms}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4071}{}\doxysubsection{\texorpdfstring{8. {\ttfamily security\+\_\+scan.\+py} -\/ Scanare securitate}{8. {\ttfamily security\+\_\+scan.\+py} -\/ Scanare securitate}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4071}
+{\bfseries{Ce caută:\+}}
+\begin{DoxyItemize}
+\item Hardcoded keys/\+secrets
+\item Buffer sizes nevalidate
+\item unwrap/\+expect în cod (panic spots)
+\item TODO-\/uri legate de securitate
+\item Debug prints care ar putea expune date
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[SECURITY\ SCAN]}
+\DoxyCodeLine{\ \ [INFO]\ 23x\ "{}expect"{}\ găsit\ (normal\ în\ Zig)}
+\DoxyCodeLine{\ \ [WARN]\ 3x\ TODO\ security\ în\ core/p2p.zig}
+\DoxyCodeLine{\ \ [OK]\ \ \ Niciun\ secret\ hardcoded\ detectat}
+\DoxyCodeLine{\ \ [OK]\ \ \ Toate\ buffer-\/ele\ au\ verificări\ de\ dimensiune}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4073}{}\doxysubsection{\texorpdfstring{9. {\ttfamily doc\+\_\+sync\+\_\+check.\+py} -\/ Verifică documentație}{9. {\ttfamily doc\+\_\+sync\+\_\+check.\+py} -\/ Verifică documentație}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4073}
+{\bfseries{Ce compară:\+}}
+\begin{DoxyItemize}
+\item Constante din cod vs \doxylink{_o_p_c_o_d_e_s_8md}{OPCODES.\+md}
+\item RPC methods din cod vs documentație
+\item Comentarii TODO vs lista de taskuri
+\item CHANGELOG.\+md actualizat?
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[SYNC\ CHECK]}
+\DoxyCodeLine{\ \ [OK]\ \ \ OPCODES.md\ la\ zi\ (ultima\ actualizare:\ 2026-\/03-\/31)}
+\DoxyCodeLine{\ \ [WARN]\ 3\ constante\ noi\ în\ core/p2p.zig\ nu\ sunt\ în\ OPCODES.md}
+\DoxyCodeLine{\ \ [OK]\ \ \ CHANGELOG.md\ actualizat\ în\ ultima\ săptămână}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4075}{}\doxysubsection{\texorpdfstring{10. {\ttfamily module\+\_\+graph.\+py} -\/ Graf dependențe}{10. {\ttfamily module\+\_\+graph.\+py} -\/ Graf dependențe}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4075}
+{\bfseries{Ce generează:\+}}
+\begin{DoxyItemize}
+\item DAG (directed acyclic graph) al importurilor
+\item Detectează cicluri
+\item Arată modulele cele mai dependente
+\item Exportă în format Mermaid/\+\+DOT
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[DEPENDENȚE]}
+\DoxyCodeLine{\ \ Core\ modules:\ 69}
+\DoxyCodeLine{\ \ Importuri\ totale:\ 234}
+\DoxyCodeLine{\ \ Cel\ mai\ utilizat:\ core/crypto.zig\ (importat\ de\ 12\ module)}
+\DoxyCodeLine{\ \ Ciclu\ detectat:\ Niciunul}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ Graf\ generat:\ module\_graph.mmd}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4077}{}\doxysubsection{\texorpdfstring{11. {\ttfamily todo\+\_\+extractor.\+py} -\/ Extrage taskuri}{11. {\ttfamily todo\+\_\+extractor.\+py} -\/ Extrage taskuri}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4077}
+{\bfseries{Ce extrage:\+}}
+\begin{DoxyItemize}
+\item TODO comentarii
+\item FIXME comentarii
+\item BUG comentarii
+\item HACK comentarii
+\item Le grupează după fișier și prioritate
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[TODO\ EXTRACT]}
+\DoxyCodeLine{\ \ Total:\ 47\ taskuri}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ PRIORITATE\ ÎNALTĂ\ (FIXME/BUG):\ 5}
+\DoxyCodeLine{\ \ \ \ -\/\ core/p2p.zig:42\ FIXME:\ Buffer\ overflow\ posibil}
+\DoxyCodeLine{\ \ \ \ -\/\ core/consensus.zig:156\ BUG:\ Edge\ case\ la\ timeout}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ TODO\ normal:\ 38}
+\DoxyCodeLine{\ \ HACK:\ 4}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4079}{}\doxysubsection{\texorpdfstring{12. {\ttfamily gas\+\_\+analyzer.\+py} -\/ Analiză costuri}{12. {\ttfamily gas\+\_\+analyzer.\+py} -\/ Analiză costuri}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4079}
+{\bfseries{Ce calculează:\+}}
+\begin{DoxyItemize}
+\item Cost per tranzacție (SAT)
+\item Estimare cost pentru operații comune
+\item Comparare cu alte blockchain-\/uri
+\item Fee market analysis
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[GAS\ ANALYSIS]}
+\DoxyCodeLine{\ \ TX\ standard:\ \ \ \ \ 1\ SAT\ (minim)}
+\DoxyCodeLine{\ \ TX\ complexă:\ \ \ \ \ 5-\/10\ SAT}
+\DoxyCodeLine{\ \ Contract\ deploy:\ N/A\ (smart\ contracts\ nu\ sunt\ încă)}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Comparativ\ cu\ ETH:}
+\DoxyCodeLine{\ \ \ \ -\/\ 1M\ x\ mai\ ieftin}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Burn\ rate:\ 50\%\ din\ fees}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4081}{}\doxysubsection{\texorpdfstring{13. {\ttfamily consensus\+\_\+monitor.\+py} -\/ Monitorizare consens}{13. {\ttfamily consensus\+\_\+monitor.\+py} -\/ Monitorizare consens}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4081}
+{\bfseries{Ce monitorizează:\+}}
+\begin{DoxyItemize}
+\item Înălțimea blocului curent
+\item Timp de finalizare (Casper FFG)
+\item Număr validatori activi
+\item Checkpoint-\/uri
+\end{DoxyItemize}
+
+{\bfseries{Utilizare:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ consensus\_monitor.py\ -\/-\/watch\ \ \ \ \ \#\ Monitorizare\ continuă}
+\DoxyCodeLine{python\ consensus\_monitor.py\ -\/-\/snapshot\ \ \#\ Status\ instant}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4083}{}\doxysubsection{\texorpdfstring{14. {\ttfamily benchmark\+\_\+quick.\+py} -\/ Benchmark rapid}{14. {\ttfamily benchmark\+\_\+quick.\+py} -\/ Benchmark rapid}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4083}
+{\bfseries{Ce măsoară:\+}}
+\begin{DoxyItemize}
+\item TPS (transactions per second)
+\item Timp de block
+\item Latență rețea P2P
+\item Timp de validare
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[BENCHMARK]}
+\DoxyCodeLine{\ \ TPS:\ \ \ \ \ \ \ \ 4,523\ (target:\ 5,000)}
+\DoxyCodeLine{\ \ Block\ time:\ 1.02s\ (target:\ 1s)}
+\DoxyCodeLine{\ \ Latență:\ \ \ \ 23ms\ medie}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ [OK]\ Performanță\ în\ parametri}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4085}{}\doxysubsection{\texorpdfstring{15. {\ttfamily fuzz\+\_\+tester.\+py} -\/ Teste fuzz}{15. {\ttfamily fuzz\+\_\+tester.\+py} -\/ Teste fuzz}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4085}
+{\bfseries{Ce testează:\+}}
+\begin{DoxyItemize}
+\item Input-\/uri random pentru parser-\/e
+\item TX malformed
+\item Block headers corupte
+\item Network messages malformed
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[FUZZ\ TEST]}
+\DoxyCodeLine{\ \ TX\ parser:\ \ \ \ 10,000\ iterări,\ 0\ crash-\/uri}
+\DoxyCodeLine{\ \ Block\ parser:\ 10,000\ iterări,\ 0\ crash-\/uri}
+\DoxyCodeLine{\ \ P2P\ messages:\ 10,000\ iterări,\ 0\ crash-\/uri}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ [OK]\ Toate\ testele\ fuzz\ trecute}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4087}{}\doxysubsection{\texorpdfstring{16. {\ttfamily prompt\+\_\+generator.\+py} -\/ Generează prompt-\/uri}{16. {\ttfamily prompt\+\_\+generator.\+py} -\/ Generează prompt-\/uri}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4087}
+{\bfseries{Ce generează:\+}}
+\begin{DoxyItemize}
+\item Prompturi context-\/aware pentru alți agenți
+\item Include starea curentă a proiectului
+\item Include erori recente
+\item Include TODO-\/uri relevante
+\end{DoxyItemize}
+
+{\bfseries{Utilizare:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ prompt\_generator.py\ -\/-\/task\ "{}Implement\ LMD\ GHOST"{}}
+\DoxyCodeLine{\#\ Generează\ prompt\ complet\ cu\ context}
+
+\end{DoxyCode}
+
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[PROMPT\ GENERAT]}
+\DoxyCodeLine{}
+\DoxyCodeLine{Tu\ ești\ un\ dezvoltator\ Zig\ experto\ specializat\ în\ blockchain.}
+\DoxyCodeLine{}
+\DoxyCodeLine{CONTEXT\ PROIECT:}
+\DoxyCodeLine{-\/\ 79\ fișiere\ .zig,\ 24,547\ LOC}
+\DoxyCodeLine{-\/\ Build:\ OK}
+\DoxyCodeLine{-\/\ Teste:\ 45/45\ trecute}
+\DoxyCodeLine{-\/\ TODO\ relevante:\ 3\ în\ consens}
+\DoxyCodeLine{}
+\DoxyCodeLine{TASK:\ Implement\ LMD\ GHOST\ fork\ choice\ rule}
+\DoxyCodeLine{}
+\DoxyCodeLine{COD\ EXISTENT\ RELEVANT:}
+\DoxyCodeLine{-\/\ core/finality.zig\ -\/\ Casper\ FFG\ implementat}
+\DoxyCodeLine{-\/\ core/consensus.zig\ -\/\ Consens\ engine}
+\DoxyCodeLine{}
+\DoxyCodeLine{REFERINȚE:}
+\DoxyCodeLine{-\/\ OPCODES.md\ secțiunea\ Consensus}
+\DoxyCodeLine{-\/\ Ethereum\ spec:\ LMD\ GHOST}
+\DoxyCodeLine{}
+\DoxyCodeLine{CERINȚE:}
+\DoxyCodeLine{1.\ Adaugă\ struct\ LMDGhost\ în\ core/consensus.zig}
+\DoxyCodeLine{2.\ Implementează\ funcția\ getHead()}
+\DoxyCodeLine{3.\ Adaugă\ teste}
+\DoxyCodeLine{4.\ Actualizează\ OPCODES.md}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4089}{}\doxysubsection{\texorpdfstring{17. {\ttfamily git\+\_\+summary.\+py} -\/ Sumar Git}{17. {\ttfamily git\+\_\+summary.\+py} -\/ Sumar Git}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4089}
+{\bfseries{Ce arată:\+}}
+\begin{DoxyItemize}
+\item Commit-\/uri recente
+\item Fișiere modificate recent
+\item Autori activi
+\item Branch-\/uri
+\item Statistici (adăugat/\+șters)
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[git\ SUMMARY]}
+\DoxyCodeLine{\ \ Branch:\ main}
+\DoxyCodeLine{\ \ Commits:\ 127\ total}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Ultimele\ 3\ commit-\/uri:}
+\DoxyCodeLine{\ \ \ \ -\/\ a1b2c3d:\ Fix\ memory\ leak\ în\ p2p.zig}
+\DoxyCodeLine{\ \ \ \ -\/\ e4f5g6h:\ Add\ BLS\ threshold\ signatures}
+\DoxyCodeLine{\ \ \ \ -\/\ i7j8k9l:\ Update\ consensus\ constants}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Fișiere\ modificate\ recent:}
+\DoxyCodeLine{\ \ \ \ -\/\ core/p2p.zig}
+\DoxyCodeLine{\ \ \ \ -\/\ core/bls\_signatures.zig}
+\DoxyCodeLine{\ \ \ \ -\/\ OPCODES.md}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4091}{}\doxysubsection{\texorpdfstring{18. {\ttfamily coverage\+\_\+check.\+py} -\/ Acoperire teste}{18. {\ttfamily coverage\+\_\+check.\+py} -\/ Acoperire teste}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4091}
+{\bfseries{Ce verifică:\+}}
+\begin{DoxyItemize}
+\item Ce funcții au teste
+\item Ce module lipsesc teste
+\item Procent acoperire (estimat)
+\item Teste care nu rulează
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[COVERAGE]}
+\DoxyCodeLine{\ \ Module\ cu\ teste:\ \ \ \ \ 45/69\ (65\%)}
+\DoxyCodeLine{\ \ Funcții\ testate:\ \ \ \ \ 234/567\ (41\%)}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Module\ fără\ teste:}
+\DoxyCodeLine{\ \ \ \ -\/\ core/bridge\_relay.zig}
+\DoxyCodeLine{\ \ \ \ -\/\ core/oracle.zig}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ [WARN]\ Acoperire\ sub\ 50\%}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4093}{}\doxysubsection{\texorpdfstring{19. {\ttfamily memory\+\_\+analyzer.\+py} -\/ Analiză memorie}{19. {\ttfamily memory\+\_\+analyzer.\+py} -\/ Analiză memorie}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4093}
+{\bfseries{Ce analizează:\+}}
+\begin{DoxyItemize}
+\item Alocări în cod (arena, allocator patterns)
+\item Potențial memory leaks
+\item Buffer sizes
+\item Stack vs heap usage
+\end{DoxyItemize}
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[MEMORY\ ANALYSIS]}
+\DoxyCodeLine{\ \ Alocări\ detectate:\ 156}
+\DoxyCodeLine{\ \ -\/\ Arena:\ 89\ (recomandat)}
+\DoxyCodeLine{\ \ -\/\ General:\ 45}
+\DoxyCodeLine{\ \ -\/\ Potențial\ leak:\ 2\ (în\ core/p2p.zig:234,\ core/sync.zig:89)}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Buffer\ sizes\ ok:\ 45/45\ verificate}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4095}{}\doxysubsection{\texorpdfstring{20. {\ttfamily api\+\_\+diff.\+py} -\/ Diferențe API}{20. {\ttfamily api\+\_\+diff.\+py} -\/ Diferențe API}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4095}
+{\bfseries{Ce compară:\+}}
+\begin{DoxyItemize}
+\item Export-\/uri publice între versiuni
+\item Semnături funcții schimbate
+\item Constante modificate
+\item Breaking changes
+\end{DoxyItemize}
+
+{\bfseries{Utilizare:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ api\_diff.py\ -\/-\/from\ v1.0.0\ -\/-\/to\ HEAD}
+
+\end{DoxyCode}
+
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[API\ DIFF\ v1.0.0\ →\ HEAD]}
+\DoxyCodeLine{\ \ Adăugat:}
+\DoxyCodeLine{\ \ \ \ +\ blsAggregateKeys()\ în\ core/bls\_signatures.zig}
+\DoxyCodeLine{\ \ \ \ +\ CommitteeSelector\ struct}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Modificat:}
+\DoxyCodeLine{\ \ \ \ \string~\ FinalityEngine.init()\ -\/\ parametru\ nou}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ Șters:}
+\DoxyCodeLine{\ \ \ \ -\/\ Nimic\ (compatibilitate\ păstrată)}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ [INFO]\ 1\ breaking\ change\ detectat}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4097}{}\doxysection{\texorpdfstring{🚀 Workflow pentru AI Agents}{🚀 Workflow pentru AI Agents}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4097}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4098}{}\doxysubsection{\texorpdfstring{Task nou -\/ Check rapid (înainte de a citi codul):\+}{Task nou -\/ Check rapid (înainte de a citi codul):\+}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4098}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ tools/project\_health.py\ \ \ \ \ \#\ Stare\ generală}
+\DoxyCodeLine{python\ tools/quick\_check.py\ \ \ \ \ \ \ \ \#\ Build\ OK?}
+\DoxyCodeLine{python\ tools/todo\_extractor.py\ \ \ \ \ \#\ Ce\ TODO-\/uri\ există?}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4099}{}\doxysubsection{\texorpdfstring{În timpul dezvoltării:\+}{În timpul dezvoltării:\+}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4099}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ tools/test\_runner.py\ -\/-\/watch\ \ \ \ \#\ TDD\ mode}
+\DoxyCodeLine{python\ tools/code\_metrics.py\ \ \ \ \ \ \ \ \ \ \ \#\ Nu\ crește\ prea\ mult\ fișierul}
+\DoxyCodeLine{python\ tools/security\_scan.py\ \ \ \ \ \ \ \ \ \ \#\ Verifică\ ce\ scrii}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4100}{}\doxysubsection{\texorpdfstring{Înainte de commit:\+}{Înainte de commit:\+}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4100}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ tools/doc\_sync\_check.py\ \ \ \ \ \ \ \ \ \#\ Doc\ actualizat?}
+\DoxyCodeLine{python\ tools/api\_diff.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Breaking\ changes?}
+\DoxyCodeLine{python\ tools/quick\_check.py\ \ \ \ \ \ \ \ \ \ \ \ \#\ Totul\ compilează?}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4101}{}\doxysubsection{\texorpdfstring{Post-\/commit:\+}{Post-\/commit:\+}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4101}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ tools/benchmark\_quick.py\ \ \ \ \ \ \ \ \#\ Regresii\ de\ performanță?}
+\DoxyCodeLine{python\ tools/coverage\_check.py\ \ \ \ \ \ \ \ \ \#\ Acoperire\ teste?}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4103}{}\doxysection{\texorpdfstring{📦 Instalare Tooluri}{📦 Instalare Tooluri}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4103}
+Toate toolurile sunt în directorul {\ttfamily tools/\+} și nu necesită instalare.
+
+Dependințe Python (standard library doar):\+
+\begin{DoxyItemize}
+\item {\ttfamily toml} (pentru parsare config)
+\item {\ttfamily pathlib} (built-\/in)
+\item {\ttfamily subprocess} (built-\/in)
+\item {\ttfamily json} (built-\/in)
+\end{DoxyItemize}
+
+Instalare dependințe opționale:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pip\ install\ toml\ colorama\ \ \#\ colorama\ pentru\ Windows\ colors}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4105}{}\doxysection{\texorpdfstring{🎯 Prioritate Implementare}{🎯 Prioritate Implementare}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4105}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4106}{}\doxysubsection{\texorpdfstring{🔴 CRITICE (implementează primul):\+}{🔴 CRITICE (implementează primul):\+}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4106}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily \doxylink{project__health_8py}{project\+\_\+health.\+py}} -\/ Stare generală
+\item {\ttfamily \doxylink{quick__check_8py}{quick\+\_\+check.\+py}} -\/ Build check
+\item {\ttfamily \doxylink{todo__extractor_8py}{todo\+\_\+extractor.\+py}} -\/ Task tracking
+\item {\ttfamily test\+\_\+runner.\+py} -\/ Teste selective
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4107}{}\doxysubsection{\texorpdfstring{🟡 IMPORTANTE:\+}{🟡 IMPORTANTE:\+}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4107}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily \doxylink{code__metrics_8py}{code\+\_\+metrics.\+py}} -\/ Monitorizare dimensiune
+\item {\ttfamily \doxylink{security__scan_8py}{security\+\_\+scan.\+py}} -\/ Securitate
+\item {\ttfamily doc\+\_\+sync\+\_\+check.\+py} -\/ Documentație
+\item {\ttfamily \doxylink{prompt__generator_8py}{prompt\+\_\+generator.\+py}} -\/ Context pentru agenți
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4108}{}\doxysubsection{\texorpdfstring{🟢 NICE TO HAVE:\+}{🟢 NICE TO HAVE:\+}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4108}
+9-\/20. Restul toolurilor
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4110}{}\doxysection{\texorpdfstring{💡 Tips pentru AI Agents}{💡 Tips pentru AI Agents}}\label{md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s_autotoc_md4110}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Rulează {\ttfamily \doxylink{project__health_8py}{project\+\_\+health.\+py}} întâi}} -\/ Dă context instant fără să citești fișiere
+\item {\bfseries{Folosește {\ttfamily \doxylink{prompt__generator_8py}{prompt\+\_\+generator.\+py}}}} -\/ Generează prompturi pentru alți agenți
+\item {\bfseries{Verifică {\ttfamily \doxylink{todo__extractor_8py}{todo\+\_\+extractor.\+py}}}} -\/ Vezi ce taskuri sunt deja în backlog
+\item {\bfseries{Rulează {\ttfamily \doxylink{quick__check_8py}{quick\+\_\+check.\+py}}}} -\/ Validare rapidă înainte de codat
+\item {\bfseries{Folosește {\ttfamily test\+\_\+runner.\+py -\/-\/group X}}} -\/ Testează doar ce ai modificat
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+
+
+{\itshape Document generat automat pentru Omni\+Bus Blockchain AI Collective} 

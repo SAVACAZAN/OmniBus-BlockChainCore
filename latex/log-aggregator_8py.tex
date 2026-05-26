@@ -1,0 +1,46 @@
+\doxysection{scripts/\+devops/\+log-\/aggregator.py File Reference}
+\hypertarget{log-aggregator_8py}{}\label{log-aggregator_8py}\index{scripts/devops/log-\/aggregator.py@{scripts/devops/log-\/aggregator.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{log-\/aggregator.\+Log\+Entry}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacelog-aggregator}{log-\/aggregator}}
+\item 
+namespace \doxymbox{\hyperlink{namespacelog}{log}}
+\begin{DoxyCompactList}\small\item\em -\/aggregator \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+tuple\+[str, str]\+ \doxymbox{\hyperlink{namespacelog-aggregator_a751fece60b5f4052c6e32b9713600460}{log-\/aggregator.\+extract\+\_\+timestamp}} (str line)
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a7840577ee4b9e5659ad3b421a415439b}{log-\/aggregator.\+detect\+\_\+severity}} (str line)
+\item 
+list\+[\doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{Log\+Entry}}]\+ \doxymbox{\hyperlink{namespacelog-aggregator_a8ed2f7a255228fbb7f176001c0c3fae6}{log-\/aggregator.\+parse\+\_\+log\+\_\+file}} (str filepath)
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_acd54cbec4c18c0e6f125789e69cc1ce6}{log-\/aggregator.\+colorize\+\_\+severity}} (str severity)
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a7449ef3cb290dd1f5b2ce976493295af}{log-\/aggregator.\+format\+\_\+entry}} (\doxymbox{\hyperlink{classlog-aggregator_1_1_log_entry}{Log\+Entry}} entry, bool show\+\_\+source=True)
+\item 
+int \doxymbox{\hyperlink{namespacelog-aggregator_a7431cb90017e54fe695b23d4190db046}{log-\/aggregator.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{namespacelog-aggregator_a856c9f2af9640c5b95c66970c44f4c2b}{log-\/aggregator.\+COLORS}}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a105e3c773c06eea82596c1d649d1ae53}{log-\/aggregator.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a4a4439bb38533af1f576b23cadec0e4e}{log-\/aggregator.\+DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a12515a7fd9054784d85a6164b703e66e}{log-\/aggregator.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacelog-aggregator_a9a2c5e6f91205140b47df1f6d8468b9b}{log-\/aggregator.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+list \doxymbox{\hyperlink{namespacelog-aggregator_ae7e3634c9dc55293b87d66d6d842e9fb}{log-\/aggregator.\+TIMESTAMP\+\_\+\+PATTERNS}}
+\item 
+\doxymbox{\hyperlink{namespacelog-aggregator_a31d0e8502dbde730568918dc32fcc05c}{log-\/aggregator.\+SEVERITY\+\_\+\+PATTERN}}
+\end{DoxyCompactItemize}

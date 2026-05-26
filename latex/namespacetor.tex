@@ -1,0 +1,20 @@
+\doxysection{tor Namespace Reference}
+\hypertarget{namespacetor}{}\label{namespacetor}\index{tor@{tor}}
+
+
+-\/connectivity-\/test  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/connectivity-\/test 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Tor Connectivity Test.
+
+Connects to node P2P port 9000 and RPC port 8332 through SOCKS5 proxy
+(default 127.0.0.1:9050).  Sends JSON-RPC getblockcount.
+If Tor not running, skips gracefully with YELLOW warning.
+Measures latency: direct vs Tor.
+\end{DoxyVerb}
+ 
