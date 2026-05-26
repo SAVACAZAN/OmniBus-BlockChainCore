@@ -98,9 +98,9 @@ function nakamotoCoefficient(entries: RichEntry[], totalSupply: number): number 
 }
 
 function ConcentrationBar({ entries, totalSupply }: { entries: RichEntry[]; totalSupply: number }) {
-  const slots = buildConcentration(entries, totalSupply);
+  const slots = useMemo(() => buildConcentration(entries, totalSupply), [entries, totalSupply]);
+  const coeff = useMemo(() => nakamotoCoefficient(entries, totalSupply), [entries, totalSupply]);
   if (slots.length === 0) return null;
-  const coeff = nakamotoCoefficient(entries, totalSupply);
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">

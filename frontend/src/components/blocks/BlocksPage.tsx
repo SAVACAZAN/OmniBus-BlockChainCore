@@ -286,11 +286,9 @@ export function BlocksPage() {
                     {(() => {
                       const prevTs = tsMap.get(b.height + 1);
                       if (!prevTs || !b.timestamp) return <span className="text-mempool-text-dim">—</span>;
-                      const delta = prevTs - b.timestamp;
-                      const cls = delta <= 0 || delta > 60
-                        ? "text-mempool-text-dim"
-                        : delta < 8 ? "text-orange-400" : delta <= 15 ? "text-green-400" : "text-yellow-400";
-                      return <span className={`font-mono ${cls}`}>{Math.abs(delta)}s</span>;
+                      const d = prevTs - b.timestamp;
+                      const cls = d <= 0 || d > 60 ? "text-mempool-text-dim" : d < 8 ? "text-orange-400" : d <= 15 ? "text-green-400" : "text-yellow-400";
+                      return <span className={`font-mono ${cls}`}>{Math.abs(d)}s</span>;
                     })()}
                   </td>
                   <td className="px-4 py-2.5 text-right text-mempool-text-dim whitespace-nowrap"
