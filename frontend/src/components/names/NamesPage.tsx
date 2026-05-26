@@ -1609,6 +1609,10 @@ function NsHealthDashboard() {
   if (loading && !stats) return null;
   if (!stats) return null;
 
+  const tldEntries = Object.entries(stats.by_tld)
+    .filter(([, v]) => v > 0)
+    .sort(([, a], [, b]) => b - a);
+
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6 space-y-3">
       <div className="flex items-baseline justify-between">
@@ -1648,10 +1652,7 @@ function NsHealthDashboard() {
       </div>
 
       <div className="flex flex-wrap gap-1 text-[9px]">
-        {Object.entries(stats.by_tld)
-          .filter(([, v]) => v > 0)
-          .sort(([, a], [, b]) => b - a)
-          .map(([t, n]) => (
+        {tldEntries.map(([t, n]) => (
             <span key={t} className="px-1.5 py-0.5 rounded bg-mempool-bg border border-mempool-border text-mempool-text-dim">
               .{t} <span className="text-mempool-text font-semibold">{n}</span>
             </span>

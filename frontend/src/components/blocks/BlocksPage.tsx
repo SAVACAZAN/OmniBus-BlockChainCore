@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { rpc } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
@@ -69,19 +69,12 @@ export function BlocksPage() {
 
   const maxPage = Math.max(0, Math.floor((state.blockCount - 1) / PAGE_SIZE));
 
-  // Build a height→timestamp lookup for computing inter-block times
-  const tsMap = new Map(blocks.map((b) => [b.height, b.timestamp]));
-  const maxTxCount = Math.max(1, ...blocks.map((b) => b.txCount || 0));
-
-  // Chart data: last 20 blocks (oldest→newest for correct left-to-right render)
-  const chartData = [...blocks]
-    .reverse()
-    .map((b) => ({
-      h: b.height,
-      d: b.difficulty ?? b.nonce ?? 0,
-    }));
-
-  const hasDifficulty = chartData.some((c) => c.d > 0);
+  const tsMap = useMemo(() => new Map(blocks.map((b) => [b.height, b.timestamp])), [blocks]);
+  const maxTxCount = useMemo(() => Math.max(1, ...blocks.map((b) => b.txCount || 0)), [blocks]);
+  const chartData = useMemo(() =>
+    [...blocks].reverse().map((b) => ({ h: b.height, d: b.difficulty ?? b.nonce ?? 0 })),
+  [blocks]);
+  const hasDifficulty = useMemo(() => chartData.some((c) => c.d > 0), [chartData]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
