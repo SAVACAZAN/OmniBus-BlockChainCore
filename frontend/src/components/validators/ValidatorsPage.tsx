@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   Shield,
   ShieldCheck,
@@ -266,10 +268,12 @@ function ValidatorListTab() {
       }
     };
     refresh();
-    const id = setInterval(refresh, 10_000);
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(refresh, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [sortBy]);
 
@@ -1237,8 +1241,9 @@ function ConsensusTab() {
       }
     };
     refresh();
-    const id = setInterval(refresh, 5_000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub2 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(refresh, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub2(); };
   }, []);
 
   return (
