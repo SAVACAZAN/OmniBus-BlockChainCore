@@ -270,6 +270,32 @@ export function CovenantPanel() {
           Active covenants ({covenants.length})
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {covenants.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["address", "label", "whitelist_count", "whitelist", "max_per_tx_omni", "expires_block", "created_block"].join(","),
+                ...covenants.map((c) => [
+                  `"${c.address}"`,
+                  `"${c.label}"`,
+                  c.whitelist.length,
+                  `"${c.whitelist.join("|")}"`,
+                  c.max_per_tx_sat !== undefined ? (c.max_per_tx_sat / SAT_PER_OMNI).toFixed(4) : "",
+                  c.expires_block ?? "",
+                  c.created_block ?? "",
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-covenants.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
