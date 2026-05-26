@@ -32,13 +32,12 @@ import {
   XCircle,
   Lock,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { signMessage } from "../../api/exchange-sign";
 import { midTrunc, fmtInt } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // ── Types ─────────────────────────────────────────────────────────────────
 

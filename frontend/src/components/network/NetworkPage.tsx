@@ -4,12 +4,11 @@ import { MinerTable } from "./MinerTable";
 import { AddressLookup } from "../search/AddressLookup";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
-const rpc = new OmniBusRpcClient();
 
 interface SyncStatus {
   status: string;

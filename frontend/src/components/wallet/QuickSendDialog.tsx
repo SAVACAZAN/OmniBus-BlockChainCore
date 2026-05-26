@@ -16,13 +16,12 @@
 
 import { useEffect, useState } from "react";
 import { useWallet } from "../../api/use-wallet";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useGlobalBalance } from "../../api/use-global-balance";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { FeeEstimate, WsTxConfirmedEvent } from "../../types";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 type FeeTier = "low" | "normal" | "fast";
 

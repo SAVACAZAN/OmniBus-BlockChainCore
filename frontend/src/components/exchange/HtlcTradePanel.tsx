@@ -22,14 +22,13 @@ import type { Eip1193Provider } from "ethers";
 declare global {
   interface Window { ethereum?: Eip1193Provider; }
 }
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import {
   HTLC_CONTRACTS, lockEth, claimEth,
 } from "../../api/htlc-eth";
 
-const rpc = new OmniBusRpcClient();
 
 // USDC contract on Sepolia
 const USDC_SEPOLIA = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";

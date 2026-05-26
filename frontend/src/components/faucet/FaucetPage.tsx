@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 import { satToOmni } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 type FaucetStatus = {
   enabled: boolean;

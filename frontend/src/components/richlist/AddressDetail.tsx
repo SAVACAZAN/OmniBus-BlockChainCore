@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { KIND_STYLE } from "../common/TxBadges";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent, WsNewBlockEvent } from "../../types";
 import { satToOmni, midTrunc } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 type TxKind =
   | "coinbase"

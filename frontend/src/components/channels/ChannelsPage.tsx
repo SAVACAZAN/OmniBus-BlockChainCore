@@ -30,13 +30,12 @@ import {
   Clock,
 } from "lucide-react";
 import * as secp from "@noble/secp256k1";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { CopyButton } from "../common/CopyButton";
 import { satToOmni, SAT_PER_OMNI, midTrunc, fmtInt } from "../../utils/fmt";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
-const rpc = new OmniBusRpcClient();
 
 // ── SAT / OMNI helpers ──────────────────────────────────────────────────────
 

@@ -1,9 +1,8 @@
 import { useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 export function AddressLookup() {
   const [address, setAddress] = useState("");

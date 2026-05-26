@@ -17,10 +17,9 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "./rpc-client";
+import { rpc } from "./rpc-client";
 import { subscribe as wsSubscribe } from "./ws-bus";
 
-const rpc = new OmniBusRpcClient();
 
 const PRIMARY_LS_PREFIX = "omnibus:primary-name:";
 const MAX_NAMES_PER_WALLET = 10;

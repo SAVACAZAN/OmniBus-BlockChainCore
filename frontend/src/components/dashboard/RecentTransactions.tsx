@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { midTrunc, SAT_PER_OMNI, fmtAge } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // Click pe hash → deschide modal cu detalii TX (in TxSearch, mai jos)
 declare global {

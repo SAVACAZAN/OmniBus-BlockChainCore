@@ -15,13 +15,12 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { CHAINS, chainCounts, type ChainFamily } from "../../api/chains";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 interface BridgeStatus {
   locked_total_sat: number;

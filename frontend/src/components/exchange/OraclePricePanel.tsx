@@ -12,13 +12,12 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { getUnlocked } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent, WsOrderbookUpdateEvent } from "../../types";
 import { MICRO_PER_USD } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 // omnibus-oracle is a separate process on port 28100.
 // On VPS, nginx proxies /oracle → http://127.0.0.1:28100
 // Locally the oracle may not be running — getZigOraclePrices() handles that gracefully.

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import {
@@ -12,7 +12,6 @@ import {
   fetchXrpBalance,
 } from "../../api/multichain-balances";
 
-const rpc = new OmniBusRpcClient();
 
 // IMPORTANT: this table no longer hardcodes "savacazan.omnibus / admin.omnibus
 // / exchange.omnibus / …" against slot indices 0..9.

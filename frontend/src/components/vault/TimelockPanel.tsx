@@ -14,12 +14,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Lock, RefreshCw, AlertTriangle } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { useBlockHeight } from "../../api/use-block-height";
 
-const rpc = new OmniBusRpcClient();
 
 
 const BLOCKS_PER_DAY = 86_400; // 1s blocks

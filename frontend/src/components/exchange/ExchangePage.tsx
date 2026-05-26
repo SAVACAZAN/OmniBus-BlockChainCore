@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOrderbookUpdateEvent, WsNewTradeEvent, WsNewBlockEvent } from "../../types";
-import OmniBusRpcClient, {
-  ExchangeBalance,
-  OrderbookLevel,
-  PairInfo,
-  TradeFill,
-} from "../../api/rpc-client";
+import { rpc, type ExchangeBalance, type OrderbookLevel, type PairInfo, type TradeFill } from "../../api/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
 import { usePairs } from "../../api/use-pairs";
 import { PlaceOrderForm } from "./PlaceOrderForm";
@@ -26,7 +21,6 @@ import { IntentSwapPanel } from "./IntentSwapPanel";
 import { useWallet } from "../../api/use-wallet";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 
-const rpc = new OmniBusRpcClient();
 
 
 type Tab = "trade" | "grid" | "htlc" | "amm" | "oracle" | "account" | "intent";

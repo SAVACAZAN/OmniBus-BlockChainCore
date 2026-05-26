@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
@@ -15,7 +15,6 @@ import {
   Cell,
 } from "recharts";
 
-const rpc = new OmniBusRpcClient();
 
 interface MempoolTx {
   txid: string;

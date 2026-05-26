@@ -21,13 +21,12 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
 import type { PqOmniSlot } from "../../api/wallet-keystore";
 import { midTrunc, satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

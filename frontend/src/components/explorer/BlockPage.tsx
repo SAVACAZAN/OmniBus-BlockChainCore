@@ -1,11 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
 import { fmtSat, midTrunc, SAT_PER_OMNI, fmtAge, fmtUsd } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 function fmtTs(ts: number) {
   const ms = ts < 1e10 ? ts * 1000 : ts;

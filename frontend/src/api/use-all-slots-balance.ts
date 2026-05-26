@@ -17,10 +17,9 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "./rpc-client";
+import { rpc } from "./rpc-client";
 import { useWallet } from "./use-wallet";
 
-const rpc = new OmniBusRpcClient();
 const POLL_MS = 12_000;
 
 export type SlotSnapshot = {

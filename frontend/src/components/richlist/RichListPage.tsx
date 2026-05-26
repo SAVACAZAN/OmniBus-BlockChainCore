@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
-const rpc = new OmniBusRpcClient();
 
 
 type Role = "validator" | "miner" | "agent" | "user";

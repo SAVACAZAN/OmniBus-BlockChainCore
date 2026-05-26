@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
 import { SAT_PER_OMNI } from "../../utils/fmt";
-import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { getActiveChain, setActiveChain, type ChainName, rpc as _searchRpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { PlasmaLogo } from "../effects/PlasmaLogo";
 import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
@@ -297,8 +296,6 @@ export function Header() {
     </>
   );
 }
-
-const _searchRpc = new OmniBusRpcClient();
 
 /**
  * ExplorerSearchBar — inline search in the desktop header.

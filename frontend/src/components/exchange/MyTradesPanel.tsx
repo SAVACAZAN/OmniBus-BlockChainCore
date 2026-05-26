@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
 import { SAT_PER_OMNI, midTrunc, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 interface UserTrade {
   fillId: number;

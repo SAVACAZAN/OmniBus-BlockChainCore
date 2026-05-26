@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { signKycAttestation } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
 
 interface Props {
   tier: 1 | 2 | 3;

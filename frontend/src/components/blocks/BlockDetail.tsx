@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { KIND_STYLE } from "../common/TxBadges";
 import { MICRO_PER_USD, SAT_PER_OMNI, midTrunc, fmtUsd } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 interface PriceEntry {
   exchange: string;

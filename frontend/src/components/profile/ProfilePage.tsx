@@ -12,10 +12,7 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient, {
-  type ProfileFacet,
-  type ProfileFull,
-} from "../../api/rpc-client";
+import { rpc, type ProfileFacet, type ProfileFull } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { initProfileForAddress } from "../../api/profile-init";
 import {
@@ -30,7 +27,6 @@ import { CulturalTab } from "./CulturalTab";
 import { EconomicTab } from "./EconomicTab";
 import type { FieldVisibility } from "./PublicToggle";
 
-const rpc = new OmniBusRpcClient();
 
 type TabKey = ProfileFacet;
 

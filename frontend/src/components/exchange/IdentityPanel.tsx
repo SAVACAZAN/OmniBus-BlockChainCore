@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { signIdentitySetPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 
-const rpc = new OmniBusRpcClient();
 
 type Visibility = "public" | "private" | "ens_only";
 

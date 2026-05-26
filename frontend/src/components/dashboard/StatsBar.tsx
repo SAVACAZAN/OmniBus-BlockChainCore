@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 interface StatCardProps {
   label: string;

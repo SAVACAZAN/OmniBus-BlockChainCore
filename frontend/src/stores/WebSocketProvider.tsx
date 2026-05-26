@@ -4,7 +4,7 @@ import {
   blockchainReducer,
   initialState,
 } from "./useBlockchainStore";
-import OmniBusRpcClient, { getActiveChain, wsUrlFor } from "../api/rpc-client";
+import { rpc, getActiveChain, wsUrlFor } from "../api/rpc-client";
 import { publish as wsBusPublish } from "../api/ws-bus";
 import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent, WsIbdProgressEvent, WsPeerConnectEvent, WsPeerDisconnectEvent } from "../types";
 
@@ -19,7 +19,6 @@ const POLL_INTERVAL_MS = 10000;
 const MINER_REFRESH_MS = 30000; // 30s — reduce load with many miners
 
 // rpc-client auto-picks /api-{chain} from localStorage when no arg given.
-const rpc = new OmniBusRpcClient();
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(blockchainReducer, initialState);

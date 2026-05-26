@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { parseEther, keccak256, toUtf8Bytes } from "ethers";
-import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
+import { rpc, ExchangeBalance } from "../../api/rpc-client";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
 import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
@@ -12,7 +12,6 @@ import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance
 import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance } from "../../api/omnibus-dex";
 import { USDC_CONTRACT } from "../../api/multichain-balances";
 
-const rpc = new OmniBusRpcClient();
 
 
 // All taker chains where quote asset can come from

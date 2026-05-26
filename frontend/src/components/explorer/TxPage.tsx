@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
 import { fmtSat, midTrunc, fmtAge } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 
 interface Props {

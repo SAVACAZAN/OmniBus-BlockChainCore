@@ -13,11 +13,10 @@ import {
   Activity,
   Sparkles,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 

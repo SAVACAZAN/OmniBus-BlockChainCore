@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import OmniBusRpcClient, { GridConfig, GridStatus } from "../../api/rpc-client";
+import { rpc, GridConfig, GridStatus } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
 import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 type Pair = { id: number; base: string; quote: string; label: string };
 

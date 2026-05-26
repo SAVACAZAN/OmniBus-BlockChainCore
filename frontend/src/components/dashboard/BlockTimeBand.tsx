@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 
-const rpc = new OmniBusRpcClient();
 
 function Sparkline({ values, width = 200, height = 32 }: {
   values: number[];

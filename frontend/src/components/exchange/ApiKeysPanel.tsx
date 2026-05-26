@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { midTrunc } from "../../utils/fmt";
-import OmniBusRpcClient, { type ApiKeyInfo } from "../../api/rpc-client";
+import { rpc, type ApiKeyInfo } from "../../api/rpc-client";
 import {
   signCreateApiKeyPayload,
   signRevokeApiKeyPayload,
 } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 
-const rpc = new OmniBusRpcClient();
 
 /**
  * API keys live as long as the chain remembers them — server stores

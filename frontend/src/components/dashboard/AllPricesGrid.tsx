@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types";
 import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
@@ -137,7 +137,6 @@ function PriceCell({ entry, prefix }: { entry: CellEntry | undefined; prefix: st
 // ── Main component ────────────────────────────────────────────────────────
 
 export default function AllPricesGrid() {
-  const rpc = useMemo(() => new OmniBusRpcClient(), []);
   const [prices, setPrices] = useState<PriceEntry[]>([]);
   const [count, setCount] = useState<number>(0);
   const [search, setSearch] = useState<string>("");

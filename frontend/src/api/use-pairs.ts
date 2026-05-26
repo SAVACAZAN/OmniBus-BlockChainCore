@@ -10,7 +10,7 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "./rpc-client";
+import { rpc as _rpc, type OmniBusRpcClient } from "./rpc-client";
 import type { PairInfo } from "./rpc-client";
 
 export interface ChainPair {
@@ -82,8 +82,6 @@ export function invalidatePairsCache(): void {
   _cachePromise = null;
 }
 
-// Singleton RPC client shared by the hook.
-const _rpc = new OmniBusRpcClient();
 
 export interface UsePairsResult {
   pairs: ChainPair[];

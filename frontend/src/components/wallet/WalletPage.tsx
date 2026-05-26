@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
@@ -20,7 +20,6 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { FeeEstimate, WsNewBlockEvent, WsNewTxEvent } from "../../types";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // Each PQ domain corresponds to a reputation cup (vezi
 // memory/project_omnibus_reputation_economy.md). Emoji + tier label apar in UI

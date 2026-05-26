@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types/index";
@@ -19,7 +19,6 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const rpc = new OmniBusRpcClient();
 
 interface BlockStat {
   height: number;

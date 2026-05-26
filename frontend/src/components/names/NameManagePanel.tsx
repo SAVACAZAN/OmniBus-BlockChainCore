@@ -12,9 +12,8 @@
 // only stops one slot at a time.
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 
-const rpc = new OmniBusRpcClient();
 
 // Same canon as core/dns_registry.zig:Category.
 const CATEGORIES = ["personal", "bank", "gov", "mil", "fin", "edu", "org", "dev", "trading", "none"] as const;

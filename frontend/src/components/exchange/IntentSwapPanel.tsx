@@ -29,14 +29,13 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc, fmtInt } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { signMessage } from "../../api/exchange-sign";
 
 // exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 
-const rpc = new OmniBusRpcClient();
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

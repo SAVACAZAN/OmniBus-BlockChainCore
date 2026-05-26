@@ -26,14 +26,13 @@ import {
   AlertTriangle,
   Lock,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc, fmtOmni, fmtInt } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
 import { signMessage } from "../../api/exchange-sign";
 
-const rpc = new OmniBusRpcClient();
 
 // ── Constants ─────────────────────────────────────────────────────────────
 

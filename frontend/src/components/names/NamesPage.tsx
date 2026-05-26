@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked } from "../../api/wallet-keystore";
 import { signMessage } from "../../api/exchange-sign";
@@ -10,7 +10,6 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNameRegisteredEvent, WsNameRenewedEvent, WsNewBlockEvent } from "../../types";
 import { SAT_PER_OMNI, satToOmni, MICRO_PER_USD } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // On-chain DNS / ENS pe blockchain-ul OmniBus (NU Liberty Chain).
 // Nume `<label>.omnibus`, label = 3-25 chars [a-z0-9_], must start with letter.

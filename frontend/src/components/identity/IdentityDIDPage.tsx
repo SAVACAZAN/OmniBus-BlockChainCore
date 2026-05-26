@@ -11,11 +11,10 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { CopyButton } from "../common/CopyButton";
 
-const rpc = new OmniBusRpcClient();
 
 // ── RPC response types ────────────────────────────────────────────────────────
 

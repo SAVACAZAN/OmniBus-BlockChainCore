@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { buildBtcSpvProofObject, type BtcSpvProofObject } from "../../api/htlc-btc";
 import { buildEthSpvProofObject, type EthSpvProofObject } from "../../api/htlc-eth";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
-const rpc = new OmniBusRpcClient();
 
 type ChainCode = 1 | 2 | 3; // 1=btc, 2=eth, 3=base
 const CHAIN_LABEL: Record<ChainCode, string> = { 1: "BTC", 2: "ETH", 3: "BASE" };

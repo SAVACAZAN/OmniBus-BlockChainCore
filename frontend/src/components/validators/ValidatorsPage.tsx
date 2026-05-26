@@ -17,12 +17,11 @@ import {
   Layers,
   Gavel,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { AddressLabel } from "../common/AddressLabel";
 import { midTrunc, fmtAge } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // ---------------------------------------------------------------------------
 // Types

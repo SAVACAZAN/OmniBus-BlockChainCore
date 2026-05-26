@@ -28,11 +28,10 @@ import {
   AlertTriangle,
   ArrowUpDown,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, fmtOmni, fmtInt } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
 
 
 // ── Types matching backend `getdailyactivity` response ───────────────────

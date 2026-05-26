@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient, { UserOrder } from "../../api/rpc-client";
+import { rpc, UserOrder } from "../../api/rpc-client";
 import { signCancelOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 import { useTraderMode } from "./TraderModeToggle";
@@ -7,7 +7,6 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOrderbookUpdateEvent } from "../../types";
 import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 interface Props {
   pairId: number;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
@@ -16,7 +16,6 @@ import {
   Legend,
 } from "recharts";
 
-const rpc = new OmniBusRpcClient();
 
 function StatCard({ label, value, sub, color }: {
   label: string;

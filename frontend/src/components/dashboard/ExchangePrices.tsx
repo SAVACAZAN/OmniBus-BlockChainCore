@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { useEffect, useState } from "react";
+import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types/index";
 import { fmtUsd } from "../../utils/fmt";
@@ -142,7 +142,6 @@ function AssetColumn({
 // ── Main component ────────────────────────────────────────────────────────
 
 export default function ExchangePrices() {
-  const rpc = useMemo(() => new OmniBusRpcClient(), []);
   const [feed, setFeed] = useState<ExchangeFeed | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState<number>(Date.now());

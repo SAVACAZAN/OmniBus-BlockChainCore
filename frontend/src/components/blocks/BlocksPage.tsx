@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { midTrunc, fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
@@ -13,7 +13,6 @@ import {
   Tooltip,
 } from "recharts";
 
-const rpc = new OmniBusRpcClient();
 
 type BlockWithDiff = BlockData & { difficulty?: number; totalFees?: number };
 

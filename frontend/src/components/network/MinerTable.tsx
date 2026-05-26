@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { fmtOmni } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 interface MinerRow {
   address: string;

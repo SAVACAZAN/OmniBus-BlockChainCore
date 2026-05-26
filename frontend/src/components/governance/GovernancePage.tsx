@@ -36,14 +36,13 @@ import {
   Info,
 } from "lucide-react";
 import { sha256 } from "@noble/hashes/sha2";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, signMessage } from "../../api/exchange-sign";
 
 // exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 
-const rpc = new OmniBusRpcClient();
 
 // ── Constants ──────────────────────────────────────────────────────────────
 

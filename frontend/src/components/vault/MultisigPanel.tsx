@@ -15,10 +15,9 @@
 
 import { useCallback, useState } from "react";
 import { Users, Send, Plus, X, AlertTriangle, Copy, RefreshCw } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 
 

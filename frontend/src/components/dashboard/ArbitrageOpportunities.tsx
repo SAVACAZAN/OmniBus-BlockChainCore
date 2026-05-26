@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types";
 import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
@@ -59,7 +59,6 @@ function spreadPctColor(pct: number): string {
 // ── Main component ────────────────────────────────────────────────────────
 
 export default function ArbitrageOpportunities() {
-  const rpc = useMemo(() => new OmniBusRpcClient(), []);
   const [opps, setOpps] = useState<ArbOpportunity[]>([]);
   const [now, setNow] = useState<number>(Date.now());
   const [backendReady, setBackendReady] = useState<boolean>(true);

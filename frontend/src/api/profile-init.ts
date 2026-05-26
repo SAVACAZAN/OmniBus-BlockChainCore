@@ -11,9 +11,8 @@
  * does NOT block on this; the user can retry from the Profile tab.
  */
 
-import OmniBusRpcClient from "./rpc-client";
+import { rpc } from "./rpc-client";
 
-const rpc = new OmniBusRpcClient();
 
 const SALT_KEY_PREFIX = "omnibus_kyc_salt_";
 const TOAST_EVENT = "omnibus:profile-init-toast";
