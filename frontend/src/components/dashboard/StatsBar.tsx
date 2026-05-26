@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
-import type { WsNewBlockEvent } from "../../types";
 
 interface StatCardProps {
   label: string;
@@ -42,44 +41,31 @@ function StatCard({ label, value, sub, color = "text-mempool-text", slotIndex }:
   );
 }
 
-function useLastBlockAge(): string {
-  const lastBlockTs = useRef<number>(0);
-  const [age, setAge] = useState("—");
-
-  useEffect(() => {
-    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
-      lastBlockTs.current = ev.timestamp > 1_000_000_000 ? ev.timestamp : Date.now() / 1000;
-    });
-    return unsub;
-  }, []);
-
-  useEffect(() => {
-    const tick = () => {
-      if (!lastBlockTs.current) { setAge("—"); return; }
-      const secs = Math.floor(Date.now() / 1000 - lastBlockTs.current);
-      if (secs < 0) { setAge("now"); return; }
-      if (secs < 60) { setAge(`${secs}s ago`); return; }
-      const m = Math.floor(secs / 60);
-      const s = secs % 60;
-      setAge(`${m}m ${s}s ago`);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  return age;
+function fmtBlockAge(ts: number | null): string {
+  if (!ts) return "—";
+  const secs = Math.floor(Date.now() / 1000 - ts);
+  if (secs < 0) return "now";
+  if (secs < 60) return `${secs}s ago`;
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}m ${s}s ago`;
 }
 
 export function StatsBar() {
   const { state } = useBlockchain();
-  const lastBlockAge = useLastBlockAge();
+  const [, setTick] = useState(0);
   const [totalMined, setTotalMined] = useState<string | null>(null);
   // Optimistic mempool delta — increments on every `new_tx` WS event and
   // resets when the next block lands (mempool size is authoritative again).
   // Skips the 500ms WS throttle by using ws-bus directly so users see TX
   // arrival the instant the node accepts it.
   const [pendingDelta, setPendingDelta] = useState(0);
+
+  // 1s ticker so "Xs ago" on the Block Height card stays fresh.
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const off1 = wsSubscribe("new_tx", () => setPendingDelta((n) => n + 1));
@@ -117,7 +103,7 @@ export function StatsBar() {
       <StatCard
         label="Block Height"
         value={state.blockCount}
-        sub={<span className="font-mono text-[10px] text-mempool-text-dim">{lastBlockAge}</span>}
+        sub={<span className="font-mono text-[10px] text-mempool-text-dim">{fmtBlockAge(state.lastBlockTimestamp)}</span>}
         color="text-mempool-blue"
         slotIndex={0}
       />
