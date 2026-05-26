@@ -10,6 +10,7 @@ import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/u
 import { TxHashLink } from "../common/TxHashLink";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNameRegisteredEvent, WsNameRenewedEvent, WsNewBlockEvent } from "../../types";
+import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -441,7 +442,7 @@ export function NamesPage() {
     }
   };
 
-  const feeOmni = (sat: number) => sat / 1_000_000_000;
+  const feeOmni = (sat: number) => sat / SAT_PER_OMNI;
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
@@ -1127,7 +1128,7 @@ function TreasuryStatusCard() {
   }
   if (!status || !cfg) return null;
 
-  const balanceOmni = (status.balance_sat / 1_000_000_000).toFixed(4);
+  const balanceOmni = satToOmni(status.balance_sat, 4);
   const midUsd = status.last_grid_mid_micro_usd > 0
     ? (status.last_grid_mid_micro_usd / 1_000_000).toFixed(4)
     : "—";

@@ -1049,7 +1049,6 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
         <div className="flex justify-end mb-2">
           <button
             onClick={() => {
-              const SAT_PER_OMNI = 1_000_000_000;
               const csvRows = [
                 ["escrow_id","creator","recipient","amount_omni","condition_hash","timeout_block","created_block","status","role","note"].join(","),
                 ...rows.map((r) => [

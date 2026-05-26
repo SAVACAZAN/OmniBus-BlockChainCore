@@ -1,3 +1,5 @@
+import { SAT_PER_OMNI } from "../../utils/fmt";
+
 interface TransactionSquareProps {
   amount: number;
   index: number;
@@ -5,11 +7,11 @@ interface TransactionSquareProps {
 }
 
 function amountToColor(amount: number): string {
-  if (amount <= 0) return "#5470c6";           // coinbase/unknown → blue
-  if (amount < 100_000_000) return "#5470c6";   // < 0.1 OMNI → light blue
-  if (amount < 1_000_000_000) return "#4a90d9"; // < 1 OMNI → blue
-  if (amount < 10_000_000_000) return "#7b61ff"; // < 10 OMNI → purple
-  return "#00b3a4";                               // >= 10 OMNI → green (whale)
+  if (amount <= 0) return "#5470c6";                        // coinbase/unknown → blue
+  if (amount < SAT_PER_OMNI * 0.1) return "#5470c6";       // < 0.1 OMNI → light blue
+  if (amount < SAT_PER_OMNI) return "#4a90d9";              // < 1 OMNI → blue
+  if (amount < SAT_PER_OMNI * 10) return "#7b61ff";         // < 10 OMNI → purple
+  return "#00b3a4";                                          // >= 10 OMNI → green (whale)
 }
 
 export function TransactionSquare({ amount, index, isPending }: TransactionSquareProps) {

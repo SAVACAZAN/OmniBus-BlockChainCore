@@ -19,6 +19,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { CHAINS, chainCounts, type ChainFamily } from "../../api/chains";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -47,7 +48,7 @@ interface BridgeLimits {
 
 function formatOmni(sat: number): string {
   if (sat === 0) return "0";
-  const omni = sat / 1_000_000_000;
+  const omni = sat / SAT_PER_OMNI;
   return omni >= 1 ? omni.toLocaleString("en-US", { maximumFractionDigits: 4 }) : omni.toFixed(6);
 }
 
