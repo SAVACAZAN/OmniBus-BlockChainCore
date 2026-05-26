@@ -117,6 +117,13 @@ interface SlashHistoryEntry {
 type SortBy = "tier" | "uptime" | "stake";
 type SubTab = "list" | "become" | "slashing" | "consensus";
 
+const VALIDATOR_TABS: { k: SubTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { k: "list",      label: "Validator List",    icon: ShieldCheck    },
+  { k: "become",    label: "Become Validator",  icon: Award          },
+  { k: "slashing",  label: "Slashing Log",      icon: AlertOctagon   },
+  { k: "consensus", label: "Consensus & Slots", icon: Calendar       },
+];
+
 // ---------------------------------------------------------------------------
 // Visual helpers
 // ---------------------------------------------------------------------------
@@ -188,14 +195,7 @@ export function ValidatorsPage() {
         </header>
 
         <nav className="mb-4 sm:mb-6 flex gap-1 border-b border-gray-700/60 overflow-x-auto scrollbar-none">
-          {(
-            [
-              { k: "list", label: "Validator List", icon: ShieldCheck },
-              { k: "become", label: "Become Validator", icon: Award },
-              { k: "slashing", label: "Slashing Log", icon: AlertOctagon },
-              { k: "consensus", label: "Consensus & Slots", icon: Calendar },
-            ] as const
-          ).map(({ k, label, icon: Icon }) => (
+          {VALIDATOR_TABS.map(({ k, label, icon: Icon }) => (
             <button
               key={k}
               onClick={() => setTab(k)}
