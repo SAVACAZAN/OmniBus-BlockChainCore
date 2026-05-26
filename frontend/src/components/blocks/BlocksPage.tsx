@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
@@ -215,6 +215,277 @@ export function BlocksPage() {
           </tbody>
         </table>
       </div>
+
+      <SpvPanel />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SPV Panel — getheaders + getmerkleproof
+// ---------------------------------------------------------------------------
+
+interface BlockHeader {
+  height: number;
+  timestamp: number;
+  hash: string;
+  previousHash: string;
+  merkleRoot: string;
+  nonce: number;
+  difficulty: number;
+  txCount: number;
+}
+
+interface GetHeadersResp {
+  from: number;
+  count: number;
+  headers: BlockHeader[];
+}
+
+interface MerkleProofEntry {
+  hash: string;
+  direction: "left" | "right";
+}
+
+interface MerkleProofResp {
+  blockHeight: number;
+  txIndex: number;
+  merkleRoot: string;
+  proof: MerkleProofEntry[];
+}
+
+function SpvPanel() {
+  const [spvTab, setSpvTab] = useState<"headers" | "proof">("headers");
+
+  // Headers state
+  const [hFrom, setHFrom] = useState("");
+  const [hCount, setHCount] = useState("10");
+  const [headers, setHeaders] = useState<BlockHeader[] | null>(null);
+  const [hLoading, setHLoading] = useState(false);
+  const [hErr, setHErr] = useState<string | null>(null);
+
+  // Proof state
+  const [pHeight, setPHeight] = useState("");
+  const [pTxIndex, setPTxIndex] = useState("");
+  const [proof, setProof] = useState<MerkleProofResp | null>(null);
+  const [pLoading, setPLoading] = useState(false);
+  const [pErr, setPErr] = useState<string | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
+
+  const onFetchHeaders = async () => {
+    if (!hFrom) return;
+    setHLoading(true);
+    setHErr(null);
+    setHeaders(null);
+    try {
+      const r = (await rpc.request_raw("getheaders", [
+        parseInt(hFrom, 10),
+        parseInt(hCount, 10) || 10,
+      ])) as GetHeadersResp;
+      setHeaders(Array.isArray(r?.headers) ? r.headers : []);
+    } catch (e: any) {
+      setHErr(e?.message ?? String(e));
+    } finally {
+      setHLoading(false);
+    }
+  };
+
+  const onFetchProof = async () => {
+    if (!pHeight || !pTxIndex) return;
+    setPLoading(true);
+    setPErr(null);
+    setProof(null);
+    try {
+      const r = (await rpc.request_raw("getmerkleproof", [
+        parseInt(pHeight, 10),
+        parseInt(pTxIndex, 10),
+      ])) as MerkleProofResp;
+      setProof(r);
+    } catch (e: any) {
+      setPErr(e?.message ?? String(e));
+    } finally {
+      setPLoading(false);
+    }
+  };
+
+  void abortRef; // suppress unused warning
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h3 className="text-sm font-semibold text-mempool-text">SPV — Light Client Tools</h3>
+        <div className="flex gap-1">
+          {(["headers", "proof"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setSpvTab(t)}
+              className={`px-3 py-1 text-xs rounded ${
+                spvTab === t
+                  ? "bg-mempool-blue text-white"
+                  : "bg-mempool-bg text-mempool-text-dim border border-mempool-border hover:text-mempool-text"
+              }`}
+            >
+              {t === "headers" ? "Get Headers" : "Merkle Proof"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {spvTab === "headers" && (
+        <div className="space-y-3">
+          <p className="text-[11px] text-mempool-text-dim">
+            Download a range of block headers for SPV verification (max 2000 per request).
+          </p>
+          <div className="flex gap-2 flex-wrap items-end">
+            <div>
+              <label className="text-[10px] text-mempool-text-dim block mb-0.5 uppercase">From height</label>
+              <input
+                value={hFrom}
+                onChange={(e) => setHFrom(e.target.value)}
+                type="number"
+                className="w-28 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-mempool-text-dim block mb-0.5 uppercase">Count</label>
+              <select
+                value={hCount}
+                onChange={(e) => setHCount(e.target.value)}
+                className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs text-mempool-text"
+              >
+                {["10", "20", "50", "100", "500", "2000"].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={onFetchHeaders}
+              disabled={hLoading || !hFrom}
+              className="px-3 py-1.5 text-xs bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+            >
+              {hLoading ? "Fetching…" : "Fetch Headers"}
+            </button>
+          </div>
+          {hErr && <p className="text-xs text-red-400">{hErr}</p>}
+          {headers && (
+            <div className="overflow-x-auto rounded border border-mempool-border">
+              <table className="w-full text-[10px] min-w-[640px]">
+                <thead className="bg-mempool-bg text-mempool-text-dim uppercase">
+                  <tr>
+                    <th className="px-2 py-1.5 text-right">Height</th>
+                    <th className="px-2 py-1.5 text-left">Hash</th>
+                    <th className="px-2 py-1.5 text-left">Prev Hash</th>
+                    <th className="px-2 py-1.5 text-left">Merkle Root</th>
+                    <th className="px-2 py-1.5 text-right">Nonce</th>
+                    <th className="px-2 py-1.5 text-right">TXs</th>
+                    <th className="px-2 py-1.5 text-right">Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-mempool-border/30">
+                  {headers.map((h) => (
+                    <tr key={h.height} className="hover:bg-mempool-bg-light/50">
+                      <td className="px-2 py-1.5 text-right font-mono text-mempool-blue">{h.height}</td>
+                      <td className="px-2 py-1.5 font-mono text-mempool-text" title={h.hash}>{midTrunc(h.hash)}</td>
+                      <td className="px-2 py-1.5 font-mono text-mempool-text-dim" title={h.previousHash}>{midTrunc(h.previousHash)}</td>
+                      <td className="px-2 py-1.5 font-mono text-mempool-text-dim" title={h.merkleRoot}>{midTrunc(h.merkleRoot)}</td>
+                      <td className="px-2 py-1.5 text-right font-mono text-mempool-text-dim">{h.nonce}</td>
+                      <td className="px-2 py-1.5 text-right font-mono text-mempool-text">{h.txCount}</td>
+                      <td className="px-2 py-1.5 text-right text-mempool-text-dim whitespace-nowrap">
+                        {h.timestamp ? new Date(h.timestamp * 1000).toLocaleTimeString() : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                  {headers.length === 0 && (
+                    <tr><td colSpan={7} className="text-center py-4 text-mempool-text-dim">No headers returned.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {spvTab === "proof" && (
+        <div className="space-y-3">
+          <p className="text-[11px] text-mempool-text-dim">
+            Fetch the Merkle inclusion proof for a TX at a given block height and index.
+          </p>
+          <div className="flex gap-2 flex-wrap items-end">
+            <div>
+              <label className="text-[10px] text-mempool-text-dim block mb-0.5 uppercase">Block height</label>
+              <input
+                value={pHeight}
+                onChange={(e) => setPHeight(e.target.value)}
+                type="number"
+                className="w-28 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+                placeholder="1234"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-mempool-text-dim block mb-0.5 uppercase">TX index</label>
+              <input
+                value={pTxIndex}
+                onChange={(e) => setPTxIndex(e.target.value)}
+                type="number"
+                className="w-20 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+                placeholder="0"
+              />
+            </div>
+            <button
+              onClick={onFetchProof}
+              disabled={pLoading || !pHeight || !pTxIndex}
+              className="px-3 py-1.5 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/30 rounded disabled:opacity-50"
+            >
+              {pLoading ? "Fetching…" : "Get Proof"}
+            </button>
+          </div>
+          {pErr && <p className="text-xs text-red-400">{pErr}</p>}
+          {proof && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-mono">
+                <div className="bg-mempool-bg rounded p-2">
+                  <div className="text-mempool-text-dim text-[9px] uppercase mb-0.5">Block</div>
+                  <div className="text-mempool-blue">{proof.blockHeight}</div>
+                </div>
+                <div className="bg-mempool-bg rounded p-2">
+                  <div className="text-mempool-text-dim text-[9px] uppercase mb-0.5">TX index</div>
+                  <div className="text-mempool-text">{proof.txIndex}</div>
+                </div>
+                <div className="bg-mempool-bg rounded p-2 col-span-2 sm:col-span-1">
+                  <div className="text-mempool-text-dim text-[9px] uppercase mb-0.5">Merkle Root</div>
+                  <div className="text-mempool-text break-all text-[9px]">{proof.merkleRoot}</div>
+                </div>
+              </div>
+              <div className="rounded border border-mempool-border overflow-hidden">
+                <div className="px-3 py-1.5 bg-mempool-bg text-[9px] uppercase text-mempool-text-dim font-semibold">
+                  Proof path ({(proof.proof ?? []).length} hops)
+                </div>
+                <div className="divide-y divide-mempool-border/30">
+                  {(proof.proof ?? []).map((p, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-1.5 text-[10px] font-mono">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded ${
+                        p.direction === "left"
+                          ? "bg-blue-500/10 text-blue-400"
+                          : "bg-orange-500/10 text-orange-400"
+                      }`}>
+                        {p.direction}
+                      </span>
+                      <span className="text-mempool-text-dim break-all">{p.hash}</span>
+                    </div>
+                  ))}
+                  {(proof.proof ?? []).length === 0 && (
+                    <div className="px-3 py-3 text-center text-mempool-text-dim text-[11px]">
+                      TX is the only TX in this block (trivial proof).
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

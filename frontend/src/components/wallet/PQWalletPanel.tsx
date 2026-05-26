@@ -55,7 +55,27 @@ interface PqSchemeRow {
   prefix: string;
 }
 
-type SubTab = "addresses" | "send" | "schemes";
+type SubTab = "addresses" | "send" | "schemes" | "verify" | "attest";
+
+// pq_verify_test response
+interface PqVerifyResp {
+  verified: boolean;
+  scheme: string;
+  msg_len: number;
+  pk_len: number;
+  sig_len: number;
+}
+
+// pq_attestation response
+interface PqAttestResp {
+  omni_address: string;
+  domain: string;
+  pq_address: string;
+  txid: string;
+  block_height: number;
+  timestamp: number;
+  confirmations: number;
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -340,18 +360,18 @@ export function PQWalletPanel() {
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex gap-1 bg-mempool-bg-elev rounded-xl border border-mempool-border p-1">
-        {(["addresses", "send", "schemes"] as SubTab[]).map((t) => (
+      <div className="flex gap-1 bg-mempool-bg-elev rounded-xl border border-mempool-border p-1 flex-wrap">
+        {(["addresses", "send", "schemes", "verify", "attest"] as SubTab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`flex-1 min-w-[80px] py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
               tab === t
                 ? "bg-mempool-blue text-white"
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "addresses" ? "PQ Addresses" : t === "send" ? "Send PQ" : "Schemes"}
+            {t === "addresses" ? "PQ Addresses" : t === "send" ? "Send PQ" : t === "schemes" ? "Schemes" : t === "verify" ? "🔑 Verify" : "📜 Attest"}
           </button>
         ))}
       </div>
@@ -591,6 +611,12 @@ export function PQWalletPanel() {
           )}
         </div>
       )}
+
+      {/* ── Tab 4: PQ Verify Test ───────────────────────────────────── */}
+      {tab === "verify" && <PqVerifyTab />}
+
+      {/* ── Tab 5: PQ Attestation Lookup ───────────────────────────── */}
+      {tab === "attest" && <PqAttestTab />}
     </div>
   );
 }
@@ -672,6 +698,203 @@ function PQAddressCard({ row, copied, onCopy, loadingBal }: PQAddressCardProps) 
         )}
         <p className="text-xs text-mempool-text-dim">OMNI</p>
       </div>
+    </div>
+  );
+}
+
+// ── Tab 4: pq_verify_test ─────────────────────────────────────────────────
+
+function PqVerifyTab() {
+  const [scheme, setScheme] = useState("pq_omni_ml_dsa");
+  const [msgHex, setMsgHex] = useState("");
+  const [pkHex, setPkHex] = useState("");
+  const [sigHex, setSigHex] = useState("");
+  const [result, setResult] = useState<PqVerifyResp | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onVerify = async () => {
+    if (!msgHex || !pkHex || !sigHex) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const r = (await rpc.request_raw("pq_verify_test", [
+        { scheme, msg_hex: msgHex, pk_hex: pkHex, sig_hex: sigHex },
+      ])) as PqVerifyResp;
+      setResult(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 space-y-4">
+      <h3 className="text-mempool-text font-semibold text-sm">PQ Signature Verify (debug)</h3>
+      <p className="text-xs text-mempool-text-dim">
+        Tests a raw post-quantum signature verify bypassing TX hash. All inputs in hex.
+      </p>
+      <div className="space-y-2">
+        <div>
+          <label className="text-xs text-mempool-text-dim block mb-0.5">Scheme</label>
+          <select
+            value={scheme}
+            onChange={(e) => setScheme(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs text-mempool-text w-full"
+          >
+            {["pq_omni_ml_dsa", "pq_omni_falcon", "pq_omni_slh_dsa", "pq_omni_dilithium",
+              "ml_dsa_87", "falcon_512", "slh_dsa_256s"].map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-mempool-text-dim block mb-0.5">Message (hex)</label>
+          <input
+            value={msgHex}
+            onChange={(e) => setMsgHex(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs font-mono text-mempool-text"
+            placeholder="deadbeef…"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-mempool-text-dim block mb-0.5">Public key (hex)</label>
+          <textarea
+            value={pkHex}
+            onChange={(e) => setPkHex(e.target.value)}
+            rows={2}
+            className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs font-mono text-mempool-text resize-none"
+            placeholder="2592 bytes for ML-DSA-87…"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-mempool-text-dim block mb-0.5">Signature (hex)</label>
+          <textarea
+            value={sigHex}
+            onChange={(e) => setSigHex(e.target.value)}
+            rows={2}
+            className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs font-mono text-mempool-text resize-none"
+            placeholder="4627 bytes for ML-DSA-87…"
+          />
+        </div>
+      </div>
+      <button
+        onClick={onVerify}
+        disabled={loading || !msgHex || !pkHex || !sigHex}
+        className="w-full py-2 text-sm font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/40 rounded-lg disabled:opacity-50"
+      >
+        {loading ? "Verifying…" : "Verify signature"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && (
+        <div className={`rounded-lg border p-3 space-y-1 text-xs ${
+          result.verified
+            ? "border-green-500/40 bg-green-500/5"
+            : "border-red-500/40 bg-red-500/5"
+        }`}>
+          <div className={`font-bold text-sm ${result.verified ? "text-green-400" : "text-red-400"}`}>
+            {result.verified ? "✓ Signature VALID" : "✗ Signature INVALID"}
+          </div>
+          <div className="grid grid-cols-2 gap-1 text-mempool-text-dim mt-1">
+            <span>Scheme: <span className="text-mempool-text font-mono">{result.scheme}</span></span>
+            <span>msg_len: <span className="text-mempool-text font-mono">{result.msg_len}</span></span>
+            <span>pk_len: <span className="text-mempool-text font-mono">{result.pk_len}</span></span>
+            <span>sig_len: <span className="text-mempool-text font-mono">{result.sig_len}</span></span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab 5: pq_attestation lookup ──────────────────────────────────────────
+
+function PqAttestTab() {
+  const [omniAddr, setOmniAddr] = useState("");
+  const [domain, setDomain] = useState("");
+  const [result, setResult] = useState<PqAttestResp | null | "none">(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    if (!omniAddr) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const params: Record<string, string> = { omni_address: omniAddr };
+      if (domain) params.domain = domain;
+      const r = (await rpc.request_raw("pq_attestation", [params])) as PqAttestResp | null;
+      setResult(r ?? "none");
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 space-y-4">
+      <h3 className="text-mempool-text font-semibold text-sm">PQ Attestation Lookup</h3>
+      <p className="text-xs text-mempool-text-dim">
+        Scans the chain for an OP_RETURN <code className="font-mono">pq_attest:</code> TX linking
+        an OMNI address to a PQ address. First-claim wins.
+      </p>
+      <div className="space-y-2">
+        <div>
+          <label className="text-xs text-mempool-text-dim block mb-0.5">OMNI address *</label>
+          <input
+            value={omniAddr}
+            onChange={(e) => setOmniAddr(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs font-mono text-mempool-text"
+            placeholder="ob1q…"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <div>
+          <label className="text-xs text-mempool-text-dim block mb-0.5">Domain (optional)</label>
+          <input
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs font-mono text-mempool-text"
+            placeholder="love / food / rent / vacation / omni"
+          />
+        </div>
+      </div>
+      <button
+        onClick={onLookup}
+        disabled={loading || !omniAddr}
+        className="w-full py-2 text-sm font-medium bg-purple-500/20 hover:bg-purple-500/40 text-purple-300 border border-purple-500/30 rounded-lg disabled:opacity-50"
+      >
+        {loading ? "Scanning chain…" : "Lookup attestation"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result === "none" && (
+        <p className="text-xs text-mempool-text-dim text-center py-2">
+          No attestation found for this address{domain ? ` / ${domain}` : ""}.
+        </p>
+      )}
+      {result && result !== "none" && (
+        <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 p-3 space-y-1.5 text-xs">
+          <div className="font-semibold text-purple-300 mb-1">Attestation found</div>
+          {[
+            ["OMNI address", result.omni_address],
+            ["Domain", result.domain],
+            ["PQ address", result.pq_address],
+            ["TXID", result.txid],
+            ["Block height", String(result.block_height)],
+            ["Timestamp", new Date(result.timestamp * 1000).toLocaleString()],
+            ["Confirmations", String(result.confirmations)],
+          ].map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-2 flex-wrap">
+              <span className="text-mempool-text-dim">{k}</span>
+              <span className="font-mono text-purple-200 break-all text-right">{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

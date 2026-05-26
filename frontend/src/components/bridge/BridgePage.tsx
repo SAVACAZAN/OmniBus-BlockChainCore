@@ -153,6 +153,144 @@ function BridgeMonitor() {
   );
 }
 
+function BridgeAdminPanel() {
+  // Fraud challenge state
+  const [fcNonce, setFcNonce] = useState("");
+  const [fcProof, setFcProof] = useState("");
+  const [fcResult, setFcResult] = useState<{ status: string; nonce: string } | null>(null);
+  const [fcErr, setFcErr] = useState<string | null>(null);
+  const [fcLoading, setFcLoading] = useState(false);
+
+  // Settle state
+  const [stNonce, setStNonce] = useState("");
+  const [stResult, setStResult] = useState<{ status: string; recipient?: string; amount_sat?: number } | null>(null);
+  const [stErr, setStErr] = useState<string | null>(null);
+  const [stLoading, setStLoading] = useState(false);
+
+  const onFraudChallenge = async () => {
+    if (!fcNonce) return;
+    setFcLoading(true);
+    setFcErr(null);
+    setFcResult(null);
+    try {
+      const r = (await rpc.request_raw("bridge_fraud_challenge", [
+        { nonce: fcNonce, fraud_proof: fcProof || undefined },
+      ])) as { status: string; nonce: string };
+      setFcResult(r);
+    } catch (e: any) {
+      setFcErr(e?.message ?? String(e));
+    } finally {
+      setFcLoading(false);
+    }
+  };
+
+  const onSettle = async () => {
+    if (!stNonce) return;
+    setStLoading(true);
+    setStErr(null);
+    setStResult(null);
+    try {
+      const r = (await rpc.request_raw("bridge_settle", [
+        { nonce: stNonce },
+      ])) as { status: string; recipient?: string; amount_sat?: number };
+      setStResult(r);
+    } catch (e: any) {
+      setStErr(e?.message ?? String(e));
+    } finally {
+      setStLoading(false);
+    }
+  };
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-widest">
+        Bridge Admin (Relayer)
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Fraud challenge */}
+        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 space-y-2">
+          <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wide">
+            Fraud Challenge — void unlock
+          </h3>
+          <p className="text-[11px] text-mempool-text-dim">
+            Voids a pending unlock by submitting fraud proof before the challenge window closes.
+          </p>
+          <div className="space-y-1.5">
+            <label className="text-[10px] text-mempool-text-dim uppercase">Unlock nonce (hex)</label>
+            <input
+              value={fcNonce}
+              onChange={(e) => setFcNonce(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              placeholder="64 hex chars"
+            />
+            <label className="text-[10px] text-mempool-text-dim uppercase">Fraud proof (hex, optional)</label>
+            <input
+              value={fcProof}
+              onChange={(e) => setFcProof(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              placeholder="optional evidence hex"
+            />
+          </div>
+          <button
+            onClick={onFraudChallenge}
+            disabled={fcLoading || !fcNonce}
+            className="w-full py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 rounded disabled:opacity-50"
+          >
+            {fcLoading ? "Submitting…" : "Submit Fraud Challenge"}
+          </button>
+          {fcErr && <p className="text-[11px] text-red-400">{fcErr}</p>}
+          {fcResult && (
+            <div className="text-[11px] space-y-0.5 font-mono">
+              <div className="text-green-400">status: {fcResult.status}</div>
+              <div className="text-mempool-text-dim break-all">nonce: {fcResult.nonce}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Settle */}
+        <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 space-y-2">
+          <h3 className="text-xs font-semibold text-green-300 uppercase tracking-wide">
+            Settle — release after challenge window
+          </h3>
+          <p className="text-[11px] text-mempool-text-dim">
+            Executes a pending unlock once the challenge window has passed and threshold sigs are met.
+          </p>
+          <div className="space-y-1.5">
+            <label className="text-[10px] text-mempool-text-dim uppercase">Unlock nonce (hex)</label>
+            <input
+              value={stNonce}
+              onChange={(e) => setStNonce(e.target.value)}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+              placeholder="64 hex chars"
+            />
+          </div>
+          <button
+            onClick={onSettle}
+            disabled={stLoading || !stNonce}
+            className="w-full py-1.5 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/30 rounded disabled:opacity-50"
+          >
+            {stLoading ? "Settling…" : "Settle Unlock"}
+          </button>
+          {stErr && <p className="text-[11px] text-red-400">{stErr}</p>}
+          {stResult && (
+            <div className="text-[11px] space-y-0.5 font-mono">
+              <div className={stResult.status === "settled" ? "text-green-400" : "text-yellow-400"}>
+                status: {stResult.status}
+              </div>
+              {stResult.recipient && (
+                <div className="text-mempool-text-dim break-all">recipient: {stResult.recipient}</div>
+              )}
+              {stResult.amount_sat !== undefined && (
+                <div className="text-mempool-text">amount: {formatOmni(stResult.amount_sat)} OMNI</div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const FAMILY_ORDER: ChainFamily[] = [
   "OmniBus",
   "EVM",
@@ -246,6 +384,9 @@ export function BridgePage() {
         </div>
         <BridgeMonitor />
       </section>
+
+      {/* Bridge admin: fraud challenge + settle */}
+      <BridgeAdminPanel />
 
       {/* Chain registry */}
       <section className="space-y-3">
