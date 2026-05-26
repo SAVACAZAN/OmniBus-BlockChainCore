@@ -398,6 +398,15 @@ export function RichListPage() {
   );
 }
 
+const ROLE_BADGE_BASE =
+  "inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wider rounded border font-mono";
+const ROLE_BADGE_STYLE: Record<Role, string> = {
+  validator: "bg-green-900/40 text-green-300 border-green-600/40",
+  miner:     "bg-orange-900/40 text-orange-300 border-orange-600/40",
+  agent:     "bg-blue-900/40 text-blue-300 border-blue-600/40",
+  user:      "bg-gray-800 text-gray-400 border-gray-700",
+};
+
 function RoleBadges({
   roles,
   stake,
@@ -407,14 +416,6 @@ function RoleBadges({
   stake?: number;
   omniFmt: (sat: number) => string;
 }) {
-  const badgeBase =
-    "inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wider rounded border font-mono";
-  const styles: Record<Role, string> = {
-    validator: "bg-green-900/40 text-green-300 border-green-600/40",
-    miner: "bg-orange-900/40 text-orange-300 border-orange-600/40",
-    agent: "bg-blue-900/40 text-blue-300 border-blue-600/40",
-    user: "bg-gray-800 text-gray-400 border-gray-700",
-  };
   return (
     <div className="flex flex-wrap items-center justify-center gap-[2px]">
       {roles.map((r) => {
@@ -423,7 +424,7 @@ function RoleBadges({
             ? `stake: ${satToOmni(stake)} OMNI`
             : undefined;
         return (
-          <span key={r} className={`${badgeBase} ${styles[r]}`} title={title}>
+          <span key={r} className={`${ROLE_BADGE_BASE} ${ROLE_BADGE_STYLE[r]}`} title={title}>
             {r}
           </span>
         );
