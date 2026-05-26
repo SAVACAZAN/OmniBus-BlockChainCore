@@ -200,6 +200,33 @@ export function RichListPage() {
     }
   }
 
+  const exportCsv = () => {
+    if (!list) return;
+    const rows = [
+      ["rank", "address", "balance_omni", "share_pct", "blocks_mined", "tx_count", "received_omni", "sent_omni", "roles"].join(","),
+      ...list.entries.map((e) => {
+        const sharePct = list.totalSupply > 0 ? ((e.balance / list.totalSupply) * 100).toFixed(4) : "0";
+        const roles = deriveRoles(e).join("|");
+        return [
+          e.rank,
+          `"${e.address}"`,
+          (e.balance / SAT_PER_OMNI).toFixed(8),
+          sharePct,
+          e.blocksMined,
+          e.txCount ?? 0,
+          ((e.received ?? 0) / SAT_PER_OMNI).toFixed(8),
+          ((e.sent ?? 0) / SAT_PER_OMNI).toFixed(8),
+          `"${roles}"`,
+        ].join(",");
+      }),
+    ].join("\n");
+    const blob = new Blob([rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `omnibus-richlist-top${list.shown}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-mempool-text mb-2">Rich List</h1>
@@ -263,6 +290,14 @@ export function RichListPage() {
               ? `${list.entries.filter((e) => e.address.includes(filter)).length} matched`
               : `showing ${list.shown} of ${list.total}`}
           </span>
+        )}
+        {list && list.entries.length > 0 && (
+          <button
+            onClick={exportCsv}
+            className="text-[10px] px-2 py-1 bg-mempool-bg-elev border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono"
+          >
+            ⬇ CSV
+          </button>
         )}
       </div>
 

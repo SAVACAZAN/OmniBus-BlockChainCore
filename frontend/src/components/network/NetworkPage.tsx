@@ -145,6 +145,15 @@ export function NetworkPage() {
   );
 }
 
+function fmtUptime(seconds: number): string {
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h ${m}m`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
 function NetworkRpcPanels() {
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const [peers, setPeers] = useState<PeerInfo[]>([]);
@@ -237,7 +246,7 @@ function NetworkRpcPanels() {
           <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-3 space-y-1.5">
             <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim font-semibold">Performance</div>
             {[
-              ["Uptime", `${Math.floor(perfInfo.uptime_seconds / 60)}m`],
+              ["Uptime", fmtUptime(perfInfo.uptime_seconds)],
               ["TPS (now)", String(perfInfo.tps_current)],
               ["Peak TPS", String(perfInfo.peak_tps)],
               ["Blocks/min", String(perfInfo.blocks_per_minute)],

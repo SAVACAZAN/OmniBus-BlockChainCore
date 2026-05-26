@@ -867,9 +867,47 @@ export function WalletPage() {
       {/* Transaction History — 2/3 width */}
       <div className="lg:col-span-2 bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
         <div className="px-3 sm:px-5 py-3 border-b border-mempool-border flex flex-col gap-2">
-          <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
-            Transaction History
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+              Transaction History
+            </h3>
+            {transactions.length > 0 && (
+              <button
+                onClick={() => {
+                  const csvEsc = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+                  const rows = [
+                    ["txid", "type", "direction", "amount_omni", "fee_omni", "from", "to", "confirmations", "status", "memo", "timestamp"].join(","),
+                    ...transactions.map((tx: any) => {
+                      const cls = classifyTx(tx, activeAddress);
+                      return [
+                        csvEsc(tx.txid || ""),
+                        csvEsc(cls.label),
+                        cls.isCredit ? "in" : "out",
+                        ((tx.amount ?? 0) / 1e9).toFixed(8),
+                        ((tx.fee ?? 0) / 1e9).toFixed(8),
+                        csvEsc(tx.from || ""),
+                        csvEsc(tx.to || ""),
+                        tx.confirmations ?? "",
+                        csvEsc(tx.status || ""),
+                        csvEsc(tx.op_return || ""),
+                        tx.timestamp ? new Date(tx.timestamp * 1000).toISOString() : "",
+                      ].join(",");
+                    }),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `omnibus-${activeAddress.slice(0, 12)}-wallet-txs.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="text-[10px] px-2 py-1 bg-mempool-bg-elev border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono"
+              >
+                ⬇ CSV
+              </button>
+            )}
+          </div>
           {/* Type filter pills — driven by classifyTx() result. "All" shows
               everything, including types that may not be present yet. */}
           <div className="flex flex-wrap gap-1">
