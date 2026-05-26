@@ -4002,11 +4002,14 @@ fn handleGetAgents(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!first) try w.writeAll(",");
         first = false;
         const owner = if (slot.canSign()) slot.wallet.?.getAddress() else "";
-        const strategy_str: []const u8 = "custom";
         try w.print(
-            "{{\"id\":{d},\"owner\":\"{s}\",\"name\":\"{s}\",\"strategy\":\"{s}\",\"fee_bps\":0,\"registered_at_block\":0,\"decisions_made\":{d},\"decisions_ok\":{d},\"profit_omni_total\":{d},\"followers\":0,\"status\":\"active\",\"reputation_total\":0}}",
-            .{ slot.config.wallet_index, owner, slot.config.getName(), strategy_str,
-               slot.stats.decisions_emitted, slot.stats.txs_submitted, slot.stats.total_mined_sat },
+            "{{\"id\":{d},\"owner\":\"{s}\",\"name\":\"",
+            .{ slot.config.wallet_index, owner },
+        );
+        try writeJsonSafeStr(w, slot.config.getName());
+        try w.print(
+            "\",\"strategy\":\"custom\",\"fee_bps\":0,\"registered_at_block\":0,\"decisions_made\":{d},\"decisions_ok\":{d},\"profit_omni_total\":{d},\"followers\":0,\"status\":\"active\",\"reputation_total\":0}}",
+            .{ slot.stats.decisions_emitted, slot.stats.txs_submitted, slot.stats.total_mined_sat },
         );
     }
     try w.writeAll("]}}");
@@ -5295,9 +5298,13 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         ws.broadcastNameRegistered(name, tld, address, @intCast(@min(years, 255)));
     }
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"}}}}",
-        .{ id, name, tld, name, tld, address, current_block, fee_paid_sat, fee_txid_esc });
+    {
+        const rn_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(rn_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"}}}}",
+            .{ id, rn_safe, tld, rn_safe, tld, address, current_block, fee_paid_sat, fee_txid_esc });
+    }
 }
 
 fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -5902,9 +5909,13 @@ fn handleTransferName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ name, tld, owner, new_owner, nonce, pubkey_hex, sig_hex }) catch "";
     if (audit_fields.len > 0) dnsAuditAppend(ctx, "transfer", audit_fields);
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"transferredAtBlock\":{d}}}}}",
-        .{ id, name, tld, owner, new_owner, current_block });
+    {
+        const tn_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(tn_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"transferredAtBlock\":{d}}}}}",
+            .{ id, tn_safe, tld, owner, new_owner, current_block });
+    }
 }
 
 // ─── Phase 1: updatename ────────────────────────────────────────────────────
@@ -5960,9 +5971,13 @@ fn handleUpdateName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ name, tld, old_address, new_address, nonce, pubkey_hex, sig_hex }) catch "";
     if (audit_fields.len > 0) dnsAuditAppend(ctx, "update", audit_fields);
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"updatedAtBlock\":{d}}}}}",
-        .{ id, name, tld, old_address, new_address, current_block });
+    {
+        const un_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(un_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"updatedAtBlock\":{d}}}}}",
+            .{ id, un_safe, tld, old_address, new_address, current_block });
+    }
 }
 
 // ─── Phase 1+2: renewname ───────────────────────────────────────────────────
@@ -6097,9 +6112,13 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         ws.broadcastNameRenewed(name, tld, owner, @intCast(@min(years, 255)));
     }
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"registered_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
-        .{ id, name, tld, years, entry.registered_years, old_expires, entry.expires_block, fee_paid_sat });
+    {
+        const ren_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(ren_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"registered_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
+            .{ id, ren_safe, tld, years, entry.registered_years, old_expires, entry.expires_block, fee_paid_sat });
+    }
 }
 
 // ─── Phase 2: ns_expiringSoon ───────────────────────────────────────────────
@@ -14927,22 +14946,27 @@ fn handleGridStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // buy_levels/sell_levels INSIDE the same result object.
     // We do NOT call writeGridJson here because that emits a complete {...} object
     // and appending after its closing brace produces invalid JSON.
-    try std.fmt.format(out.writer(alloc),
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"{s}\"," ++
-        "\"price_low\":{d},\"price_high\":{d},\"levels\":{d}," ++
-        "\"total_base\":{d},\"total_quote\":{d}," ++
-        "\"filled_count\":{d},\"profit_quote\":{d},\"active\":{s}," ++
-        "\"created_block\":{d}",
-        .{
-            id,
-            g.id, g.pair_id, g.owner[0..g.owner_len],
-            g.price_low, g.price_high, g.levels,
-            g.total_base, g.total_quote,
-            g.filled_count, g.profit_quote,
-            if (g.active) "true" else "false",
-            g.created_block,
-        });
+    {
+        const w = out.writer(alloc);
+        try std.fmt.format(w,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"",
+            .{ id, g.id, g.pair_id });
+        try writeJsonSafeStr(w, g.owner[0..g.owner_len]);
+        try std.fmt.format(w,
+            "\"," ++
+            "\"price_low\":{d},\"price_high\":{d},\"levels\":{d}," ++
+            "\"total_base\":{d},\"total_quote\":{d}," ++
+            "\"filled_count\":{d},\"profit_quote\":{d},\"active\":{s}," ++
+            "\"created_block\":{d}",
+            .{
+                g.price_low, g.price_high, g.levels,
+                g.total_base, g.total_quote,
+                g.filled_count, g.profit_quote,
+                if (g.active) "true" else "false",
+                g.created_block,
+            });
+    }
 
     // Adaugă levels calculate (still inside the result object)
     try out.appendSlice(alloc, ",\"buy_levels\":[");
