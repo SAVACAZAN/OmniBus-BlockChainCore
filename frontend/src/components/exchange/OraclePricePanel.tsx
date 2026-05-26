@@ -189,6 +189,9 @@ async function fetchOmniDexPrices(): Promise<OmniDexPrice[]> {
   const out: OmniDexPrice[] = [];
   for (const p of pairs) {
     try {
+      // "exchange_orderbook" and "exchange_trades" are snake_case aliases for
+      // "exchange_getOrderbook" and "exchange_getTrades" (same handler on backend).
+      // We call the canonical camelCase form; aliases are also registered in rpc_server.zig.
       const res = await rpc.request_raw("exchange_getOrderbook", [{ pairId: p.id, depth: 1 }]);
       const bestBid = res?.bestBid ? res.bestBid / 1_000_000 : 0;
       const bestAsk = res?.bestAsk ? res.bestAsk / 1_000_000 : 0;

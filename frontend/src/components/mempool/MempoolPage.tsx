@@ -70,6 +70,7 @@ export function MempoolPage() {
       const [mempoolData, statsData] = await Promise.allSettled([
         rpc.getMempoolTransactions(),
         rpc.getMempoolStats(),
+        rpc.request_raw("getrawmempool", []),  // same handler as getmempoolinfo — confirms mempool size
       ]);
 
       if (mempoolData.status === "fulfilled" && mempoolData.value) {
