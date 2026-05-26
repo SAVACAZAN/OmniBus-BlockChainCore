@@ -200,13 +200,20 @@ function NetworkRpcPanels() {
               ["Status", nodeStatus.status],
               ["Blocks", String(nodeStatus.blockCount)],
               ["Mempool", `${nodeStatus.mempoolSize} tx`],
-              ["Address", nodeStatus.address ? nodeStatus.address.slice(0, 16) + "…" : "—"],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between text-xs">
                 <span className="text-mempool-text-dim">{k}</span>
                 <span className="font-mono text-mempool-text">{v}</span>
               </div>
             ))}
+            {nodeStatus.address && (
+              <div className="flex justify-between text-xs">
+                <span className="text-mempool-text-dim">Address</span>
+                <button onClick={() => { window.location.hash = `#/address/${nodeStatus.address}`; }} className="font-mono text-mempool-text hover:text-mempool-blue hover:underline">
+                  <AddressLabel address={nodeStatus.address} showEmoji truncate={{ left: 10, right: 6 }} />
+                </button>
+              </div>
+            )}
           </div>
         )}
         {miningInfo && (
