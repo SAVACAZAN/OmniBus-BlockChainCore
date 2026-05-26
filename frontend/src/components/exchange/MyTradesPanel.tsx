@@ -121,7 +121,36 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
         <span className="text-mempool-border">·</span>
         <span>on-chain history{pairId !== undefined ? ` · ${PAIR_LABELS[pairId] ?? `pair ${pairId}`}` : ""}</span>
         {trades.length > 0 && (
-          <span className="ml-auto text-mempool-text-dim/70 text-[8px]">{trades.length} fills</span>
+          <>
+            <span className="ml-auto text-mempool-text-dim/70 text-[8px]">{trades.length} fills</span>
+            <button
+              onClick={() => {
+                const rows = [
+                  ["fill_id","pair","side","price_usd","amount_omni","counterparty","block_height","timestamp","settle_tx_hash","settle_chain_id"].join(","),
+                  ...trades.map((t) => [
+                    t.fillId,
+                    PAIR_LABELS[t.pairId] ?? `pair ${t.pairId}`,
+                    t.side,
+                    (t.price / MICRO_PER_USD).toFixed(6),
+                    (t.amount / SAT_PER_OMNI).toFixed(8),
+                    `"${t.counterparty}"`,
+                    t.blockHeight,
+                    new Date(t.ts).toISOString(),
+                    t.evmSettleTxHash ? `"${t.evmSettleTxHash}"` : "",
+                    t.evmChainId || "",
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = `omnibus-my-trades.csv`;
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-1.5 py-0.5 text-[8px] rounded border border-mempool-border/50 text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          </>
         )}
       </div>
 

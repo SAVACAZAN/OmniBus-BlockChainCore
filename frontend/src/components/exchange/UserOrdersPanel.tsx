@@ -93,9 +93,35 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
-      <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider mb-2">
-        My orders
-      </h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
+          My orders
+        </h3>
+        {orders.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["order_id","side","price_usd","remaining_omni","status"].join(","),
+                ...orders.map((o) => [
+                  o.orderId,
+                  o.side,
+                  (o.price / MICRO_PER_USD).toFixed(6),
+                  (o.remaining / SAT_PER_OMNI).toFixed(8),
+                  o.status,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-my-orders.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        )}
+      </div>
       {loading ? (
         <p className="text-xs text-mempool-text-dim">Loading…</p>
       ) : orders.length === 0 ? (
