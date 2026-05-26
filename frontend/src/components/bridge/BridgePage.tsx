@@ -76,9 +76,9 @@ function BridgeMonitor() {
         if (!cancelled) setLoading(false);
       }
     };
-    load();
+    void load();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void load(); });
-    const id = setInterval(load, 60_000);
+    const id = setInterval(() => { void load(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 

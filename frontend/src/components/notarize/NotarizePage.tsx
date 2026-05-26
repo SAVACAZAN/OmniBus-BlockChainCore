@@ -1776,7 +1776,7 @@ function OpReturnSection() {
     if (!opData.trim()) return;
     setOpLoading(true); setOpResult(null);
     try {
-      const r = await rpc.request_raw("sendopreturn", [opData.trim(), parseInt(opFee) || 1000]) as { txid?: string; tx_hash?: string; error?: string };
+      const r = await rpc.request_raw("sendopreturn", [opData.trim(), parseInt(opFee, 10) || 1000]) as { txid?: string; tx_hash?: string; error?: string };
       if (r && (r.txid || r.tx_hash)) {
         setOpResult({ ok: true, msg: `TX: ${(r.txid ?? r.tx_hash ?? "").slice(0, 32)}…` });
       } else {
@@ -1804,12 +1804,12 @@ function OpReturnSection() {
       const r = await rpc.request_raw("sendrawtransaction", [{
         from: rawFrom.trim(),
         to: rawTo.trim(),
-        amount: parseInt(rawAmount),
-        fee: parseInt(rawFee) || 1000,
+        amount: parseInt(rawAmount, 10),
+        fee: parseInt(rawFee, 10) || 1000,
         signature: rawSig.trim(),
         hash: rawHash.trim(),
         publicKey: rawPubkey.trim(),
-        nonce: parseInt(rawNonce) || 0,
+        nonce: parseInt(rawNonce, 10) || 0,
         timestamp: Math.floor(Date.now() / 1000),
       }]) as { txid?: string; tx_hash?: string; error?: string };
       if (r && (r.txid || r.tx_hash)) {

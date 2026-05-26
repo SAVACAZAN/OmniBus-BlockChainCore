@@ -425,7 +425,7 @@ function MinerSendTxPanel() {
     setLoading(true); setResult(null);
     try {
       const r = await rpc.request_raw("minersendtx", [
-        from.trim(), to.trim(), parseInt(amount), parseInt(fee) || 1000,
+        from.trim(), to.trim(), parseInt(amount, 10), parseInt(fee, 10) || 1000,
       ]) as { txid?: string; tx_hash?: string; error?: string };
       if (r && (r.txid || r.tx_hash)) {
         setResult({ ok: true, msg: `TX: ${(r.txid ?? r.tx_hash ?? "").slice(0, 32)}…` });

@@ -262,8 +262,8 @@ function BlockPricesPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const c = Math.min(parseInt(count) || 20, 100);
-      const from = fromHeight !== "" ? parseInt(fromHeight) : null;
+      const c = Math.min(parseInt(count, 10) || 20, 100);
+      const from = fromHeight !== "" ? parseInt(fromHeight, 10) : null;
       if (from !== null && !isNaN(from)) {
         const r = await rpc.request_raw("omnibus_getpricerange", [from, c]);
         if (r && typeof r === "object" && Array.isArray((r as {blocks?: BlockPrices[]}).blocks)) {
@@ -1142,7 +1142,7 @@ function DexOrderbookPanel() {
   }, [pair]);
 
   const lookupBlockPrices = async () => {
-    const h = parseInt(blockHeight);
+    const h = parseInt(blockHeight, 10);
     if (isNaN(h) || h < 0) { setBlockErr("Enter a valid block height"); return; }
     setLoadingBlock(true);
     setBlockErr("");

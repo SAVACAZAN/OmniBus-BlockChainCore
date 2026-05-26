@@ -605,7 +605,7 @@ function BlockHashPanel() {
   }, []);
 
   const lookupByHeight = useCallback(async () => {
-    const h = parseInt(lookupHeight);
+    const h = parseInt(lookupHeight, 10);
     if (isNaN(h) || h < 0) { setLookupErr("Enter a valid block height"); return; }
     setLoading(true); setLookupErr(""); setLookupHash(null);
     try {

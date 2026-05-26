@@ -43,7 +43,7 @@ function CreateGridModal({
     setError("");
     const pl = parseFloat(priceLow);
     const ph = parseFloat(priceHigh);
-    const lv = parseInt(levels);
+    const lv = parseInt(levels, 10);
     const tb = parseFloat(totalBase);
     const tq = parseFloat(totalQuote);
     if (!pl || !ph || !lv || !tb || !tq) { setError("Fill all fields"); return; }

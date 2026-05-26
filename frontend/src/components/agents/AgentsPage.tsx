@@ -259,9 +259,9 @@ export function AgentsPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
+    void refresh();
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
@@ -693,7 +693,7 @@ function AgentStatusPanel() {
   const [loading, setLoading] = useState(false);
 
   const lookup = async () => {
-    const wi = parseInt(walletIndex);
+    const wi = parseInt(walletIndex, 10);
     if (isNaN(wi)) { setError("Enter a valid wallet_index integer."); return; }
     setLoading(true);
     setError(null);
@@ -781,7 +781,7 @@ function AgentReportPanel() {
   const [busy, setBusy] = useState(false);
 
   const report = async () => {
-    const did = parseInt(decisionId);
+    const did = parseInt(decisionId, 10);
     if (isNaN(did)) { setErr("Enter a valid decision_id."); return; }
     setBusy(true);
     setResult(null);
@@ -789,8 +789,8 @@ function AgentReportPanel() {
     try {
       const params: Record<string, unknown> = { decision_id: did, status };
       if (externalId) params.external_id = externalId;
-      if (filledSat) params.filled_amount_sat = parseInt(filledSat) || 0;
-      if (fillPrice) params.fill_price_micro_usd = parseInt(fillPrice) || 0;
+      if (filledSat) params.filled_amount_sat = parseInt(filledSat, 10) || 0;
+      if (fillPrice) params.fill_price_micro_usd = parseInt(fillPrice, 10) || 0;
       if (errorMsg) params.error_msg = errorMsg;
       const r = await rpc.request_raw("agent_report_execution", [params]);
       setResult(r && typeof r === "object" ? JSON.stringify(r) : String(r));
@@ -882,7 +882,7 @@ function AgentLookupPanel() {
   const [err, setErr] = useState("");
 
   const lookup = async () => {
-    const id = parseInt(agentId);
+    const id = parseInt(agentId, 10);
     if (isNaN(id)) { setErr("Enter a numeric agent ID"); return; }
     setLoading(true); setErr(""); setResult(null);
     try {
