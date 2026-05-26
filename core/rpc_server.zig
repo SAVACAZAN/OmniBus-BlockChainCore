@@ -5327,6 +5327,8 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const current_block: u64 = @intCast(ctx.bc.chain.items.len);
     // Phase 2: lookup the full entry (not just the address) so we can
     // surface category, PQ slots, preferred slot, and registered_years.
+    const name_safe = try jsonSanitize(alloc, name);
+    defer alloc.free(name_safe);
     const entry = dns.lookupEntry(name, tld);
     if (entry) |e| {
         if (e.active and !e.isExpired(current_block)) {
@@ -5356,7 +5358,7 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     "\"found\":true" ++
                 "}}}}",
                 .{
-                    id, name, tld, name, tld,
+                    id, name_safe, tld, name_safe, tld,
                     e.getAddress(),
                     e.getAddress(),
                     pq_k, e.addr_pq_lens[0] > 0,
@@ -5373,7 +5375,7 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":null,\"found\":false}}}}",
-        .{ id, name, tld, name, tld });
+        .{ id, name_safe, tld, name_safe, tld });
 }
 
 /// Phase 2 send-routing helper — closes the loop on `preferred_slot`.
@@ -5523,15 +5525,19 @@ fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!e.active or e.isExpired(current_block)) continue;
         if (!first) try w.writeAll(",");
         first = false;
+        try w.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(w, e.getName());
         try w.print(
-            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
-                "\"address\":\"{s}\"," ++
-                "\"category\":\"{s}\"," ++
-                "\"preferred_slot\":{d}," ++
-                "\"registered_years\":{d}," ++
+            "\",\"tld\":\"{s}\",\"fullLabel\":\"",
+            .{e.getTld()},
+        );
+        try writeJsonSafeStr(w, e.getName());
+        try w.print(
+            ".{s}\",\"address\":\"{s}\",\"category\":\"{s}\"," ++
+                "\"preferred_slot\":{d},\"registered_years\":{d}," ++
                 "\"registeredAtBlock\":{d},\"expiresAtBlock\":{d}}}",
             .{
-                e.getName(), e.getTld(), e.getName(), e.getTld(), e.getAddress(),
+                e.getTld(), e.getAddress(),
                 e.category.toString(), e.preferred_slot, e.registered_years,
                 e.registered_block, e.expires_block,
             },
@@ -15293,9 +15299,13 @@ fn handleIdentityGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // For ens_only visibility, blank the nickname so the UI doesn't even
     // see it. Address is already public on chain anyway.
     const nick: []const u8 = if (it.visibility == .ens_only) "" else it.getNickname();
+    const nick_safe = try jsonSanitize(alloc, nick);
+    defer alloc.free(nick_safe);
+    const ens_safe = try jsonSanitize(alloc, it.getEns());
+    defer alloc.free(ens_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\",\"updated\":{d}}}}}",
-        .{ id, it.getAddress(), nick, it.getEns(), it.visibility.toStr(), it.updated_ms });
+        .{ id, it.getAddress(), nick_safe, ens_safe, it.visibility.toStr(), it.updated_ms });
 }
 
 fn handleIdentitySearch(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -15329,9 +15339,13 @@ fn handleIdentitySearch(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!first) try out.appendSlice(alloc, ",");
         first = false;
         const visible_nick: []const u8 = if (it.visibility == .ens_only) "" else nick;
+        const vnick_safe = try jsonSanitize(alloc, visible_nick);
+        defer alloc.free(vnick_safe);
+        const vens_safe = try jsonSanitize(alloc, it.getEns());
+        defer alloc.free(vens_safe);
         try std.fmt.format(out.writer(alloc),
             "{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\"}}",
-            .{ it.getAddress(), visible_nick, it.getEns(), it.visibility.toStr() });
+            .{ it.getAddress(), vnick_safe, vens_safe, it.visibility.toStr() });
         emitted += 1;
     }
     try out.appendSlice(alloc, "]}");
