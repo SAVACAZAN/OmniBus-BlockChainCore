@@ -130,16 +130,15 @@ function shortPubkey(pk: string): string {
 
 // ── State badge ───────────────────────────────────────────────────────────────
 
+const STATE_CLS: Record<ChannelState, string> = {
+  open:     "bg-green-500/20 text-green-400 border-green-500/40",
+  closing:  "bg-yellow-500/20 text-yellow-400 border-yellow-500/40",
+  settled:  "bg-gray-500/20 text-gray-400 border-gray-500/40",
+  disputed: "bg-red-500/20 text-red-400 border-red-500/40",
+};
+
 function StateBadge({ state }: { state: ChannelState }) {
-  const cls = (() => {
-    switch (state) {
-      case "open":     return "bg-green-500/20 text-green-400 border-green-500/40";
-      case "closing":  return "bg-yellow-500/20 text-yellow-400 border-yellow-500/40";
-      case "settled":  return "bg-gray-500/20 text-gray-400 border-gray-500/40";
-      case "disputed": return "bg-red-500/20 text-red-400 border-red-500/40";
-      default:         return "bg-gray-500/20 text-gray-400 border-gray-500/40";
-    }
-  })();
+  const cls = STATE_CLS[state] ?? "bg-gray-500/20 text-gray-400 border-gray-500/40";
   return (
     <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium ${cls}`}>
       {state}
