@@ -2404,6 +2404,7 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
     (acc[a.group] ??= []).push(a);
     return acc;
   }, {} as Record<string, typeof addresses>), [addresses]);
+  const groupEntries = useMemo(() => Object.entries(groups), [groups]);
 
   function copy(addr: string) {
     navigator.clipboard.writeText(addr);
@@ -2452,7 +2453,7 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
 
   return (
     <div className="space-y-1.5">
-      {Object.entries(groups).map(([group, items]) => (
+      {groupEntries.map(([group, items]) => (
         <div key={group} className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
           <button
             type="button"
