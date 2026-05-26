@@ -126,24 +126,26 @@ function signGovVote(args: {
 
 // ── Status badge helper ────────────────────────────────────────────────────
 
+const PROPOSAL_STATUS_CLS: Record<ProposalStatus, string> = {
+  voting:   "bg-blue-500/20 text-blue-400 border-blue-500/40",
+  passed:   "bg-green-500/20 text-green-400 border-green-500/40",
+  rejected: "bg-red-500/20 text-red-400 border-red-500/40",
+  expired:  "bg-gray-500/20 text-gray-400 border-gray-500/40",
+  executed: "bg-purple-500/20 text-purple-400 border-purple-500/40",
+};
+
+const PROPOSAL_STATUS_ICON: Record<ProposalStatus, React.ReactNode> = {
+  voting:   <Clock className="w-3 h-3 inline mr-1" />,
+  passed:   <CheckCircle className="w-3 h-3 inline mr-1" />,
+  rejected: <XCircle className="w-3 h-3 inline mr-1" />,
+  expired:  <Clock className="w-3 h-3 inline mr-1" />,
+  executed: <Zap className="w-3 h-3 inline mr-1" />,
+};
+
 function StatusBadge({ status }: { status: ProposalStatus }) {
-  const cls: Record<ProposalStatus, string> = {
-    voting:   "bg-blue-500/20 text-blue-400 border-blue-500/40",
-    passed:   "bg-green-500/20 text-green-400 border-green-500/40",
-    rejected: "bg-red-500/20 text-red-400 border-red-500/40",
-    expired:  "bg-gray-500/20 text-gray-400 border-gray-500/40",
-    executed: "bg-purple-500/20 text-purple-400 border-purple-500/40",
-  };
-  const icon: Record<ProposalStatus, React.ReactNode> = {
-    voting:   <Clock className="w-3 h-3 inline mr-1" />,
-    passed:   <CheckCircle className="w-3 h-3 inline mr-1" />,
-    rejected: <XCircle className="w-3 h-3 inline mr-1" />,
-    expired:  <Clock className="w-3 h-3 inline mr-1" />,
-    executed: <Zap className="w-3 h-3 inline mr-1" />,
-  };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] uppercase tracking-wider font-medium ${cls[status]}`}>
-      {icon[status]}{status}
+    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] uppercase tracking-wider font-medium ${PROPOSAL_STATUS_CLS[status]}`}>
+      {PROPOSAL_STATUS_ICON[status]}{status}
     </span>
   );
 }
