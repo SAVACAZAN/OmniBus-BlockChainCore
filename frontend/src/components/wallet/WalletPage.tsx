@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
@@ -140,6 +140,18 @@ export function WalletPage() {
   const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
   const [walletNonce, setWalletNonce] = useState<number | null>(null);
   const [txFilter, setTxFilter] = useState<string>("All");
+  const txCountByType = useMemo(() => {
+    const counts: Record<string, number> = { All: transactions.length };
+    for (const tx of transactions) {
+      const label = classifyTx(tx, activeAddress).label;
+      counts[label] = (counts[label] ?? 0) + 1;
+    }
+    return counts;
+  }, [transactions, activeAddress]);
+  const filteredTxs = useMemo(() =>
+    txFilter === "All" ? transactions : transactions.filter((tx) => classifyTx(tx, activeAddress).label === txFilter),
+  [transactions, txFilter, activeAddress]);
+
   const [reputation, setReputation] = useState<{
     cups: { love: string; food: string; rent: string; vacation: string };
     total: number;
@@ -924,9 +936,7 @@ export function WalletPage() {
               everything, including types that may not be present yet. */}
           <div className="flex flex-wrap gap-1">
             {["All", "Sent", "Received", "Mining Reward", "Stake", "Unstake", "Open Order", "Cancel Order", "DEX Deposit", "DEX Withdraw", "NS Claim", "Agent Register", "Notarize"].map((type) => {
-              const count = type === "All"
-                ? transactions.length
-                : transactions.filter((t) => classifyTx(t, activeAddress).label === type).length;
+              const count = txCountByType[type] ?? 0;
               if (type !== "All" && count === 0) return null; // hide empty filters
               return (
                 <button
@@ -950,9 +960,7 @@ export function WalletPage() {
               No transactions yet. Mine blocks or receive OMNI to see history.
             </div>
           ) : (
-            transactions
-              .filter((tx) => txFilter === "All" || classifyTx(tx, activeAddress).label === txFilter)
-              .map((tx: any, i: number) => {
+            filteredTxs.map((tx: any, i: number) => {
                 const cls = classifyTx(tx, activeAddress);
                 return (
               <div key={tx.txid || i} className="px-3 sm:px-5 py-3 flex items-center gap-3">
