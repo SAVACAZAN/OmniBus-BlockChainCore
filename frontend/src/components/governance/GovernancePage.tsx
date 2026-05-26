@@ -492,6 +492,33 @@ function ProposalsTab({
           {filter === "active" ? "Active proposals" : "All proposals"}
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {proposals && proposals.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["id", "status", "proposer", "yes_votes", "no_votes", "quorum", "voting_end_block", "vote_count"].join(","),
+                ...proposals.map((p) => [
+                  p.id,
+                  p.status,
+                  `"${p.proposer}"`,
+                  p.yes_weight,
+                  p.no_weight,
+                  p.quorum,
+                  p.voting_end_block,
+                  p.vote_count,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-proposals.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}

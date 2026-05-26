@@ -539,7 +539,36 @@ function TabLeaderboard({
             {o.label}
           </button>
         ))}
-        <span className="ml-auto text-xs text-mempool-text-dim">Top 100</span>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-mempool-text-dim">Top 100</span>
+          {entries.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["rank", "address", "love", "food", "rent", "vacation", "total", "badge"].join(","),
+                  ...entries.map((e) => [
+                    e.rank,
+                    `"${e.address}"`,
+                    (e.love / 100).toFixed(2),
+                    (e.food / 100).toFixed(2),
+                    (e.rent / 100).toFixed(2),
+                    (e.vacation / 100).toFixed(2),
+                    e.total,
+                    e.badge,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-reputation-leaderboard.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="text-[10px] px-2 py-1 bg-mempool-bg-elev border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono"
+            >
+              ⬇ CSV
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev overflow-hidden">
