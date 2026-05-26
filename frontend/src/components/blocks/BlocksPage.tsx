@@ -21,6 +21,7 @@ export function BlocksPage() {
   const { state } = useBlockchain();
   const [blocks, setBlocks] = useState<BlockWithDiff[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [jumpInput, setJumpInput] = useState("");
   const PAGE_SIZE = 20;
@@ -33,6 +34,7 @@ export function BlocksPage() {
 
   const loadBlocks = async () => {
     setLoading(true);
+    setLoadErr(null);
     try {
       let height = state.blockCount;
       try {
@@ -62,7 +64,9 @@ export function BlocksPage() {
         );
         setBlocks(results.filter(Boolean) as BlockWithDiff[]);
       }
-    } catch {}
+    } catch (e: any) {
+      setLoadErr(e?.message || "Failed to load blocks");
+    }
     setLoading(false);
   };
 
@@ -222,6 +226,12 @@ export function BlocksPage() {
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-mempool-text-dim">
                   Loading…
+                </td>
+              </tr>
+            ) : loadErr ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-8 text-center text-red-400 text-xs font-mono">
+                  {loadErr}
                 </td>
               </tr>
             ) : blocks.length === 0 ? (

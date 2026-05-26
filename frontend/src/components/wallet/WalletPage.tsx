@@ -230,10 +230,10 @@ export function WalletPage() {
         else if (Array.isArray(ulist)) setUtxos(ulist);
       } catch {}
     };
-    refresh();
+    void refresh();
     // Keep a slow fallback poll (30 s). Real-time updates come from the WS
     // subscription above (new_block/new_tx → refreshCounter bump).
-    const id = setInterval(refresh, 30_000);
+    const id = setInterval(() => { void refresh(); }, 30_000);
     return () => clearInterval(id);
   }, [unlocked, activeAddress, refreshCounter]);
 
