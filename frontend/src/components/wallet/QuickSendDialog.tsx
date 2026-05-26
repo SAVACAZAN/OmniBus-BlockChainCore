@@ -14,7 +14,7 @@
  *   4) Show TX hash + confirmation tracker
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "../../api/use-wallet";
 import { rpc } from "../../api/rpc-client";
 import { useGlobalBalance } from "../../api/use-global-balance";
@@ -49,12 +49,12 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
   const [confirmations, setConfirmations] = useState<number | null>(null);
 
   // Fee tier → effective fee (sat/byte). low = min, normal = median, fast = ~2x median.
-  const effectiveFee = (() => {
+  const effectiveFee = useMemo(() => {
     if (!feeEstimate) return 1;
     if (tier === "low")  return feeEstimate.minFee || feeEstimate.medianFee || 1;
     if (tier === "fast") return Math.max(1, Math.ceil((feeEstimate.medianFee || 1) * 2));
     return feeEstimate.medianFee || 1;
-  })();
+  }, [feeEstimate, tier]);
 
   // Esc closes the dialog.
   useEffect(() => {
