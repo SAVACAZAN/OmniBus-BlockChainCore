@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types";
+import { MICRO_PER_USD } from "../../utils/fmt";
 
+const MICRO = MICRO_PER_USD;
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface ArbOpportunity {
@@ -27,7 +29,7 @@ const TOP_N = 15;
 // ── Format helpers ────────────────────────────────────────────────────────
 
 function formatUsd(microUsd: number, decimals: number): string {
-  const dollars = microUsd / 1_000_000;
+  const dollars = microUsd / MICRO;
   return dollars.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -36,7 +38,7 @@ function formatUsd(microUsd: number, decimals: number): string {
 
 // Pick decimals based on price magnitude — bigger numbers get fewer decimals.
 function decimalsFor(microUsd: number): number {
-  const dollars = Math.abs(microUsd / 1_000_000);
+  const dollars = Math.abs(microUsd / MICRO);
   if (dollars >= 1000) return 2;
   if (dollars >= 1) return 2;
   if (dollars >= 0.01) return 4;
@@ -164,10 +166,10 @@ export default function ArbitrageOpportunities() {
                 ...sorted.map((o) => [
                   o.pair,
                   o.buyAt,
-                  (o.buyAskMicroUsd / 1_000_000).toFixed(6),
+                  (o.buyAskMicroUsd / MICRO).toFixed(6),
                   o.sellAt,
-                  (o.sellBidMicroUsd / 1_000_000).toFixed(6),
-                  (o.spreadMicroUsd / 1_000_000).toFixed(6),
+                  (o.sellBidMicroUsd / MICRO).toFixed(6),
+                  (o.spreadMicroUsd / MICRO).toFixed(6),
                   o.spreadPct.toFixed(4),
                 ].join(",")),
               ].join("\n");

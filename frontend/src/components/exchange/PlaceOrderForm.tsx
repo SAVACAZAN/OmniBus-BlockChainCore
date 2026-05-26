@@ -212,7 +212,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
           // 6-decimals smallest unit.
           const usdcAddr = USDC_CONTRACT.SEPOLIA as `0x${string}`;
           // amount in USDC-smallest-units (6 dec). Round to avoid float drift.
-          const usdcAmount = BigInt(Math.round(priceUsd * amountOmni * 1_000_000));
+          const usdcAmount = BigInt(Math.round(priceUsd * amountOmni * MICRO_PER_USD));
           setMsg("Approving USDC allowance on Sepolia…");
           await ensureAllowance({
             chainId: 11155111,

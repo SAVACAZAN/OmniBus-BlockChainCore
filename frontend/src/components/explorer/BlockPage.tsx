@@ -3,8 +3,9 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
-import { fmtSat, midTrunc, SAT_PER_OMNI } from "../../utils/fmt";
+import { fmtSat, midTrunc, SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 
+const MICRO = MICRO_PER_USD;
 const rpc = new OmniBusRpcClient();
 
 function fmtTs(ts: number) {
@@ -12,7 +13,7 @@ function fmtTs(ts: number) {
 }
 function fmtPrice(microUsd: number): string {
   if (!microUsd) return "—";
-  const usd = microUsd / 1_000_000;
+  const usd = microUsd / MICRO;
   const dec = usd >= 100 ? 2 : usd >= 1 ? 2 : usd >= 0.01 ? 4 : 6;
   return "$" + usd.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }

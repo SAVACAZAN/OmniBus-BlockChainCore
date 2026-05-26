@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
 import OmniBusRpcClient from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import {
@@ -173,11 +173,11 @@ export function HtlcTradePanel() {
       log(`Taker EVM: ${takerAddr}`);
 
       const usdcContract = new ethers.Contract(USDC_SEPOLIA, USDC_ABI_MIN, signer);
-      const usdcRaw = BigInt(Math.round(usdc * 1_000_000));
+      const usdcRaw = BigInt(Math.round(usdc * MICRO_PER_USD));
 
       // Check balance
       const bal = await usdcContract.balanceOf(takerAddr);
-      log(`USDC balance: ${Number(bal) / 1_000_000} USDC`);
+      log(`USDC balance: ${Number(bal) / MICRO_PER_USD} USDC`);
       if (bal < usdcRaw) return setErr(`Insufficient USDC: have ${Number(bal)/1e6}, need ${usdc}`);
 
       // Approve HTLC contract to spend USDC

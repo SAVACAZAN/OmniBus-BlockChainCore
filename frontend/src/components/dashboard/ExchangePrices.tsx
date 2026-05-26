@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types/index";
+import { MICRO_PER_USD } from "../../utils/fmt";
 
+const MICRO = MICRO_PER_USD;
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface PriceEntry {
@@ -33,7 +35,7 @@ const ASSETS: { key: AssetKey; label: string; pair: string }[] = [
 // ── Format helpers ────────────────────────────────────────────────────────
 
 function microUsdToDollars(micro: number): number {
-  return micro / 1_000_000;
+  return micro / MICRO;
 }
 
 function formatPrice(microUsd: number, asset: AssetKey): string {

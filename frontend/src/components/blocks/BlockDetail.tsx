@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { KIND_STYLE } from "../common/TxBadges";
+import { MICRO_PER_USD } from "../../utils/fmt";
 
+const MICRO = MICRO_PER_USD;
 const rpc = new OmniBusRpcClient();
 
 interface PriceEntry {
@@ -23,7 +25,7 @@ interface BlockDetailProps {
 // ≥$100 → 2 dec, ≥$1 → 2 dec, ≥$0.01 → 4 dec, else 6 dec.
 function fmtUsd(micro: number): string {
   if (!micro) return "—";
-  const usd = micro / 1_000_000;
+  const usd = micro / MICRO;
   const dec = usd >= 1 ? 2 : usd >= 0.01 ? 4 : 6;
   return "$" + usd.toLocaleString("en-US", {
     minimumFractionDigits: dec,
@@ -227,8 +229,8 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                         ...prices.filter(p => p.success).map((p) => [
                           p.pair,
                           p.exchange,
-                          (p.bidMicroUsd / 1_000_000).toFixed(6),
-                          (p.askMicroUsd / 1_000_000).toFixed(6),
+                          (p.bidMicroUsd / MICRO).toFixed(6),
+                          (p.askMicroUsd / MICRO).toFixed(6),
                           p.timestampMs,
                           isOnChain ? "on-chain" : "live",
                         ].join(",")),

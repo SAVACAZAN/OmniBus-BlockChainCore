@@ -4,7 +4,9 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
+import { MICRO_PER_USD } from "../../utils/fmt";
 
+const MICRO = MICRO_PER_USD;
 interface MempoolBlockProps {
   block?: BlockData;
   pendingTxs?: PendingTx[];
@@ -22,7 +24,7 @@ const rpc = new OmniBusRpcClient();
 // the comma even when the user's browser is non-EN.
 function fmtUsd(micro: number, decimals: number): string {
   if (!micro) return "—";
-  const usd = micro / 1_000_000;
+  const usd = micro / MICRO;
   return usd.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,

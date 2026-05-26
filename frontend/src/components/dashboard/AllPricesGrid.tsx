@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types";
+import { MICRO_PER_USD } from "../../utils/fmt";
 
+const MICRO = MICRO_PER_USD;
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface PriceEntry {
@@ -33,7 +35,7 @@ type SortDir = "asc" | "desc";
 // ── Format helpers ────────────────────────────────────────────────────────
 
 function formatUsd(microUsd: number, decimals: number): string {
-  const dollars = microUsd / 1_000_000;
+  const dollars = microUsd / MICRO;
   return dollars.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -42,7 +44,7 @@ function formatUsd(microUsd: number, decimals: number): string {
 
 // Pick decimals based on price magnitude — bigger prices get fewer decimals.
 function decimalsFor(microUsd: number): number {
-  const dollars = Math.abs(microUsd / 1_000_000);
+  const dollars = Math.abs(microUsd / MICRO);
   if (dollars >= 1000) return 2;
   if (dollars >= 1) return 2;
   if (dollars >= 0.01) return 4;
@@ -298,7 +300,7 @@ export default function AllPricesGrid() {
                   const fmtCell = (ex: Exchange) => {
                     const c = r.cells[ex];
                     if (!c || !c.success) return ",";
-                    return `${(c.bidMicroUsd / 1_000_000).toFixed(6)},${(c.askMicroUsd / 1_000_000).toFixed(6)}`;
+                    return `${(c.bidMicroUsd / MICRO).toFixed(6)},${(c.askMicroUsd / MICRO).toFixed(6)}`;
                   };
                   return [r.base, r.bucket, fmtCell("Coinbase"), fmtCell("Kraken"), fmtCell("LCX")].join(",");
                 }),

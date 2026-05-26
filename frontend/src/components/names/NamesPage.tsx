@@ -8,7 +8,7 @@ import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/u
 import { TxHashLink } from "../common/TxHashLink";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNameRegisteredEvent, WsNameRenewedEvent, WsNewBlockEvent } from "../../types";
-import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
+import { SAT_PER_OMNI, satToOmni, MICRO_PER_USD } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -1128,10 +1128,10 @@ function TreasuryStatusCard() {
 
   const balanceOmni = satToOmni(status.balance_sat, 4);
   const midUsd = status.last_grid_mid_micro_usd > 0
-    ? (status.last_grid_mid_micro_usd / 1_000_000).toFixed(4)
+    ? (status.last_grid_mid_micro_usd / MICRO_PER_USD).toFixed(4)
     : "—";
   const sigmaUsd = status.vol_sigma > 0
-    ? (status.vol_sigma / 1_000_000).toFixed(4)
+    ? (status.vol_sigma / MICRO_PER_USD).toFixed(4)
     : "—";
 
   return (
