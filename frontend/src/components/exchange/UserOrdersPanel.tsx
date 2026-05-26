@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { rpc, UserOrder } from "../../api/rpc-client";
 import { signCancelOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
@@ -86,6 +86,14 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
       setBusyId(null);
     }
   };
+
+  const orderSummary = useMemo(() => {
+    const buys = orders.filter((o) => o.side.toLowerCase().includes("buy"));
+    const sells = orders.filter((o) => !o.side.toLowerCase().includes("buy"));
+    const lockedQuote = buys.reduce((s, o) => s + (o.price / MICRO_PER_USD) * (o.remaining / SAT_PER_OMNI), 0);
+    const lockedBase = sells.reduce((s, o) => s + o.remaining / SAT_PER_OMNI, 0);
+    return { buys, sells, lockedQuote, lockedBase };
+  }, [orders]);
 
   if (!u) {
     return (
@@ -177,22 +185,16 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
             </div>
           ))}
           {/* Summary row */}
-          {(() => {
-            const buys = orders.filter((o) => o.side.toLowerCase().includes("buy"));
-            const sells = orders.filter((o) => !o.side.toLowerCase().includes("buy"));
-            const lockedQuote = buys.reduce((s, o) => s + (o.price / MICRO_PER_USD) * (o.remaining / SAT_PER_OMNI), 0);
-            const lockedBase = sells.reduce((s, o) => s + o.remaining / SAT_PER_OMNI, 0);
-            return (
-              <div className="mt-1 pt-1 border-t border-mempool-border/40 flex flex-wrap gap-x-3 text-[9px] font-mono text-mempool-text-dim px-1">
-                {buys.length > 0 && (
-                  <span>Buys ({buys.length}): <span className="text-green-400">${lockedQuote.toFixed(2)} locked</span></span>
-                )}
-                {sells.length > 0 && (
-                  <span>Sells ({sells.length}): <span className="text-orange-400">{lockedBase.toFixed(4)} base locked</span></span>
-                )}
-              </div>
-            );
-          })()}
+          {(orderSummary.buys.length > 0 || orderSummary.sells.length > 0) && (
+            <div className="mt-1 pt-1 border-t border-mempool-border/40 flex flex-wrap gap-x-3 text-[9px] font-mono text-mempool-text-dim px-1">
+              {orderSummary.buys.length > 0 && (
+                <span>Buys ({orderSummary.buys.length}): <span className="text-green-400">${orderSummary.lockedQuote.toFixed(2)} locked</span></span>
+              )}
+              {orderSummary.sells.length > 0 && (
+                <span>Sells ({orderSummary.sells.length}): <span className="text-orange-400">{orderSummary.lockedBase.toFixed(4)} base locked</span></span>
+              )}
+            </div>
+          )}
         </div>
       )}
       {err && (

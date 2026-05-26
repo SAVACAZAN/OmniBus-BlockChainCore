@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
@@ -107,6 +107,20 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
     };
   }, [u?.address, pairId, refreshKey]);
 
+  const tradeStats = useMemo(() => {
+    const buys = trades.filter((t) => t.side === "buy");
+    const sells = trades.filter((t) => t.side === "sell");
+    const totalVolOmni = trades.reduce((s, t) => s + t.amount / SAT_PER_OMNI, 0);
+    const totalVolUsd = trades.reduce((s, t) => s + (t.price / MICRO_PER_USD) * (t.amount / SAT_PER_OMNI), 0);
+    const avgBuy = buys.length > 0
+      ? buys.reduce((s, t) => s + t.price / MICRO_PER_USD, 0) / buys.length
+      : null;
+    const avgSell = sells.length > 0
+      ? sells.reduce((s, t) => s + t.price / MICRO_PER_USD, 0) / sells.length
+      : null;
+    return { buys, sells, totalVolOmni, totalVolUsd, avgBuy, avgSell };
+  }, [trades]);
+
   if (!u) {
     return (
       <div className="rounded-lg border border-mempool-border bg-mempool-bg p-3">
@@ -173,16 +187,7 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
       )}
 
       {trades.length > 0 && (() => {
-        const buys = trades.filter((t) => t.side === "buy");
-        const sells = trades.filter((t) => t.side === "sell");
-        const totalVolOmni = trades.reduce((s, t) => s + t.amount / SAT_PER_OMNI, 0);
-        const totalVolUsd = trades.reduce((s, t) => s + (t.price / MICRO_PER_USD) * (t.amount / SAT_PER_OMNI), 0);
-        const avgBuy = buys.length > 0
-          ? buys.reduce((s, t) => s + t.price / MICRO_PER_USD, 0) / buys.length
-          : null;
-        const avgSell = sells.length > 0
-          ? sells.reduce((s, t) => s + t.price / MICRO_PER_USD, 0) / sells.length
-          : null;
+        const { buys, sells, totalVolOmni, totalVolUsd, avgBuy, avgSell } = tradeStats;
 
         return (
           <>

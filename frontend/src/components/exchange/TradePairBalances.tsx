@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getUnlocked, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
 import { rpc, ExchangeBalance } from "../../api/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
@@ -148,6 +148,10 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
   // Paper-mode balances belong to a different ledger and should never count
   // against the real wallet's "available" calculation.
   const ordersLocked = computeLockedFromOrders(userOrders, base, quote);
+  const openOrderCount = useMemo(
+    () => userOrders.filter(o => o.status === "active" || o.status === "partial").length,
+    [userOrders],
+  );
 
   const inOrders = (token: string): number => ordersLocked[token] ?? 0;
   // exchBalances kept in scope for the paper-mode debug strip below (no
@@ -163,9 +167,9 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
         <span className="text-mempool-text font-semibold">Balance</span>
         <span className="text-mempool-border">·</span>
         <span>Market Taker</span>
-        {userOrders.filter(o => o.status === "active" || o.status === "partial").length > 0 && (
+        {openOrderCount > 0 && (
           <span className="ml-auto text-yellow-400/70 text-[8px]">
-            {userOrders.filter(o => o.status === "active" || o.status === "partial").length} open orders
+            {openOrderCount} open orders
           </span>
         )}
       </div>

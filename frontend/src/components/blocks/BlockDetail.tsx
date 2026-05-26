@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { rpc } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { KIND_STYLE } from "../common/TxBadges";
@@ -101,9 +101,11 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
     setLoading(false);
   };
 
-  const totalFees = txs.reduce((sum, tx) => sum + (tx.fee || 0), 0);
-  const feeBurned = Math.floor(totalFees * 0.5);
-  const feeToMiner = totalFees - feeBurned;
+  const { totalFees, feeBurned, feeToMiner } = useMemo(() => {
+    const totalFees = txs.reduce((sum, tx) => sum + (tx.fee || 0), 0);
+    return { totalFees, feeBurned: Math.floor(totalFees * 0.5), feeToMiner: totalFees - Math.floor(totalFees * 0.5) };
+  }, [txs]);
+  const pricePairs = useMemo(() => Array.from(new Set(prices.map((p) => p.pair))), [prices]);
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -217,7 +219,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  {Array.from(new Set(prices.map((p) => p.pair))).map((pair) => {
+                  {pricePairs.map((pair) => {
                     const rows = prices.filter((p) => p.pair === pair);
                     if (rows.length === 0) return null;
                     return (
