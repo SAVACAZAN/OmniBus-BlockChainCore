@@ -342,7 +342,7 @@ function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
       abortRef.current = new AbortController();
       try {
         const r = (await _searchRpc.request_raw("resolveaddress", [s])) as { address?: string } | string | null;
-        const resolved = typeof r === "string" ? r : (r as any)?.address;
+        const resolved = typeof r === "string" ? r : r?.address;
         if (resolved && resolved.length > 8) {
           window.location.hash = `#/address/${resolved}`;
           setQ("");

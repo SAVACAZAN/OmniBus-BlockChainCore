@@ -129,18 +129,18 @@ export function HtlcTradePanel() {
       log(`HashLock: ${hashHex.slice(0, 16)}…`);
 
       const timelockBlocks = Number(timelock);
-      const blockRes = await (rpc as any).request_raw("getblockcount", []) as any;
-      const currentBlock = typeof blockRes === "number" ? blockRes : (blockRes?.count ?? blockRes?.blocks ?? 0);
+      const blockRes = await rpc.request_raw("getblockcount", []);
+      const currentBlock: number = typeof blockRes === "number" ? blockRes : (blockRes?.count ?? blockRes?.blocks ?? 0);
       const timelockBlock = currentBlock + timelockBlocks;
 
       log(`Current block: ${currentBlock}, timelock at: ${timelockBlock}`);
 
-      const res = await (rpc as any).request_raw("htlc_init", [{
+      const res = await rpc.request_raw("htlc_init", [{
         receiver: evmAddr.toLowerCase(), // taker's EVM address as receiver placeholder — OmniBus uses ob1q but store note
         amount_sat: Math.round(omni * SAT_PER_OMNI),
         hash_lock: hashHex,
         timelock_block: timelockBlock,
-      }]) as any;
+      }]);
 
       log(`OMNI HTLC created: tx=${res.tx_hash?.slice(0, 12)}… htlc_id=${res.htlc_id?.slice(0, 12)}…`);
 
@@ -267,10 +267,10 @@ export function HtlcTradePanel() {
     if (!state.omniHtlcId || !state.preimage) return setErr("No OMNI HTLC or preimage");
 
     try {
-      const res = await (rpc as any).request_raw("htlc_claim", [{
+      const res = await rpc.request_raw("htlc_claim", [{
         htlc_id: state.omniHtlcId,
         preimage: state.preimage,
-      }]) as any;
+      }]);
 
       log(`OMNI claim tx: ${res.tx_hash?.slice(0, 12)}… ✅`);
       setState(s => ({
@@ -292,7 +292,7 @@ export function HtlcTradePanel() {
     setLoadingHtlcs(true);
     setHtlcErr(null);
     try {
-      const res = await (rpc as any).request_raw("htlc_listByAddress", [{ address: u.address }]) as any[];
+      const res = await rpc.request_raw("htlc_listByAddress", [{ address: u.address }]) as unknown[];
       setHtlcs(Array.isArray(res) ? res : []);
     } catch (e: any) {
       setHtlcs([]);
@@ -510,7 +510,7 @@ export function HtlcTradePanel() {
                   <button onClick={async () => {
                     log(`Refunding HTLC ${h.htlc_id?.slice(0,8)}…`);
                     try {
-                      const res = await (rpc as any).request_raw("htlc_refund", [{ htlc_id: h.htlc_id }]) as any;
+                      const res = await rpc.request_raw("htlc_refund", [{ htlc_id: h.htlc_id }]);
                       log(`Refund tx: ${res.tx_hash?.slice(0,12)}… ✅`);
                       loadHtlcs();
                     } catch(e: any) { log(`Refund failed: ${e.message}`); }

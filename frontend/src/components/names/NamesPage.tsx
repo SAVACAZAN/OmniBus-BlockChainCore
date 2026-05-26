@@ -78,6 +78,12 @@ type ResolveResp = {
   found: boolean;
   registeredAtBlock?: number;
   expiresAtBlock?: number;
+  fullLabel?: string;
+  tld?: string;
+  category?: string;
+  addresses?: Record<string, string | null>;
+  preferred_slot?: number;
+  registered_years?: number;
 };
 
 // Multi-TLD lookup result: same shape as ResolveResp but tagged with which
@@ -555,11 +561,11 @@ export function NamesPage() {
           <div className={`mt-3 p-3 rounded border ${searchResult.found ? "border-green-500/40 bg-green-500/10" : "border-amber-500/40 bg-amber-500/10"}`}>
             <p className="text-sm text-mempool-text font-mono">
               <span className={`font-semibold ${TLD_INFO[searchTld].color}`}>
-                {(searchResult as any).fullLabel || `${searchResult.name}.${(searchResult as any).tld || searchTld}`}
+                {searchResult.fullLabel || `${searchResult.name}.${searchResult.tld || searchTld}`}
               </span>
-              {(searchResult as any).category && (searchResult as any).category !== "none" && (
+              {searchResult.category && searchResult.category !== "none" && (
                 <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
-                  {(searchResult as any).category}
+                  {searchResult.category}
                 </span>
               )}
               {" — "}
@@ -574,10 +580,10 @@ export function NamesPage() {
                 → primary: {searchResult.address}
               </p>
             )}
-            {searchResult.found && (searchResult as any).addresses && (
+            {searchResult.found && searchResult.addresses && (
               <div className="text-[10px] mt-2 space-y-0.5">
                 {(["k", "f", "s", "d"] as const).map((slot) => {
-                  const addrs = (searchResult as any).addresses;
+                  const addrs = searchResult.addresses;
                   const isSet = addrs[`${slot}_set`];
                   if (!isSet) return null;
                   const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
@@ -589,23 +595,23 @@ export function NamesPage() {
                 })}
               </div>
             )}
-            {searchResult.found && (searchResult as any).preferred_slot != null && (searchResult as any).preferred_slot > 0 && (
+            {searchResult.found && searchResult.preferred_slot != null && searchResult.preferred_slot > 0 && (
               <p className="text-[11px] text-mempool-blue mt-1">
-                Preferred receiving scheme: slot {(searchResult as any).preferred_slot} (
-                {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][(searchResult as any).preferred_slot]}
+                Preferred receiving scheme: slot {searchResult.preferred_slot} (
+                {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][searchResult.preferred_slot]}
                 )
               </p>
             )}
-            {searchResult.found && (searchResult as any).registered_years != null && (searchResult as any).registered_years > 0 && (
+            {searchResult.found && searchResult.registered_years != null && searchResult.registered_years > 0 && (
               <p className="text-xs text-mempool-text-dim mt-1">
-                Registered for {(searchResult as any).registered_years} {(searchResult as any).registered_years === 1 ? "year" : "years"}
+                Registered for {searchResult.registered_years} {searchResult.registered_years === 1 ? "year" : "years"}
               </p>
             )}
             {searchResult.found && searchResult.registeredAtBlock != null && (
               <p className="text-xs text-mempool-text-dim mt-1">
                 Block #{searchResult.registeredAtBlock.toLocaleString()}
-                {(searchResult as any).expiresAtBlock && (
-                  <span> · expires #{(searchResult as any).expiresAtBlock.toLocaleString()}</span>
+                {searchResult.expiresAtBlock && (
+                  <span> · expires #{searchResult.expiresAtBlock.toLocaleString()}</span>
                 )}
               </p>
             )}
@@ -643,7 +649,6 @@ export function NamesPage() {
               {found.map((r) => {
                 const tld = r._tld;
                 const info = TLD_INFO[tld];
-                const anyR = r as any;
                 return (
                   <div
                     key={tld}
@@ -651,11 +656,11 @@ export function NamesPage() {
                   >
                     <p className="text-sm text-mempool-text font-mono">
                       <span className={`font-semibold ${info.color}`}>
-                        {anyR.fullLabel || `${r.name}.${anyR.tld || tld}`}
+                        {r.fullLabel || `${r.name}.${r.tld || tld}`}
                       </span>
-                      {anyR.category && anyR.category !== "none" && (
+                      {r.category && r.category !== "none" && (
                         <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
-                          {anyR.category}
+                          {r.category}
                         </span>
                       )}
                       {" — "}
@@ -666,10 +671,10 @@ export function NamesPage() {
                         → primary: {r.address}
                       </p>
                     )}
-                    {anyR.addresses && (
+                    {r.addresses && (
                       <div className="text-[10px] mt-2 space-y-0.5">
                         {(["k", "f", "s", "d"] as const).map((slot) => {
-                          const addrs = anyR.addresses;
+                          const addrs = r.addresses!;
                           const isSet = addrs[`${slot}_set`];
                           if (!isSet) return null;
                           const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
@@ -681,23 +686,23 @@ export function NamesPage() {
                         })}
                       </div>
                     )}
-                    {anyR.preferred_slot != null && anyR.preferred_slot > 0 && (
+                    {r.preferred_slot != null && r.preferred_slot > 0 && (
                       <p className="text-[11px] text-mempool-blue mt-1">
-                        Preferred receiving scheme: slot {anyR.preferred_slot} (
-                        {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][anyR.preferred_slot]}
+                        Preferred receiving scheme: slot {r.preferred_slot} (
+                        {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][r.preferred_slot]}
                         )
                       </p>
                     )}
-                    {anyR.registered_years != null && anyR.registered_years > 0 && (
+                    {r.registered_years != null && r.registered_years > 0 && (
                       <p className="text-xs text-mempool-text-dim mt-1">
-                        Registered for {anyR.registered_years} {anyR.registered_years === 1 ? "year" : "years"}
+                        Registered for {r.registered_years} {r.registered_years === 1 ? "year" : "years"}
                       </p>
                     )}
                     {r.registeredAtBlock != null && (
                       <p className="text-xs text-mempool-text-dim mt-1">
                         Block #{r.registeredAtBlock.toLocaleString()}
-                        {anyR.expiresAtBlock && (
-                          <span> · expires #{anyR.expiresAtBlock.toLocaleString()}</span>
+                        {r.expiresAtBlock && (
+                          <span> · expires #{r.expiresAtBlock.toLocaleString()}</span>
                         )}
                       </p>
                     )}

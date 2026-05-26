@@ -189,10 +189,8 @@ export function StatsPage() {
         rpc.request_raw("getschemestats", [100]).catch(() => null) as Promise<SchemeStats | null>,
       ]);
       if (schemeRaw?.schemes && schemeRaw.schemes.length > 0) setSchemeStats(schemeRaw);
-      const tip: number =
-        typeof tipRaw === "object" && tipRaw
-          ? (tipRaw as any).blockCount ?? (tipRaw as any)
-          : tipRaw;
+      const tipObj = tipRaw as unknown as { blockCount?: number } | number;
+      const tip: number = typeof tipObj === "number" ? tipObj : (tipObj?.blockCount ?? 0);
       if (metricsRaw) setChainMetrics(metricsRaw);
 
       // Build supply distribution from richlist

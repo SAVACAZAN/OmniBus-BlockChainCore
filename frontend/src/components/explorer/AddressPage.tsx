@@ -78,7 +78,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
     Promise.all([
       rpc.getAddressHistory(addr),
       rpc.getAddressBalance(addr),
-      rpc.request_raw("getdailyactivity", [addr, 30]).catch(() => null) as Promise<{ daily?: DailyEntry[] } | null>,
+      rpc.request_raw("getdailyactivity", [addr, 30]).catch(() => null) as Promise<{ daily?: DailyEntry[]; tipTimestamp?: number; tipHeight?: number; blocksPerDay?: number } | null>,
       rpc.request_raw("getnonce", [addr]).catch(() => null) as Promise<NonceInfo | null>,
     ])
       .then(([histData, balData, dailyData, nonceData]) => {
@@ -91,9 +91,9 @@ export function AddressPage({ addr, onNavigate }: Props) {
         }
         if (dailyData?.daily && dailyData.daily.length > 0) {
           // Compute real dates: tipTimestamp (unix s) + tipHeight + blocksPerDay
-          const tipTs: number = (dailyData as any).tipTimestamp ?? 0;
-          const tipH: number = (dailyData as any).tipHeight ?? 0;
-          const bpd: number = (dailyData as any).blocksPerDay ?? 86400;
+          const tipTs: number = dailyData.tipTimestamp ?? 0;
+          const tipH: number = dailyData.tipHeight ?? 0;
+          const bpd: number = dailyData.blocksPerDay ?? 86400;
           const withDates = dailyData.daily.map((d: DailyEntry) => {
             let dateLabel = `D${d.dayIndex}`;
             if (tipTs > 0 && bpd > 0) {
@@ -339,7 +339,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
                     )}
                     <span>{tx.confirmations} conf</span>
                     {tx.fee > 0 && <span>Fee: {fmtSat(tx.fee)}</span>}
-                    {tx.kind && tx.kind !== "transfer" && <KindBadge kind={tx.kind} memo={(tx as any).memo} />}
+                    {tx.kind && tx.kind !== "transfer" && <KindBadge kind={tx.kind} memo={tx.memo} />}
                     {tx.scheme && <SchemeTag scheme={tx.scheme} />}
                     {tx.timestamp && tx.timestamp > 0 && (
                       <span className="text-mempool-text-dim" title={new Date(tx.timestamp > 1e12 ? tx.timestamp : tx.timestamp * 1000).toLocaleString()}>

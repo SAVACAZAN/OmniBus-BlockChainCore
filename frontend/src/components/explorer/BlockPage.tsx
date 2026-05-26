@@ -70,7 +70,8 @@ export function BlockPage({ height, onNavigate }: Props) {
       .then(async ([b, count]) => {
         if (!b) { setErr("Block not found"); return; }
         setBlock(b);
-        const liveCount = typeof count === "object" && count ? (count as any).blockCount : count;
+        const countObj = count as unknown as { blockCount?: number } | number;
+        const liveCount = typeof countObj === "number" ? countObj : (countObj?.blockCount ?? 0);
         setTip(typeof liveCount === "number" ? liveCount : 0);
         const txids: string[] = b.transactions || b.tx_ids || b.txids || [];
         if (txids.length > 0) {

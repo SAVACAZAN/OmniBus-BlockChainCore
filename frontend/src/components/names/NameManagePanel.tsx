@@ -270,8 +270,9 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
             </p>
             {SLOT_INFO.map((info) => {
               const cur = slotInputs[info.slot] ?? "";
-              const onChain = (resolved.addresses as any)?.[info.slot.charAt(0) === "m" ? "k" : info.slot.charAt(0) === "f" ? "f" : info.slot.charAt(0) === "d" ? "s" : "d"];
-              const setOnChain = (resolved.addresses as any)?.[`${info.slot.charAt(0) === "m" ? "k" : info.slot.charAt(0) === "f" ? "f" : info.slot.charAt(0) === "d" ? "s" : "d"}_set`];
+              const slotKey = (info.slot.charAt(0) === "m" ? "k" : info.slot.charAt(0) === "f" ? "f" : info.slot.charAt(0) === "d" ? "s" : "d") as "k" | "f" | "s" | "d";
+              const onChain = resolved.addresses?.[slotKey];
+              const setOnChain = resolved.addresses?.[`${slotKey}_set` as "k_set" | "f_set" | "s_set" | "d_set"];
               void onChain;
               void setOnChain;
               return (

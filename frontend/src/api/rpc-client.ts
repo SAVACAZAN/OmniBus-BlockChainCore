@@ -530,6 +530,8 @@ export class OmniBusRpcClient {
     signature: string;
     publicKey: string;
     mode?: "real" | "paper";
+    taker_chain?: string;
+    sellerEvm?: string;
   }): Promise<{
     orderId: number;
     side: string;

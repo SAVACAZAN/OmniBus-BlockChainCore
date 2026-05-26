@@ -137,7 +137,7 @@ export function BlocksPage() {
                     `"${b.miner ?? ""}"`,
                     (b.txCount || 0) + 1,
                     ((b.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8),
-                    ((b as any).totalFees > 0 ? ((b as any).totalFees / SAT_PER_OMNI).toFixed(8) : "0"),
+                    ((b.totalFees ?? 0) > 0 ? ((b.totalFees! / SAT_PER_OMNI).toFixed(8)) : "0"),
                     b.timestamp ?? "",
                   ].join(",")),
                 ].join("\n");
@@ -281,8 +281,8 @@ export function BlocksPage() {
                     {((b.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8)}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-mempool-text-dim whitespace-nowrap">
-                    {(b as any).totalFees > 0
-                      ? <span className="text-purple-300">{((b as any).totalFees / SAT_PER_OMNI).toFixed(8)}</span>
+                    {(b.totalFees ?? 0) > 0
+                      ? <span className="text-purple-300">{(b.totalFees! / SAT_PER_OMNI).toFixed(8)}</span>
                       : <span>—</span>}
                   </td>
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">

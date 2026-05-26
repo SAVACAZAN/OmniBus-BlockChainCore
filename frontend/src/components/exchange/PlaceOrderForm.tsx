@@ -270,7 +270,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
         // Pass preferred taker chain so backend can route HTLC
         taker_chain: side === "buy" ? selectedChainKey : undefined,
         ...extraPayload,
-      } as any);
+      });
       // Include the slot index + truncated OMNI address so the user can
       // tell exactly which derived child key signed this order — matters
       // when they have 19 slots with different balances and want to audit
