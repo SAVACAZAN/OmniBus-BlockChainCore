@@ -8,14 +8,14 @@
  * Soulbound (non-transferable, identity / reputation):
  *   ob_k1_  ML-DSA-87       LOVE   coin_type 778
  *   ob_f5_  Falcon-512      FOOD   coin_type 779
- *   ob_d5_  SLH-DSA-256s    RENT   coin_type 780
- *   ob_s3_  ML-DSA-87       VACATION coin_type 781
+ *   ob_d5_  Dilithium-5     RENT   coin_type 780  (d for Dilithium)
+ *   ob_s3_  SLH-DSA-256s    VACATION coin_type 781 (s for SLH/SPHINCS+)
  *
  * Transferable OMNI Quantum sub-addresses:
  *   obk1_  ML-DSA-87
  *   obf5_  Falcon-512
- *   obd5_  SLH-DSA-256s
- *   obs3_  Dilithium-5
+ *   obd5_  Dilithium-5      (d for Dilithium)
+ *   obs3_  SLH-DSA-256s     (s for SLH/SPHINCS+)
  *
  * RPCs: pq_balance, pq_send, pq_listSchemes
  */
@@ -66,8 +66,8 @@ const PQ_TAB_LABEL: Record<SubTab, string> = {
 const PQ_FALLBACK_SCHEMES: { name: string; code: number; key: number; sig: number; sec: number; prefix: string }[] = [
   { name: "pq_omni_ml_dsa",   code: 5, key: 2592, sig: 4627,  sec: 256, prefix: "obk1_" },
   { name: "pq_omni_falcon",   code: 6, key: 897,  sig: 752,   sec: 192, prefix: "obf5_" },
-  { name: "pq_omni_dilithium",code: 7, key: 2592, sig: 4627,  sec: 256, prefix: "obs3_" },
-  { name: "pq_omni_slh_dsa",  code: 8, key: 64,   sig: 29792, sec: 256, prefix: "obd5_" },
+  { name: "pq_omni_dilithium",code: 7, key: 2592, sig: 4627,  sec: 256, prefix: "obd5_" },
+  { name: "pq_omni_slh_dsa",  code: 8, key: 64,   sig: 29792, sec: 256, prefix: "obs3_" },
 ];
 
 const VERIFY_SCHEME_OPTIONS = [
@@ -106,8 +106,8 @@ interface PqAttestResp {
 const SOULBOUND_META = [
   { tier: "LOVE",     emoji: "❤️",  colorClass: "text-red-400",    algo: "ML-DSA-87",    bits: 256, prefix: "ob_k1_" },
   { tier: "FOOD",     emoji: "🥖",  colorClass: "text-orange-400", algo: "Falcon-512",   bits: 192, prefix: "ob_f5_" },
-  { tier: "RENT",     emoji: "🏠",  colorClass: "text-green-400",  algo: "SLH-DSA-256s", bits: 256, prefix: "ob_d5_" },
-  { tier: "VACATION", emoji: "🏖️", colorClass: "text-purple-400", algo: "ML-DSA-87",    bits: 256, prefix: "ob_s3_" },
+  { tier: "RENT",     emoji: "🏠",  colorClass: "text-green-400",  algo: "Dilithium-5",  bits: 256, prefix: "ob_d5_" },
+  { tier: "VACATION", emoji: "🏖️", colorClass: "text-purple-400", algo: "SLH-DSA-256s", bits: 256, prefix: "ob_s3_" },
 ];
 
 // Transferable OMNI-Quantum color/emoji metadata (same order as PQ_OMNI_SCHEMES).

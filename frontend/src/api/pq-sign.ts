@@ -126,12 +126,12 @@ export async function pqVerify(scheme: PqScheme, publicKey: Uint8Array, msgHash:
  */
 export function pqAddressFromPublicKey(scheme: PqScheme, publicKey: Uint8Array): string {
   // Canon — must match core/transaction.zig:180-201 + core/isolated_wallet.zig:64-67.
-  // obs3_ = Dilithium-5, obd5_ = SLH-DSA-256s. Do NOT swap without updating chain code.
+  // obd5_ = Dilithium-5 (d for Dilithium), obs3_ = SLH-DSA-256s (s for SLH/SPHINCS+). CANONICAL.
   const prefix = ({
     ml_dsa_87:    "obk1_",
     falcon_512:   "obf5_",
-    dilithium_5:  "obs3_",
-    slh_dsa_256s: "obd5_",
+    dilithium_5:  "obd5_",
+    slh_dsa_256s: "obs3_",
   } as Record<PqScheme, string>)[scheme];
   const h160 = ripemd160(sha256(publicKey));
   const versioned = new Uint8Array(1 + h160.length);

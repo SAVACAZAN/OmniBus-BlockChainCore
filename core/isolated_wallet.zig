@@ -14,12 +14,11 @@ const Ripemd160 = ripemd160_mod.Ripemd160;
 /// Soulbound (non-transferable, identity-bound — codes 1..4):
 ///   LOVE     = ML-DSA-87           (adresa ob_k1_...)  → mirror of obk1_
 ///   FOOD     = Falcon-512          (adresa ob_f5_...)  → mirror of obf5_
-///   VACATION = ML-DSA-87 (Dilithium alias)
-///                                  (adresa ob_s3_...)  → mirror of obs3_
-///   RENT     = SLH-DSA-256s        (adresa ob_d5_...)  → mirror of obd5_
+///   RENT     = Dilithium-5         (adresa ob_d5_...)  → mirror of obd5_  (d for Dilithium)
+///   VACATION = SLH-DSA-256s        (adresa ob_s3_...)  → mirror of obs3_  (s for SLH/SPHINCS+)
 ///
 /// Design: the 4 soulbound prefixes mirror the 4 transferable PQ-OMNI
-/// prefixes (obk1_/obf5_/obs3_/obd5_) byte-for-byte except for the leading
+/// prefixes (obk1_/obf5_/obd5_/obs3_) byte-for-byte except for the leading
 /// underscore. Same algorithm family on each pair so users see consistent
 /// semantics; the underscore visually distinguishes "this is identity, not
 /// money".
@@ -72,18 +71,18 @@ pub const Scheme = enum(u8) {
             // User vede: obk1_... = transferable Dilithium-OMNI, ob_k1_... = soulbound LOVE.
             // Canon prefixes — must align across chain + UI + audit tools.
             // See STATUS/MASTER_RULES_PQ_OMNI.md for the single source of truth.
-            .pq_omni_ml_dsa    => "obk1_",  // ML-DSA-87    (FIPS 204)
-            .pq_omni_falcon    => "obf5_",  // Falcon-512   (FIPS 206)
-            .pq_omni_dilithium => "obs3_",  // Dilithium-5
-            .pq_omni_slh_dsa   => "obd5_",  // SLH-DSA-256s (FIPS 205)
+            .pq_omni_ml_dsa    => "obk1_",  // ML-DSA-87    (FIPS 204)  — k for Kyber-Dilithium family
+            .pq_omni_falcon    => "obf5_",  // Falcon-512   (FIPS 206)  — f for Falcon
+            .pq_omni_dilithium => "obd5_",  // Dilithium-5             — d for Dilithium (CANONICAL)
+            .pq_omni_slh_dsa   => "obs3_",  // SLH-DSA-256s (FIPS 205)  — s for SLH/SPHINCS+ (CANONICAL)
             // Hybrid Phase 2 (verifica ECDSA AND PQ) — folosim aceleasi prefixe
             // ca PQ-OMNI; chain-ul distinge prin scheme-num din TX, nu prin prefix.
             // Asta inseamna ca o adresa obk1_... poate primi TX-uri scheme=5
             // (PQ only) SAU scheme=9 (hybrid). Walletul alege la signing.
             .hybrid_q1 => "obk1_",
             .hybrid_q2 => "obf5_",
-            .hybrid_q3 => "obs3_",
-            .hybrid_q4 => "obd5_",
+            .hybrid_q3 => "obd5_",  // Dilithium-5
+            .hybrid_q4 => "obs3_",  // SLH-DSA-256s
         };
     }
 
@@ -103,8 +102,8 @@ pub const Scheme = enum(u8) {
         // Returnam pq_omni_* aici si chain-ul distinge schema reala din TX.scheme.
         if (std.mem.startsWith(u8, addr, "obk1_")) return .pq_omni_ml_dsa;
         if (std.mem.startsWith(u8, addr, "obf5_")) return .pq_omni_falcon;
-        if (std.mem.startsWith(u8, addr, "obs3_")) return .pq_omni_dilithium;
-        if (std.mem.startsWith(u8, addr, "obd5_")) return .pq_omni_slh_dsa;
+        if (std.mem.startsWith(u8, addr, "obd5_")) return .pq_omni_dilithium;  // d for Dilithium
+        if (std.mem.startsWith(u8, addr, "obs3_")) return .pq_omni_slh_dsa;    // s for SLH/SPHINCS+
         return null;
     }
 
@@ -365,6 +364,19 @@ pub const IsolatedWallet = struct {
                 pq_sk = try allocator.dupe(u8, &kp.secret_key);
             },
             .rent_ml_dsa => {
+                // RENT (ob_d5_) — Dilithium-5 = ML-DSA-87 (FIPS 204 alias).
+                // d5 prefix is canonical "d for Dilithium" — enum name reflects this.
+                var seed: [32]u8 = undefined;
+                std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
+                var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
+                const h160 = hash160FromBytes(&kp.public_key);
+                address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
+                pq_pk = try allocator.dupe(u8, &kp.public_key);
+                pq_sk = try allocator.dupe(u8, &kp.secret_key);
+            },
+            .vacation_slh_dsa => {
+                // VACATION (ob_s3_) — SLH-DSA-256s (FIPS 205, SPHINCS+ standardised).
+                // s3 prefix is canonical "s for SLH/SPHINCS+" — enum name reflects this.
                 var sk_seed: [32]u8 = undefined;
                 var sk_prf: [32]u8 = undefined;
                 var pk_seed: [32]u8 = undefined;
@@ -375,21 +387,6 @@ pub const IsolatedWallet = struct {
                 @memcpy(pk_seed_input[32..64], &sk_prf);
                 std.crypto.hash.sha2.Sha256.hash(&pk_seed_input, &pk_seed, .{});
                 var kp = try pq_crypto.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
-                const h160 = hash160FromBytes(&kp.public_key);
-                address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
-                pq_pk = try allocator.dupe(u8, &kp.public_key);
-                pq_sk = try allocator.dupe(u8, &kp.secret_key);
-            },
-            .vacation_slh_dsa => {
-                // Soulbound vacation mirrors transferable obs3_ (Dilithium-5)
-                // — both use ML-DSA-87 signing for design consistency. The
-                // legacy enum name `vacation_slh_dsa` is kept for backwards
-                // compatibility but no longer means ML-KEM. KEM remains
-                // available as a separate primitive in pq_crypto for
-                // encryption use cases that don't need an on-chain address.
-                var seed: [32]u8 = undefined;
-                std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
-                var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);
                 const h160 = hash160FromBytes(&kp.public_key);
                 address = try deriveLegacyAddress(h160, scheme.prefix(), allocator);
                 pq_pk = try allocator.dupe(u8, &kp.public_key);
@@ -462,8 +459,8 @@ pub const IsolatedWallet = struct {
                 pq_sk = try allocator.dupe(u8, &kp.secret_key);
             },
             .hybrid_q3 => {
-                // Aligned with code 7 (pq_omni_dilithium / obs3_) — ML-DSA-87
-                // signing, not ML-KEM. Hybrid path verifies ECDSA + ML-DSA.
+                // Aligned with code 7 (pq_omni_dilithium / obd5_) — ML-DSA-87
+                // signing (Dilithium-5 alias). Hybrid path verifies ECDSA + ML-DSA.
                 var seed: [32]u8 = undefined;
                 std.crypto.hash.sha2.Sha256.hash(mnemonic, &seed, .{});
                 var kp = try pq_crypto.MlDsa87.generateKeyPairFromSeed(seed);

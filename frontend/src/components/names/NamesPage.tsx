@@ -20,8 +20,8 @@ const VALID_RE = /^[a-z][a-z0-9_]{2,24}$/;
 const PQ_SLOT_LABEL: Record<"k" | "f" | "s" | "d", string> = {
   k: "ML-DSA-87 (obk1_)",
   f: "Falcon-512 (obf5_)",
-  s: "Dilithium-5 (obs3_)",
-  d: "SLH-DSA-256s (obd5_)",
+  d: "Dilithium-5 (obd5_)",     // d for Dilithium
+  s: "SLH-DSA-256s (obs3_)",    // s for SLH/SPHINCS+
 };
 
 // Canonical ens.omnibus treasury — slot index 3 in core/registrar_addresses.zig.

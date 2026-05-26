@@ -105,16 +105,16 @@ export type Unlocked = {
 };
 
 /** PQ-OMNI scheme catalogue. Prefixes MUST match `core/transaction.zig:Scheme.prefix()`:
- *    pq_omni_ml_dsa    = obk1_
- *    pq_omni_falcon    = obf5_
- *    pq_omni_dilithium = obs3_   ← swapped vs prior versions; verified 2026-05-06
- *    pq_omni_slh_dsa   = obd5_   ← swapped vs prior versions; verified 2026-05-06
+ *    pq_omni_ml_dsa    = obk1_   (k for Kyber-Dilithium family / ML-DSA-87)
+ *    pq_omni_falcon    = obf5_   (f for Falcon-512)
+ *    pq_omni_dilithium = obd5_   (d for Dilithium-5 — CANONICAL mnemonic)
+ *    pq_omni_slh_dsa   = obs3_   (s for SLH-DSA / SPHINCS+ — CANONICAL mnemonic)
  *  Mismatch causes `pq_send` to reject with "from address prefix does not match scheme". */
 export const PQ_OMNI_SCHEMES = [
   { scheme: "ml_dsa_87"    as const, account: 5, prefix: "obk1_", algo: "ML-DSA-87",     bits: 256 },
   { scheme: "falcon_512"   as const, account: 6, prefix: "obf5_", algo: "Falcon-512",    bits: 192 },
-  { scheme: "dilithium_5"  as const, account: 7, prefix: "obs3_", algo: "Dilithium-5",   bits: 256 },
-  { scheme: "slh_dsa_256s" as const, account: 8, prefix: "obd5_", algo: "SLH-DSA-256s",  bits: 256 },
+  { scheme: "dilithium_5"  as const, account: 7, prefix: "obd5_", algo: "Dilithium-5",   bits: 256 },
+  { scheme: "slh_dsa_256s" as const, account: 8, prefix: "obs3_", algo: "SLH-DSA-256s",  bits: 256 },
 ];
 
 export type VaultMetadata = {
@@ -435,8 +435,8 @@ function base58CheckEncodeWithVersion(payload: Uint8Array, version: number): str
 const SOULBOUND_DOMAINS = [
   { tier: "LOVE",     prefix: "ob_k1_", coinType: 778, algo: "ML-DSA-87",    bits: 256 },
   { tier: "FOOD",     prefix: "ob_f5_", coinType: 779, algo: "Falcon-512",   bits: 192 },
-  { tier: "RENT",     prefix: "ob_d5_", coinType: 780, algo: "SLH-DSA-256s", bits: 256 },
-  { tier: "VACATION", prefix: "ob_s3_", coinType: 781, algo: "ML-KEM-768",   bits: 128 },
+  { tier: "RENT",     prefix: "ob_d5_", coinType: 780, algo: "Dilithium-5",  bits: 256 },
+  { tier: "VACATION", prefix: "ob_s3_", coinType: 781, algo: "SLH-DSA-256s", bits: 256 },
 ];
 
 /**
@@ -585,6 +585,17 @@ function deriveMultichainAddresses(root: HDKey, seed: Uint8Array): { chain: stri
       encode: p => bech32Address("bc", 0, h160(p)) },
     { chain: "BTC_TAPROOT", group: "BTC",  path: "m/86'/0'/0'/0/0",
       encode: p => bech32mAddress("bc", sha256(p).slice(0, 32)) },
+
+    // ── BTC testnet family ─ coin_type=1 (BIP-44 standard for all testnets),
+    //    version bytes 0x6f (P2PKH testnet) / 0xc4 (P2SH testnet), HRP "tb".
+    { chain: "BTC_TESTNET_LEGACY",  group: "BTC",  path: "m/44'/1'/0'/0/0",
+      encode: p => b58check(h160(p), 0x6f) },
+    { chain: "BTC_TESTNET_SEGWIT",  group: "BTC",  path: "m/49'/1'/0'/0/0",
+      encode: p => { const s = new Uint8Array([0x00, 0x14, ...h160(p)]); return b58check(h160(s), 0xc4); } },
+    { chain: "BTC_TESTNET_NATIVE",  group: "BTC",  path: "m/84'/1'/0'/0/0",
+      encode: p => bech32Address("tb", 0, h160(p)) },
+    { chain: "BTC_TESTNET_TAPROOT", group: "BTC",  path: "m/86'/1'/0'/0/0",
+      encode: p => bech32mAddress("tb", sha256(p).slice(0, 32)) },
 
     // ── EVM compatible (same derivation path, same address) ─────────
     { chain: "ETH",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },

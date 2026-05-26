@@ -44,8 +44,8 @@ const PREFERRED_SLOT_OPTIONS: { idx: number; label: string }[] = [
 const SLOT_INFO: { slot: string; label: string; algoLabel: string; prefix: string }[] = [
   { slot: "ml_dsa",    label: "ML-DSA-87",    algoLabel: "FIPS 204",         prefix: "obk1_" },
   { slot: "falcon",    label: "Falcon-512",   algoLabel: "FIPS 206",         prefix: "obf5_" },
-  { slot: "dilithium", label: "Dilithium-5",  algoLabel: "FIPS 204 alias",   prefix: "obs3_" },
-  { slot: "slh_dsa",   label: "SLH-DSA-256s", algoLabel: "FIPS 205",         prefix: "obd5_" },
+  { slot: "dilithium", label: "Dilithium-5",  algoLabel: "FIPS 204 alias",   prefix: "obd5_" },
+  { slot: "slh_dsa",   label: "SLH-DSA-256s", algoLabel: "FIPS 205",         prefix: "obs3_" },
 ];
 
 interface OwnedName {

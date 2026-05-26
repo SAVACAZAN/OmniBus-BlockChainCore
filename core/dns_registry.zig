@@ -406,8 +406,8 @@ pub const Category = enum(u8) {
 pub const PqSlot = enum(u8) {
     ml_dsa = 0,    // obk1_  → ML-DSA-87 (FIPS 204)
     falcon = 1,    // obf5_  → Falcon-512 (FIPS 206)
-    dilithium = 2, // obs3_  → Dilithium-5 (ML-DSA-87 alias)
-    slh_dsa = 3,   // obd5_  → SLH-DSA-256s (FIPS 205)
+    dilithium = 2, // obd5_  → Dilithium-5 (d for Dilithium — CANONICAL)
+    slh_dsa = 3,   // obs3_  → SLH-DSA-256s (s for SLH/SPHINCS+ — CANONICAL)
 };
 
 pub const PQ_SLOT_COUNT: usize = 4;

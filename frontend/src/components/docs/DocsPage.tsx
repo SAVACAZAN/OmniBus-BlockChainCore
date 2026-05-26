@@ -234,7 +234,7 @@ Soulbound addresses (obk1_ / obf5_ / obd5_ / obs3_ prefixes) are post-quantum ad
 • Governance voting power
 • Validator authentication
 
-The 4 soulbound domains map to PQ schemes: obk1_ = ML-DSA-87 (LOVE), obf5_ = Falcon-512 (FOOD), obd5_ = SLH-DSA (RENT), obs3_ = ML-KEM-768 (VACATION). They are non-transferable by design — you cannot buy or sell reputation.`,
+The 4 soulbound domains map to PQ schemes: obk1_ = ML-DSA-87 (LOVE), obf5_ = Falcon-512 (FOOD), obd5_ = Dilithium-5 (RENT, d for Dilithium), obs3_ = SLH-DSA-256s (VACATION, s for SLH/SPHINCS+). They are non-transferable by design — you cannot buy or sell reputation.`,
   },
   {
     id: "dex-grid",

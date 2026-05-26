@@ -654,8 +654,8 @@ pub const PQDomainDerivation = struct {
         .{ .name = "omnibus.omni",     .algorithm = "ML-DSA-87",     .prefix = "ob",     .coin_type = 777, .security_level = 256 },
         .{ .name = "omnibus.love",     .algorithm = "ML-DSA-87",     .prefix = "ob_k1_", .coin_type = 778, .security_level = 256 },
         .{ .name = "omnibus.food",     .algorithm = "Falcon-512",    .prefix = "ob_f5_", .coin_type = 779, .security_level = 192 },
-        .{ .name = "omnibus.rent",     .algorithm = "SLH-DSA-256s",  .prefix = "ob_d5_", .coin_type = 780, .security_level = 256 },
-        .{ .name = "omnibus.vacation", .algorithm = "ML-DSA-87",     .prefix = "ob_s3_", .coin_type = 781, .security_level = 256 },
+        .{ .name = "omnibus.rent",     .algorithm = "Dilithium-5",   .prefix = "ob_d5_", .coin_type = 780, .security_level = 256 },
+        .{ .name = "omnibus.vacation", .algorithm = "SLH-DSA-256s",  .prefix = "ob_s3_", .coin_type = 781, .security_level = 256 },
     };
 
     pub fn init(wallet: BIP32Wallet) PQDomainDerivation {
@@ -690,11 +690,11 @@ pub const PQDomainDerivation = struct {
 // scheme_id canonical mapping (also encoded by isolated_wallet.Scheme):
 //   0x01 ML-DSA-87       (LOVE, VACATION soulbound)
 //   0x02 Falcon-512      (FOOD soulbound)
-//   0x03 SLH-DSA-256s    (RENT soulbound)
+//   0x03 Dilithium-5     (RENT soulbound — d5 = Dilithium, canonical)
 //   0x05 Quantum obk1_   (ML-DSA-87 transferable)
 //   0x06 Quantum obf5_   (Falcon-512 transferable)
-//   0x07 Quantum obs3_   (Dilithium-5 / ML-DSA-87 variant transferable)
-//   0x08 Quantum obd5_   (SLH-DSA-256s transferable)
+//   0x07 Quantum obd5_   (Dilithium-5 transferable — d for Dilithium)
+//   0x08 Quantum obs3_   (SLH-DSA-256s transferable — s for SLH/SPHINCS+)
 
 pub const PQ_HKDF_SALT: []const u8 = "OMNIBUS-PQ-v1";
 
