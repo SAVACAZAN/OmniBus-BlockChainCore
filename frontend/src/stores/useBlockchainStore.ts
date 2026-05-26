@@ -142,7 +142,7 @@ export function blockchainReducer(
       const existing = state.peers.find((pr) => pr.id === action.payload.nodeId);
       if (existing) return state;
       const [host, portStr] = action.payload.address.split(":");
-      const newPeer = { id: action.payload.nodeId, host: host ?? action.payload.address, port: parseInt(portStr ?? "9000"), alive: true };
+      const newPeer = { id: action.payload.nodeId, host: host ?? action.payload.address, port: parseInt(portStr ?? "9000", 10), alive: true };
       return { ...state, peers: [...state.peers, newPeer] };
     }
 
