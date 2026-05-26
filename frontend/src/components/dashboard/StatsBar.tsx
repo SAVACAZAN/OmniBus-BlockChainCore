@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
@@ -8,7 +8,7 @@ import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
 interface StatCardProps {
   label: string;
   value: string | number;
-  sub?: string;
+  sub?: React.ReactNode;
   color?: string;
 }
 
@@ -31,7 +31,11 @@ function StatCard({ label, value, sub, color = "text-mempool-text", slotIndex }:
         <p className={`text-xl font-mono font-bold ${color}`}>
           {typeof value === "number" ? value.toLocaleString() : value}
         </p>
-        {sub && <p className="text-xs text-mempool-text-dim mt-1">{sub}</p>}
+        {sub && (
+          typeof sub === "string"
+            ? <p className="text-xs text-mempool-text-dim mt-1">{sub}</p>
+            : <div className="mt-1">{sub}</div>
+        )}
       </div>
     </div>
   );
@@ -113,7 +117,23 @@ export function StatsBar() {
         label="Total Mined"
         slotIndex={3}
         value={`${formatOMNI(totalMined)} OMNI`}
-        sub="all blocks since genesis"
+        sub={(() => {
+          const omni = totalMined ? parseFloat(totalMined) : 0;
+          const pct = omni > 0 ? Math.min(100, (omni / 21_000_000) * 100) : 0;
+          return (
+            <div className="mt-1">
+              <div className="w-full h-1 bg-mempool-bg rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-mempool-green rounded-full transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="text-[9px] text-mempool-text-dim mt-0.5">
+                {pct < 0.001 ? "<0.001" : pct.toFixed(4)}% of 21M cap
+              </p>
+            </div>
+          );
+        })()}
         color="text-mempool-green"
       />
       <StatCard
