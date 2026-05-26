@@ -11,7 +11,7 @@
  *   negative → CEX is more expensive → buy on DEX, sell on CEX
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { rpc } from "../../api/rpc-client";
 import { getUnlocked } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
@@ -649,7 +649,7 @@ export function OraclePricePanel() {
   }, [load]);
 
   // Compute arbitrage opportunities
-  const arbOpps: ArbOpportunity[] = priceRows
+  const arbOpps = useMemo<ArbOpportunity[]>(() => priceRows
     .filter(r => Math.abs(r.spreadPct) >= 0.3 && r.dexUsd > 0 && r.cexUsd > 0)
     .map(r => ({
       pair: `${r.sym}/USD`,
@@ -659,7 +659,7 @@ export function OraclePricePanel() {
         ? `Sell ${r.sym} on ${r.dexLabel.split("(")[0].trim()} → Buy ${r.sym} on CEX`
         : `Buy ${r.sym} on ${r.dexLabel.split("(")[0].trim()} → Sell ${r.sym} on CEX`,
       urgency: classifyArb(r.spreadPct),
-    }));
+    })), [priceRows]);
 
   const urgencyColor = {
     high:   "text-red-400 bg-red-500/10 border-red-500/30",
