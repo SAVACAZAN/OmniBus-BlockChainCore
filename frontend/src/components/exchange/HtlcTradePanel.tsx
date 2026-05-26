@@ -480,8 +480,8 @@ export function HtlcTradePanel() {
           <p className="text-[10px] text-mempool-text-dim">No HTLCs found for this address.</p>
         ) : (
           <div className="space-y-2">
-            {htlcs.map((h, i) => (
-              <div key={i} className="rounded bg-mempool-bg p-2 text-[10px] font-mono space-y-0.5">
+            {htlcs.map((h) => (
+              <div key={h.htlc_id} className="rounded bg-mempool-bg p-2 text-[10px] font-mono space-y-0.5">
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">ID</span>
                   <span className="text-mempool-text">{midTrunc(h.htlc_id, 16, 6)}</span>

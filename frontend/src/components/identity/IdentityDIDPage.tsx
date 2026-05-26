@@ -213,7 +213,7 @@ function ProofDisplay({
         ) : (
           <ul className="space-y-1">
             {proof.map((sibling, i) => (
-              <li key={i} className="font-mono text-xs text-mempool-text break-all">
+              <li key={`${i}:${sibling}`} className="font-mono text-xs text-mempool-text break-all">
                 <span className="text-mempool-text-dim mr-2">[{i}]</span>
                 {sibling}
               </li>
@@ -715,9 +715,9 @@ function TabMiCA({ address }: { address: string }) {
       {/* Attestations */}
       {data && data.attestations.length > 0 ? (
         <div className="space-y-3">
-          {data.attestations.map((att, i) => (
+          {data.attestations.map((att) => (
             <div
-              key={i}
+              key={att.signature_hex}
               className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4"
             >
               <div className="flex items-center justify-between mb-2">

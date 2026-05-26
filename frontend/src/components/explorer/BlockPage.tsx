@@ -223,8 +223,8 @@ export function BlockPage({ height, onNavigate }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {block.prices.map((p: any, i: number) => (
-                  <tr key={i} className="border-b border-mempool-border/30 last:border-0 hover:bg-mempool-bg-light/30 transition-colors">
+                {block.prices.map((p: any) => (
+                  <tr key={`${p.exchange}${p.pair}`} className="border-b border-mempool-border/30 last:border-0 hover:bg-mempool-bg-light/30 transition-colors">
                     <td className="py-2 pr-4 text-mempool-text">{p.exchange}</td>
                     <td className="py-2 pr-4 text-mempool-text-dim">{p.pair}</td>
                     <td className="py-2 pr-4 text-right text-green-400">{fmtUsd(p.bidMicroUsd)}</td>
