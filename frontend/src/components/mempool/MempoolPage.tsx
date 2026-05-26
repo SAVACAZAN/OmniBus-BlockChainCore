@@ -329,7 +329,7 @@ export function MempoolPage() {
                   fontSize: "11px",
                   color: "#c9d1d9",
                 }}
-                formatter={(v: any) => [`${v} TXs`, "Count"]}
+                formatter={(v: number) => [`${v} TXs`, "Count"]}
               />
               <Bar dataKey="count" radius={[3, 3, 0, 0]}>
                 {feeChart.map((entry, i) => (

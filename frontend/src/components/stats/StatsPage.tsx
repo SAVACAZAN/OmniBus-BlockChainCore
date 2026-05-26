@@ -579,7 +579,7 @@ export function StatsPage() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 labelFormatter={(v) => `Block #${v}`}
-                formatter={(v: any) => [`${v}s`, "Block Time"]}
+                formatter={(v: number) => [`${v}s`, "Block Time"]}
               />
               {/* Target line at 10s */}
               <ReferenceLine y={10} stroke="#f97316" strokeDasharray="4 4" strokeWidth={1}
@@ -616,7 +616,7 @@ export function StatsPage() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 labelFormatter={(v) => `Block #${v}`}
-                formatter={(v: any) => [Number(v).toLocaleString(), "Difficulty"]}
+                formatter={(v: number) => [Number(v).toLocaleString(), "Difficulty"]}
               />
               <Line
                 type="monotone"
@@ -649,7 +649,7 @@ export function StatsPage() {
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
               labelFormatter={(v) => `Block #${v}`}
-              formatter={(v: any) => [v, "TXs"]}
+              formatter={(v: number) => [v, "TXs"]}
             />
             <Bar dataKey="txCount" fill="#10b981" radius={[2, 2, 0, 0]} maxBarSize={16} />
           </BarChart>
@@ -676,7 +676,7 @@ export function StatsPage() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 labelFormatter={(v) => `Block #${v}`}
-                formatter={(v: any) => [`${(v/SAT_PER_OMNI).toFixed(8)} OMNI (${Number(v).toLocaleString()} sat)`, "Fees"]}
+                formatter={(v: number) => [`${(v/SAT_PER_OMNI).toFixed(8)} OMNI (${Number(v).toLocaleString()} sat)`, "Fees"]}
               />
               <Bar dataKey="feesEstimate" fill="#a855f7" radius={[2, 2, 0, 0]} maxBarSize={16} />
             </BarChart>
@@ -706,7 +706,7 @@ export function StatsPage() {
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
               labelFormatter={(v) => `Block #${v}`}
-              formatter={(v: any) => [`${(v / SAT_PER_OMNI).toFixed(8)} OMNI`, "Reward"]}
+              formatter={(v: number) => [`${(v / SAT_PER_OMNI).toFixed(8)} OMNI`, "Reward"]}
             />
             <Line
               type="monotone"

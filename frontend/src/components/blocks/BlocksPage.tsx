@@ -191,7 +191,7 @@ export function BlocksPage() {
                   color: "#c9d1d9",
                 }}
                 labelFormatter={(v) => `Block #${v}`}
-                formatter={(v: any) => [v.toLocaleString(), "Difficulty"]}
+                formatter={(v: number) => [v.toLocaleString(), "Difficulty"]}
               />
               <Line
                 type="monotone"
