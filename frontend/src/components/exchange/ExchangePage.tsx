@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOrderbookUpdateEvent, WsNewTradeEvent, WsNewBlockEvent } from "../../types";
 import OmniBusRpcClient, {
   ExchangeBalance,
   OrderbookLevel,
@@ -63,7 +65,9 @@ export function ExchangePage() {
     return found?.info ?? null;
   }, [allPairs, pairId]);
 
-  // Poll exchange internal balances for the connected wallet
+  // Poll exchange internal balances for the connected wallet.
+  // Refresh on new_block events so the "in orders" vs "available" numbers
+  // update immediately after fills, not after 10 s.
   useEffect(() => {
     if (!walletAddress) return;
     let cancelled = false;
@@ -72,11 +76,14 @@ export function ExchangePage() {
       if (!cancelled && bal.length > 0) setExchBalances(bal);
     };
     fetch();
-    const id = setInterval(fetch, 10000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsubBal = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
+    const id = setInterval(fetch, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsubBal(); };
   }, [walletAddress]);
 
-  // Poll orderbook + trades. Mode-aware — switches engine on toggle.
+  // Orderbook + trades — WS-driven. orderbook_update fires when the book
+  // changes; new_trade fires when a fill happens. Both are pair-filtered.
+  // Slow fallback poll at 10 s for WS-disconnected clients.
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
@@ -105,10 +112,18 @@ export function ExchangePage() {
       }
     };
     refresh();
-    const id = setInterval(refresh, 3000);
+    const unsubOb = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
+      if (ev.pair_id === pairId) void refresh();
+    });
+    const unsubTr = wsSubscribe<WsNewTradeEvent>("new_trade", (ev) => {
+      if (ev.pair_id === pairId) void refresh();
+    });
+    const id = setInterval(refresh, 10_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsubOb();
+      unsubTr();
     };
   }, [pairId, refreshNonce, traderMode]);
 

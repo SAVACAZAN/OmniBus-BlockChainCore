@@ -17,6 +17,8 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { CHAINS, chainCounts, type ChainFamily } from "../../api/chains";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
@@ -74,8 +76,9 @@ function BridgeMonitor() {
       }
     };
     load();
-    const id = setInterval(load, 10000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void load(); });
+    const id = setInterval(load, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   if (loading && !status && !limits) {
