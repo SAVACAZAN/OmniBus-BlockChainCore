@@ -392,6 +392,38 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
               My grids
             </label>
           )}
+          {displayed.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["grid_id","pair","price_low","price_high","levels","fills","profit","status","owner"].join(","),
+                  ...displayed.map((g) => {
+                    const pair = pairs.find((p) => p.id === g.pair_id);
+                    const quote = pair?.quote ?? "USDC";
+                    return [
+                      g.grid_id,
+                      `"${pair?.label ?? `pair_${g.pair_id}`}"`,
+                      (g.price_low / MICRO).toFixed(6),
+                      (g.price_high / MICRO).toFixed(6),
+                      g.levels,
+                      g.filled_count,
+                      (g.profit_quote / MICRO).toFixed(6) + " " + quote,
+                      g.active ? "active" : "stopped",
+                      `"${g.owner}"`,
+                    ].join(",");
+                  }),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-grids.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <button
             onClick={() => setShowCreate(true)}
             className="px-3 py-1.5 bg-mempool-blue hover:bg-blue-600 text-white text-xs rounded transition-colors"

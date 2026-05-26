@@ -713,6 +713,30 @@ export function OraclePricePanel() {
               {updatedAt.toLocaleTimeString()}
             </span>
           )}
+          {priceRows.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["asset","cex_usd","dex_usd","dex_pool","spread_pct"].join(","),
+                  ...priceRows.map((r) => [
+                    r.sym,
+                    r.cexUsd > 0 ? r.cexUsd.toFixed(6) : "",
+                    r.dexUsd > 0 ? r.dexUsd.toFixed(6) : "",
+                    `"${r.dexLabel}"`,
+                    r.dexUsd > 0 && r.cexUsd > 0 ? r.spreadPct.toFixed(4) : "",
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-oracle-prices.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <button
             onClick={load}
             disabled={loading}
@@ -865,13 +889,39 @@ export function OraclePricePanel() {
 
       {/* OmniBus Oracle — Zig process on port 28100 (Coinbase / Kraken / LCX WS feeds) */}
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
-        <div className="px-3 py-2 border-b border-mempool-border flex items-center justify-between">
+        <div className="px-3 py-2 border-b border-mempool-border flex items-center justify-between gap-2 flex-wrap">
           <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">
             OmniBus Oracle (Zig · port 28100)
           </span>
-          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${zigOracle.length > 0 ? "text-green-400 bg-green-500/10" : "text-mempool-text-dim bg-mempool-bg"}`}>
-            {zigOracle.length > 0 ? `${zigOracle.length} feeds live` : "offline — start omnibus-oracle on VPS"}
-          </span>
+          <div className="flex items-center gap-2 ml-auto">
+            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${zigOracle.length > 0 ? "text-green-400 bg-green-500/10" : "text-mempool-text-dim bg-mempool-bg"}`}>
+              {zigOracle.length > 0 ? `${zigOracle.length} feeds live` : "offline — start omnibus-oracle on VPS"}
+            </span>
+            {zigOracle.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["exchange","pair","bid_usd","ask_usd","age_s"].join(","),
+                    ...zigOracle.map((e) => [
+                      e.exchange,
+                      e.pair,
+                      (e.bid / 1_000_000).toFixed(6),
+                      (e.ask / 1_000_000).toFixed(6),
+                      Math.floor((Date.now() - e.timestamp_ms) / 1000),
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-zig-oracle.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="px-2 py-0.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+              >
+                ⬇ CSV
+              </button>
+            )}
+          </div>
         </div>
         {zigOracle.length > 0 ? (
           <table className="w-full text-[10px] font-mono">
