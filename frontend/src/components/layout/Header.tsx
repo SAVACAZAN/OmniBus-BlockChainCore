@@ -294,6 +294,23 @@ function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
   const [q, setQ] = useState("");
   const [resolving, setResolving] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // "/" or Ctrl+K / Cmd+K → focus this search bar
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      const inInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+      if (inInput) return;
+      if (e.key === "/" || ((e.ctrlKey || e.metaKey) && e.key === "k")) {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   const navigate = async (raw: string) => {
     const s = raw.trim();
@@ -331,11 +348,16 @@ function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
         <path d="M21 21l-4.35-4.35" />
       </svg>
       <input
+        ref={inputRef}
         type="text"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") void navigate(q); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") void navigate(q);
+          if (e.key === "Escape") { setQ(""); (e.target as HTMLInputElement).blur(); }
+        }}
         placeholder="Block / TX / Address / name.tld…"
+        title="Press / or Ctrl+K to focus"
         className="bg-mempool-bg border border-mempool-border rounded-lg pl-8 pr-8 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue w-56 lg:w-72 transition-colors"
       />
       {resolving ? (
