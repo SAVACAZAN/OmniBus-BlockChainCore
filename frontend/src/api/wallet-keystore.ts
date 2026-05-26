@@ -597,12 +597,56 @@ function deriveMultichainAddresses(root: HDKey, seed: Uint8Array): { chain: stri
     { chain: "BTC_TESTNET_TAPROOT", group: "BTC",  path: "m/86'/1'/0'/0/0",
       encode: p => bech32mAddress("tb", sha256(p).slice(0, 32)) },
 
-    // ── EVM compatible (same derivation path, same address) ─────────
-    { chain: "ETH",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
-    { chain: "BNB",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
-    { chain: "MATIC", group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
-    { chain: "AVAX",  group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
-    { chain: "FTM",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    // ── EVM compatible — coin_type=60 (same derivation, same 0x address) ─
+    // 40+ chains share Ethereum BIP-44 derivation per SLIP-44. Symbol/RPC differ.
+    { chain: "ETH",          group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "BASE",         group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "ARB",          group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "OP",           group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "LINEA",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "ZKSYNC",       group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "SCROLL",       group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "BLAST",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MODE",         group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MANTA",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MANTLE",       group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "OPBNB",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "GNOSIS",       group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "CELO",         group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "CRONOS",       group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MOONBEAM",     group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MOONRIVER",    group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "ASTAR",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "METIS",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "ETC",          group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "XDC",          group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "KAIA",         group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "CONFLUX",      group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "FLARE",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "ROOTSTOCK",    group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "BOB",          group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "TAIKO",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "XLAYER",       group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "ZORA",         group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "IMMUTABLE_ZK", group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MERLIN",       group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "LUKSO",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "IOTEX",        group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "SYSCOIN",      group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "EWT",          group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "LCX",          group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+
+    // ── EVM testnet — same coin_type=60 by convention ──
+    { chain: "ETH_SEPOLIA",     group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "BASE_SEPOLIA",    group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+    { chain: "MANTLE_SEPOLIA",  group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
+
+    // ── EVM with their own SLIP-44 coin_type (different derivation) ──
+    { chain: "BNB",   group: "EVM", path: "m/44'/714'/0'/0/0",  encode: evmAddress },
+    { chain: "MATIC", group: "EVM", path: "m/44'/966'/0'/0/0",  encode: evmAddress },
+    { chain: "AVAX",  group: "EVM", path: "m/44'/9005'/0'/0/0", encode: evmAddress },
+    { chain: "FTM",   group: "EVM", path: "m/44'/1007'/0'/0/0", encode: evmAddress },
+    { chain: "ONE",   group: "EVM", path: "m/44'/1023'/0'/0/0", encode: evmAddress },
     { chain: "ONE",   group: "EVM", path: "m/44'/60'/0'/0/0", encode: evmAddress },
 
     // ── UTXO coins ───────────────────────────────────────────────────
@@ -624,7 +668,39 @@ function deriveMultichainAddresses(root: HDKey, seed: Uint8Array): { chain: stri
     { chain: "ADA",  group: "OTHER", path: "m/44'/1815'/0'/0/0", encode: p => bech32Address("addr", 0x61, h160(p)) },
     // DOT: SLIP-10 Ed25519 → SS58 prefix 0 (Polkadot generic). Faucets use this.
     { chain: "DOT",  group: "OTHER", path: "m/44'/354'/0'/0/0",  encode: (_p) => ss58Address(ed25519.getPublicKey(slip10Ed25519(seed, [44, 354, 0, 0, 0])), 0) },
-    { chain: "ATOM", group: "OTHER", path: "m/44'/118'/0'/0/0",  encode: p => cosmosBech32("cosmos", p) },
+    // ── Cosmos family — same secp256k1, bech32 with chain-specific HRP ──
+    { chain: "ATOM",          group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("cosmos",    p) },
+    { chain: "OSMOSIS",       group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("osmo",      p) },
+    { chain: "INJECTIVE",     group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("inj",       p) },
+    { chain: "SEI",           group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("sei",       p) },
+    { chain: "DYDX",          group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("dydx",      p) },
+    { chain: "JUNO",          group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("juno",      p) },
+    { chain: "AKASH",         group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("akash",     p) },
+    { chain: "KAVA",          group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("kava",      p) },
+    { chain: "STRIDE",        group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("stride",    p) },
+    { chain: "NOBLE",         group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("noble",     p) },
+    { chain: "STARGAZE",      group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("stars",     p) },
+    { chain: "EVMOS",         group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("evmos",     p) },
+    { chain: "TERRA_CLASSIC", group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("terra",     p) },
+    { chain: "TERRA2",        group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("terra",     p) },
+    { chain: "BABYLON",       group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("bbn",       p) },
+    { chain: "KUJIRA",        group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("kujira",    p) },
+    { chain: "NEUTRON",       group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("neutron",   p) },
+    { chain: "CRESCENT",      group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("cre",       p) },
+    { chain: "UMEE",          group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("umee",      p) },
+    { chain: "COMDEX",        group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("comdex",    p) },
+    { chain: "CHIHUAHUA",     group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("chihuahua", p) },
+    { chain: "BITCANNA",      group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("bcna",      p) },
+    { chain: "IXO",           group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("ixo",       p) },
+    { chain: "SENTINEL",      group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("sent",      p) },
+    { chain: "DYMENSION",     group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("dym",       p) },
+    { chain: "SEDA",          group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("seda",      p) },
+    { chain: "PERSISTENCE",   group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("persistence", p) },
+    { chain: "CELESTIA",      group: "COSMOS", path: "m/44'/118'/0'/0/0", encode: p => cosmosBech32("celestia",  p) },
+    // Cosmos chains with their own SLIP-44 coin_type
+    { chain: "CRYPTO_ORG",    group: "COSMOS", path: "m/44'/394'/0'/0/0", encode: p => cosmosBech32("cro",       p) },
+    { chain: "BAND",          group: "COSMOS", path: "m/44'/494'/0'/0/0", encode: p => cosmosBech32("band",      p) },
+    { chain: "PROVENANCE",    group: "COSMOS", path: "m/44'/505'/0'/0/0", encode: p => cosmosBech32("pb",        p) },
     // XRP: base58check with XRP alphabet (differs from Bitcoin) + account ID prefix 0x00
     { chain: "XRP",  group: "OTHER", path: "m/44'/144'/0'/0/0",  encode: p => xrpAddress(p) },
     // XLM: SLIP-10 Ed25519 at m/44'/148'/0'/0/0 (Stellar official standard)
@@ -634,6 +710,15 @@ function deriveMultichainAddresses(root: HDKey, seed: Uint8Array): { chain: stri
     { chain: "ALGO", group: "OTHER", path: "m/44'/283'/0'/0/0",  encode: (_p) => algoAddress(slip10Ed25519(seed, [44, 283, 0, 0, 0])) },
     // EGLD: SLIP-10 Ed25519 at m/44'/508'/0'/0/0 (MultiversX official standard)
     { chain: "EGLD", group: "OTHER", path: "m/44'/508'/0'/0/0",  encode: (_p) => egldAddress(slip10Ed25519(seed, [44, 508, 0, 0, 0])) },
+
+    // ── NEAR — Ed25519, raw 32-byte hex public key as the address ──
+    { chain: "NEAR", group: "OTHER", path: "m/44'/397'/0'/0/0",
+      encode: (_p) => Array.from(ed25519.getPublicKey(slip10Ed25519(seed, [44, 397, 0, 0, 0])))
+        .map(b => b.toString(16).padStart(2, "0")).join("") },
+
+    // ── TON — Ed25519 / different address scheme; deferred to dedicated encoder ──
+    { chain: "TON",  group: "OTHER", path: "m/44'/607'/0'/0/0",
+      encode: (_p) => `UQ-pending-encoder-${Array.from(ed25519.getPublicKey(slip10Ed25519(seed, [44, 607, 0, 0, 0]))).slice(0, 4).map(b => b.toString(16).padStart(2, "0")).join("")}` },
   ];
 
   return chains.map(({ chain, group, path, encode }) => {
