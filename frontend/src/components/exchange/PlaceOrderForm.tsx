@@ -416,7 +416,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
       <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">
         Price ({quote})
       </label>
-      <input type="number" step="any" value={priceStr}
+      <input type="number" step="any" min="0" value={priceStr}
         onChange={(e) => setPriceStr(e.target.value)}
         placeholder="0.10"
         className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue" />
@@ -425,7 +425,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
       <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">
         Amount ({base})
       </label>
-      <input type="number" step="any" value={amountStr}
+      <input type="number" step="any" min="0" value={amountStr}
         onChange={(e) => setAmountStr(e.target.value)}
         placeholder="1.0"
         className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue" />

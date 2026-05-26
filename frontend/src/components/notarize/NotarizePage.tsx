@@ -1851,6 +1851,7 @@ function OpReturnSection() {
             <label className="text-[10px] text-mempool-text-dim uppercase">Fee (SAT)</label>
             <input
               type="number"
+              min="0"
               value={opFee}
               onChange={(e) => setOpFee(e.target.value)}
               className="w-full bg-mempool-bg-elev border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text"

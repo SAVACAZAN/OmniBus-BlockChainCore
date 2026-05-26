@@ -923,6 +923,7 @@ function SlashEvidencePanel() {
             value={blockHeight}
             onChange={(e) => setBlockHeight(e.target.value)}
             type="number"
+            min="0"
             className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
             placeholder="12345"
           />

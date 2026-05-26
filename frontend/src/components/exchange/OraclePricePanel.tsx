@@ -306,6 +306,7 @@ function BlockPricesPanel() {
           <label className="text-[10px] text-mempool-text-dim">From height</label>
           <input
             type="number"
+            min="0"
             value={fromHeight}
             onChange={(e) => setFromHeight(e.target.value)}
             placeholder="latest"
@@ -1249,6 +1250,7 @@ function DexOrderbookPanel() {
         <div className="flex gap-2">
           <input
             type="number"
+            min="0"
             value={blockHeight}
             onChange={(e) => setBlockHeight(e.target.value)}
             placeholder="Block height"

@@ -365,19 +365,19 @@ export function HtlcTradePanel() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">OMNI to lock</label>
-            <input type="number" step="any" value={omniAmt} onChange={e => setOmniAmt(e.target.value)}
+            <input type="number" step="any" min="0" value={omniAmt} onChange={e => setOmniAmt(e.target.value)}
               disabled={busy || state.step !== "idle"}
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue disabled:opacity-50" />
           </div>
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">USDC to receive</label>
-            <input type="number" step="any" value={usdcAmt} onChange={e => setUsdcAmt(e.target.value)}
+            <input type="number" step="any" min="0" value={usdcAmt} onChange={e => setUsdcAmt(e.target.value)}
               disabled={busy || state.step !== "idle"}
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue disabled:opacity-50" />
           </div>
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">Timelock (blocks)</label>
-            <input type="number" value={timelock} onChange={e => setTimelock(e.target.value)}
+            <input type="number" min="1" value={timelock} onChange={e => setTimelock(e.target.value)}
               disabled={busy || state.step !== "idle"}
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue disabled:opacity-50" />
           </div>
