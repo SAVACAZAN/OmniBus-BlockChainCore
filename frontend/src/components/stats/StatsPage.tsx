@@ -287,6 +287,32 @@ export function StatsPage() {
               updated {new Date(lastRefresh).toLocaleTimeString()}
             </span>
           )}
+          {series.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["height", "timestamp", "tx_count", "reward_omni", "difficulty", "block_time_s", "fees_est_omni"].join(","),
+                  ...series.map((b) => [
+                    b.height,
+                    b.timestamp,
+                    b.txCount,
+                    (b.rewardSAT / SAT).toFixed(8),
+                    b.difficulty,
+                    b.blockTime,
+                    (b.feesEstimate / SAT).toFixed(8),
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-block-stats.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue font-mono"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <button
             onClick={() => void load()}
             disabled={loading}

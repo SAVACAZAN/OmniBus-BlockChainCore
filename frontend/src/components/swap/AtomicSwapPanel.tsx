@@ -284,7 +284,34 @@ export function AtomicSwapPanel() {
       <section className="border border-mempool-border bg-mempool-bg-elev rounded p-3 sm:p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-mempool-text font-medium">3 — Open swaps</h2>
-          <button onClick={refreshBindings} className="text-xs text-mempool-blue hover:underline">refresh</button>
+          <div className="flex items-center gap-2">
+            {bindings.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["swap_id", "order_id", "state", "maker_chain", "taker_chain", "timeout_block"].join(","),
+                    ...bindings.map((b: any) => [
+                      `"${b.swap_id}"`,
+                      b.order_id,
+                      b.state,
+                      b.maker_chain,
+                      b.taker_chain,
+                      b.timeout_block,
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-swaps.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="text-xs text-mempool-text-dim hover:text-mempool-blue border border-mempool-border rounded px-2 py-0.5 font-mono"
+              >
+                ⬇ CSV
+              </button>
+            )}
+            <button onClick={refreshBindings} className="text-xs text-mempool-blue hover:underline">refresh</button>
+          </div>
         </div>
         <div className="overflow-x-auto -mx-3 sm:mx-0">
         <table className="w-full text-xs min-w-[560px]">
