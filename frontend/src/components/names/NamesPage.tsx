@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { getUnlocked } from "../../api/wallet-keystore";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
 import { AddressLabel } from "../common/AddressLabel";
@@ -1475,71 +1476,105 @@ function BrowseByCategory() {
 
 // ── NsHealthDashboard ─────────────────────────────────────────────────────
 //
-// Phase 2 NS — quick at-a-glance stats: total active names, breakdown
-// per category. Data comes from listnames (already cached in use-names).
-// Sits at the top of the page so users immediately see the registry's
-// "shape" before drilling into Browse / Lookup / Register.
+// Uses ns_stats RPC for rich registry stats; falls back to listnames counting
+// on older nodes. Also shows expiring-soon names (ns_expiringSoon) for the
+// connected wallet, and a prune-expired admin button (ns_pruneExpired).
 
-interface CountsByCat {
-  total: number;
-  perCat: Record<string, number>;
-  perTld: Record<string, number>;
+interface NsStats {
+  total_active: number;
+  total_expired: number;
+  by_category: Record<string, number>;
+  by_tld: Record<string, number>;
+  by_years: Record<string, number>;
+  pq_slots_set: number;
+  preferred_slot_set: number;
+}
+
+interface ExpiringEntry {
+  name: string;
+  tld: string;
+  fullLabel: string;
+  expiresAtBlock: number;
+  blocks_remaining: number;
+  estimated_days_remaining: number;
+  registered_years: number;
+  in_grace: boolean;
 }
 
 function NsHealthDashboard() {
-  const [stats, setStats] = useState<CountsByCat>({ total: 0, perCat: {}, perTld: {} });
+  const [stats, setStats] = useState<NsStats | null>(null);
+  const [expiring, setExpiring] = useState<ExpiringEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pruneResult, setPruneResult] = useState<{ removed: number; entry_count: number } | null>(null);
+  const [pruning, setPruning] = useState(false);
+  const u = getUnlocked();
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = (await rpc.request_raw("listnames", [{ limit: 1000 }])) as {
-          entries?: { tld: string; category?: string }[];
-          total?: number;
-        };
-        if (cancelled) return;
-        const entries = r?.entries ?? [];
-        const perCat: Record<string, number> = {};
-        const perTld: Record<string, number> = {};
-        for (const e of entries) {
-          const cat = e.category ?? "none";
-          perCat[cat] = (perCat[cat] ?? 0) + 1;
-          perTld[e.tld] = (perTld[e.tld] ?? 0) + 1;
-        }
-        setStats({ total: r?.total ?? entries.length, perCat, perTld });
-      } catch {
-        // ignore — health dashboard is best-effort
-      } finally {
+        const r = await rpc.request_raw("ns_stats", []);
+        if (!cancelled && r && typeof r === "object") setStats(r as NsStats);
+      } catch { /* ns_stats not available */ } finally {
         if (!cancelled) setLoading(false);
       }
     };
     load();
-    const id = setInterval(load, 30_000); // 30s refresh
+    const id = setInterval(load, 30_000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
-  if (loading && stats.total === 0) {
-    return null; // hide entirely on first paint to avoid empty-state flash
-  }
+  useEffect(() => {
+    if (!u) { setExpiring([]); return; }
+    let cancelled = false;
+    rpc.request_raw("ns_expiringSoon", [{ address: u.address }])
+      .then((r) => {
+        if (!cancelled && r && typeof r === "object") {
+          setExpiring((r as { entries?: ExpiringEntry[] }).entries ?? []);
+        }
+      }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [u?.address]);
+
+  const pruneExpired = async () => {
+    setPruning(true);
+    try {
+      const r = await rpc.request_raw("ns_pruneExpired", []);
+      if (r && typeof r === "object") {
+        setPruneResult(r as { removed: number; entry_count: number });
+        const s = await rpc.request_raw("ns_stats", []);
+        if (s && typeof s === "object") setStats(s as NsStats);
+      }
+    } catch { /* no-op */ } finally { setPruning(false); }
+  };
+
+  if (loading && !stats) return null;
+  if (!stats) return null;
 
   return (
-    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
-      <div className="flex items-baseline justify-between mb-3">
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6 space-y-3">
+      <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-          NS health
+          NS Health
           <span className="ml-2 text-[10px] text-mempool-text-dim normal-case">
             registry totals · auto-refresh 30s
           </span>
         </h2>
-        <span className="text-xs text-mempool-text-dim">
-          Total: <span className="text-mempool-text font-semibold">{stats.total}</span>
-        </span>
+        <div className="flex items-center gap-3 text-[10px]">
+          <span className="text-mempool-text-dim">
+            Active: <span className="text-green-400 font-semibold">{stats.total_active}</span>
+          </span>
+          {stats.total_expired > 0 && (
+            <span className="text-mempool-text-dim">
+              Expired: <span className="text-red-400 font-semibold">{stats.total_expired}</span>
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-1">
         {CAT_PILLS.map((c) => {
-          const n = stats.perCat[c.id] ?? 0;
+          const n = stats.by_category[c.id] ?? 0;
           return (
             <div
               key={c.id}
@@ -1554,13 +1589,61 @@ function NsHealthDashboard() {
         })}
       </div>
 
-      {Object.keys(stats.perTld).length > 0 && (
-        <p className="text-[10px] text-mempool-text-dim mt-3">
-          Per-TLD: {Object.entries(stats.perTld)
-            .sort(([, a], [, b]) => b - a)
-            .map(([t, n]) => `.${t}=${n}`)
-            .join(" · ")}
-        </p>
+      <div className="flex flex-wrap gap-1 text-[9px]">
+        {Object.entries(stats.by_tld)
+          .filter(([, v]) => v > 0)
+          .sort(([, a], [, b]) => b - a)
+          .map(([t, n]) => (
+            <span key={t} className="px-1.5 py-0.5 rounded bg-mempool-bg border border-mempool-border text-mempool-text-dim">
+              .{t} <span className="text-mempool-text font-semibold">{n}</span>
+            </span>
+          ))}
+        {stats.pq_slots_set > 0 && (
+          <span className="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/30 text-purple-300">
+            PQ slots: {stats.pq_slots_set}
+          </span>
+        )}
+      </div>
+
+      {expiring.length > 0 && (
+        <div className="rounded border border-yellow-500/30 bg-yellow-500/5 p-3">
+          <div className="text-[10px] uppercase tracking-wider text-yellow-400 font-semibold mb-2">
+            ⚠️ Your names expiring soon ({expiring.length})
+          </div>
+          <div className="space-y-1">
+            {expiring.map((e) => (
+              <div key={e.fullLabel} className="flex items-center justify-between text-[10px] font-mono">
+                <span className="text-mempool-text">{e.fullLabel}</span>
+                <div className="flex items-center gap-2">
+                  <span className={e.in_grace ? "text-red-400" : "text-yellow-300"}>
+                    {e.in_grace ? "⛔ grace" : `~${e.estimated_days_remaining}d`}
+                  </span>
+                  <span className="text-mempool-text-dim">blk {e.expiresAtBlock}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {stats.total_expired > 0 && (
+        <div className="flex items-center gap-3 pt-1 border-t border-mempool-border/40">
+          <span className="text-[10px] text-red-400">
+            {stats.total_expired} expired name{stats.total_expired === 1 ? "" : "s"} ready to prune
+          </span>
+          <button
+            onClick={pruneExpired}
+            disabled={pruning}
+            className="ml-auto px-3 py-1 rounded text-[10px] bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50"
+          >
+            {pruning ? "Pruning…" : "Prune Expired"}
+          </button>
+          {pruneResult && (
+            <span className="text-[10px] text-green-400">
+              Removed {pruneResult.removed} · {pruneResult.entry_count} remain
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
