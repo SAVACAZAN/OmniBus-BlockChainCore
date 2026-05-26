@@ -62,11 +62,28 @@ interface Props {
 }
 
 interface DailyEntry { dayIndex: number; txCount: number; sent: number; received: number; miningReward: number; }
+interface NonceInfo { nonce: number; chainNonce: number; pendingCount: number; }
+
+function SchemeTag({ scheme }: { scheme: string }) {
+  const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
+  const isSoulbound = scheme.includes("soulbound");
+  const cls = isSoulbound
+    ? "bg-purple-400/10 text-purple-300 border-purple-400/30"
+    : isPQ
+    ? "bg-blue-400/10 text-blue-300 border-blue-400/30"
+    : "bg-green-400/10 text-green-300 border-green-400/30";
+  return (
+    <span className={`inline-block px-1.5 py-0 rounded border text-[10px] font-mono ${cls}`}>
+      {scheme}
+    </span>
+  );
+}
 
 export function AddressPage({ addr, onNavigate }: Props) {
   const [history, setHistory] = useState<AddressHistoryEntry[]>([]);
   const [chainBalance, setChainBalance] = useState<number | null>(null);
   const [dailyActivity, setDailyActivity] = useState<DailyEntry[]>([]);
+  const [nonceInfo, setNonceInfo] = useState<NonceInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
@@ -79,12 +96,14 @@ export function AddressPage({ addr, onNavigate }: Props) {
     setPage(0);
     setChainBalance(null);
     setDailyActivity([]);
+    setNonceInfo(null);
     Promise.all([
       rpc.getAddressHistory(addr),
       rpc.getAddressBalance(addr),
       rpc.request_raw("getdailyactivity", [addr, 30]).catch(() => null) as Promise<{ daily?: DailyEntry[] } | null>,
+      rpc.request_raw("getnonce", [addr]).catch(() => null) as Promise<NonceInfo | null>,
     ])
-      .then(([histData, balData, dailyData]) => {
+      .then(([histData, balData, dailyData, nonceData]) => {
         const txs: AddressHistoryEntry[] = Array.isArray(histData)
           ? histData
           : histData?.transactions || histData?.history || [];
@@ -93,11 +112,13 @@ export function AddressPage({ addr, onNavigate }: Props) {
           setChainBalance(balData.balance);
         }
         if (dailyData?.daily && dailyData.daily.length > 0) {
-          // Filter to days with activity, keep last 30
           const active = dailyData.daily.filter(d =>
             d.txCount > 0 || d.sent > 0 || d.received > 0 || d.miningReward > 0
           );
           setDailyActivity(active.slice(-30));
+        }
+        if (nonceData && (nonceData as NonceInfo).nonce !== undefined) {
+          setNonceInfo(nonceData as NonceInfo);
         }
       })
       .catch((e) => setErr(e.message))
@@ -175,6 +196,17 @@ export function AddressPage({ addr, onNavigate }: Props) {
           <StatCard label="Sent" value={fmtSat(totalSent)} sub={`${sent.length} tx`} color="orange" />
           <StatCard label="Fees Paid" value={fmtSat(totalFees)} color="dim" />
         </div>
+
+        {/* Nonce row */}
+        {nonceInfo && (
+          <div className="flex flex-wrap gap-4 pt-3 mt-1 border-t border-mempool-border/50 text-xs text-mempool-text-dim">
+            <span>Next nonce: <span className="font-mono text-mempool-text">{nonceInfo.nonce}</span></span>
+            <span>Chain nonce: <span className="font-mono text-mempool-text">{nonceInfo.chainNonce}</span></span>
+            {nonceInfo.pendingCount > 0 && (
+              <span className="text-yellow-400 font-medium">{nonceInfo.pendingCount} pending TX{nonceInfo.pendingCount !== 1 ? "s" : ""}</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 30-day activity chart */}
@@ -277,6 +309,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
                     )}
                     <span>{tx.confirmations} conf</span>
                     {tx.fee > 0 && <span>Fee: {fmtSat(tx.fee)}</span>}
+                    {tx.scheme && <SchemeTag scheme={tx.scheme} />}
                   </div>
                 </div>
               );

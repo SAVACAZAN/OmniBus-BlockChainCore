@@ -236,6 +236,9 @@ export interface AddressHistoryEntry {
   blockHeight: number;
   status: "pending" | "confirmed";
   timestamp?: number;
+  scheme?: string;
+  nonce?: number;
+  kind?: string;
 }
 
 export interface FeeEstimate {
