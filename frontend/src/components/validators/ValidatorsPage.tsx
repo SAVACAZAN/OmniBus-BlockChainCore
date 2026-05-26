@@ -58,6 +58,8 @@ interface SlashEvent {
   slash_amount_omni: number;
 }
 
+const SLASH_FILTERS = ["all", "double_sign", "extended_downtime", "invalid_block"] as const;
+
 interface StakeResp {
   address: string;
   stake_omni: number;
@@ -1116,7 +1118,7 @@ function SlashingLogTab() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm flex-wrap">
         <span className="text-xs sm:text-sm text-gray-400">Filter:</span>
-        {(["all", "double_sign", "extended_downtime", "invalid_block"] as const).map((k) => (
+        {SLASH_FILTERS.map((k) => (
           <button
             key={k}
             onClick={() => setFilter(k)}

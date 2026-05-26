@@ -1048,7 +1048,7 @@ function RewardsLegendCard({ cups }: { cups?: { love: string; food: string; rent
         <p className="text-[10px] text-mempool-text-dim mt-0.5">How each soulbound cup fills</p>
       </div>
       <div className="p-3 space-y-2.5">
-        {(["LOVE", "FOOD", "RENT", "VACATION"] as const).map((tier) => {
+        {SOULBOUND_TIERS.map((tier) => {
           const r = REWARD_RULES[tier];
           const cup = cups?.[tier.toLowerCase() as "love"|"food"|"rent"|"vacation"] ?? "0.00";
           return (
@@ -1358,6 +1358,9 @@ function OnboardingFaucetButton({ address, balanceSat }: { address: string; bala
   );
 }
 
+const SOULBOUND_TIERS = ["LOVE", "FOOD", "RENT", "VACATION"] as const;
+type SoulboundTier = typeof SOULBOUND_TIERS[number];
+
 // ── SoulboundHero — top of wallet, big animated showcase ────────────────────
 // 4 cards (LOVE / FOOD / RENT / VACATION) with animated progress bars. The
 // fill animation runs once per value change, smooth 1s ease-out. When all 4
@@ -1594,7 +1597,7 @@ function RewardsBreakdownPanel({ cups }: { cups?: { love: string; food: string; 
       </button>
       {open && (
         <div className="px-3 pb-3 space-y-3">
-          {(["LOVE", "FOOD", "RENT", "VACATION"] as const).map((tier) => {
+          {SOULBOUND_TIERS.map((tier) => {
             const r = REWARD_RULES[tier];
             const cup = cups?.[tier.toLowerCase() as "love"|"food"|"rent"|"vacation"] ?? "0.00";
             const cupVal = parseFloat(cup);
@@ -2186,7 +2189,7 @@ function WalletMetadataPanel({
         type: "SegWit-compatible bech32 (Bitcoin parity)",
         transferable: true,
       },
-      ...["LOVE", "FOOD", "RENT", "VACATION"].map((tier) => {
+      ...SOULBOUND_TIERS.map((tier) => {
         const meta = PQ_DOMAINS.find((d) => d.tier === tier)!;
         return {
           addr: null,

@@ -36,6 +36,13 @@ const EXCHANGE_TABS: { id: Tab; label: string }[] = [
   { id: "intent",  label: "🤝 Intent Swap" },
 ];
 
+const ACCOUNT_TABS: { id: AccountTab; label: string }[] = [
+  { id: "balances", label: "💰 Balances" },
+  { id: "identity", label: "👤 Identity" },
+  { id: "kyc",      label: "🛡 KYC" },
+  { id: "apikeys",  label: "🔑 API Keys" },
+];
+
 export function ExchangePage() {
   const [tab, setTab] = useState<Tab>("trade");
   const [accountTab, setAccountTab] = useState<AccountTab>("balances");
@@ -246,12 +253,7 @@ export function ExchangePage() {
         <div className="space-y-4">
           {/* Account sub-tabs (Balances | Identity | KYC | API Keys) */}
           <div className="flex gap-1 bg-mempool-bg-elev rounded-lg p-1 overflow-x-auto scrollbar-none flex-nowrap">
-            {([
-              { id: "balances", label: "💰 Balances" },
-              { id: "identity", label: "👤 Identity" },
-              { id: "kyc",      label: "🛡 KYC" },
-              { id: "apikeys",  label: "🔑 API Keys" },
-            ] as const).map((it) => (
+            {ACCOUNT_TABS.map((it) => (
               <button
                 key={it.id}
                 onClick={() => setAccountTab(it.id)}
