@@ -4,6 +4,8 @@ import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
 import { fetchUsdcBalance, fetchEvmBalance } from "../../api/multichain-balances";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 import { useActiveSlot } from "../../api/use-active-slot";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOrderbookUpdateEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1_000_000_000;
@@ -130,8 +132,12 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
       } catch { /* ignore */ }
     };
     load();
-    const id = setInterval(load, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    // Refresh when orderbook changes (fills affect in-orders balances).
+    const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", () => {
+      void load();
+    });
+    const id = setInterval(load, 30_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [omniAddr]);
 
   if (!u) return null;

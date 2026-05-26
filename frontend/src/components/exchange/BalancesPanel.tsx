@@ -4,6 +4,8 @@ import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { fetchChainBalance, fetchUsdcBalance, fetchEurcBalance, type ChainBalance } from "../../api/multichain-balances";
 import { MultiWalletBalances } from "./MultiWalletBalances";
 import { useGlobalBalance } from "../../api/use-global-balance";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1_000_000_000;
@@ -57,15 +59,16 @@ export function BalancesPanel() {
   const [loading, setLoading] = useState(false);
   const [exchBalances, setExchBalances] = useState<ExchangeBalance[]>([]);
 
-  // Poll exchange internal balances every 8s
+  // Fetch exchange internal balances; live refresh on new blocks.
   useEffect(() => {
     if (!u?.address) return;
     let cancelled = false;
     const fetch = () =>
       rpc.exchangeGetBalances(u.address).then(bal => { if (!cancelled) setExchBalances(bal); });
     fetch();
-    const id = setInterval(fetch, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
+    const id = setInterval(fetch, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [u?.address]);
 
   useEffect(() => {
