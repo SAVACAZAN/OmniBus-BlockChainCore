@@ -264,12 +264,6 @@ function StatusBadge({ status }: { status: "valid" | "expired" | "revoked" | "no
   );
 }
 
-async function fetchNonce(address: string): Promise<number> {
-  const r = await rpc.request_raw("getnonce", [address]) as
-    { nonce?: number; chainNonce?: number } | number | null;
-  return typeof r === "number" ? r : (r?.nonce ?? 0);
-}
-
 // ── File / text hash input ────────────────────────────────────────────────
 
 function HashInput({
@@ -438,7 +432,7 @@ function NotarizeDocTab() {
     if (!hash || hash.length !== 64) { showToast("No valid 64-char hash. Select a file or enter text."); return; }
     setBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signNotarize({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -696,7 +690,7 @@ function MyDocsTab() {
     if (!wallet) return;
     setRevokeBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signNotarizeRevoke({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -930,7 +924,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     if (!ph || ph.length !== 64) { showToast("Provide a valid 64-char proof hash or secret phrase."); return; }
     setActionBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowRelease({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -961,7 +955,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     if (!wallet) return;
     setActionBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowRefund({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -988,7 +982,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     if (!wallet) return;
     setActionBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const disputeHash = await sha256HexFromText(`dispute:${escrowId}:${wallet.address}:${nonce}`);
       const { signature, publicKey } = signMessage(
         wallet.privateKey,
@@ -1276,7 +1270,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
     setBusy(true);
     setSuccess(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowCreate({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -1534,7 +1528,7 @@ function ReleaseEscrowTab() {
     if (effectiveProofHash.length !== 64) { showToast("Provide a valid 64-char proof hash."); return; }
     setBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowRelease({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,

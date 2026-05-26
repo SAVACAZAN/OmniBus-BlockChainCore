@@ -605,9 +605,7 @@ function ProposeTab({
     if (!titleHash) { setToast("Enter a proposal title"); return; }
     setBusy(true);
     try {
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signGovPropose({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -797,9 +795,7 @@ function VoteTab({
     if (!vote) { setToast("Select Yes or No"); return; }
     setBusy(true);
     try {
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signGovVote({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -972,9 +968,7 @@ export function GovernancePage() {
     if (proposal.status !== "voting") { setSharedToast("Proposal is not in voting status"); return; }
     setVoteBusy(true);
     try {
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signGovVote({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,

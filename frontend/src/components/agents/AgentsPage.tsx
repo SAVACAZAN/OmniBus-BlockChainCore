@@ -976,8 +976,7 @@ function AgentManagePanel() {
     setUnregErr(null);
     setUnregResult(null);
     try {
-      const nonceResp = (await rpc.request_raw("getnonce", [wallet.address])) as { nonce: number } | number;
-      const nonce = typeof nonceResp === "number" ? nonceResp : ((nonceResp as { nonce: number })?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const r = (await rpc.request_raw("agent_unregister", [{
         from: wallet.address,
         agent_id: unregAgentId,

@@ -81,16 +81,6 @@ function signSubCancel(args: {
   return signMessage(args.privateKeyHex, msg);
 }
 
-async function fetchNonce(address: string): Promise<number> {
-  try {
-    const res: unknown = await rpc.request_raw("getnonce", [address]);
-    const r = res as { nonce?: number } | number | null;
-    if (typeof r === "number") return r;
-    if (r && typeof r === "object" && "nonce" in r) return r.nonce ?? 0;
-  } catch { /* ignore */ }
-  return 0;
-}
-
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function SubscriptionPage() {
@@ -160,7 +150,7 @@ export function SubscriptionPage() {
     setCancelling(sub.id);
     setCancelResult(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signSubCancel({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -213,7 +203,7 @@ export function SubscriptionPage() {
     setCreating(true);
     setCreateResult(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signSubCreate({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,

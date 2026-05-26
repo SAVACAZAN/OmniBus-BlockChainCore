@@ -211,11 +211,7 @@ export function WalletPage() {
 
       try {
         const nonceResult = await rpc.getNonce(activeAddress);
-        if (nonceResult && typeof nonceResult.nonce === "number") {
-          setWalletNonce(nonceResult.nonce);
-        } else if (typeof nonceResult === "number") {
-          setWalletNonce(nonceResult);
-        }
+        setWalletNonce(nonceResult);
       } catch {}
 
       // Reputation cups for the SELECTED slot.

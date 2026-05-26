@@ -136,12 +136,6 @@ function signClose(args: {
 
 // ── Nonce helper ──────────────────────────────────────────────────────────
 
-async function fetchNonce(address: string): Promise<number> {
-  const r = await rpc.request_raw("getnonce", [address]) as
-    { nonce?: number } | number | null;
-  return typeof r === "number" ? r : (r?.nonce ?? 0);
-}
-
 // ── Toast helper ──────────────────────────────────────────────────────────
 
 function Toast({ msg }: { msg: string }) {
@@ -427,7 +421,7 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     if (!wallet || !selectedId) return;
     setBusyClose(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClose({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -639,7 +633,7 @@ function LookupTab({ wallet }: { wallet: WalletProp }) {
     if (!wallet || !event) return;
     setBusyClaim(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClaim({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -667,7 +661,7 @@ function LookupTab({ wallet }: { wallet: WalletProp }) {
     if (!wallet || !event) return;
     setBusyClose(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClose({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -780,7 +774,7 @@ function CreateEventTab({ wallet }: { wallet: WalletProp }) {
     setBusy(true);
     setSuccessInfo(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signCreateEvent({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -985,7 +979,7 @@ function ClaimTab({ wallet }: { wallet: WalletProp }) {
     setBusyClaim(true);
     setClaimResult(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClaim({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,

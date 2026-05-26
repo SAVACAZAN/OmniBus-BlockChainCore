@@ -1798,8 +1798,7 @@ export function TransferNamePanel() {
     setErr(null);
     setResult(null);
     try {
-      const nonceResp = (await rpc.request_raw("getnonce", [wallet.address])) as { nonce: number } | number;
-      const nonce = typeof nonceResp === "number" ? nonceResp : ((nonceResp as { nonce: number })?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const msg = `transfername:${name}.${tld}:${newOwner}:${nonce}`;
       const { signature, publicKey } = signPayload(u.privateKey, msg);
       const r = (await rpc.request_raw("transfername", [{
@@ -1885,8 +1884,7 @@ export function UpdateNamePanel() {
     setErr(null);
     setResult(null);
     try {
-      const nonceResp = (await rpc.request_raw("getnonce", [wallet.address])) as { nonce: number } | number;
-      const nonce = typeof nonceResp === "number" ? nonceResp : ((nonceResp as { nonce: number })?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const msg = `updatename:${name}.${tld}:${newAddress}:${nonce}`;
       const { signature, publicKey } = signPayload(u.privateKey, msg);
       const r = (await rpc.request_raw("updatename", [{

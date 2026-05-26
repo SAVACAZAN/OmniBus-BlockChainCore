@@ -366,8 +366,10 @@ export class OmniBusRpcClient {
     return this.request("estimatefee");
   }
 
-  async getNonce(address: string): Promise<any> {
-    return this.request("getnonce", [address]);
+  async getNonce(address: string): Promise<number> {
+    const r = await this.request("getnonce", [address]) as
+      { nonce?: number; chainNonce?: number } | number | null;
+    return typeof r === "number" ? r : (r?.nonce ?? 0);
   }
 
   async getAddressBalance(address: string): Promise<{ address: string; balance: number; balanceOMNI: number } | null> {
