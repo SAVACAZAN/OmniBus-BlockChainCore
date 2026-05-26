@@ -4,10 +4,9 @@ import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
-import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, MICRO_PER_USD } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const MICRO_PER_USD = 1_000_000;
 
 interface UserTrade {
   fillId: number;

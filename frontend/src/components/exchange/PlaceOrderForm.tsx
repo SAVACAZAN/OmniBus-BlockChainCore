@@ -6,7 +6,7 @@ import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../ap
 import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
 import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
 import { useTraderMode } from "./TraderModeToggle";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
 import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance, dexContractFor } from "../../api/omnibus-dex";
@@ -14,7 +14,6 @@ import { USDC_CONTRACT } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();
 
-const MICRO_PER_USD = 1_000_000;
 
 // All taker chains where quote asset can come from
 // quote = USDC → EVM chains; quote = ETH → Sepolia/Base; quote = LCX → Liberty

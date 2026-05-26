@@ -2,6 +2,9 @@
 
 export const SAT_PER_OMNI = 1_000_000_000;
 
+/** Price is stored as micro-USD on chain (1 USD = 1_000_000 micro-USD). */
+export const MICRO_PER_USD = 1_000_000;
+
 /**
  * Convert satoshis to OMNI and format with 8 decimals + " OMNI" suffix.
  * Use when the unit label is part of the display string.
