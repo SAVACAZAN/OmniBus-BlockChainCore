@@ -9,8 +9,6 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
-const SAT = SAT_PER_OMNI;
-const MU  = MICRO_PER_USD;
 
 type WalletRow = {
   label: string;
@@ -38,9 +36,9 @@ function exchLocked(exchBalances: ExchangeBalance[], token: string | null): numb
   if (!token) return 0;
   const b = exchBalances.find(b => b.token === token);
   if (!b || !b.locked) return 0;
-  if (token === "OMNI") return b.locked / SAT;
+  if (token === "OMNI") return b.locked / SAT_PER_OMNI;
   if (token === "ETH")  return b.locked / 1e18;
-  if (token === "USDC" || token === "LCX") return b.locked / MU;
+  if (token === "USDC" || token === "LCX") return b.locked / MICRO_PER_USD;
   return b.locked;
 }
 
@@ -115,7 +113,7 @@ export function BalancesPanel() {
     const fetches: Promise<void>[] = [];
     if (globalBal.address === u.address && globalBal.fetched_at > 0) {
       update("OMNI", {
-        native: (globalBal.wallet_sat / SAT).toFixed(8),
+        native: (globalBal.wallet_sat / SAT_PER_OMNI).toFixed(8),
         symbol: "OMNI",
         raw: String(globalBal.wallet_sat),
       });
@@ -182,7 +180,7 @@ export function BalancesPanel() {
                   const bal = row.balance as import("../../api/multichain-balances").ChainBalance | null;
                   const onChain = bal ? Number(bal.native) : 0;
                   const eb = row.exchToken ? exchBalances.find(b => b.token === row.exchToken) : null;
-                  const div = row.exchToken === "OMNI" ? SAT : row.exchToken === "ETH" ? 1e18 : MU;
+                  const div = row.exchToken === "OMNI" ? SAT_PER_OMNI : row.exchToken === "ETH" ? 1e18 : MICRO_PER_USD;
                   const inOrders = eb ? eb.locked / div : 0;
                   const free = Math.max(0, onChain - inOrders);
                   const dec = row.exchToken === "OMNI" ? 8 : row.exchToken === "ETH" ? 8 : 6;
@@ -238,7 +236,7 @@ export function BalancesPanel() {
           // sell orders so the user can't double-spend that part). Pulled
           // from exchange balance lookup; null/0 if not in any order.
           const eb = row.exchToken ? exchBalances.find(b => b.token === row.exchToken) : null;
-          const div = row.exchToken === "OMNI" ? SAT : row.exchToken === "ETH" ? 1e18 : MU;
+          const div = row.exchToken === "OMNI" ? SAT_PER_OMNI : row.exchToken === "ETH" ? 1e18 : MICRO_PER_USD;
           const inOrders = eb ? eb.locked / div : 0;
 
           // Total = on-chain wallet balance (single source of truth).

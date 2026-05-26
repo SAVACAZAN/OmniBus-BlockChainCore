@@ -83,8 +83,6 @@ interface LocalIntent {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SAT = SAT_PER_OMNI;
-
 const TAKER_CHAIN_OPTIONS: { label: string; value: number }[] = [
   { label: "OmniBus", value: 0 },
   { label: "Bitcoin", value: 1 },
@@ -115,11 +113,11 @@ function saveLocalIntents(intents: LocalIntent[]): void {
 }
 
 function satToDisplay(sat: number): string {
-  return (sat / SAT).toFixed(4);
+  return (sat / SAT_PER_OMNI).toFixed(4);
 }
 
 function displayToSat(s: string): number {
-  return Math.round(parseFloat(s) * SAT);
+  return Math.round(parseFloat(s) * SAT_PER_OMNI);
 }
 
 function genNonce(): number {

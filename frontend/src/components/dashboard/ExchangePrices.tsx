@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOraclePriceEvent } from "../../types/index";
-import { MICRO_PER_USD } from "../../utils/fmt";
+import { fmtUsd } from "../../utils/fmt";
 
-const MICRO = MICRO_PER_USD;
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface PriceEntry {
@@ -32,39 +31,6 @@ const ASSETS: { key: AssetKey; label: string; pair: string }[] = [
   { key: "LCX", label: "LCX/USD", pair: "LCX/USD" },
 ];
 
-// ── Format helpers ────────────────────────────────────────────────────────
-
-function microUsdToDollars(micro: number): number {
-  return micro / MICRO;
-}
-
-function formatPrice(microUsd: number, asset: AssetKey): string {
-  const dollars = microUsdToDollars(microUsd);
-  if (asset === "BTC") {
-    return `$${dollars.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }
-  return `$${dollars.toLocaleString("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  })}`;
-}
-
-function formatSpread(bidMicro: number, askMicro: number, asset: AssetKey): string {
-  const spread = microUsdToDollars(askMicro - bidMicro);
-  if (asset === "BTC") {
-    return `spread $${spread.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }
-  return `spread $${spread.toLocaleString("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  })}`;
-}
 
 // Match an exchange entry by name (case-insensitive) and asset symbol.
 function findEntry(
@@ -120,14 +86,14 @@ function ExchangeRow({
       </div>
       <div className="flex items-center justify-between font-mono text-sm">
         <span className="text-mempool-green">
-          {formatPrice(entry.bidMicroUsd, asset)}
+          {fmtUsd(entry.bidMicroUsd)}
         </span>
         <span className="text-mempool-orange">
-          {formatPrice(entry.askMicroUsd, asset)}
+          {fmtUsd(entry.askMicroUsd)}
         </span>
       </div>
       <span className="text-[10px] text-mempool-text-dim">
-        {formatSpread(entry.bidMicroUsd, entry.askMicroUsd, asset)}
+        spread {fmtUsd(entry.askMicroUsd - entry.bidMicroUsd)}
       </span>
     </div>
   );
@@ -156,7 +122,7 @@ function AssetColumn({
       </div>
       <p className="text-xl font-mono font-bold text-mempool-blue mb-2">
         {medianMicroUsd !== undefined && medianMicroUsd > 0
-          ? formatPrice(medianMicroUsd, asset)
+          ? fmtUsd(medianMicroUsd)
           : "—"}
       </p>
       <div>

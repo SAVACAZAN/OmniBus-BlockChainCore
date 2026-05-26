@@ -6,18 +6,15 @@ import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
-const MICRO = MICRO_PER_USD;
-const SAT = SAT_PER_OMNI; // alias kept for readability in existing inline calculations
-
 type Pair = { id: number; base: string; quote: string; label: string };
 
 function fmtPrice(p: number, quote: string) {
-  const v = p / MICRO;
+  const v = p / MICRO_PER_USD;
   return quote === "USDC" ? `$${v.toFixed(4)}` : `${v.toFixed(6)} ${quote}`;
 }
 
 function fmtBase(a: number, base: string) {
-  return `${(a / SAT).toFixed(4)} ${base}`;
+  return `${(a / SAT_PER_OMNI).toFixed(4)} ${base}`;
 }
 
 function CreateGridModal({
@@ -56,11 +53,11 @@ function CreateGridModal({
     try {
       await rpc.gridCreate({
         pair_id: pairId,
-        price_low: Math.round(pl * MICRO),
-        price_high: Math.round(ph * MICRO),
+        price_low: Math.round(pl * MICRO_PER_USD),
+        price_high: Math.round(ph * MICRO_PER_USD),
         levels: lv,
-        total_base: Math.round(tb * SAT),
-        total_quote: Math.round(tq * MICRO),
+        total_base: Math.round(tb * SAT_PER_OMNI),
+        total_quote: Math.round(tq * MICRO_PER_USD),
         owner,
       });
       onCreated();
@@ -306,7 +303,7 @@ function GridLevelsModal({ grid_id, pairs, onClose }: { grid_id: number; pairs: 
               <div className="text-right">
                 <div className="text-mempool-text-dim">Profit</div>
                 <div className={`font-mono ${status.profit_quote >= 0 ? "text-green-400" : "text-red-400"}`}>
-                  {status.profit_quote >= 0 ? "+" : ""}{(status.profit_quote / MICRO).toFixed(4)} {quote}
+                  {status.profit_quote >= 0 ? "+" : ""}{(status.profit_quote / MICRO_PER_USD).toFixed(4)} {quote}
                 </div>
               </div>
             </div>
@@ -413,11 +410,11 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
                     return [
                       g.grid_id,
                       `"${pair?.label ?? `pair_${g.pair_id}`}"`,
-                      (g.price_low / MICRO).toFixed(6),
-                      (g.price_high / MICRO).toFixed(6),
+                      (g.price_low / MICRO_PER_USD).toFixed(6),
+                      (g.price_high / MICRO_PER_USD).toFixed(6),
                       g.levels,
                       g.filled_count,
-                      (g.profit_quote / MICRO).toFixed(6) + " " + quote,
+                      (g.profit_quote / MICRO_PER_USD).toFixed(6) + " " + quote,
                       g.active ? "active" : "stopped",
                       `"${g.owner}"`,
                     ].join(",");
@@ -485,7 +482,7 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
                     <td className="py-2 pr-3 text-right text-mempool-text">{g.levels}×2</td>
                     <td className="py-2 pr-3 text-right text-mempool-text">{g.filled_count}</td>
                     <td className="py-2 pr-3 text-right font-mono text-green-400">
-                      {g.profit_quote >= 0 ? "+" : ""}{(g.profit_quote / MICRO).toFixed(4)} {quote}
+                      {g.profit_quote >= 0 ? "+" : ""}{(g.profit_quote / MICRO_PER_USD).toFixed(4)} {quote}
                     </td>
                     <td className="py-2 pr-3 text-center">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${g.active ? "bg-green-500/20 text-green-400" : "bg-mempool-bg text-mempool-text-dim"}`}>

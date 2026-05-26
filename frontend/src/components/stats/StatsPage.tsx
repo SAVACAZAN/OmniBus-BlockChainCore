@@ -20,7 +20,6 @@ import {
 } from "recharts";
 
 const rpc = new OmniBusRpcClient();
-const SAT = SAT_PER_OMNI;
 
 interface BlockStat {
   height: number;
@@ -29,7 +28,7 @@ interface BlockStat {
   rewardSAT: number;
   difficulty: number;
   blockTime: number; // seconds from prev block
-  feesEstimate: number; // SAT — rough estimate
+  feesEstimate: number; // SAT_PER_OMNI — rough estimate
 }
 
 interface NetworkStats {
@@ -301,10 +300,10 @@ export function StatsPage() {
                     b.height,
                     b.timestamp,
                     b.txCount,
-                    (b.rewardSAT / SAT).toFixed(8),
+                    (b.rewardSAT / SAT_PER_OMNI).toFixed(8),
                     b.difficulty,
                     b.blockTime,
-                    (b.feesEstimate / SAT).toFixed(8),
+                    (b.feesEstimate / SAT_PER_OMNI).toFixed(8),
                   ].join(",")),
                 ].join("\n");
                 const blob = new Blob([rows], { type: "text/csv" });
@@ -374,7 +373,7 @@ export function StatsPage() {
             <StatCard
               label="Avg Fee / TX"
               value={`${(netStats.avgFeeLast100 / SAT_PER_OMNI).toFixed(8)} OMNI`}
-              sub={`${netStats.avgFeeLast100.toLocaleString()} SAT`}
+              sub={`${netStats.avgFeeLast100.toLocaleString()} SAT_PER_OMNI`}
               color="green"
             />
           )}
@@ -390,7 +389,7 @@ export function StatsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard
               label="Total Supply"
-              value={`${((chainMetrics.totalSupply ?? 0) / SAT).toLocaleString(undefined, { maximumFractionDigits: 2 })} OMNI`}
+              value={`${((chainMetrics.totalSupply ?? 0) / SAT_PER_OMNI).toLocaleString(undefined, { maximumFractionDigits: 2 })} OMNI`}
               sub={`of 21,000,000 max`}
               color="orange"
             />
@@ -402,12 +401,12 @@ export function StatsPage() {
             <StatCard
               label="Validators"
               value={`${chainMetrics.validators ?? 0} / ${chainMetrics.validatorSetSize ?? 0}`}
-              sub={`min ${((chainMetrics.minValidatorBalance ?? 0) / SAT).toFixed(0)} OMNI`}
+              sub={`min ${((chainMetrics.minValidatorBalance ?? 0) / SAT_PER_OMNI).toFixed(0)} OMNI`}
               color="green"
             />
             <StatCard
               label="Block Reward"
-              value={`${((chainMetrics.currentBlockReward ?? 0) / SAT).toFixed(2)} OMNI`}
+              value={`${((chainMetrics.currentBlockReward ?? 0) / SAT_PER_OMNI).toFixed(2)} OMNI`}
               sub={`mempool: ${chainMetrics.mempoolSize ?? 0} TX`}
               color="dim"
             />
@@ -422,8 +421,8 @@ export function StatsPage() {
             {(chainMetrics.latestBlockFees ?? 0) > 0 && (
               <StatCard
                 label="Latest Block Fees"
-                value={`${((chainMetrics.latestBlockFees ?? 0) / SAT).toFixed(8)} OMNI`}
-                sub={`${(chainMetrics.latestBlockFees ?? 0).toLocaleString()} SAT`}
+                value={`${((chainMetrics.latestBlockFees ?? 0) / SAT_PER_OMNI).toFixed(8)} OMNI`}
+                sub={`${(chainMetrics.latestBlockFees ?? 0).toLocaleString()} SAT_PER_OMNI`}
                 color="green"
               />
             )}
@@ -484,8 +483,8 @@ export function StatsPage() {
         const blocksLeft = nextHalvingBlock - chainMetrics.height;
         const secondsLeft = blocksLeft * effectiveBT;
         const daysLeft = secondsLeft / 86400;
-        const currentReward = (chainMetrics.currentBlockReward / SAT).toFixed(8);
-        const nextReward = (chainMetrics.currentBlockReward / SAT / 2).toFixed(8);
+        const currentReward = (chainMetrics.currentBlockReward / SAT_PER_OMNI).toFixed(8);
+        const nextReward = (chainMetrics.currentBlockReward / SAT_PER_OMNI / 2).toFixed(8);
         const pct = ((chainMetrics.height % HALVING_INTERVAL) / HALVING_INTERVAL) * 100;
         const halvingDate = new Date(Date.now() + secondsLeft * 1000);
         return (
@@ -663,7 +662,7 @@ export function StatsPage() {
       {series.some((s) => s.feesEstimate > 0) && (
         <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
           <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
-            Fees per Block (SAT)
+            Fees per Block (SAT_PER_OMNI)
           </h3>
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={series} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
@@ -679,7 +678,7 @@ export function StatsPage() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 labelFormatter={(v) => `Block #${v}`}
-                formatter={(v: any) => [`${(v/SAT_PER_OMNI).toFixed(8)} OMNI (${Number(v).toLocaleString()} SAT)`, "Fees"]}
+                formatter={(v: any) => [`${(v/SAT_PER_OMNI).toFixed(8)} OMNI (${Number(v).toLocaleString()} SAT_PER_OMNI)`, "Fees"]}
               />
               <Bar dataKey="feesEstimate" fill="#a855f7" radius={[2, 2, 0, 0]} maxBarSize={16} />
             </BarChart>
@@ -704,12 +703,12 @@ export function StatsPage() {
             <YAxis
               tick={{ fontSize: 10, fill: "#6b7280" }}
               width={42}
-              tickFormatter={(v) => (v / SAT).toFixed(0)}
+              tickFormatter={(v) => (v / SAT_PER_OMNI).toFixed(0)}
             />
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
               labelFormatter={(v) => `Block #${v}`}
-              formatter={(v: any) => [`${(v / SAT).toFixed(8)} OMNI`, "Reward"]}
+              formatter={(v: any) => [`${(v / SAT_PER_OMNI).toFixed(8)} OMNI`, "Reward"]}
             />
             <Line
               type="monotone"

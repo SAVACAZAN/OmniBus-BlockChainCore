@@ -9,8 +9,6 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOrderbookUpdateEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
-const SAT = SAT_PER_OMNI;
-const MU  = MICRO_PER_USD;
 
 function dec(token: string) {
   if (token === "OMNI") return 4;
@@ -24,7 +22,7 @@ async function fetchOnChain(token: string, omniAddr: string, evmAddr: string): P
     try {
       const r = await rpc.request_raw("getbalance", [omniAddr]);
       const sat: number = typeof r === "number" ? r : (r?.balance ?? 0);
-      return sat / SAT;
+      return sat / SAT_PER_OMNI;
     } catch { return 0; }
   }
   if (token === "USDC") {
@@ -68,10 +66,10 @@ function computeLockedFromOrders(orders: UserOrder[], base: string, quote: strin
     if (o.status !== "active" && o.status !== "partial") continue;
     if (o.side === "sell") {
       // sell order locks base (OMNI sat → human)
-      locked[base] = (locked[base] ?? 0) + o.remaining / SAT;
+      locked[base] = (locked[base] ?? 0) + o.remaining / SAT_PER_OMNI;
     } else {
-      // buy order locks quote (USDC): remaining base × price / SAT / 1e6 → USDC human
-      const quoteLockedRaw = (o.remaining / SAT) * (o.price / MU);
+      // buy order locks quote (USDC): remaining base × price / SAT_PER_OMNI / 1e6 → USDC human
+      const quoteLockedRaw = (o.remaining / SAT_PER_OMNI) * (o.price / MICRO_PER_USD);
       locked[quote] = (locked[quote] ?? 0) + quoteLockedRaw;
     }
   }
@@ -220,11 +218,11 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
           // path is fine.
           const isOmni    = token === "OMNI";
           const omniLive  = isOmni && gb.address === omniAddr && gb.fetched_at > 0;
-          const onChain   = omniLive ? gb.wallet_sat / SAT : (walletAmt[token] ?? 0);
-          const stakedHere = omniLive ? gb.staked_sat / SAT : 0;
-          const lockedFromOrders = omniLive ? gb.in_orders_sat / SAT : Math.min(inOrders(token), onChain);
+          const onChain   = omniLive ? gb.wallet_sat / SAT_PER_OMNI : (walletAmt[token] ?? 0);
+          const stakedHere = omniLive ? gb.staked_sat / SAT_PER_OMNI : 0;
+          const lockedFromOrders = omniLive ? gb.in_orders_sat / SAT_PER_OMNI : Math.min(inOrders(token), onChain);
           const free      = omniLive
-            ? gb.available_sat / SAT
+            ? gb.available_sat / SAT_PER_OMNI
             : Math.max(0, onChain - lockedFromOrders);
           const total     = onChain;
           const locked    = lockedFromOrders;

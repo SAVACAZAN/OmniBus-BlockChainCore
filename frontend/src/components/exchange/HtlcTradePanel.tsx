@@ -26,7 +26,6 @@ import {
 import { fetchUsdcBalance } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();
-const SAT = SAT_PER_OMNI;
 
 // USDC contract on Sepolia
 const USDC_SEPOLIA = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
@@ -138,7 +137,7 @@ export function HtlcTradePanel() {
 
       const res = await (rpc as any).request_raw("htlc_init", [{
         receiver: evmAddr.toLowerCase(), // taker's EVM address as receiver placeholder — OmniBus uses ob1q but store note
-        amount_sat: Math.round(omni * SAT),
+        amount_sat: Math.round(omni * SAT_PER_OMNI),
         hash_lock: hashHex,
         timelock_block: timelockBlock,
       }]) as any;
@@ -445,7 +444,7 @@ export function HtlcTradePanel() {
                     ["htlc_id","amount_omni","state","timelock_block","sender","receiver"].join(","),
                     ...htlcs.map((h: any) => [
                       `"${h.htlc_id ?? ""}"`,
-                      ((h.amount_sat ?? 0) / SAT).toFixed(8),
+                      ((h.amount_sat ?? 0) / SAT_PER_OMNI).toFixed(8),
                       h.state ?? "",
                       h.timelock_block ?? "",
                       `"${h.sender ?? ""}"`,
@@ -481,7 +480,7 @@ export function HtlcTradePanel() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">Amount</span>
-                  <span className="text-green-400">{(h.amount_sat / SAT).toFixed(4)} OMNI</span>
+                  <span className="text-green-400">{(h.amount_sat / SAT_PER_OMNI).toFixed(4)} OMNI</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">State</span>

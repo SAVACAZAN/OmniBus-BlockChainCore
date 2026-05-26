@@ -13,7 +13,6 @@ import {
 } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();
-const SAT = SAT_PER_OMNI;
 
 // IMPORTANT: this table no longer hardcodes "savacazan.omnibus / admin.omnibus
 // / exchange.omnibus / …" against slot indices 0..9.
@@ -94,7 +93,7 @@ function blank(): Pick<WRow, ColKey> {
 function fmt(v: BalVal, isSat: boolean): string {
   if (v === "loading") return "…";
   if (v === null || v === undefined) return "—";
-  const n = isSat ? (v as number) / SAT : (v as number);
+  const n = isSat ? (v as number) / SAT_PER_OMNI : (v as number);
   if (n === 0) return "0";
   if (n > 0 && n < 0.01) return n.toFixed(4);
   return n.toFixed(2);
@@ -110,7 +109,7 @@ function sumCol(rows: WRow[], key: ColKey, isSat: boolean): number {
   return rows.reduce((acc, r) => {
     const v = r[key];
     if (typeof v !== "number") return acc;
-    return acc + (isSat ? v / SAT : v);
+    return acc + (isSat ? v / SAT_PER_OMNI : v);
   }, 0);
 }
 
@@ -284,7 +283,7 @@ export function MultiWalletBalances() {
                     ...COLS.map(c => {
                       const v = r[c.key];
                       if (v === "loading" || v === null || v === undefined) return "";
-                      return c.isSat ? ((v as number) / SAT).toFixed(8) : (v as number).toFixed(6);
+                      return c.isSat ? ((v as number) / SAT_PER_OMNI).toFixed(8) : (v as number).toFixed(6);
                     }),
                   ].join(",")
                 );
@@ -324,7 +323,7 @@ export function MultiWalletBalances() {
       {view === "cards" ? (
         <div className="space-y-2">
           {rows.map(row => {
-            const omniVal = typeof row.omni === "number" ? row.omni / SAT : 0;
+            const omniVal = typeof row.omni === "number" ? row.omni / SAT_PER_OMNI : 0;
             const hasBalance = omniVal > 0 || COLS.slice(1).some(c => typeof row[c.key] === "number" && (row[c.key] as number) > 0);
             return (
               <div key={row.index} className={`rounded-lg border p-3 ${hasBalance ? "border-mempool-blue/30 bg-mempool-bg-elev" : "border-mempool-border bg-mempool-bg-elev/50"}`}>
