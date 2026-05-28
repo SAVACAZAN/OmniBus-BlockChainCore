@@ -476,46 +476,7 @@ pub const Blockchain = struct {
     /// Validators below MIN_VALIDATOR_BALANCE drop out of rotation
     /// automatically — protects against a validator who spent its stake.
     pub fn rebuildValidatorSetFromChain(self: *Blockchain) !void {
-        var seen = std.StringHashMap(u64).init(self.allocator);
-        defer seen.deinit();
-
-        // Walk chain, find unique miner per first-seen height. Skip empty
-        // miner_address (genesis, plus pre-V3 peer-blocks that lost the
-        // address through the old wire format).
-        for (self.chain.items, 0..) |blk, height| {
-            if (blk.miner_address.len == 0) continue;
-            if (seen.contains(blk.miner_address)) continue;
-            try seen.put(blk.miner_address, height);
-        }
-
-        // Build new set, filtering by balance ≥ MIN_VALIDATOR_BALANCE.
-        var new_set = array_list.Managed(Validator).init(self.allocator);
-        errdefer new_set.deinit();
-
-        var it = seen.iterator();
-        while (it.next()) |entry| {
-            const balance = self.getAddressBalance(entry.key_ptr.*);
-            if (balance < validator_mod.MIN_VALIDATOR_BALANCE) continue;
-            try new_set.append(.{
-                .address = entry.key_ptr.*,
-                .weight = 1,
-                .since_height = entry.value_ptr.*,
-            });
-        }
-
-        // Sort by since_height ascending (then address as tiebreaker) for
-        // identical ordering on every node. Without this, HashMap iteration
-        // order would vary and `leaderForSlot` could diverge.
-        std.mem.sort(Validator, new_set.items, {}, struct {
-            fn lt(_: void, a: Validator, b: Validator) bool {
-                if (a.since_height != b.since_height) return a.since_height < b.since_height;
-                return std.mem.lessThan(u8, a.address, b.address);
-            }
-        }.lt);
-
-        // Swap atomically — drop old, install new.
-        self.validator_set.deinit();
-        self.validator_set = new_set;
+        return @import("blockchain/governance.zig").rebuildValidatorSetFromChain(self);
     }
 
     pub fn getConfirmations(self: *const Blockchain, tx_hash: []const u8) ?u64 {
@@ -927,158 +888,14 @@ pub const Blockchain = struct {
     ///   3. Block's parent is unknown -> store in orphan pool
     /// After appending, checks if any orphan blocks now connect.
     pub fn addExternalBlock(self: *Blockchain, block: Block) !void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
-        const our_tip = self.chain.items[self.chain.items.len - 1];
-
-        // Case 1: Block extends our chain tip (previous_hash matches tip hash)
-        if (std.mem.eql(u8, block.previous_hash, our_tip.hash)) {
-            if (!self.validateBlock(&block)) return error.InvalidBlock;
-            try self.applyBlock(block);
-            // After appending, try to connect orphans
-            self.processOrphansInternal();
-            return;
-        }
-
-        // Case 2: Check if block's parent exists somewhere in our chain (fork)
-        const parent_idx = self.findBlockByHash(block.previous_hash);
-        if (parent_idx) |pidx| {
-            // We have the parent but it's not our tip => this is a fork.
-            // new chain length from genesis = pidx + 1 (fork point inclusive) + 1 (new block)
-            const new_chain_len = pidx + 2;
-            const our_chain_len = self.chain.items.len;
-
-            if (new_chain_len > our_chain_len) {
-                // Single-block fork that's longer: reorg
-                if (!self.validateBlockAtHeight(&block, pidx + 1)) return error.InvalidBlock;
-
-                const reorg_depth = our_chain_len - 1 - pidx;
-                if (reorg_depth > MAX_REORG_DEPTH) return error.ReorgTooDeep;
-
-                std.debug.print("[REORG] Single-block reorg at fork={d}, depth={d}\n", .{ pidx, reorg_depth });
-
-                // Collect TXs from blocks being removed (after fork point)
-                try self.collectOrphanedTxs(pidx + 1);
-
-                // Free removed blocks
-                for (pidx + 1..self.chain.items.len) |i| {
-                    var old_blk = &self.chain.items[i];
-                    old_blk.transactions.deinit();
-                    if (i > 0 and old_blk.hash.len == 64) {
-                        self.allocator.free(old_blk.hash);
-                    }
-                    if (old_blk.miner_heap) {
-                        self.allocator.free(old_blk.miner_address);
-                    }
-                }
-
-                // Truncate chain to fork point + 1
-                self.chain.items.len = pidx + 1;
-
-                // Apply the new block
-                try self.applyBlock(block);
-
-                // Recalculate balances from scratch
-                try self.recalculateFromHeight(pidx + 1);
-
-                // Remove mempool TXs already in new chain
-                self.removeMempoolDuplicates();
-
-                self.processOrphansInternal();
-            }
-            // If new_chain_len <= our_chain_len, ignore the fork (shorter or equal)
-            return;
-        }
-
-        // Case 3: Parent unknown -> orphan pool
-        if (self.orphan_blocks.items.len < MAX_ORPHAN_POOL) {
-            try self.orphan_blocks.append(block);
-        }
+        return @import("blockchain/reorg.zig").addExternalBlock(self, block);
     }
 
     /// Accept a full chain from a peer and reorg if it's longer.
     /// Validates all blocks in the new chain from the fork point.
     /// Returns orphaned TXs to mempool for re-mining.
     pub fn reorg(self: *Blockchain, new_chain: []const Block) !void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
-        if (new_chain.len == 0) return error.EmptyChain;
-
-        // New chain must be strictly longer than ours
-        if (new_chain.len <= self.chain.items.len) return error.ShorterChain;
-
-        // Find the fork point (common ancestor)
-        const fork_point = self.findForkPointInternal(new_chain) orelse return error.NoCommonAncestor;
-
-        // Safety: reject reorgs deeper than MAX_REORG_DEPTH
-        const reorg_depth = self.chain.items.len - 1 - fork_point;
-        if (reorg_depth > MAX_REORG_DEPTH) return error.ReorgTooDeep;
-
-        // Validate all new blocks from fork point onward
-        for (fork_point + 1..new_chain.len) |i| {
-            const blk = &new_chain[i];
-            // Check basic block validity: merkle root, transactions
-            if (!blk.validateTransactions()) return error.InvalidBlock;
-            const expected_merkle = blk.calculateMerkleRoot();
-            if (!std.mem.eql(u8, &expected_merkle, &blk.merkle_root)) return error.InvalidBlock;
-
-            // Verify chain linkage: previous_hash must match prior block
-            if (i > 0) {
-                if (!std.mem.eql(u8, blk.previous_hash, new_chain[i - 1].hash)) return error.InvalidBlock;
-            }
-
-            // Verify block hash meets difficulty
-            if (blk.index > 0) {
-                if (!hex_utils.isValidHashDifficulty(blk.hash, self.difficulty)) return error.InvalidBlock;
-            }
-
-            // Verify reward is not inflated
-            var blk_total_fees: u64 = 0;
-            for (blk.transactions.items) |tx| {
-                blk_total_fees += tx.fee;
-            }
-            const max_reward = blockRewardAt(@intCast(blk.index));
-            const blk_fees_to_miner = blk_total_fees - (blk_total_fees * FEE_BURN_PCT / 100);
-            if (blk.reward_sat > max_reward + blk_fees_to_miner) return error.InvalidBlock;
-        }
-
-        std.debug.print("[REORG] Full chain reorg at fork={d}, our_len={d} -> new_len={d}, depth={d}\n", .{ fork_point, self.chain.items.len, new_chain.len, reorg_depth });
-
-        // Collect TXs from old blocks being removed (after fork point) -> return to mempool
-        try self.collectOrphanedTxs(fork_point + 1);
-
-        // Truncate chain to fork point (free removed blocks)
-        for (fork_point + 1..self.chain.items.len) |i| {
-            var old_blk = &self.chain.items[i];
-            old_blk.transactions.deinit();
-            if (i > 0 and old_blk.hash.len == 64) {
-                self.allocator.free(old_blk.hash);
-            }
-            if (old_blk.miner_heap) {
-                self.allocator.free(old_blk.miner_address);
-            }
-        }
-        self.chain.items.len = fork_point + 1;
-
-        // Append new blocks from fork point onward
-        for (fork_point + 1..new_chain.len) |i| {
-            try self.chain.append(new_chain[i]);
-        }
-
-        // Recalculate all balances, nonces, tx_block_height from scratch
-        try self.recalculateFromHeight(fork_point + 1);
-
-        // Remove from mempool any TXs that are now in the new chain
-        self.removeMempoolDuplicates();
-
-        self.processOrphansInternal();
-
-        // Reorg is a critical event — force save to disc
-        self.saveToDisc() catch |err| {
-            std.debug.print("[DB] Reorg save failed: {}\n", .{err});
-        };
+        return @import("blockchain/reorg.zig").reorg(self, new_chain);
     }
 
     /// Auto-save disabled. The blockchain IS the database — balances,
@@ -1099,34 +916,17 @@ pub const Blockchain = struct {
     /// Find the highest block index where both chains have the same hash.
     /// Returns null if no common ancestor found (completely divergent chains).
     pub fn findForkPoint(self: *const Blockchain, other_chain: []const Block) ?usize {
-        return self.findForkPointInternal(other_chain);
+        return @import("blockchain/reorg.zig").findForkPoint(self, other_chain);
     }
 
     /// Internal fork point finder (no mutex, called from methods that already hold it).
     fn findForkPointInternal(self: *const Blockchain, other_chain: []const Block) ?usize {
-        const max_idx = @min(self.chain.items.len, other_chain.len);
-        if (max_idx == 0) return null;
-
-        var i: usize = max_idx;
-        while (i > 0) {
-            i -= 1;
-            if (std.mem.eql(u8, self.chain.items[i].hash, other_chain[i].hash)) {
-                return i;
-            }
-        }
-        return null;
+        return @import("blockchain/reorg.zig").findForkPointInternal(self, other_chain);
     }
 
     /// Find a block in our chain by its hash. Returns the index or null.
     fn findBlockByHash(self: *const Blockchain, hash: []const u8) ?usize {
-        var i: usize = self.chain.items.len;
-        while (i > 0) {
-            i -= 1;
-            if (std.mem.eql(u8, self.chain.items[i].hash, hash)) {
-                return i;
-            }
-        }
-        return null;
+        return @import("blockchain/reorg.zig").findBlockByHash(self, hash);
     }
 
     /// Validate a block as if it were at a specific height (used during reorg).
@@ -1142,319 +942,7 @@ pub const Blockchain = struct {
     /// of which path produced the block. Keys are duped (HashMap-owned)
     /// because the TX slice may be transient (mempool buffer, replay loop).
     pub fn applyOpReturnRoles(self: *Blockchain, tx: Transaction) void {
-        if (tx.op_return.len == 0 or tx.from_address.len == 0) return;
-        if (std.mem.startsWith(u8, tx.op_return, "stake:")) {
-            // Cap stake at the user's actual balance. Without this we'd
-            // accept stake > balance which would later make unstake credit
-            // back funds the user never owned.
-            const cur_bal = self.balances.get(tx.from_address) orelse 0;
-            const effective = @min(tx.amount, cur_bal);
-            if (effective == 0) return;
-
-            // Parse optional lock_blocks suffix: "stake:<amt>:<lock_blocks>".
-            // The colon-amt segment is informational (we use tx.amount as the
-            // source of truth for SAT) but `lock_blocks` after a second colon
-            // is the user's commitment. Older clients send "stake:<amt>" with
-            // no second colon → lock_blocks = 0 (immediate unstake allowed).
-            var lock_blocks: u64 = 0;
-            if (std.mem.indexOfScalarPos(u8, tx.op_return, "stake:".len, ':')) |second_colon| {
-                const lock_str = tx.op_return[second_colon + 1 ..];
-                lock_blocks = std.fmt.parseInt(u64, lock_str, 10) catch 0;
-            }
-
-            // Debit balance (lock funds). Caller (applyBlock) already holds
-            // the chain mutex AND has set in_apply_block=true, so the
-            // phantom-write detector is happy.
-            self.debitBalanceLocked(tx.from_address, effective) catch return;
-
-            const owned = self.allocator.dupe(u8, tx.from_address) catch return;
-            const gop = self.stake_amounts.getOrPut(owned) catch {
-                self.allocator.free(owned);
-                return;
-            };
-            if (gop.found_existing) {
-                self.allocator.free(owned);
-            } else {
-                gop.value_ptr.* = 0;
-            }
-            gop.value_ptr.* +|= effective; // saturating add
-
-            // Update stake_meta. On top-up: keep the EARLIEST started_at
-            // (so the lock countdown starts from the first stake) and the
-            // MAX lock_blocks (longest commitment wins). Fresh stake gets
-            // both fields populated from current block height + parsed
-            // lock_blocks.
-            const meta_key = self.allocator.dupe(u8, tx.from_address) catch return;
-            const meta_gop = self.stake_meta.getOrPut(meta_key) catch {
-                self.allocator.free(meta_key);
-                return;
-            };
-            const current_block: u64 = @intCast(self.chain.items.len);
-            if (meta_gop.found_existing) {
-                self.allocator.free(meta_key);
-                // Keep earliest start; pick max of existing and new lock.
-                if (lock_blocks > meta_gop.value_ptr.lock_blocks) {
-                    meta_gop.value_ptr.lock_blocks = lock_blocks;
-                }
-            } else {
-                meta_gop.value_ptr.* = .{
-                    .started_at_block = current_block,
-                    .lock_blocks = lock_blocks,
-                };
-            }
-
-            // Auto-promote to validator when total stake >= VALIDATOR_MIN_STAKE
-            // (100 OMNI). Reads main_mod.g_staking_engine which is set in
-            // main.zig at init. Idempotent: existing validators just have
-            // their total_stake updated; new ones are registered + activated.
-            if (main_mod.g_staking_engine) |se| {
-                if (gop.value_ptr.* >= staking_mod.VALIDATOR_MIN_STAKE) {
-                    const block_h = self.chain.items.len;
-                    if (se.findValidatorIndex(tx.from_address)) |idx| {
-                        // Already registered — update stake amount
-                        se.validators[idx].total_stake = gop.value_ptr.*;
-                        se.validators[idx].self_stake = gop.value_ptr.*;
-                    } else if (se.registerValidator(
-                        tx.from_address,
-                        gop.value_ptr.*,
-                        @intCast(block_h),
-                    )) |new_idx| {
-                        se.activateValidator(new_idx) catch {};
-                    } else |_| {
-                        // ValidatorSetFull or AlreadyRegistered — silent skip
-                    }
-                }
-            }
-        } else if (std.mem.startsWith(u8, tx.op_return, "unstake:")) {
-            // Unstake: credit back the user's full stake to their balance.
-            // (Future: parse partial unstake amount from op_return; for now
-            // we unstake everything stored under this address.)
-            const cur_stake = self.stake_amounts.get(tx.from_address) orelse 0;
-            if (cur_stake == 0) return;
-
-            // Enforce lock period if metadata says so. Older stakes with
-            // lock_blocks=0 (legacy or explicit no-lock) bypass this check.
-            if (self.stake_meta.get(tx.from_address)) |meta| {
-                if (meta.lock_blocks > 0) {
-                    const current_block: u64 = @intCast(self.chain.items.len);
-                    const unlock_at = meta.unlockAtBlock();
-                    if (current_block < unlock_at) {
-                        // Lock not yet expired — drop unstake silently
-                        // (no-op for non-failure path; user keeps stake).
-                        return;
-                    }
-                }
-            }
-
-            self.creditBalanceLocked(tx.from_address, cur_stake) catch return;
-
-            const owned = self.allocator.dupe(u8, tx.from_address) catch return;
-            const gop = self.stake_amounts.getOrPut(owned) catch {
-                self.allocator.free(owned);
-                return;
-            };
-            if (gop.found_existing) {
-                self.allocator.free(owned);
-            }
-            gop.value_ptr.* = 0; // clear stake
-
-            // Clean up stake_meta — entry no longer applies.
-            if (self.stake_meta.fetchRemove(tx.from_address)) |kv| {
-                self.allocator.free(kv.key);
-            }
-        } else if (std.mem.startsWith(u8, tx.op_return, "agent:register")) {
-            const owned = self.allocator.dupe(u8, tx.from_address) catch return;
-            const gop = self.registered_agents.getOrPut(owned) catch {
-                self.allocator.free(owned);
-                return;
-            };
-            if (gop.found_existing) {
-                self.allocator.free(owned);
-            }
-        } else if (std.mem.startsWith(u8, tx.op_return, "pq_attest_v1:")) {
-            // Format: pq_attest_v1:<love>:<food>:<rent>:<vacation>[:<btc>][:<eth>]
-            // First-claim wins — if already registered, ignore.
-            if (self.pq_identity_map.contains(tx.from_address)) return;
-
-            const payload = tx.op_return["pq_attest_v1:".len..];
-            var identity = PqIdentity{};
-
-            // Parse colon-separated fields: love:food:rent:vacation[:btc][:eth]
-            var it = std.mem.splitScalar(u8, payload, ':');
-            var fi: usize = 0;
-            while (it.next()) |field| : (fi += 1) {
-                const copy_len_u = @min(field.len, 127);
-                const copy_len: u8 = @intCast(copy_len_u);
-                switch (fi) {
-                    0 => { @memcpy(identity.love[0..copy_len_u], field[0..copy_len_u]); identity.love_len = copy_len; },
-                    1 => { @memcpy(identity.food[0..copy_len_u], field[0..copy_len_u]); identity.food_len = copy_len; },
-                    2 => { @memcpy(identity.rent[0..copy_len_u], field[0..copy_len_u]); identity.rent_len = copy_len; },
-                    3 => { @memcpy(identity.vacation[0..copy_len_u], field[0..copy_len_u]); identity.vacation_len = copy_len; },
-                    4 => { const c = @min(field.len, 127); @memcpy(identity.btc[0..c], field[0..c]); identity.btc_len = @intCast(c); },
-                    5 => { const c = @min(field.len, 63); @memcpy(identity.eth[0..c], field[0..c]); identity.eth_len = @intCast(c); },
-                    else => break,
-                }
-            }
-
-            // Require at least 4 soulbound fields
-            if (identity.love_len == 0 or identity.food_len == 0 or
-                identity.rent_len == 0 or identity.vacation_len == 0) return;
-
-            // Validate soulbound prefixes
-            if (!std.mem.startsWith(u8, identity.loveSlice(), "ob_k1_")) return;
-            if (!std.mem.startsWith(u8, identity.foodSlice(), "ob_f5_")) return;
-            if (!std.mem.startsWith(u8, identity.rentSlice(), "ob_d5_")) return;
-            if (!std.mem.startsWith(u8, identity.vacationSlice(), "ob_s3_")) return;
-
-            // Store attest block + tx hash
-            identity.attest_block = @intCast(self.chain.items.len);
-            const tx_hash_copy = @min(tx.hash.len, identity.attest_tx.len - 1);
-            @memcpy(identity.attest_tx[0..tx_hash_copy], tx.hash[0..tx_hash_copy]);
-            identity.attest_tx_len = @intCast(tx_hash_copy);
-
-            // Store with owned key (first-claim wins)
-            const owned_key = self.allocator.dupe(u8, tx.from_address) catch return;
-            self.pq_identity_map.put(owned_key, identity) catch {
-                self.allocator.free(owned_key);
-                return;
-            };
-            // Persist to disk (JSONL append) so the registry survives restarts.
-            // Best-effort: failure here doesn't break consensus, just means the
-            // identity will need to be re-applied via chain replay on next start.
-            persistPqIdentityAppend(self.allocator, tx.from_address, &identity);
-        } else if (std.mem.startsWith(u8, tx.op_return, "label:")) {
-            // op_return: "label:<target>:<tag>[:<note>]"
-            // Fee check: minimum LABEL_FEE_SAT (0.1 OMNI) anti-spam
-            if (tx.fee < label_mod.LABEL_FEE_SAT) return;
-            const parsed = label_mod.parseApply(tx.op_return) orelse return;
-            // reporter tier — look up reputation, fall back to OMNI default
-            const reporter_tier = blk: {
-                // Reputation module not directly accessible here; default "OMNI"
-                // The tier weight will be overridden by RPC when submitting.
-                break :blk "OMNI";
-            };
-            _ = self.label_registry.apply(
-                parsed.target,
-                tx.from_address,
-                parsed.tag,
-                parsed.note,
-                reporter_tier,
-                @intCast(self.chain.items.len),
-                tx.hash,
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "label_remove:")) {
-            // op_return: "label_remove:<id>"
-            const label_id = label_mod.parseRemove(tx.op_return) orelse return;
-            _ = self.label_registry.remove(label_id, tx.from_address);
-        } else if (std.mem.startsWith(u8, tx.op_return, "sub_create:")) {
-            // op_return: "sub_create:<to>:<amount>:<interval>:<max>[:<note>]"
-            if (tx.fee < sub_mod.SUB_CREATE_FEE_SAT) return;
-            const parsed = sub_mod.parseCreate(tx.op_return) orelse return;
-            _ = self.sub_registry.create(
-                tx.from_address,
-                parsed,
-                @intCast(self.chain.items.len),
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "sub_cancel:")) {
-            // op_return: "sub_cancel:<id>"
-            const sub_id = sub_mod.parseCancel(tx.op_return) orelse return;
-            _ = self.sub_registry.cancel(sub_id, tx.from_address);
-        } else if (std.mem.startsWith(u8, tx.op_return, "notarize:")) {
-            // op_return: "notarize:<sha256>:<doc_type>:<expiry>[:<note>]"
-            if (tx.fee < notarize_mod.NOTARIZE_FEE_SAT) return;
-            const parsed = notarize_mod.parsNotarize(tx.op_return) orelse return;
-            _ = self.notarize_registry.notarize(
-                tx.from_address,
-                parsed,
-                @intCast(self.chain.items.len),
-                tx.hash,
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "notarize_revoke:")) {
-            // op_return: "notarize_revoke:<id>"
-            if (tx.fee < notarize_mod.NOTARIZE_REVOKE_FEE_SAT) return;
-            const notarize_id = notarize_mod.parseRevoke(tx.op_return) orelse return;
-            _ = self.notarize_registry.revoke(notarize_id, tx.from_address);
-        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_create:")) {
-            // op_return: "escrow_create:<to>:<amount>:<condition_hash>:<timeout>[:<note>]"
-            if (tx.fee < escrow_mod.ESCROW_CREATE_FEE_SAT) return;
-            const parsed = escrow_mod.parseCreate(tx.op_return) orelse return;
-            // Fondurile sunt deja debitate din UTXO-ul senderului in applyBlock.
-            // Inregistram escrow-ul — suma e tinuta virtual in registry.
-            _ = self.escrow_registry.create(
-                tx.from_address, parsed,
-                @intCast(self.chain.items.len),
-                tx.hash,
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_release:")) {
-            // op_return: "escrow_release:<id>:<proof_hash>"
-            const parsed = escrow_mod.parseRelease(tx.op_return) orelse return;
-            const amount = self.escrow_registry.tryRelease(
-                parsed.escrow_id, parsed.proof_hash,
-                tx.from_address, @intCast(self.chain.items.len),
-            );
-            if (amount > 0) {
-                // Crediteaza to_address (from_address este to-ul escrow-ului)
-                const bal = self.balances.get(tx.from_address) orelse 0;
-                self.balances.put(tx.from_address, bal + amount) catch {};
-            }
-        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_refund:")) {
-            // op_return: "escrow_refund:<id>"
-            const escrow_id = escrow_mod.parseRefund(tx.op_return) orelse return;
-            const amount = self.escrow_registry.tryRefund(
-                escrow_id, tx.from_address,
-                @intCast(self.chain.items.len),
-            );
-            if (amount > 0) {
-                const bal = self.balances.get(tx.from_address) orelse 0;
-                self.balances.put(tx.from_address, bal + amount) catch {};
-            }
-        } else if (std.mem.startsWith(u8, tx.op_return, "escrow_dispute:")) {
-            if (tx.fee < escrow_mod.ESCROW_DISPUTE_FEE_SAT) return;
-            const escrow_id = escrow_mod.parseDispute(tx.op_return) orelse return;
-            _ = self.escrow_registry.openDispute(escrow_id, tx.from_address);
-
-        // ── Social Graph ────────────────────────────────────────────────
-        } else if (std.mem.startsWith(u8, tx.op_return, "follow:")) {
-            const target = social_mod.parseFollow(tx.op_return) orelse return;
-            self.social_graph.follow(
-                tx.from_address, target, @intCast(self.chain.items.len),
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "unfollow:")) {
-            const target = social_mod.parseUnfollow(tx.op_return) orelse return;
-            self.social_graph.unfollow(tx.from_address, target);
-
-        // ── POAP ────────────────────────────────────────────────────────
-        } else if (std.mem.startsWith(u8, tx.op_return, "poap_event:")) {
-            if (tx.fee < poap_mod.POAP_EVENT_FEE_SAT) return;
-            const parsed = poap_mod.parseEvent(tx.op_return) orelse return;
-            self.poap_registry.createEvent(
-                tx.from_address, parsed, @intCast(self.chain.items.len),
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "poap_claim:")) {
-            if (tx.fee < poap_mod.POAP_CLAIM_FEE_SAT) return;
-            const event_id = poap_mod.parseClaim(tx.op_return) orelse return;
-            self.poap_registry.claimPoap(
-                tx.from_address, event_id, @intCast(self.chain.items.len), tx.hash,
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "poap_close:")) {
-            const event_id = poap_mod.parseClose(tx.op_return) orelse return;
-            _ = self.poap_registry.closeEvent(event_id, tx.from_address);
-
-        // ── Governance ──────────────────────────────────────────────────
-        } else if (std.mem.startsWith(u8, tx.op_return, "gov_propose:")) {
-            if (tx.fee < gov_mod.GOV_PROPOSE_FEE_SAT) return;
-            const parsed = gov_mod.parsePropose(tx.op_return) orelse return;
-            _ = self.gov_registry.propose(
-                tx.from_address, parsed, @intCast(self.chain.items.len),
-            ) catch return;
-        } else if (std.mem.startsWith(u8, tx.op_return, "gov_vote:")) {
-            if (tx.fee < gov_mod.GOV_VOTE_FEE_SAT) return;
-            const parsed = gov_mod.parseVote(tx.op_return) orelse return;
-            self.gov_registry.vote(
-                parsed.id, tx.from_address, parsed.yes, "OMNI",
-                @intCast(self.chain.items.len),
-            ) catch return;
-        }
+        return @import("blockchain/op_returns.zig").applyOpReturnRoles(self, tx);
     }
 
     // ── Governance execution ─────────────────────────────────────────────────
@@ -1471,52 +959,7 @@ pub const Blockchain = struct {
     /// Idempotent across the chain: once a proposal's status flips to .executed,
     /// subsequent applyBlock passes skip it via collectPassedUnexecuted.
     pub fn executeProposal(self: *Blockchain, proposal_id: u64, current_block: u64) !void {
-        const proposal = self.gov_registry.getProposal(proposal_id) orelse
-            return error.ProposalNotFound;
-        if (proposal.status != .passed) return error.ProposalNotPassed;
-        if (proposal.executed) return error.AlreadyExecuted;
-
-        // Apply the action. Unknown action kinds (forward-compat from a future
-        // node version) are treated as no-op so the chain doesn't fork on the
-        // execution itself — the proposal is still marked executed.
-        switch (proposal.action.kind) {
-            .none => {},
-            .set_block_reward => self.consensus_params.block_reward_sat = proposal.action.u64_value,
-            .set_min_difficulty => self.consensus_params.min_difficulty =
-                @intCast(@min(proposal.action.u64_value, @as(u64, MAX_DIFFICULTY))),
-            .set_block_size_limit => self.consensus_params.block_size_limit = proposal.action.u64_value,
-            .set_pq_signature_max => self.consensus_params.pq_signature_max = proposal.action.u64_value,
-            .set_dns_signed_required => self.consensus_params.dns_signed_required = proposal.action.bool_value,
-            .set_validator_quorum_min => self.consensus_params.validator_quorum_min =
-                @intCast(@min(proposal.action.u64_value, @as(u64, std.math.maxInt(u32)))),
-            .set_route_fees_to_miner => self.consensus_params.route_fees_to_miner = proposal.action.bool_value,
-            _ => {
-                // Forward-compat: unknown action kind. Mark executed anyway so
-                // proposals aren't re-tried every block in a stuck loop.
-            },
-        }
-
-        try self.gov_registry.markExecuted(proposal_id, current_block);
-
-        // Push WS event so dashboards / explorers see the protocol parameter
-        // change in real time. Best-effort: failure to format / broadcast must
-        // not roll back the executed mutation (it's already on chain via the
-        // governance registry).
-        if (main_mod.g_ws_srv) |ws| {
-            var buf: [512]u8 = undefined;
-            const json = std.fmt.bufPrint(&buf,
-                "{{\"type\":\"gov_executed\",\"proposal_id\":{d}," ++
-                "\"action_kind\":{d},\"u64_value\":{d},\"bool_value\":{}," ++
-                "\"executed_block\":{d}}}",
-                .{
-                    proposal_id,
-                    @intFromEnum(proposal.action.kind),
-                    proposal.action.u64_value,
-                    proposal.action.bool_value,
-                    current_block,
-                }) catch null;
-            if (json) |j| ws.broadcast(j);
-        }
+        return @import("blockchain/governance.zig").executeProposal(self, proposal_id, current_block);
     }
 
     /// Auto-execute every passed-but-unexecuted proposal at the current block
@@ -1524,13 +967,7 @@ pub const Blockchain = struct {
     /// because executeProposal only mutates consensus_params + the gov registry
     /// (both already serialised by applyBlock's caller).
     fn autoExecutePassedProposals(self: *Blockchain, current_block: u64) void {
-        var ids: [16]u64 = undefined;
-        const n = self.gov_registry.collectPassedUnexecuted(&ids);
-        for (ids[0..n]) |pid| {
-            self.executeProposal(pid, current_block) catch |err| {
-                std.debug.print("[GOV-EXEC] proposal {d} failed: {}\n", .{ pid, err });
-            };
-        }
+        @import("blockchain/governance.zig").autoExecutePassedProposals(self, current_block);
     }
 
     fn applyBlock(self: *Blockchain, block: Block) !void {
