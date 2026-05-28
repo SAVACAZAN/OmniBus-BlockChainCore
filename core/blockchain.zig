@@ -637,31 +637,7 @@ pub const Blockchain = struct {
     }
 
     pub fn addTransaction(self: *Blockchain, tx: Transaction) !void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        const valid = self.validateTransaction(&tx) catch |err| {
-            std.debug.print("[ADD-TX] validateTransaction errored: {} (from={s})\n",
-                .{ err, tx.from_address[0..@min(tx.from_address.len, 20)] });
-            return err;
-        };
-        if (!valid) {
-            std.debug.print("[ADD-TX] InvalidTransaction (from={s} amount={d})\n",
-                .{ tx.from_address[0..@min(tx.from_address.len, 20)], tx.amount });
-            return error.InvalidTransaction;
-        }
-        try self.mempool.append(tx);
-        std.debug.print("[ADD-TX] OK appended to mempool (size now={d})\n", .{self.mempool.items.len});
-
-        // Push real-time WS event for new mempool TX. Off-thread broadcast
-        // walks the connected-clients list under its own mutex; a few µs added
-        // here is fine because addTransaction already holds bc.mutex (i.e. we
-        // are NOT in the inner mining hot loop). Cheap inline JSON via
-        // bufPrint inside ws_srv.broadcastTx — no allocations on this path.
-        if (main_mod.g_ws_srv) |ws| {
-            if (tx.hash.len > 0) {
-                ws.broadcastTx(tx.hash, tx.from_address, tx.amount);
-            }
-        }
+        return @import("blockchain/mempool_helpers.zig").addTransaction(self, tx);
     }
 
     /// Returneaza totalul outgoing pending din mempool pentru o adresa (amount + fee per TX)
@@ -684,250 +660,7 @@ pub const Blockchain = struct {
     }
 
     pub fn validateTransaction(self: *Blockchain, tx: *const Transaction) !bool {
-        // 0. Locktime check: TX locked until block height N cannot be included before that
-        if (tx.locktime > 0) {
-            const current_height: u64 = @intCast(self.chain.items.len);
-            if (tx.locktime > current_height) {
-                std.debug.print("[VALIDATE] FAIL: TX locked until block {d}, current height {d}\n", .{ tx.locktime, current_height });
-                return false;
-            }
-        }
-
-        // 1. Amount trebuie > 0 (unless OP_RETURN data-only TX OR Phase-2A typed TX
-        //    that carries its semantic value in `data`, e.g. order_place/order_cancel
-        //    where the orderbook collateral is reserved separately and `amount`=0
-        //    is the canonical wire form).
-        const is_op_return_tx = tx.op_return.len > 0 and tx.amount == 0;
-        const is_typed_tx = tx.tx_type != .transfer;
-        if (tx.amount == 0 and !is_op_return_tx and !is_typed_tx) { std.debug.print("[VALIDATE] FAIL: amount=0\n", .{}); return false; }
-
-        // 2. Adrese nu pot fi goale si trebuie minim 8 chars (prefix "ob1qhnj2fm3lrmgxzfvyejp97vv8s3ean92myqt9zt")
-        if (tx.from_address.len < 8 or tx.to_address.len < 8) { std.debug.print("[VALIDATE] FAIL: addr too short from={d} to={d}\n", .{tx.from_address.len, tx.to_address.len}); return false; }
-
-        // 3. Prefix valid (isValid verifică prefix + amount + op_return length)
-        if (!tx.isValid()) { std.debug.print("[VALIDATE] FAIL: isValid() from={s} to={s} amt={d}\n", .{tx.from_address[0..@min(42,tx.from_address.len)], tx.to_address[0..@min(42,tx.to_address.len)], tx.amount}); return false; }
-
-        // 3b. Dust threshold — respinge TX prea mici (anti-spam, ca Bitcoin 546 sat)
-        //     Skip dust check for OP_RETURN data-only TXs (amount=0 is allowed)
-        //     Skip for Phase-2A typed TXs (orderbook/bridge/etc. — amount carries
-        //     no transfer semantics, the typed `data` payload does).
-        if (!is_op_return_tx and !is_typed_tx and tx.amount < DUST_THRESHOLD_SAT) { std.debug.print("[VALIDATE] FAIL: dust {d} < {d}\n", .{tx.amount, DUST_THRESHOLD_SAT}); return false; }
-
-        // 3c. Fee minimum check (fee market — at least TX_MIN_FEE = 1 SAT)
-        if (tx.fee < TX_MIN_FEE) { std.debug.print("[VALIDATE] FAIL: fee {d} < min {d}\n", .{tx.fee, TX_MIN_FEE}); return false; }
-
-        // 4. Strict nonce check (anti-replay + anti-gap, ca Ethereum)
-        //    TX nonce must equal chain_nonce + pending_count (sequential, no gaps)
-        //    This prevents replay attacks AND ensures no nonce gaps in the mempool
-        const expected_nonce = self.getNextAvailableNonce(tx.from_address);
-        if (tx.nonce != expected_nonce) { std.debug.print("[VALIDATE] FAIL: nonce {d} != expected {d} (chain={d})\n", .{tx.nonce, expected_nonce, self.getNextNonce(tx.from_address)}); return false; }
-
-        // 5. PHASE-C wire v2: explicit UTXO inputs check.
-        //    For v2 TXs, every listed input must exist in the UTXO set,
-        //    must be owned by from_address, and the input total must
-        //    cover amount + fee. No implicit balance check needed —
-        //    the inputs ARE the balance.
-        if (tx.isV2()) {
-            var input_total: u64 = 0;
-            const current_height: u64 = if (self.chain.items.len == 0) 0
-                else @as(u64, @intCast(self.chain.items.len - 1));
-            for (tx.inputs) |inp| {
-                const utxo = self.utxo_set.getUTXO(inp.tx_hash, inp.output_index) orelse {
-                    std.debug.print(
-                        "[VALIDATE v2] FAIL: input {s}:{d} not in UTXO set\n",
-                        .{ inp.tx_hash, inp.output_index },
-                    );
-                    return false;
-                };
-                if (!std.mem.eql(u8, utxo.address, tx.from_address)) {
-                    std.debug.print(
-                        "[VALIDATE v2] FAIL: input owner mismatch (expected={s}, got={s})\n",
-                        .{ tx.from_address, utxo.address },
-                    );
-                    return false;
-                }
-                if (!utxo.isMature(current_height)) {
-                    std.debug.print(
-                        "[VALIDATE v2] FAIL: input {s}:{d} immature (coinbase needs 100 confirms)\n",
-                        .{ inp.tx_hash, inp.output_index },
-                    );
-                    return false;
-                }
-                input_total += utxo.amount;
-            }
-            // Sum of explicit outputs (if any) must not exceed inputs - fee.
-            var out_total: u64 = 0;
-            for (tx.outputs) |out| out_total += out.amount;
-            if (input_total < out_total + tx.fee) {
-                std.debug.print(
-                    "[VALIDATE v2] FAIL: inputs {d} < outputs {d} + fee {d}\n",
-                    .{ input_total, out_total, tx.fee },
-                );
-                return false;
-            }
-            // Also enforce the implicit (amount, to_address) when outputs[]
-            // is empty — keeps the v1 amount field meaningful.
-            if (tx.outputs.len == 0 and input_total < tx.amount + tx.fee) {
-                std.debug.print(
-                    "[VALIDATE v2] FAIL: inputs {d} < amount {d} + fee {d}\n",
-                    .{ input_total, tx.amount, tx.fee },
-                );
-                return false;
-            }
-        } else {
-            // v1 backward-compat: classic balance + pending check + DEX escrow.
-            // OMNI locked in resting sell orders is real escrow — debit it
-            // from spendable so a user cannot send away OMNI promised to a
-            // pending fill. Cancelling the order releases the lock immediately.
-            const sender_balance = self.getAddressBalance(tx.from_address);
-            const pending_out = self.getPendingOutgoing(tx.from_address);
-            const reserved_in_orders = self.getReservedFromOrders(tx.from_address);
-            const debits = pending_out +| reserved_in_orders;
-            const available = if (sender_balance > debits) sender_balance - debits else 0;
-            if (available < tx.amount + tx.fee) { std.debug.print("[VALIDATE] FAIL: balance {d} - pending {d} - reserved {d} = available {d} < amount+fee {d}\n", .{sender_balance, pending_out, reserved_in_orders, available, tx.amount + tx.fee}); return false; }
-        }
-
-        // 5b-faucet. Faucet address restriction: TX from FAUCET_ADDR may only go
-        //   to addresses that have NOT yet completed pq_attest (onboarding gate).
-        //   This rule is enforced by every miner — funds cannot leave the faucet
-        //   for any purpose other than onboarding a fresh address.
-        if (std.mem.eql(u8, tx.from_address, faucet_mod.FAUCET_ADDR)) {
-            // op_return must be a valid faucet_claim
-            if (!std.mem.startsWith(u8, tx.op_return, faucet_mod.FAUCET_OP_PREFIX)) {
-                std.debug.print("[VALIDATE] FAIL: faucet TX missing faucet_claim op_return\n", .{});
-                return false;
-            }
-            // destination must NOT already have pq_attest (no double-funding)
-            if (self.pq_identity_map.contains(tx.to_address)) {
-                std.debug.print("[VALIDATE] FAIL: faucet TX to already-attested address {s}\n",
-                    .{tx.to_address[0..@min(20, tx.to_address.len)]});
-                return false;
-            }
-            // amount must not exceed FAUCET_AMOUNT_SAT (prevent draining)
-            if (tx.amount > faucet_mod.FAUCET_AMOUNT_SAT) {
-                std.debug.print("[VALIDATE] FAIL: faucet TX amount {d} > max {d}\n",
-                    .{tx.amount, faucet_mod.FAUCET_AMOUNT_SAT});
-                return false;
-            }
-        }
-
-        // 5c-covenant. Covenant whitelist check: if the sender has an active
-        //   destination-whitelist covenant, the TX.to_address must be allowed
-        //   and amount must not exceed per-TX cap.
-        {
-            const current_block: u64 = @intCast(self.chain.items.len);
-            if (!self.covenant_store.checkTx(tx.from_address, tx.to_address, tx.amount, current_block)) {
-                std.debug.print("[VALIDATE] FAIL: covenant violation from={s} to={s} amt={d}\n",
-                    .{ tx.from_address[0..@min(20, tx.from_address.len)],
-                       tx.to_address[0..@min(20, tx.to_address.len)],
-                       tx.amount });
-                return false;
-            }
-        }
-
-        // 5c. Multisig validation: if from_address is "ob_ms_*", recover the
-        //     registered MultisigConfig, decode the M-of-N signature bundle
-        //     from script_sig, and re-verify the quorum independently. Without
-        //     re-verifying here anyone could spend from a registered multisig
-        //     by submitting a TX with signature="multisig_verified".
-        if (std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX)) {
-            const ms_config = self.getMultisigConfig(tx.from_address) orelse {
-                std.debug.print("[VALIDATE] FAIL: multisig address not registered: {s}\n",
-                    .{tx.from_address[0..@min(20, tx.from_address.len)]});
-                return false;
-            };
-            if (tx.script_sig.len == 0) {
-                std.debug.print("[VALIDATE] FAIL: multisig TX missing script_sig bundle\n", .{});
-                return false;
-            }
-            // The signers signed Transaction.calculateHash() — re-derive it
-            // and verify the M-of-N quorum against the registered pubkeys.
-            const expected_hash = tx.calculateHash();
-            if (!multisig_mod.verifyBundle(ms_config, expected_hash, tx.script_sig)) {
-                std.debug.print("[VALIDATE] FAIL: multisig M-of-N quorum verification failed for {s}\n",
-                    .{tx.from_address[0..@min(20, tx.from_address.len)]});
-                return false;
-            }
-            // Bonus check: tx.hash (if set) must match the canonical hash so
-            // explorers/clients see a consistent value.
-            if (tx.hash.len == 64) {
-                var stored_hash: [32]u8 = undefined;
-                hex_utils.hexToBytes(tx.hash, &stored_hash) catch return false;
-                if (!std.mem.eql(u8, &stored_hash, &expected_hash)) {
-                    std.debug.print("[VALIDATE] FAIL: multisig tx.hash mismatch\n", .{});
-                    return false;
-                }
-            }
-        }
-
-        // 6. Verificare semnatura ECDSA secp256k1 cu public key inregistrat
-        //    (signature = 128 hex chars = 64 bytes R||S, hash = 64 hex chars)
-        //    Skip for multisig addresses (they use M-of-N verification instead)
-        //    Skip for PQ schemes (love/food/rent/vacation) — verificate de RPC handler
-        //    inainte de submit; signature size este variabila per scheme.
-        const is_pq_scheme = tx.scheme != .omni_ecdsa;
-        if (is_pq_scheme and tx.hash.len == 64) {
-            // PQ TX: verifica integritatea hash-ului doar (semnatura PQ a fost
-            // verificata de handler la submit). Daca hash-ul nu corespunde
-            // bytes-urilor TX, respinge.
-            const expected_hash = tx.calculateHash();
-            var stored_hash: [32]u8 = undefined;
-            hex_utils.hexToBytes(tx.hash, &stored_hash) catch return false;
-            if (!std.mem.eql(u8, &stored_hash, &expected_hash)) return false;
-        }
-        if (!std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX) and
-            !is_pq_scheme and
-            tx.signature.len == 128 and tx.hash.len == 64)
-        {
-            // 6a. Integritate hash — hash-ul stocat trebuie sa corespunda continutului TX
-            const expected_hash = tx.calculateHash();
-            var stored_hash: [32]u8 = undefined;
-            hex_utils.hexToBytes(tx.hash, &stored_hash) catch return false;
-            if (!std.mem.eql(u8, &stored_hash, &expected_hash)) return false;
-
-            // 6b. Verificare semnatura ECDSA cu public key din registru
-            if (self.pubkey_registry.get(tx.from_address)) |pubkey_hex| {
-                if (!tx.verifyWithHexPubkey(pubkey_hex)) {
-                    std.debug.print(
-                        "[VALIDATE] FAIL: ECDSA signature verification failed for {s} (registered pubkey: {s}, tx_hash: {s}, sig: {s}..)\n",
-                        .{
-                            tx.from_address[0..@min(20, tx.from_address.len)],
-                            pubkey_hex[0..@min(16, pubkey_hex.len)],
-                            tx.hash[0..@min(16, tx.hash.len)],
-                            tx.signature[0..@min(16, tx.signature.len)],
-                        },
-                    );
-                    return false;
-                }
-            }
-            // Daca pubkey nu e inregistrat, acceptam TX (backward compat cu coinbase/genesis)
-            // Urmatoarea TX de la aceasta adresa va fi verificata dupa registerPubkey()
-        } else if (!std.mem.startsWith(u8, tx.from_address, multisig_mod.MULTISIG_PREFIX) and
-                   !is_pq_scheme and
-                   tx.signature.len > 0) {
-            // Semnătură incompletă — respinge (skip for multisig which uses different sig format,
-            // and for PQ schemes which validate at RPC layer with a separate verifier)
-            return false;
-        }
-
-        // 7. Script validation (if TX has scripts attached)
-        //    Empty scripts = legacy ECDSA-only mode (backward compatible)
-        //    If script_pubkey is set but script_sig is empty → reject (can't unlock)
-        //    If both are set → run ScriptVM to validate unlock against lock
-        if (tx.script_pubkey.len > 0) {
-            if (tx.script_sig.len == 0) {
-                std.debug.print("[VALIDATE] FAIL: script_pubkey set but script_sig empty\n", .{});
-                return false;
-            }
-            const tx_hash = tx.calculateHash();
-            const current_height: u64 = @intCast(self.chain.items.len);
-            if (!script_mod.validateScripts(tx.script_sig, tx.script_pubkey, tx_hash, current_height)) {
-                std.debug.print("[VALIDATE] FAIL: script validation failed\n", .{});
-                return false;
-            }
-        }
-
-        return true;
+        return @import("blockchain/validation.zig").validateTransaction(self, tx);
     }
 
     pub fn mineBlock(self: *Blockchain) !Block {
@@ -1153,12 +886,12 @@ pub const Blockchain = struct {
 
     /// Calculate block hash as 64-char hex string (shared implementation in hex_utils)
     pub fn calculateBlockHash(self: *Blockchain, block: *const Block) ![]const u8 {
-        return hex_utils.hashBlock(block.*, self.allocator);
+        return @import("blockchain/validation.zig").calculateBlockHash(self, block);
     }
 
     /// Check if hash meets difficulty (delegates to shared hex_utils)
     pub fn isValidHash(self: *Blockchain, hash: []const u8) !bool {
-        return hex_utils.isValidHashDifficulty(hash, self.difficulty);
+        return @import("blockchain/validation.zig").isValidHash(self, hash);
     }
 
     /// Maximum allowed clock drift for block timestamps (2 hours, like Bitcoin)
@@ -1168,81 +901,7 @@ pub const Blockchain = struct {
     /// Returns true if the block passes all checks, false otherwise.
     /// Checks: merkle root, timestamp, previous hash, difficulty, fees/reward, TX validity.
     pub fn validateBlock(self: *Blockchain, block: *const Block) bool {
-        // 0. Genesis block is trusted — skip validation
-        if (block.index == 0) return true;
-
-        // 1. Merkle root — recalculate from transactions and compare
-        const expected_merkle = block.calculateMerkleRoot();
-        if (!std.mem.eql(u8, &expected_merkle, &block.merkle_root)) {
-            std.debug.print("[VALIDATE_BLOCK] FAIL: merkle root mismatch at block {d}\n", .{block.index});
-            return false;
-        }
-
-        // 2. Timestamp validation
-        const now = std.time.timestamp();
-        // a) Not more than 2 hours in the future
-        if (block.timestamp > now + MAX_FUTURE_SECONDS) {
-            std.debug.print("[VALIDATE_BLOCK] FAIL: block {d} timestamp {d} too far in the future (now={d})\n", .{ block.index, block.timestamp, now });
-            return false;
-        }
-        // b) Not before previous block's timestamp
-        if (block.index > 0) {
-            const prev_idx: usize = @intCast(block.index - 1);
-            if (prev_idx < self.chain.items.len) {
-                const prev_block = self.chain.items[prev_idx];
-                if (block.timestamp < prev_block.timestamp) {
-                    std.debug.print("[VALIDATE_BLOCK] FAIL: block {d} timestamp {d} < prev block timestamp {d}\n", .{ block.index, block.timestamp, prev_block.timestamp });
-                    return false;
-                }
-            }
-        }
-
-        // 3. Previous hash — must match hash of the previous block in chain
-        if (block.index > 0) {
-            const prev_idx: usize = @intCast(block.index - 1);
-            if (prev_idx < self.chain.items.len) {
-                const prev_block = self.chain.items[prev_idx];
-                if (!std.mem.eql(u8, block.previous_hash, prev_block.hash)) {
-                    std.debug.print("[VALIDATE_BLOCK] FAIL: previous_hash mismatch at block {d}\n", .{block.index});
-                    return false;
-                }
-            }
-        }
-
-        // 4. Difficulty — block hash must have required leading zeros
-        if (!hex_utils.isValidHashDifficulty(block.hash, self.difficulty)) {
-            std.debug.print("[VALIDATE_BLOCK] FAIL: hash does not meet difficulty {d} at block {d}\n", .{ self.difficulty, block.index });
-            return false;
-        }
-
-        // 5. Fee validation — miner reward must be <= blockRewardAt(height) + total_fees_to_miner
-        var total_fees: u64 = 0;
-        for (block.transactions.items) |tx| {
-            total_fees += tx.fee;
-        }
-        const max_reward = blockRewardAt(@intCast(block.index));
-        const fees_to_miner = total_fees - (total_fees * FEE_BURN_PCT / 100);
-        if (block.reward_sat > max_reward + fees_to_miner) {
-            std.debug.print("[VALIDATE_BLOCK] FAIL: reward {d} > max {d} + fees {d} at block {d}\n", .{ block.reward_sat, max_reward, fees_to_miner, block.index });
-            return false;
-        }
-
-        // 6. TX validation — all transactions must pass basic validation (prefix, amount > 0)
-        if (!block.validateTransactions()) {
-            std.debug.print("[VALIDATE_BLOCK] FAIL: invalid transaction in block {d}\n", .{block.index});
-            return false;
-        }
-
-        // 7. Bridge limits — sum bridge-lock TXs in this block + last 86400
-        // blocks must not exceed BRIDGE_MAX_DAILY_SAT, and no single TX may
-        // exceed BRIDGE_MAX_PER_TX_SAT. Defense-in-depth from Ronin/Orbit
-        // hacks: even a malicious miner can't push a giant lock through.
-        if (!self.validateBridgeLimits(block)) {
-            std.debug.print("[VALIDATE_BLOCK] FAIL: bridge cap exceeded in block {d}\n", .{block.index});
-            return false;
-        }
-
-        return true;
+        return @import("blockchain/validation.zig").validateBlock(self, block);
     }
 
     // ─── Bridge consensus hooks ──────────────────────────────────────────────
@@ -1252,68 +911,13 @@ pub const Blockchain = struct {
     /// "OMNIBRIDGE:". Cheap inline check called on every TX during block
     /// validation, so kept simple.
     pub fn isBridgeLockTx(tx: *const Transaction) bool {
-        const cfg = @import("chain_config.zig");
-        const vault = cfg.BRIDGE_VAULT_ADDR_HEX;
-        // to_address may be lowercase or mixed; compare case-insensitive on
-        // the hex chars after "0x".
-        if (tx.to_address.len != vault.len) return false;
-        for (tx.to_address, vault) |a, b| {
-            const al = if (a >= 'A' and a <= 'Z') a + 32 else a;
-            const bl = if (b >= 'A' and b <= 'Z') b + 32 else b;
-            if (al != bl) return false;
-        }
-        const prefix = "OMNIBRIDGE:";
-        if (tx.op_return.len < prefix.len) return false;
-        return std.mem.eql(u8, tx.op_return[0..prefix.len], prefix);
+        return @import("blockchain/validation.zig").isBridgeLockTx(tx);
     }
 
     /// Sum lock amounts in `block` and verify per-tx + rolling-day caps.
     /// Caller MUST hold mutex (or be in single-threaded context).
     fn validateBridgeLimits(self: *Blockchain, block: *const Block) bool {
-        const cfg = @import("chain_config.zig");
-        var block_lock_sum: u64 = 0;
-        for (block.transactions.items) |tx| {
-            if (!isBridgeLockTx(&tx)) continue;
-            // Per-tx hard cap.
-            if (tx.amount == 0 or tx.amount > cfg.BRIDGE_MAX_PER_TX_SAT) {
-                std.debug.print(
-                    "[BRIDGE-LIMIT] TX over per-tx cap: amount={d} max={d}\n",
-                    .{ tx.amount, cfg.BRIDGE_MAX_PER_TX_SAT },
-                );
-                return false;
-            }
-            block_lock_sum +%= tx.amount;
-            if (block_lock_sum < tx.amount) return false; // overflow
-        }
-        if (block_lock_sum == 0) return true; // no bridge TXs in this block
-
-        // Rolling 24h: sum lock TXs in the last BRIDGE_DAILY_WINDOW_BLOCKS
-        // blocks (excluding the candidate block itself, which is not in
-        // chain yet) plus the candidate's own lock sum.
-        const window = cfg.BRIDGE_DAILY_WINDOW_BLOCKS;
-        const tip = self.chain.items.len;
-        const start = if (tip > window) tip - window else 0;
-        var historical: u64 = 0;
-        var i: usize = start;
-        while (i < tip) : (i += 1) {
-            const blk = &self.chain.items[i];
-            for (blk.transactions.items) |htx| {
-                if (isBridgeLockTx(&htx)) {
-                    historical +%= htx.amount;
-                    if (historical < htx.amount) return false; // overflow
-                }
-            }
-        }
-        const grand_total = historical +% block_lock_sum;
-        if (grand_total < historical) return false; // overflow
-        if (grand_total > cfg.BRIDGE_MAX_DAILY_SAT) {
-            std.debug.print(
-                "[BRIDGE-LIMIT] daily cap exceeded: hist={d} block={d} cap={d}\n",
-                .{ historical, block_lock_sum, cfg.BRIDGE_MAX_DAILY_SAT },
-            );
-            return false;
-        }
-        return true;
+        return @import("blockchain/validation.zig").validateBridgeLimits(self, block);
     }
 
     /// Accept a block from a P2P peer. Fully validates before appending.
@@ -1527,27 +1131,7 @@ pub const Blockchain = struct {
 
     /// Validate a block as if it were at a specific height (used during reorg).
     fn validateBlockAtHeight(self: *Blockchain, block: *const Block, height: usize) bool {
-        if (block.index == 0) return true;
-
-        const expected_merkle = block.calculateMerkleRoot();
-        if (!std.mem.eql(u8, &expected_merkle, &block.merkle_root)) return false;
-
-        const now = std.time.timestamp();
-        if (block.timestamp > now + MAX_FUTURE_SECONDS) return false;
-
-        if (!hex_utils.isValidHashDifficulty(block.hash, self.difficulty)) return false;
-
-        var total_fees: u64 = 0;
-        for (block.transactions.items) |tx| {
-            total_fees += tx.fee;
-        }
-        const max_reward = blockRewardAt(@intCast(height));
-        const fees_to_miner = total_fees - (total_fees * FEE_BURN_PCT / 100);
-        if (block.reward_sat > max_reward + fees_to_miner) return false;
-
-        if (!block.validateTransactions()) return false;
-
-        return true;
+        return @import("blockchain/validation.zig").validateBlockAtHeight(self, block, height);
     }
 
     /// Apply a validated block to the chain: process TXs, credit miner, append.
@@ -1557,7 +1141,7 @@ pub const Blockchain = struct {
     /// recalculateFromHeight so the derived state stays in sync regardless
     /// of which path produced the block. Keys are duped (HashMap-owned)
     /// because the TX slice may be transient (mempool buffer, replay loop).
-    fn applyOpReturnRoles(self: *Blockchain, tx: Transaction) void {
+    pub fn applyOpReturnRoles(self: *Blockchain, tx: Transaction) void {
         if (tx.op_return.len == 0 or tx.from_address.len == 0) return;
         if (std.mem.startsWith(u8, tx.op_return, "stake:")) {
             // Cap stake at the user's actual balance. Without this we'd
@@ -2270,23 +1854,12 @@ pub const Blockchain = struct {
 
     /// Collect transactions from blocks being removed during reorg and return them to mempool.
     fn collectOrphanedTxs(self: *Blockchain, from_height: usize) !void {
-        for (from_height..self.chain.items.len) |i| {
-            const blk = &self.chain.items[i];
-            for (blk.transactions.items) |tx| {
-                try self.mempool.append(tx);
-            }
-        }
+        return @import("blockchain/mempool_helpers.zig").collectOrphanedTxs(self, from_height);
     }
 
     /// Remove mempool TXs that already exist in the current chain.
     fn removeMempoolDuplicates(self: *Blockchain) void {
-        var write: usize = 0;
-        for (self.mempool.items) |tx| {
-            if (self.tx_block_height.get(tx.hash) != null) continue;
-            self.mempool.items[write] = tx;
-            write += 1;
-        }
-        self.mempool.items.len = write;
+        return @import("blockchain/mempool_helpers.zig").removeMempoolDuplicates(self);
     }
 
     /// Recalculate balances, nonces, and tx_block_height by replaying all blocks from genesis.
@@ -2294,109 +1867,18 @@ pub const Blockchain = struct {
     /// — without this, the balances HashMap retains entries for now-discarded blocks
     /// whose dupe()'d address keys may have been freed → segfault on next getOrPut.
     pub fn recalculateFromHeight(self: *Blockchain, from_height: usize) !void {
-        // PHASE C.3 — full chain replay is a legitimate write window.
-        self.in_apply_block = true;
-        defer self.in_apply_block = false;
-
-        _ = from_height;
-        // Clear all balance/nonce/tx state and replay from genesis
-        self.balances.clearRetainingCapacity();
-        self.nonces.clearRetainingCapacity();
-        self.tx_block_height.clearRetainingCapacity();
-        self.stake_amounts.clearRetainingCapacity();
-        // Free meta keys before clearing — same pattern as deinit().
-        var meta_it_clear = self.stake_meta.iterator();
-        while (meta_it_clear.next()) |entry| {
-            self.allocator.free(entry.key_ptr.*);
-        }
-        self.stake_meta.clearRetainingCapacity();
-        self.registered_agents.clearRetainingCapacity();
-        // Clear and rebuild UTXO set from chain
-        self.utxo_set.deinit();
-        self.utxo_set = utxo_mod.UTXOSet.init(self.allocator);
-
-        for (1..self.chain.items.len) |i| {
-            const blk = &self.chain.items[i];
-            var blk_total_fees: u64 = 0;
-            for (blk.transactions.items) |tx| {
-                const total_needed = tx.amount + tx.fee;
-                // FIX (2026-05-03): la replay nu sarim TX-urile cu selectUTXOs failed.
-                // Aceeasi logica ca in mineBlockForMiner — fallback pe balance check.
-                var selection_opt: ?utxo_mod.UTXOSet.Selection = null;
-                if (self.utxo_set.selectUTXOs(tx.from_address, total_needed, @intCast(blk.index), self.allocator)) |sel| {
-                    selection_opt = sel;
-                } else |err| {
-                    std.debug.print("[RECALC] selectUTXOs failed for {s}: {} — fallback la balance check\n",
-                        .{tx.from_address[0..@min(20, tx.from_address.len)], err});
-                }
-                if (selection_opt) |*selection| {
-                    defer selection.utxos.deinit(self.allocator);
-                    for (selection.utxos.items) |utxo| {
-                        _ = self.utxo_set.spendUTXO(utxo.tx_hash, utxo.output_index) catch |err| {
-                            std.debug.print("[RECALC] spendUTXO failed: {}\n", .{err});
-                        };
-                    }
-                    if (selection.total > total_needed) {
-                        const change = selection.total - total_needed;
-                        self.utxo_set.addUTXO(tx.hash, 1, tx.from_address, change, @intCast(blk.index), "", false) catch {};
-                    }
-                }
-
-                self.debitBalanceLocked(tx.from_address, tx.amount + tx.fee) catch {};
-                self.creditBalanceLocked(tx.to_address, tx.amount) catch {};
-                blk_total_fees += tx.fee;
-                const current_nonce = self.nonces.get(tx.from_address) orelse 0;
-                self.nonces.put(tx.from_address, current_nonce + 1) catch {};
-                self.tx_block_height.put(tx.hash, @intCast(blk.index)) catch {};
-                self.applyOpReturnRoles(tx);
-                // Rebuild address_tx_index from persisted TXs (DB v4) so that
-                // getaddresshistory returns history through restarts.
-                self.indexAddressTx(tx.from_address, tx.hash);
-                if (!std.mem.eql(u8, tx.from_address, tx.to_address)) {
-                    self.indexAddressTx(tx.to_address, tx.hash);
-                }
-                self.utxo_set.addUTXO(tx.hash, 0, tx.to_address, tx.amount, @intCast(blk.index), "", false) catch {};
-            }
-            const fees_burned = blk_total_fees * FEE_BURN_PCT / 100;
-            const fees_to_miner = blk_total_fees - fees_burned;
-            if (blk.miner_address.len > 0 and (blk.reward_sat > 0 or fees_to_miner > 0)) {
-                self.creditBalanceLocked(blk.miner_address, blk.reward_sat + fees_to_miner) catch {};
-                self.utxo_set.addUTXO(blk.hash, 0, blk.miner_address, blk.reward_sat + fees_to_miner, @intCast(blk.index), "", true) catch {};
-            }
-        }
+        return @import("blockchain/mempool_helpers.zig").recalculateFromHeight(self, from_height);
     }
 
     /// Process orphan blocks: check if any now connect to our chain tip.
     /// Keeps trying until no more orphans connect (cascading resolution).
     pub fn processOrphans(self: *Blockchain) void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        self.processOrphansInternal();
+        return @import("blockchain/mempool_helpers.zig").processOrphans(self);
     }
 
     /// Internal processOrphans (no mutex, called from methods that already hold it).
     fn processOrphansInternal(self: *Blockchain) void {
-        var progress = true;
-        while (progress) {
-            progress = false;
-            const tip_hash = self.chain.items[self.chain.items.len - 1].hash;
-            var i: usize = 0;
-            while (i < self.orphan_blocks.items.len) {
-                const orphan = self.orphan_blocks.items[i];
-                if (std.mem.eql(u8, orphan.previous_hash, tip_hash)) {
-                    if (self.validateBlock(&orphan)) {
-                        self.applyBlock(orphan) catch {
-                            i += 1;
-                            continue;
-                        };
-                        _ = self.orphan_blocks.swapRemove(i);
-                        progress = true;
-                        continue;
-                    }
-                }
-                i += 1;
-            }
-        }
+        return @import("blockchain/mempool_helpers.zig").processOrphansInternal(self);
     }
 
     pub fn getBlock(self: *Blockchain, index: u32) ?Block {
@@ -2457,384 +1939,14 @@ pub const Blockchain = struct {
         return @import("blockchain/accessors.zig").getLatestBlockSnapshot(self);
     }
 
-    // ─── PHASE 2F.2 — HTLC state transitions ────────────────────────────
-    //
-    // Dispatch a single HTLC-typed TX (htlc_init / htlc_claim / htlc_refund).
-    // Called from applyBlock for every TX whose `tx_type` is in the HTLC
-    // group. Funds are tracked virtually: bc.balances is the only ledger
-    // touched. UTXO state is intentionally left alone — htlc_init carries
-    // amount=0 on the typed envelope; the locked value lives entirely in
-    // the registry until claim/refund releases it back into bc.balances.
-    //
-    // This emits WS events on success (htlc_created/htlc_claimed/htlc_refunded)
-    // so the UI can react in real time. Errors are logged and the TX is
-    // skipped — applyBlock keeps going so a single bad HTLC TX cannot stall
-    // the rest of the block.
+    // HTLC TX dispatcher — extracted to blockchain/htlc_tx.zig
     fn applyHtlcTx(self: *Blockchain, tx: Transaction, block_height: u32) !void {
-        switch (tx.tx_type) {
-            .htlc_init => {
-                const payload = try tx_payload_mod.HtlcInitPayload.decode(tx.data);
-                try payload.validate();
-
-                // Sender must have enough free balance to lock.
-                const sender_bal = self.balances.get(tx.from_address) orelse 0;
-                if (sender_bal < payload.amount_sat) return error.HtlcInsufficientFunds;
-
-                // Build the deterministic 32-byte id from the init TX hash.
-                const id = htlc_mod.computeHtlcId(tx.hash);
-
-                // Build entry. sender = tx.from_address, recipient = tx.to_address.
-                if (tx.from_address.len > htlc_mod.HTLC_MAX_ADDR_LEN) return error.HtlcAddressTooLong;
-                if (tx.to_address.len > htlc_mod.HTLC_MAX_ADDR_LEN) return error.HtlcAddressTooLong;
-
-                var e = htlc_mod.HtlcEntry{
-                    .id = id,
-                    .amount_sat = payload.amount_sat,
-                    .hash_lock = payload.hash_lock,
-                    .timelock_block = payload.timelock_block,
-                    .init_block = block_height,
-                    .state = .active,
-                };
-                @memcpy(e.sender[0..tx.from_address.len], tx.from_address);
-                e.sender_len = @intCast(tx.from_address.len);
-                @memcpy(e.recipient[0..tx.to_address.len], tx.to_address);
-                e.recipient_len = @intCast(tx.to_address.len);
-                if (tx.hash.len <= 64) {
-                    @memcpy(e.init_tx_hash[0..tx.hash.len], tx.hash);
-                    e.init_tx_hash_len = @intCast(tx.hash.len);
-                }
-
-                try self.htlc_registry.addEntry(e);
-                // Lock sender funds (debit balance — held until claim/refund).
-                try self.debitBalanceLocked(tx.from_address, payload.amount_sat);
-
-                // WS event: htlc_created.
-                if (main_mod.g_ws_srv) |ws| {
-                    var json_buf: [512]u8 = undefined;
-                    const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"htlc_created\",\"htlc_id\":\"{s}\",\"sender\":\"{s}\",\"recipient\":\"{s}\",\"amount_sat\":{d},\"timelock_block\":{d}}}",
-                        .{ tx.hash, tx.from_address, tx.to_address, payload.amount_sat, payload.timelock_block }) catch null;
-                    if (json) |j| ws.broadcast(j);
-                }
-            },
-            .htlc_claim => {
-                const payload = try tx_payload_mod.HtlcClaimPayload.decode(tx.data);
-                try payload.validate();
-
-                // Lookup BEFORE applying claim so we can validate identity.
-                const entry_opt = self.htlc_registry.get(payload.htlc_id);
-                const entry = entry_opt orelse return error.HtlcNotFound;
-                if (entry.state != .active) return error.HtlcNotActive;
-                // Only the registered recipient can claim.
-                if (!std.mem.eql(u8, entry.recipientSlice(), tx.from_address))
-                    return error.HtlcUnauthorizedClaim;
-
-                try self.htlc_registry.applyClaim(payload.htlc_id, payload.preimage);
-                // Release locked funds to recipient (== tx.from_address here).
-                try self.creditBalanceLocked(tx.from_address, entry.amount_sat);
-
-                if (main_mod.g_ws_srv) |ws| {
-                    var json_buf: [512]u8 = undefined;
-                    var pre_hex: [64]u8 = undefined;
-                    for (payload.preimage, 0..) |b, i| {
-                        _ = std.fmt.bufPrint(pre_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
-                    }
-                    const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"htlc_claimed\",\"htlc_id_tx\":\"{s}\",\"recipient\":\"{s}\",\"amount_sat\":{d},\"preimage\":\"{s}\"}}",
-                        .{ tx.hash, tx.from_address, entry.amount_sat, &pre_hex }) catch null;
-                    if (json) |j| ws.broadcast(j);
-                }
-            },
-            .htlc_refund => {
-                const payload = try tx_payload_mod.HtlcRefundPayload.decode(tx.data);
-                try payload.validate();
-
-                const entry_opt = self.htlc_registry.get(payload.htlc_id);
-                const entry = entry_opt orelse return error.HtlcNotFound;
-                if (entry.state != .active and entry.state != .expired)
-                    return error.HtlcNotRefundable;
-                // Only the original sender can refund.
-                if (!std.mem.eql(u8, entry.senderSlice(), tx.from_address))
-                    return error.HtlcUnauthorizedRefund;
-                if (block_height < entry.timelock_block) return error.HtlcNotExpired;
-
-                try self.htlc_registry.applyRefund(payload.htlc_id, block_height);
-                // Return locked funds to sender.
-                try self.creditBalanceLocked(tx.from_address, entry.amount_sat);
-
-                if (main_mod.g_ws_srv) |ws| {
-                    var json_buf: [512]u8 = undefined;
-                    const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"htlc_refunded\",\"htlc_id_tx\":\"{s}\",\"sender\":\"{s}\",\"amount_sat\":{d}}}",
-                        .{ tx.hash, tx.from_address, entry.amount_sat }) catch null;
-                    if (json) |j| ws.broadcast(j);
-                }
-            },
-            else => {}, // not an HTLC TX — caller filtered already
-        }
+        return @import("blockchain/htlc_tx.zig").applyHtlcTx(self, tx, block_height);
     }
 
-    // ─── PHASE 2F.3: intent TX state transitions ─────────────────────────
-    //
-    // Intent TXs (0x40/0x41/0x43) carry signed off-chain swap commitments
-    // through the chain so every node converges on the same SwapBinding
-    // state. They do NOT move coin directly — bond locking is virtual via
-    // bc.balances; settlement happens through the htlc_claim that the
-    // taker eventually broadcasts on the destination chain. This function
-    // emits WS events so the UI/orderbook can react in real time.
-    //
-    // Intent semantics here are intentionally minimal — the swap_registry
-    // already captures full state via order_swap_link.zig, so applyIntentTx
-    // serves mainly as: (a) on-chain receipt for solvers, (b) WS broadcast
-    // surface, (c) a hook for future bond accounting. Errors are logged
-    // and the TX is accepted into history regardless — the caller filters.
+    // Intent TX dispatcher — extracted to blockchain/intent_tx.zig
     fn applyIntentTx(self: *Blockchain, tx: Transaction, block_height: u32) !void {
-        switch (tx.tx_type) {
-            .intent_post => {
-                const payload = try tx_payload_mod.IntentPostPayload.decode(tx.data);
-                try payload.validate();
-
-                // Bond accounting: maker locks `maker_amount_sat` worth of
-                // collateral up-front. Without this, a malicious maker can
-                // spam intents that cost them nothing and waste solver
-                // bond bandwidth. We treat `maker_amount_sat` itself as
-                // the maker's locked-bond size — the asset they're offering
-                // — which matches how the matching engine collateralises
-                // the parent order.
-                //
-                // We try the debit but DO NOT abort the TX on insufficient
-                // funds: applyBlock is called for every TX in a block, and
-                // a fork or replay must not panic the chain. If the maker
-                // is broke, we emit a "warning" event and skip registry
-                // entry — the order itself was already validated by mempool
-                // admission, so insufficient funds at apply time means the
-                // maker double-spent during the block window.
-                const maker_bond = payload.maker_amount_sat;
-                self.debitBalanceLocked(tx.from_address, maker_bond) catch |err| {
-                    std.debug.print(
-                        "[INTENT] post: cannot lock maker bond {d} for {s}: {} — entry skipped\n",
-                        .{ maker_bond, tx.from_address[0..@min(20, tx.from_address.len)], err },
-                    );
-                    if (main_mod.g_ws_srv) |ws| {
-                        var iid_hex: [64]u8 = undefined;
-                        for (payload.intent_id, 0..) |b, i| {
-                            _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
-                        }
-                        var json_buf: [256]u8 = undefined;
-                        const j = std.fmt.bufPrint(&json_buf,
-                            "{{\"type\":\"intent_post_failed\",\"intent_id\":\"{s}\",\"reason\":\"insufficient_bond\"}}",
-                            .{ &iid_hex }) catch null;
-                        if (j) |s| ws.broadcast(s);
-                    }
-                    return;
-                };
-
-                // Build the registry entry. Caller's address slice is owned
-                // by the TX, but we copy into the entry's fixed buffer so
-                // it survives independently.
-                if (tx.from_address.len > intent_reg_mod.MAX_ADDR_LEN) {
-                    // Refund the bond we just took — entry can't be created.
-                    self.creditBalanceLocked(tx.from_address, maker_bond) catch {};
-                    return error.IntentAddressTooLong;
-                }
-                var entry: intent_reg_mod.IntentEntry = .{
-                    .intent_id = payload.intent_id,
-                    .swap_id = payload.swap_id,
-                    .maker_amount_sat = payload.maker_amount_sat,
-                    .taker_min_sat = payload.taker_min_sat,
-                    .maker_bond_locked_sat = maker_bond,
-                    .expiry_block = payload.expiry_block,
-                    .state = .posted,
-                };
-                @memcpy(entry.maker_address[0..tx.from_address.len], tx.from_address);
-                entry.maker_address_len = @intCast(tx.from_address.len);
-                self.intent_registry.addEntry(entry) catch |err| {
-                    // Refund on duplicate/full so book stays balanced.
-                    self.creditBalanceLocked(tx.from_address, maker_bond) catch {};
-                    std.debug.print("[INTENT] post addEntry failed: {} (bond refunded)\n", .{err});
-                    return;
-                };
-
-                if (main_mod.g_ws_srv) |ws| {
-                    var iid_hex: [64]u8 = undefined;
-                    var sid_hex: [64]u8 = undefined;
-                    for (payload.intent_id, 0..) |b, i| {
-                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
-                    }
-                    for (payload.swap_id, 0..) |b, i| {
-                        _ = std.fmt.bufPrint(sid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
-                    }
-                    var json_buf: [768]u8 = undefined;
-                    const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"intent_posted\",\"intent_id\":\"{s}\",\"swap_id\":\"{s}\",\"maker\":\"{s}\",\"taker_chain\":{d},\"expiry_block\":{d},\"maker_amount_sat\":{d},\"maker_bond_locked_sat\":{d}}}",
-                        .{ &iid_hex, &sid_hex, tx.from_address, payload.taker_chain,
-                           payload.expiry_block, payload.maker_amount_sat, maker_bond }) catch null;
-                    if (json) |j| ws.broadcast(j);
-                }
-            },
-            .intent_fill_commit => {
-                const payload = try tx_payload_mod.IntentFillCommitPayload.decode(tx.data);
-                try payload.validate();
-
-                // Look up the parent intent. If it doesn't exist (rogue
-                // commit, or post was skipped due to insufficient bond), we
-                // skip registry mutation but accept the TX into history so
-                // the address index sees it.
-                const parent_opt = self.intent_registry.findById(payload.intent_id);
-                if (parent_opt == null) {
-                    std.debug.print("[INTENT] fill_commit: unknown intent_id — TX accepted, no bond locked\n", .{});
-                    return;
-                }
-                const parent = parent_opt.?;
-                if (parent.state != .posted) {
-                    std.debug.print("[INTENT] fill_commit: intent in state {} — TX accepted, no bond locked\n",
-                        .{parent.state});
-                    return;
-                }
-
-                // Lock the solver's bond from their on-chain balance.
-                self.debitBalanceLocked(tx.from_address, payload.bond_locked_sat) catch |err| {
-                    std.debug.print(
-                        "[INTENT] fill_commit: cannot lock taker bond {d} for {s}: {} — TX accepted, registry unchanged\n",
-                        .{ payload.bond_locked_sat, tx.from_address[0..@min(20, tx.from_address.len)], err },
-                    );
-                    return;
-                };
-
-                self.intent_registry.commitFill(
-                    payload.intent_id,
-                    tx.from_address,
-                    payload.bond_locked_sat,
-                    payload.commit_block,
-                ) catch |err| {
-                    // Roll back the debit so the taker's balance is consistent.
-                    self.creditBalanceLocked(tx.from_address, payload.bond_locked_sat) catch {};
-                    std.debug.print("[INTENT] commitFill failed: {} (bond refunded)\n", .{err});
-                    return;
-                };
-
-                if (main_mod.g_ws_srv) |ws| {
-                    var iid_hex: [64]u8 = undefined;
-                    for (payload.intent_id, 0..) |b, i| {
-                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
-                    }
-                    var json_buf: [512]u8 = undefined;
-                    const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"intent_committed\",\"intent_id\":\"{s}\",\"taker\":\"{s}\",\"bond_locked_sat\":{d},\"commit_block\":{d}}}",
-                        .{ &iid_hex, tx.from_address, payload.bond_locked_sat, payload.commit_block }) catch null;
-                    if (json) |j| ws.broadcast(j);
-                }
-            },
-            .intent_timeout => {
-                const payload = try tx_payload_mod.IntentTimeoutPayload.decode(tx.data);
-                try payload.validate();
-
-                const parent_opt = self.intent_registry.findById(payload.intent_id);
-                if (parent_opt == null) {
-                    std.debug.print("[INTENT] timeout: unknown intent_id — TX accepted, no slash applied\n", .{});
-                    return;
-                }
-                const parent = parent_opt.?;
-
-                // Two valid prior states:
-                //  * .committed → taker bond is slashed to maker (penalty
-                //    for missing the deadline). Maker bond is also returned.
-                //  * .posted    → no taker bond exists; only the maker
-                //    bond is refunded (intent expired before any solver
-                //    committed — no slash, just cleanup).
-                // Any other state (.settled / .timed_out) is a no-op.
-                if (parent.state == .committed) {
-                    const slash_amount = if (payload.slashed_bond_sat == 0)
-                        parent.taker_bond_locked_sat
-                    else
-                        @min(payload.slashed_bond_sat, parent.taker_bond_locked_sat);
-
-                    // Slash → maker.
-                    if (slash_amount > 0 and parent.maker_address_len > 0) {
-                        self.creditBalanceLocked(parent.makerSlice(), slash_amount) catch |err| {
-                            std.debug.print("[INTENT] timeout: slash credit failed: {}\n", .{err});
-                        };
-                    }
-                    // Refund any excess taker bond back to taker (not slashed).
-                    const taker_refund = parent.taker_bond_locked_sat - slash_amount;
-                    if (taker_refund > 0 and parent.taker_address_len > 0) {
-                        self.creditBalanceLocked(parent.takerSlice(), taker_refund) catch {};
-                    }
-                    // Refund maker bond to maker.
-                    if (parent.maker_bond_locked_sat > 0 and parent.maker_address_len > 0) {
-                        self.creditBalanceLocked(parent.makerSlice(), parent.maker_bond_locked_sat) catch {};
-                    }
-                    self.intent_registry.markTimedOut(payload.intent_id) catch {};
-                } else if (parent.state == .posted) {
-                    // Only refund maker bond — no taker exists.
-                    if (parent.maker_bond_locked_sat > 0 and parent.maker_address_len > 0) {
-                        self.creditBalanceLocked(parent.makerSlice(), parent.maker_bond_locked_sat) catch {};
-                    }
-                    self.intent_registry.markTimedOut(payload.intent_id) catch {};
-                } else {
-                    std.debug.print("[INTENT] timeout: state {} — no-op\n", .{parent.state});
-                }
-
-                if (main_mod.g_ws_srv) |ws| {
-                    var iid_hex: [64]u8 = undefined;
-                    for (payload.intent_id, 0..) |b, i| {
-                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
-                    }
-                    var json_buf: [512]u8 = undefined;
-                    const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"intent_timed_out\",\"intent_id\":\"{s}\",\"slashed_bond_sat\":{d},\"block_height\":{d}}}",
-                        .{ &iid_hex, payload.slashed_bond_sat, block_height }) catch null;
-                    if (json) |j| ws.broadcast(j);
-                }
-            },
-            .intent_settle => {
-                // Settlement: parse intent_id from the payload (first 32 bytes
-                // after the version byte — same convention as the other
-                // intent payloads). Refund both bonds to their owners.
-                //
-                // We don't have a strict IntentSettlePayload decoder yet
-                // (validatePayload accepts any non-empty bytes for this
-                // type — see tx_payload.zig). The minimal field we need
-                // is intent_id; tx.data layout: [0]=version, [1..33]=intent_id.
-                if (tx.data.len < 33 or tx.data[0] != 1) {
-                    std.debug.print("[INTENT] settle: bad payload — TX accepted, no bond movement\n", .{});
-                    return;
-                }
-                var iid: [32]u8 = undefined;
-                @memcpy(&iid, tx.data[1..33]);
-
-                const parent_opt = self.intent_registry.findById(iid);
-                if (parent_opt == null) {
-                    std.debug.print("[INTENT] settle: unknown intent_id\n", .{});
-                    return;
-                }
-                const parent = parent_opt.?;
-                if (parent.state != .posted and parent.state != .committed) {
-                    return; // already terminal — no-op
-                }
-                // Refund both bonds to their owners.
-                if (parent.maker_bond_locked_sat > 0 and parent.maker_address_len > 0) {
-                    self.creditBalanceLocked(parent.makerSlice(), parent.maker_bond_locked_sat) catch {};
-                }
-                if (parent.taker_bond_locked_sat > 0 and parent.taker_address_len > 0) {
-                    self.creditBalanceLocked(parent.takerSlice(), parent.taker_bond_locked_sat) catch {};
-                }
-                self.intent_registry.markSettled(iid) catch {};
-
-                if (main_mod.g_ws_srv) |ws| {
-                    var iid_hex: [64]u8 = undefined;
-                    for (iid, 0..) |b, i| {
-                        _ = std.fmt.bufPrint(iid_hex[i*2..i*2+2], "{x:0>2}", .{b}) catch {};
-                    }
-                    var json_buf: [384]u8 = undefined;
-                    const json = std.fmt.bufPrint(&json_buf,
-                        "{{\"type\":\"intent_settled\",\"intent_id\":\"{s}\",\"maker_bond_refunded\":{d},\"taker_bond_refunded\":{d}}}",
-                        .{ &iid_hex, parent.maker_bond_locked_sat, parent.taker_bond_locked_sat }) catch null;
-                    if (json) |j| ws.broadcast(j);
-                }
-            },
-            else => {}, // not an intent TX — caller filtered already
-        }
+        return @import("blockchain/intent_tx.zig").applyIntentTx(self, tx, block_height);
     }
 
     // ─── PHASE 2B: deterministic order matching ─────────────────────────
