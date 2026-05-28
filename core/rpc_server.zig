@@ -66,6 +66,11 @@ const cold_wallet_mod = @import("cold_wallet.zig");
 const timelock_mod    = @import("timelock_vault.zig");
 const covenant_mod    = @import("covenant.zig");
 const treasury_multi_mod = @import("treasury_multi.zig");
+// Domain RPC handlers — split out per Bitcoin-Core style. See core/rpc/README.md.
+const rpc_eth = @import("rpc/eth.zig");
+const rpc_chain = @import("rpc/chain.zig");
+const rpc_mempool = @import("rpc/mempool.zig");
+const rpc_net = @import("rpc/net.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 // Process-global cross-chain oracle. Validators populate this via
@@ -178,7 +183,7 @@ const RegisteredMiner = struct {
 const MAX_REGISTERED_MINERS = 256;
 
 /// Context partajat intre thread-uri (blockchain + wallet + module noi)
-const ServerCtx = struct {
+pub const ServerCtx = struct {
     bc:        *Blockchain,
     wallet:    *Wallet,
     /// Faucet wallet — OPTIONAL second key, only loaded when the node
@@ -2905,12 +2910,6 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
 // ─── JSON-RPC dispatcher ──────────────────────────────────────────────────────
 // Refactored: fiecare RPC method are handler propriu pentru claritate si testabilitate
 
-fn handleGetBlockCount(ctx: *ServerCtx, id: u64) ![]u8 {
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{d}}}",
-        .{ id, ctx.bc.getBlockCount() });
-}
-
 fn handleGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const req_addr = extractArrayStr(body, 0) orelse
@@ -3116,20 +3115,6 @@ fn handleListUnspent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // released, on data that no longer aliases chain memory. Eliminates UAF on
 // blk.hash / blk.previous_hash / blk.transactions.items when mining concurrently
 // reallocs/swaps the chain.
-fn handleGetLatestBlock(ctx: *ServerCtx, id: u64) ![]u8 {
-    var snap = ctx.bc.getLatestBlockSnapshot();
-    defer snap.deinit(ctx.allocator);
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"index\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"previousHash\":\"{s}\",\"nonce\":{d},\"txCount\":{d}}}}}",
-        .{ id, snap.height, snap.timestamp, snap.hash(), snap.prevHash(), snap.nonce, snap.tx_count });
-}
-
-fn handleGetMempoolSize(ctx: *ServerCtx, id: u64) ![]u8 {
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{d}}}",
-        .{ id, ctx.bc.mempool.items.len });
-}
-
 fn handleGetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
     return std.fmt.allocPrint(ctx.allocator,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"running\",\"blockCount\":{d},\"mempoolSize\":{d},\"address\":\"{s}\",\"balance\":{d}}}}}",
@@ -4030,15 +4015,15 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     const method = extractStr(body, "method") orelse return errorJson(-32600, "Invalid request", 0, alloc);
     const id      = extractId(body);
 
-    if (std.mem.eql(u8, method, "getblockcount")) {
-        return handleGetBlockCount(ctx, id);
-    }
+    // Chain queries — see core/rpc/chain.zig
+    if (std.mem.eql(u8, method, "getblockcount"))  return rpc_chain.handleGetBlockCount(ctx, id);
+    if (std.mem.eql(u8, method, "getlatestblock")) return rpc_chain.handleGetLatestBlock(ctx, id);
+    // Mempool — see core/rpc/mempool.zig
+    if (std.mem.eql(u8, method, "getmempoolsize")) return rpc_mempool.handleGetMempoolSize(ctx, id);
 
     if (std.mem.eql(u8, method, "getbalance"))     return handleGetBalance(body, ctx, id);
     if (std.mem.eql(u8, method, "getwalletsummary")) return handleGetWalletSummary(body, ctx, id);
     if (std.mem.eql(u8, method, "listunspent"))    return handleListUnspent(body, ctx, id);
-    if (std.mem.eql(u8, method, "getlatestblock")) return handleGetLatestBlock(ctx, id);
-    if (std.mem.eql(u8, method, "getmempoolsize")) return handleGetMempoolSize(ctx, id);
     if (std.mem.eql(u8, method, "getstatus"))      return handleGetStatus(ctx, id);
 
     // Route to handler functions (refactored for low cyclomatic complexity)
@@ -4047,13 +4032,13 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "registerminer"))    return handleRegMiner(body, ctx, id);
     if (std.mem.eql(u8, method, "getpoolstats"))     return handlePoolStats(ctx, id);
     if (std.mem.eql(u8, method, "getaddressbalance"))return handleAddrBal(body, ctx, id);
-    if (std.mem.eql(u8, method, "getmempoolstats"))  return handleMpStats(ctx, id);
-    if (std.mem.eql(u8, method, "getpendingtxs"))   return handleGetPendingTxs(body, ctx, id);
-    if (std.mem.eql(u8, method, "getpeers"))         return handlePeers(ctx, id);
-    if (std.mem.eql(u8, method, "getsyncstatus"))    return handleSyncSt(ctx, id);
-    if (std.mem.eql(u8, method, "getnetworkinfo"))   return handleNetInfo(ctx, id);
-    if (std.mem.eql(u8, method, "getblock"))         return handleGetBlk(body, ctx, id);
-    if (std.mem.eql(u8, method, "getblocks"))        return handleGetBlks(body, ctx, id);
+    if (std.mem.eql(u8, method, "getmempoolstats"))  return rpc_mempool.handleMpStats(ctx, id);
+    if (std.mem.eql(u8, method, "getpendingtxs"))   return rpc_mempool.handleGetPendingTxs(body, ctx, id);
+    if (std.mem.eql(u8, method, "getpeers"))         return rpc_net.handlePeers(ctx, id);
+    if (std.mem.eql(u8, method, "getsyncstatus"))    return rpc_net.handleSyncSt(ctx, id);
+    if (std.mem.eql(u8, method, "getnetworkinfo"))   return rpc_net.handleNetInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getblock"))         return rpc_chain.handleGetBlk(body, ctx, id);
+    if (std.mem.eql(u8, method, "getblocks"))        return rpc_chain.handleGetBlks(body, ctx, id);
     if (std.mem.eql(u8, method, "getminerstats"))    return handleMinerSt(ctx, id);
     if (std.mem.eql(u8, method, "getvalidators"))    return handleGetValidators(ctx, id);
     if (std.mem.eql(u8, method, "getslotleader"))    return handleGetSlotLeader(ctx, id);
@@ -4061,8 +4046,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getslotcalendar")) return handleGetSlotCalendar(ctx, id);
     if (std.mem.eql(u8, method, "getfuturepool"))    return handleGetFuturePool(ctx, id);
     if (std.mem.eql(u8, method, "getminerinfo"))     return handleMinerInf(ctx, id);
-    if (std.mem.eql(u8, method, "getnodelist"))      return handleNodeList(ctx, id);
-    if (std.mem.eql(u8, method, "estimatefee"))       return handleEstimateFee(ctx, id);
+    if (std.mem.eql(u8, method, "getnodelist"))      return rpc_net.handleNodeList(ctx, id);
+    if (std.mem.eql(u8, method, "estimatefee"))       return rpc_mempool.handleEstimateFee(ctx, id);
     if (std.mem.eql(u8, method, "getnonce"))          return handleGetNonce(body, ctx, id);
     if (std.mem.eql(u8, method, "gettransaction"))   return handleGetTx(body, ctx, id);
     if (std.mem.eql(u8, method, "sendopreturn"))     return handleSendOpReturn(body, ctx, id);
@@ -4072,7 +4057,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "claimfaucet"))      return handleClaimFaucet(body, ctx, id);
     if (std.mem.eql(u8, method, "getfaucetstatus"))  return handleFaucetStatus(ctx, id);
     if (std.mem.eql(u8, method, "getrichlist"))      return handleRichList(body, ctx, id);
-    if (std.mem.eql(u8, method, "getchainmetrics"))  return handleChainMetrics(ctx, id);
+    if (std.mem.eql(u8, method, "getchainmetrics"))  return rpc_chain.handleChainMetrics(ctx, id);
     if (std.mem.eql(u8, method, "getschemestats"))   return handleSchemeStats(body, ctx, id);
     if (std.mem.eql(u8, method, "registername"))     return handleRegisterName(body, ctx, id);
     if (std.mem.eql(u8, method, "transfername"))     return handleTransferName(body, ctx, id);
@@ -4214,11 +4199,11 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "generatewallet"))  return errorJson(-32601, "Use CLI wallet generation", id, alloc);
 
     // Performance metrics
-    if (std.mem.eql(u8, method, "getperformance"))   return handleGetPerformance(ctx, id);
+    if (std.mem.eql(u8, method, "getperformance"))   return rpc_mempool.handleGetPerformance(ctx, id);
 
     // SPV light client endpoints
-    if (std.mem.eql(u8, method, "getheaders"))       return handleGetHeaders(body, ctx, id);
-    if (std.mem.eql(u8, method, "getmerkleproof"))   return handleGetMerkleProof(body, ctx, id);
+    if (std.mem.eql(u8, method, "getheaders"))       return rpc_chain.handleGetHeaders(body, ctx, id);
+    if (std.mem.eql(u8, method, "getmerkleproof"))   return rpc_chain.handleGetMerkleProof(body, ctx, id);
 
     // Staking slashing endpoints
     if (std.mem.eql(u8, method, "submitslashevidence")) return handleSubmitSlashEvidence(body, ctx, id);
@@ -4260,7 +4245,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getchannels"))       return handleGetChannels(body, ctx, id);
 
     // ── OmniBus custom endpoints (exchange integration) ─────────────────
-    if (std.mem.eql(u8, method, "getblockchaininfo"))    return handleBlockchainInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getblockchaininfo"))    return rpc_chain.handleBlockchainInfo(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getminers"))    return handleOmnibusMiners(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getoracleprices")) return handleOmnibusPrices(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getblockprices")) return handleOmnibusBlockPrices(body, ctx, id);
@@ -4275,32 +4260,33 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "omnibus_setoraclepolicy")) return handleOmnibusSetOraclePolicy(body, ctx, id);
     if (std.mem.eql(u8, method, "omnibus_gettotalmined"))   return handleOmnibusTotalMined(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_bridge_limits"))   return handleOmnibusBridgeLimits(ctx, id);
-    if (std.mem.eql(u8, method, "getmempoolinfo"))        return handleMempoolInfo(ctx, id);
-    if (std.mem.eql(u8, method, "getrawmempool"))         return handleMempoolInfo(ctx, id);
-    if (std.mem.eql(u8, method, "getmempool"))            return handleMempoolInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getmempoolinfo"))        return rpc_mempool.handleMempoolInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getrawmempool"))         return rpc_mempool.handleMempoolInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getmempool"))            return rpc_mempool.handleMempoolInfo(ctx, id);
     if (std.mem.eql(u8, method, "getdailyactivity"))      return handleGetDailyActivity(body, ctx, id);
 
     // ── EVM-compat endpoints (Ethereum-style JSON-RPC) ─────────────────
-    if (std.mem.eql(u8, method, "eth_call"))               return handleEthCall(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_sendRawTransaction")) return handleEthSendRawTransaction(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_getCode"))            return handleEthGetCode(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_estimateGas"))        return handleEthEstimateGas(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_chainId"))            return handleEthChainId(ctx, id);
-    if (std.mem.eql(u8, method, "eth_blockNumber"))        return handleEthBlockNumber(ctx, id);
-    if (std.mem.eql(u8, method, "eth_getBalance"))         return handleEthGetBalance(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_getTransactionCount"))return handleEthGetTransactionCount(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_gasPrice"))           return handleEthGasPrice(ctx, id);
-    if (std.mem.eql(u8, method, "eth_getLogs"))            return handleEthGetLogs(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_getTransactionReceipt"))return handleEthGetTransactionReceipt(body, ctx, id);
-    if (std.mem.eql(u8, method, "eth_getBlockByNumber"))   return handleEthGetBlockByNumber(body, ctx, id);
-    if (std.mem.eql(u8, method, "net_version"))            return handleNetVersion(ctx, id);
+    // Ethereum-compat JSON-RPC — see core/rpc/eth.zig
+    if (std.mem.eql(u8, method, "eth_call"))               return rpc_eth.handleEthCall(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_sendRawTransaction")) return rpc_eth.handleEthSendRawTransaction(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getCode"))            return rpc_eth.handleEthGetCode(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_estimateGas"))        return rpc_eth.handleEthEstimateGas(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_chainId"))            return rpc_eth.handleEthChainId(ctx, id);
+    if (std.mem.eql(u8, method, "eth_blockNumber"))        return rpc_eth.handleEthBlockNumber(ctx, id);
+    if (std.mem.eql(u8, method, "eth_getBalance"))         return rpc_eth.handleEthGetBalance(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getTransactionCount"))return rpc_eth.handleEthGetTransactionCount(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_gasPrice"))           return rpc_eth.handleEthGasPrice(ctx, id);
+    if (std.mem.eql(u8, method, "eth_getLogs"))            return rpc_eth.handleEthGetLogs(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getTransactionReceipt"))return rpc_eth.handleEthGetTransactionReceipt(body, ctx, id);
+    if (std.mem.eql(u8, method, "eth_getBlockByNumber"))   return rpc_eth.handleEthGetBlockByNumber(body, ctx, id);
+    if (std.mem.eql(u8, method, "net_version"))            return rpc_eth.handleNetVersion(ctx, id);
 
     // ── Bitcoin-standard compatibility endpoints ────────────────────────
-    if (std.mem.eql(u8, method, "getbestblockhash"))   return handleGetBestBlockHash(ctx, id);
-    if (std.mem.eql(u8, method, "getdifficulty"))      return handleGetDifficulty(ctx, id);
-    if (std.mem.eql(u8, method, "getblockhash"))       return handleGetBlockHash(body, ctx, id);
-    if (std.mem.eql(u8, method, "getconnectioncount")) return handleGetConnectionCount(ctx, id);
-    if (std.mem.eql(u8, method, "getpeerinfo"))        return handleGetPeerInfo(ctx, id);
+    if (std.mem.eql(u8, method, "getbestblockhash"))   return rpc_chain.handleGetBestBlockHash(ctx, id);
+    if (std.mem.eql(u8, method, "getdifficulty"))      return rpc_chain.handleGetDifficulty(ctx, id);
+    if (std.mem.eql(u8, method, "getblockhash"))       return rpc_chain.handleGetBlockHash(body, ctx, id);
+    if (std.mem.eql(u8, method, "getconnectioncount")) return rpc_net.handleGetConnectionCount(ctx, id);
+    if (std.mem.eql(u8, method, "getpeerinfo"))        return rpc_net.handleGetPeerInfo(ctx, id);
     if (std.mem.eql(u8, method, "getmininginfo"))      return handleGetMiningInfo(ctx, id);
 
     // ── AI Agent endpoints (consumate de clientul Python/Rust extern) ───
@@ -4375,36 +4361,6 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
 
 // ─── Extracted RPC Handlers ─────────────────────────────────────────────────
 
-/// RPC "getperformance" — returns live performance metrics.
-/// Usage: {"method":"getperformance","id":1}
-fn handleGetPerformance(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.metrics) |m| {
-        const uptime = m.uptimeSeconds();
-        const bpm = m.blocksPerMinute();
-        const current_tps = m.currentTps();
-        const avg_bt = m.avgBlockTimeMs();
-        const mp_throughput: u64 = if (ctx.mempool) |mp| @intCast(mp.size()) else @intCast(ctx.bc.mempool.items.len);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"uptime_seconds\":{d},\"blocks_mined\":{d},\"blocks_per_minute\":{d},\"txs_processed\":{d},\"tps_current\":{d},\"mempool_throughput\":{d},\"avg_block_time_ms\":{d},\"peak_tps\":{d},\"rpc_requests_total\":{d},\"p2p_messages_total\":{d},\"hashrate\":{d}}}}}",
-            .{ id, uptime, m.blocks_mined, bpm, m.txs_processed, current_tps, mp_throughput, avg_bt, m.peak_tps, m.rpc_requests, m.p2p_messages, m.hashrate });
-    }
-    // No metrics attached — return zeros with uptime from block count estimate
-    const block_count = ctx.bc.getBlockCount();
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"uptime_seconds\":0,\"blocks_mined\":{d},\"blocks_per_minute\":0,\"txs_processed\":0,\"tps_current\":0,\"mempool_throughput\":{d},\"avg_block_time_ms\":0,\"peak_tps\":0,\"rpc_requests_total\":0,\"p2p_messages_total\":0,\"hashrate\":0}}}}",
-        .{ id, block_count, ctx.bc.mempool.items.len });
-}
-
-fn handleEstimateFee(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    // Use mempool median fee if available, else fall back to TX_MIN_FEE_SAT
-    const suggested_fee: u64 = if (ctx.mempool) |m| m.medianFee() else mempool_mod.TX_MIN_FEE_SAT;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"feeSAT\":{d},\"minFeeSAT\":{d},\"burnPct\":{d}}}}}",
-        .{ id, suggested_fee, mempool_mod.TX_MIN_FEE_SAT, blockchain_mod.FEE_BURN_PCT });
-}
-
 /// RPC "getnonce" — returns the next expected nonce for an address.
 /// Considers both confirmed chain nonces and pending mempool TXs.
 /// Usage: {"method":"getnonce","params":["ob1qcx2p306xpf3c2gd6h4074kpux4tv2hnmx3ytuq"],"id":1}
@@ -4425,7 +4381,7 @@ fn handleGetNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, addr, next_available, chain_nonce, pending });
 }
 
-fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
+pub fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
     return switch (scheme) {
         .omni_ecdsa       => "ECDSA (secp256k1)",
         .love_dilithium   => "ML-DSA-87 (LOVE soulbound)",
@@ -4813,7 +4769,7 @@ const RichEntry = struct {
 ///   - "stake"       : op_return prefixed with "stake:" or "unstake:"
 ///   - "demo_grant"  : op_return prefixed with "demo:"
 ///   - "transfer"    : default (regular P2PKH/SegWit transfer)
-fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
+pub fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
     if (tx.from_address.len == 0) return "coinbase";
 
     // Registrar wallets — fixed-forever treasury slots
@@ -5024,79 +4980,6 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 ///   - validator-set size (active rotation participants)
 ///   - block count, mempool size, peer count
 ///   - emission stats (current reward, halving interval, max supply)
-fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    // Address + supply tally from UTXO set (PHASE-B source of truth).
-    var addresses_with_balance: u64 = 0;
-    var validators: u64 = 0;
-    var total_supply: u64 = 0;
-    ctx.bc.utxo_set.lock.lockShared();
-    defer ctx.bc.utxo_set.lock.unlockShared();
-    var ait = ctx.bc.utxo_set.address_index.iterator();
-    while (ait.next()) |kv| {
-        _ = kv.key_ptr.*;
-        // Inline tally — re-entering getBalance() would deadlock on the same RwLock.
-        const list = kv.value_ptr.*;
-        var bal: u64 = 0;
-        for (list.items) |op| {
-            if (ctx.bc.utxo_set.utxos.get(op)) |u| bal += u.amount;
-        }
-        if (bal == 0) continue;
-        addresses_with_balance += 1;
-        total_supply += bal;
-        if (bal >= validator_mod.MIN_VALIDATOR_BALANCE) validators += 1;
-    }
-
-    const height: u64 = @intCast(ctx.bc.chain.items.len);
-    const tip_hash: []const u8 = if (height > 0) ctx.bc.chain.items[height - 1].hash else "";
-    const validator_set_size = ctx.bc.validator_set.items.len;
-    const mempool_size: usize = if (ctx.mempool) |mp| mp.size() else 0;
-    const peer_count: usize = if (ctx.p2p) |p| p.peers.items.len else 0;
-
-    // Current block reward (uses blockchain.zig blockRewardAt — handles halvings).
-    const current_reward = blockchain_mod.blockRewardAt(@intCast(height));
-
-    // Latest block quick stats (tx count + fees) for dashboard — avoids extra getblock call.
-    var latest_tx_count: usize = 0;
-    var latest_fees: u64 = 0;
-    var latest_timestamp: i64 = 0;
-    if (height > 0) {
-        const tip = ctx.bc.chain.items[height - 1];
-        latest_tx_count = tip.transactions.items.len;
-        latest_timestamp = tip.timestamp;
-        for (tip.transactions.items) |tx| {
-            if (tx.fee > 0) latest_fees += @as(u64, @intCast(tx.fee));
-        }
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"height\":{d}," ++
-            "\"tipHash\":\"{s}\"," ++
-            "\"totalSupply\":{d}," ++
-            "\"addressesWithBalance\":{d}," ++
-            "\"validators\":{d}," ++
-            "\"validatorSetSize\":{d}," ++
-            "\"minValidatorBalance\":{d}," ++
-            "\"mempoolSize\":{d}," ++
-            "\"peerCount\":{d}," ++
-            "\"currentBlockReward\":{d}," ++
-            "\"latestBlockTxCount\":{d}," ++
-            "\"latestBlockFees\":{d}," ++
-            "\"latestBlockTimestamp\":{d}," ++
-            "\"satPerOmni\":1000000000" ++
-            "}}}}",
-        .{
-            id, height, tip_hash, total_supply, addresses_with_balance,
-            validators, validator_set_size, validator_mod.MIN_VALIDATOR_BALANCE,
-            mempool_size, peer_count, current_reward,
-            latest_tx_count, latest_fees, latest_timestamp,
-        });
-}
 
 /// RPC "getschemestats" — signing-scheme distribution across last N blocks.
 /// Params: [blocks_count]  (default 100, max 1000)
@@ -6872,103 +6755,16 @@ fn handleAddrBal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // SEGFAULT-FIX [scan-2026-04-25]: snapshot mempool size under bc.mutex (fallback path).
 // External mempool struct (ctx.mempool) has its own internal sync; only the bc.mempool
 // fallback needs the lock here.
-fn handleMpStats(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.mempool) |m| {
-        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":{d}}}}}", .{ id, m.size(), mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES, m.bytes() });
-    }
-    ctx.bc.mutex.lock();
-    const mp_len = ctx.bc.mempool.items.len;
-    var mp_bytes: u64 = 0;
-    for (ctx.bc.mempool.items) |tx| mp_bytes += estimateTxBytes(tx.scheme);
-    ctx.bc.mutex.unlock();
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":{d}}}}}", .{ id, mp_len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES, mp_bytes });
-}
 
 /// RPC "getpendingtxs" — returns all TXs currently in the mempool with scheme info.
 /// Params: [limit]  (default 100, max 500)
 /// Returns: { count, transactions: [{txid,from,to,amount,fee,scheme,nonce,timestamp}] }
-fn handleGetPendingTxs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const req_limit = extractArrayNum(body, 0);
-    const limit: usize = if (req_limit > 0 and req_limit <= 500) @intCast(req_limit) else 100;
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    const items = ctx.bc.mempool.items;
-    const take = @min(limit, items.len);
-
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var n: usize = 0;
-    // Return newest first (reverse order)
-    var i: usize = if (items.len > 0) items.len - 1 else 0;
-    while (n < take) : (n += 1) {
-        const tx = items[i];
-        const sep: []const u8 = if (n == 0) "" else ",";
-        const kind = inferTxKind(tx);
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d}}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee,
-               kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m;
-        if (i == 0) break;
-        i -= 1;
-    }
-    defer alloc.free(entries);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"transactions\":[{s}]}}}}",
-        .{ id, n, entries });
-}
 
 // SEGFAULT-FIX [scan-2026-04-25]: hold p2p.peers_mutex for entire iteration.
 // peer.node_id / peer.host are slices into PeerConnection; if acceptLoop appends
 // concurrently and reallocs backing storage we'd UAF on items.ptr. We allocPrint
 // inside the lock — slow but correct; for high-throughput callers, snapshot first.
-fn handlePeers(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const p2p = ctx.p2p orelse return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":0,\"height\":0,\"peers\":[]}}}}", .{id});
-    var pj: []u8 = try alloc.dupe(u8, "");
-    var pc: usize = 0;
-    {
-        p2p.peers_mutex.lock();
-        defer p2p.peers_mutex.unlock();
-        for (p2p.peers.items) |peer| {
-            const sep: []const u8 = if (pc == 0) "" else ",";
-            const e = try std.fmt.allocPrint(alloc, "{s}{{\"id\":\"{s}\",\"host\":\"{s}\",\"port\":{d},\"alive\":{s}}}", .{ sep, peer.node_id, peer.host, peer.port, if (peer.connected) "true" else "false" });
-            const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ pj, e });
-            alloc.free(pj); alloc.free(e); pj = m; pc += 1;
-        }
-    }
-    defer alloc.free(pj);
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"height\":{d},\"peers\":[{s}]}}}}", .{ id, pc, p2p.chain_height, pj });
-}
 
-fn handleSyncSt(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    // IBD truth comes from p2p.is_syncing + best_peer_height (set in
-    // p2p.zig WELCOME / sync_response handlers). This is the same flag the
-    // mining loop checks — UI must agree with it, otherwise users see
-    // "synced" while the miner is still gated.
-    const ibd_active: bool = if (ctx.p2p) |p| p.is_syncing.load(.acquire) else false;
-    const best_peer_h: u64 = if (ctx.p2p) |p| p.best_peer_height.load(.acquire) else 0;
-
-    if (ctx.sync_mgr) |s| {
-        const local_h = s.state.local_height;
-        const peer_h  = if (best_peer_h > s.state.peer_height) best_peer_h else s.state.peer_height;
-        const behind: u64 = if (peer_h > local_h) peer_h - local_h else 0;
-        const pct: u64 = if (peer_h == 0) 100 else @min(@as(u64, 100), (local_h * 100) / peer_h);
-        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"localHeight\":{d},\"peerHeight\":{d},\"behind\":{d},\"progress\":{d},\"synced\":{s},\"stalled\":{s},\"ibd\":{s}}}}}", .{ id, @tagName(s.state.status), local_h, peer_h, behind, pct, if (s.isSynced() and !ibd_active) "true" else "false", if (s.isStalled()) "true" else "false", if (ibd_active) "true" else "false" });
-    }
-    const h = ctx.bc.getBlockCount();
-    const peer_h = if (best_peer_h > h) best_peer_h else h;
-    const behind: u64 = if (peer_h > h) peer_h - h else 0;
-    const pct: u64 = if (peer_h == 0) 100 else @min(@as(u64, 100), (h * 100) / peer_h);
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"localHeight\":{d},\"peerHeight\":{d},\"behind\":{d},\"progress\":{d},\"synced\":{s},\"stalled\":false,\"ibd\":{s}}}}}", .{ id, if (ibd_active) "syncing" else "synced", h, peer_h, behind, pct, if (ibd_active) "false" else "true", if (ibd_active) "true" else "false" });
-}
 
 /// List active validators from the on-chain registry. Read-only.
 fn handleGetValidators(ctx: *ServerCtx, id: u64) ![]u8 {
@@ -7102,185 +6898,8 @@ fn handleGetFuturePool(ctx: *ServerCtx, id: u64) ![]u8 {
 // SEGFAULT-FIX [scan-2026-04-25]: snapshot peer count under p2p.peers_mutex,
 // snapshot bc fields under bc.mutex; format outside both locks. Same root cause
 // as handlePeers (p2p) and handlePoolStats (mempool).
-fn handleNetInfo(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    ctx.bc.mutex.lock();
-    const h = ctx.bc.getBlockCountUnlocked();
-    const diff = ctx.bc.difficulty;
-    const bc_mp_len = ctx.bc.mempool.items.len;
-    ctx.bc.mutex.unlock();
-    const pc: usize = if (ctx.p2p) |p| blk: {
-        p.peers_mutex.lock();
-        const len = p.peers.items.len;
-        p.peers_mutex.unlock();
-        break :blk len;
-    } else 0;
-    const ms: usize = if (ctx.mempool) |m| m.size() else bc_mp_len;
-    const r = blockchain_mod.blockRewardAt(h);
-    // Derive chain label from chain_id instead of hardcoding "omnibus-mainnet"
-    // (was misleading on testnet/regtest nodes — Network page showed
-    // "omnibus-mainnet" while user was browsing testnet).
-    const chain_label: []const u8 = switch (ctx.chain_id) {
-        1    => "omnibus-mainnet",
-        2    => "omnibus-testnet",
-        3    => "omnibus-devnet",
-        4    => "omnibus-regtest",
-        else => "omnibus-unknown",
-    };
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain\":\"{s}\",\"version\":\"1.0.0\",\"blockHeight\":{d},\"blockRewardSAT\":{d},\"difficulty\":{d},\"mempoolSize\":{d},\"peerCount\":{d},\"nodeAddress\":\"{s}\",\"nodeBalance\":{d},\"halvingInterval\":126144000,\"maxSupply\":21000000000000000,\"blockTimeMs\":1000,\"subBlocksPerBlock\":10}}}}", .{ id, chain_label, h, r, diff, ms, pc, ctx.wallet.address, ctx.wallet.getBalance() });
-}
 
-fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const h_str = extractArrayStr(body, 0);
 
-    // Try parse as integer height first; if string is non-numeric and long enough, treat as hash
-    var blk_opt: ?block_mod.Block = null;
-    if (h_str) |s| {
-        if (std.fmt.parseInt(u32, s, 10)) |height| {
-            blk_opt = ctx.bc.getBlock(height);
-        } else |_| {
-            // Bitcoin-standard: getblock(hash) — linear scan blocks for matching hash
-            ctx.bc.mutex.lock();
-            const block_count = ctx.bc.getBlockCountUnlocked();
-            var bi: u32 = 0;
-            while (bi < block_count) : (bi += 1) {
-                const b = ctx.bc.getBlock(bi) orelse continue;
-                if (std.mem.eql(u8, b.hash, s)) { blk_opt = b; break; }
-            }
-            ctx.bc.mutex.unlock();
-            if (blk_opt == null) return errorJson(-5, "Block not found", id, alloc);
-        }
-    } else {
-        const height: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
-        blk_opt = ctx.bc.getBlock(height);
-    }
-
-    const blk = blk_opt orelse return errorJson(-5, "Block not found", id, alloc);
-
-    // Format merkle_root as hex (it's [32]u8)
-    var mr_hex: [64]u8 = undefined;
-    for (0..32) |i| {
-        const b = blk.merkle_root[i];
-        mr_hex[i * 2] = "0123456789abcdef"[b >> 4];
-        mr_hex[i * 2 + 1] = "0123456789abcdef"[b & 0x0f];
-    }
-
-    // Approximate size: header (~80 bytes) + tx_count * avg_tx_bytes (~200)
-    const tx_count = blk.transactions.items.len;
-    const approx_size: u64 = 80 + @as(u64, @intCast(tx_count)) * 200;
-
-    // Sum fees for all non-coinbase TXs in this block
-    var total_fees: u64 = 0;
-    for (blk.transactions.items) |tx| {
-        if (tx.fee > 0) total_fees += @as(u64, @intCast(tx.fee));
-    }
-
-    // Build optional prices array. Strategy:
-    //   1) FAST path — read the in-memory `block_prices` map (legacy 6-slot
-    //      snapshot, populated at mining time). This avoids touching the
-    //      block's [21]BlockPriceEntry array on every getblock call.
-    //   2) FALLBACK — if the map has no entry for this height (e.g. after
-    //      a node restart, since the map is in-memory only), read directly
-    //      from `blk.prices` which is the authoritative on-chain copy
-    //      committed via prices_root in the block hash.
-    //   In both cases empty/zero entries are skipped.
-    var prices_buf: [4096]u8 = undefined;
-    var prices_len: usize = 0;
-    {
-        var pos: usize = 0;
-        const open = std.fmt.bufPrint(prices_buf[pos..], "[", .{}) catch {
-            return errorJson(-32603, "buf overflow", id, alloc);
-        };
-        pos += open.len;
-        var written: usize = 0;
-        if (ctx.bc.getBlockPrices(blk.index)) |entries| {
-            // Fast path: legacy in-memory cache (6 slots).
-            for (entries) |e| {
-                if (e.exchange_len == 0 and e.pair_len == 0 and !e.success and e.timestamp_ms == 0) continue;
-                if (written > 0) { prices_buf[pos] = ','; pos += 1; }
-                const ex = e.exchange[0..e.exchange_len];
-                const pr = e.pair[0..e.pair_len];
-                const item = std.fmt.bufPrint(prices_buf[pos..],
-                    "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
-                    .{ ex, pr, e.bid_micro_usd, e.ask_micro_usd, e.timestamp_ms, if (e.success) "true" else "false" },
-                ) catch break;
-                pos += item.len;
-                written += 1;
-            }
-        } else {
-            // Fallback path: read directly from on-chain block (21 slots).
-            for (blk.prices) |e| {
-                if (e.exchange_len == 0 and e.pair_len == 0 and !e.success and e.timestamp_ms == 0) continue;
-                if (written > 0) { prices_buf[pos] = ','; pos += 1; }
-                const ex = e.exchange[0..e.exchange_len];
-                const pr = e.pair[0..e.pair_len];
-                const item = std.fmt.bufPrint(prices_buf[pos..],
-                    "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
-                    .{ ex, pr, e.bid_micro_usd, e.ask_micro_usd, e.timestamp_ms, if (e.success) "true" else "false" },
-                ) catch break;
-                pos += item.len;
-                written += 1;
-            }
-        }
-        const close = std.fmt.bufPrint(prices_buf[pos..], "]", .{}) catch {
-            return errorJson(-32603, "buf overflow", id, alloc);
-        };
-        pos += close.len;
-        prices_len = pos;
-    }
-
-    // Hex-encode prices_root (32 bytes -> 64 lowercase hex chars). All-zero
-    // is the canonical "no prices" sentinel — clients should still treat
-    // pricesValidated=true on an all-zero root as "nothing to verify".
-    var pr_hex: [64]u8 = undefined;
-    for (0..32) |i| {
-        const b = blk.prices_root[i];
-        pr_hex[i * 2] = "0123456789abcdef"[b >> 4];
-        pr_hex[i * 2 + 1] = "0123456789abcdef"[b & 0x0f];
-    }
-    const prices_validated = blk.validatePrices();
-
-    // Build transactions array: array of txid strings so BlockPage can
-    // load individual TX details via gettransaction.
-    var tx_arr: []u8 = try alloc.dupe(u8, "");
-    for (blk.transactions.items, 0..) |tx, ti| {
-        const sep: []const u8 = if (ti == 0) "" else ",";
-        const e = try std.fmt.allocPrint(alloc, "{s}\"{s}\"", .{ sep, tx.hash });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ tx_arr, e });
-        alloc.free(tx_arr); alloc.free(e); tx_arr = m;
-    }
-    defer alloc.free(tx_arr);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"transactions\":[{s}],\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
-        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, total_fees, tx_arr, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
-}
-
-fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const from: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
-    const rc = extractArrayNum(body, 1);
-    const mc: u32 = if (rc == 0 or rc > 100) 100 else std.math.cast(u32, rc) orelse 100;
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var n: u32 = 0;
-    var h: u32 = from;
-    while (n < mc) : ({ h += 1; n += 1; }) {
-        const blk = ctx.bc.getBlock(h) orelse break;
-        const sep: []const u8 = if (n == 0) "" else ",";
-        var blk_fees: u64 = 0;
-        for (blk.transactions.items) |tx| { if (tx.fee > 0) blk_fees += @as(u64, @intCast(tx.fee)); }
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"difficulty\":{d}}}", .{ sep, blk.index, blk.timestamp, blk.hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat, blk_fees, ctx.bc.difficulty });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m;
-    }
-    defer alloc.free(entries);
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"from\":{d},\"count\":{d},\"blocks\":[{s}]}}}}", .{ id, from, n, entries });
-}
 
 // ─── SPV Light Client RPC Handlers ───────────────────────────────────────────
 
@@ -7288,116 +6907,11 @@ fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Usage: {"method":"getheaders","params":[from_height, count],"id":1}
 /// Returns array of block headers (without transaction data).
 /// Max 2000 headers per request (like Bitcoin's getheaders).
-fn handleGetHeaders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const from: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
-    const req_count = extractArrayNum(body, 1);
-    const max_headers: u32 = 2000;
-    const count: u32 = if (req_count == 0 or req_count > max_headers) max_headers else std.math.cast(u32, req_count) orelse max_headers;
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var n: u32 = 0;
-    var h: u32 = from;
-    while (n < count) : ({ h += 1; n += 1; }) {
-        const blk = ctx.bc.getBlock(h) orelse break;
-        const sep: []const u8 = if (n == 0) "" else ",";
-
-        // Format merkle_root and hash as hex strings
-        var mr_hex: [64]u8 = undefined;
-        var hash_hex: [64]u8 = undefined;
-        var prev_hex: [64]u8 = undefined;
-        for (0..32) |i| {
-            const mr_byte = blk.merkle_root[i];
-            mr_hex[i * 2] = "0123456789abcdef"[mr_byte >> 4];
-            mr_hex[i * 2 + 1] = "0123456789abcdef"[mr_byte & 0x0f];
-        }
-        // Block hash and previous_hash are slices (string hex), not [32]u8
-        // We return them as-is since they are already hex strings from the block
-        _ = &hash_hex;
-        _ = &prev_hex;
-
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"nonce\":{d},\"difficulty\":{d},\"txCount\":{d}}}",
-            .{ sep, blk.index, blk.timestamp, blk.hash, blk.previous_hash, mr_hex, blk.nonce, ctx.bc.difficulty, blk.transactions.items.len });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m;
-    }
-    defer alloc.free(entries);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"from\":{d},\"count\":{d},\"headers\":[{s}]}}}}",
-        .{ id, from, n, entries });
-}
 
 /// RPC "getmerkleproof" — returns a Merkle inclusion proof for a TX.
 /// Usage: {"method":"getmerkleproof","params":["tx_hash_hex"],"id":1}
 /// Searches all blocks for the TX, then generates the Merkle proof.
 /// Returns proof_hashes and directions for SPV verification.
-fn handleGetMerkleProof(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const tx_hash_str = extractArrayStr(body, 0) orelse extractStr(body, "txid") orelse
-        return errorJson(-32602, "Missing param: txid (tx hash hex)", id, alloc);
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    // Search blocks for the TX
-    const block_count = ctx.bc.getBlockCountUnlocked();
-    var found_block_idx: ?u32 = null;
-    var found_tx_idx: ?usize = null;
-
-    var bi: u32 = 0;
-    while (bi < block_count) : (bi += 1) {
-        const blk = ctx.bc.getBlock(bi) orelse continue;
-        for (blk.transactions.items, 0..) |tx, ti| {
-            if (std.mem.eql(u8, tx.hash, tx_hash_str)) {
-                found_block_idx = bi;
-                found_tx_idx = ti;
-                break;
-            }
-        }
-        if (found_block_idx != null) break;
-    }
-
-    const blk_idx = found_block_idx orelse return errorJson(-32602, "TX not found in any block", id, alloc);
-    const tx_idx = found_tx_idx.?;
-
-    const blk = ctx.bc.getBlock(blk_idx).?;
-    const proof_opt = blk.generateMerkleProof(tx_idx);
-    if (proof_opt == null) return errorJson(-32000, "Failed to generate proof", id, alloc);
-    const proof = proof_opt.?;
-
-    // Serialize proof hashes as hex
-    var proof_entries: []u8 = try alloc.dupe(u8, "");
-    for (0..proof.depth) |i| {
-        const sep: []const u8 = if (i == 0) "" else ",";
-        var hex: [64]u8 = undefined;
-        for (0..32) |j| {
-            const b = proof.proof_hashes[i][j];
-            hex[j * 2] = "0123456789abcdef"[b >> 4];
-            hex[j * 2 + 1] = "0123456789abcdef"[b & 0x0f];
-        }
-        const dir_str: []const u8 = if (proof.directions[i]) "right" else "left";
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"hash\":\"{s}\",\"direction\":\"{s}\"}}", .{ sep, hex, dir_str });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ proof_entries, e });
-        alloc.free(proof_entries); alloc.free(e); proof_entries = m;
-    }
-    defer alloc.free(proof_entries);
-
-    // Merkle root hex
-    var root_hex: [64]u8 = undefined;
-    for (0..32) |i| {
-        const b = proof.merkle_root[i];
-        root_hex[i * 2] = "0123456789abcdef"[b >> 4];
-        root_hex[i * 2 + 1] = "0123456789abcdef"[b & 0x0f];
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"blockHeight\":{d},\"txIndex\":{d},\"merkleRoot\":\"{s}\",\"proofDepth\":{d},\"proof\":[{s}]}}}}",
-        .{ id, tx_hash_str, blk_idx, tx_idx, root_hex, proof.depth, proof_entries });
-}
 
 fn handleMinerSt(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
@@ -7505,42 +7019,6 @@ fn handleMinerInf(ctx: *ServerCtx, id: u64) ![]u8 {
         });
 }
 
-fn handleNodeList(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const h = ctx.bc.getBlockCount();
-    // +1 = include self (this node is both a node AND a miner)
-    const remote_peers: usize = if (ctx.p2p) |p| p.peers.items.len else 0;
-    const total_nodes: usize = remote_peers + 1; // self = always 1 node
-    const ms: usize = if (ctx.mempool) |m| m.size() else ctx.bc.mempool.items.len;
-
-    // Count unique miners from chain + self (always 1 miner = this node)
-    var miner_count: u32 = 1; // self = always counted as miner
-    var last_miner: []const u8 = "";
-    for (ctx.bc.chain.items) |blk| {
-        if (blk.miner_address.len > 0 and !std.mem.eql(u8, blk.miner_address, last_miner)) {
-            miner_count += 1;
-            last_miner = blk.miner_address;
-        }
-    }
-
-    // Build peer list
-    var peers_json: []u8 = try alloc.dupe(u8, "");
-    var peer_n: usize = 0;
-    if (ctx.p2p) |p2p| {
-        for (p2p.peers.items) |peer| {
-            const sep: []const u8 = if (peer_n == 0) "" else ",";
-            const e = try std.fmt.allocPrint(alloc, "{s}{{\"id\":\"{s}\",\"host\":\"{s}\",\"port\":{d},\"connected\":{s},\"height\":{d}}}", .{ sep, peer.node_id, peer.host, peer.port, if (peer.connected) "true" else "false", p2p.chain_height });
-            const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ peers_json, e });
-            alloc.free(peers_json);
-            alloc.free(e);
-            peers_json = m;
-            peer_n += 1;
-        }
-    }
-    defer alloc.free(peers_json);
-
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"localNode\":{{\"id\":\"{s}\",\"address\":\"{s}\",\"height\":{d},\"difficulty\":{d},\"mempool\":{d}}},\"network\":{{\"totalPeers\":{d},\"totalMiners\":{d},\"chainHeight\":{d}}},\"peers\":[{s}]}}}}", .{ id, ctx.wallet.address[0..@min(20, ctx.wallet.address.len)], ctx.wallet.address, h, ctx.bc.difficulty, ms, total_nodes, miner_count, h, peers_json });
-}
 
 // ─── Staking Slashing RPC Handlers ──────────────────────────────────────────
 
@@ -7920,7 +7398,7 @@ fn extractInnerArray(json: []const u8) ?[]const u8 {
 // ─── Helpers JSON parse minimal ───────────────────────────────────────────────
 
 /// Extrage al N-lea string din params array: "params":["val0","val1"]
-fn extractArrayStr(json: []const u8, index: usize) ?[]const u8 {
+pub fn extractArrayStr(json: []const u8, index: usize) ?[]const u8 {
     const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse return null;
     const bracket = std.mem.indexOf(u8, json[params_pos..], "[") orelse return null;
     var pos = params_pos + bracket + 1;
@@ -7978,7 +7456,7 @@ fn extractArrayToken(json: []const u8, index: usize) ?[]const u8 {
 }
 
 /// Extrage al N-lea numar din params array: "params":["addr", 1000]
-fn extractArrayNum(json: []const u8, index: usize) u64 {
+pub fn extractArrayNum(json: []const u8, index: usize) u64 {
     const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse return 0;
     const bracket = std.mem.indexOf(u8, json[params_pos..], "[") orelse return 0;
     var pos = params_pos + bracket + 1;
@@ -8098,7 +7576,7 @@ fn jsonSanitize(alloc: std.mem.Allocator, s: []const u8) ![]u8 {
 
 /// Extrage valoarea unui string field din JSON.
 /// Cauta "key" (oricunde in sir), sare peste `: `, returneaza valoarea string.
-fn extractStr(json: []const u8, key: []const u8) ?[]const u8 {
+pub fn extractStr(json: []const u8, key: []const u8) ?[]const u8 {
     // Construim needle: "key"
     var nbuf: [128]u8 = undefined;
     if (key.len + 2 > nbuf.len) return null;
@@ -8334,7 +7812,7 @@ fn extractId(json: []const u8) u32 {
     return std.fmt.parseInt(u32, after[start..i], 10) catch 1;
 }
 
-fn errorJson(code: i32, msg: []const u8, id: u64, alloc: std.mem.Allocator) ![]u8 {
+pub fn errorJson(code: i32, msg: []const u8, id: u64, alloc: std.mem.Allocator) ![]u8 {
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":{d},\"message\":\"{s}\"}}}}",
         .{ id, code, msg });
@@ -9376,25 +8854,6 @@ fn hexVal(c: u8) ?u4 {
 // ─── OmniBus Custom RPC Handlers ──────────────────────────────────────────────
 
 /// getblockchaininfo — comprehensive node status (matches Bitcoin RPC)
-fn handleBlockchainInfo(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const block_count = ctx.bc.getBlockCount();
-    const difficulty = ctx.bc.difficulty;
-    const mp_size: u64 = if (ctx.mempool) |mp| @intCast(mp.size()) else @intCast(ctx.bc.mempool.items.len);
-    const peer_count: u64 = if (ctx.p2p) |p| @intCast(p.peers.items.len) else 0;
-    const chain_label: []const u8 = switch (ctx.chain_id) {
-        1 => "omnibus-mainnet",
-        2 => "omnibus-testnet",
-        3 => "omnibus-devnet",
-        4 => "omnibus-regtest",
-        else => "omnibus-unknown",
-    };
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"blocks\":{d},\"difficulty\":{d},\"chain\":\"{s}\",\"mempool_size\":{d},\"peers\":{d},\"version\":\"0.3.0\",\"subversion\":\"OmniBus-PoUW\"}}}}",
-        .{ id, block_count, difficulty, chain_label, mp_size, peer_count },
-    );
-}
 
 /// omnibus_getminers — list registered miners with stats
 fn handleOmnibusMiners(ctx: *ServerCtx, id: u64) ![]u8 {
@@ -10729,7 +10188,7 @@ fn extractParamArrayFloats(json: []const u8) ?ParamArrayFloats {
 }
 
 /// Approximate on-wire bytes per TX scheme (base overhead ~220 bytes fixed fields).
-fn estimateTxBytes(scheme: transaction_mod.Scheme) u64 {
+pub fn estimateTxBytes(scheme: transaction_mod.Scheme) u64 {
     const base: u64 = 220; // txid+from+to+amount+fee+nonce+timestamp overhead
     const extra: u64 = switch (scheme) {
         .omni_ecdsa        => @as(u64, 97),    // sig(64) + pubkey(33)
@@ -10749,109 +10208,6 @@ fn estimateTxBytes(scheme: transaction_mod.Scheme) u64 {
     return base + extra;
 }
 
-/// getmempoolinfo — mempool stats (matches Bitcoin RPC)
-fn handleMempoolInfo(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    ctx.bc.mutex.lock();
-    const size: u64 = @intCast(ctx.bc.mempool.items.len);
-    var bytes: u64 = 0;
-    for (ctx.bc.mempool.items) |tx| {
-        bytes += estimateTxBytes(tx.scheme);
-    }
-    ctx.bc.mutex.unlock();
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"bytes\":{d}}}}}",
-        .{ id, size, bytes },
-    );
-}
-
-// ─── Bitcoin-standard RPC compatibility handlers ────────────────────────────
-
-/// getbestblockhash — returns hash of the latest (best) block as hex string.
-/// Bitcoin-standard.
-// SEGFAULT-FIX [scan-2026-04-25]: use snapshot — hash is copied into snap.hash_buf
-// before bc.mutex is released, so allocPrint formats stable bytes (no UAF on
-// chain-owned hash slice when mining replaces the tip).
-fn handleGetBestBlockHash(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    var snap = ctx.bc.getLatestBlockSnapshot();
-    defer snap.deinit(alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
-        .{ id, snap.hash() },
-    );
-}
-
-/// getdifficulty — returns current network difficulty as a number.
-fn handleGetDifficulty(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{d}}}",
-        .{ id, ctx.bc.difficulty },
-    );
-}
-
-/// getblockhash — params [height: int], returns hash of block at given height.
-/// Error -8 (Bitcoin standard) if out of range.
-fn handleGetBlockHash(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    // Accept either ["123"] (string) or [123] (number)
-    const h_str = extractArrayStr(body, 0);
-    const height: u32 = if (h_str) |s|
-        std.fmt.parseInt(u32, s, 10) catch return errorJson(-8, "Block height out of range", id, alloc)
-    else
-        std.math.cast(u32, extractArrayNum(body, 0)) orelse return errorJson(-8, "Block height out of range", id, alloc);
-
-    const block_count = ctx.bc.getBlockCount();
-    if (height >= block_count) return errorJson(-8, "Block height out of range", id, alloc);
-
-    const blk = ctx.bc.getBlock(height) orelse return errorJson(-8, "Block height out of range", id, alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
-        .{ id, blk.hash },
-    );
-}
-
-/// getconnectioncount — returns peer count as integer.
-fn handleGetConnectionCount(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const pc: u64 = if (ctx.p2p) |p| @intCast(p.peers.items.len) else 0;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{d}}}",
-        .{ id, pc },
-    );
-}
-
-/// getpeerinfo — returns array of peer details (addr, height, version, alive).
-/// Note: PeerConnection has no `last_seen` field; emit 0 with comment.
-fn handleGetPeerInfo(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    // Empty array fallback if p2p not attached
-    const p2p = ctx.p2p orelse return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}", .{id});
-
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var n: usize = 0;
-    {
-        p2p.peers_mutex.lock();
-        defer p2p.peers_mutex.unlock();
-        for (p2p.peers.items) |peer| {
-            const sep: []const u8 = if (n == 0) "" else ",";
-            const e = try std.fmt.allocPrint(alloc,
-                "{s}{{\"id\":\"{s}\",\"addr\":\"{s}:{d}\",\"host\":\"{s}\",\"port\":{d},\"height\":{d},\"version\":{d},\"alive\":{s},\"last_seen\":0}}",
-                .{ sep, peer.node_id, peer.host, peer.port, peer.host, peer.port, peer.height, p2p_mod.P2P_VERSION, if (peer.connected) "true" else "false" });
-            const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-            alloc.free(entries);
-            alloc.free(e);
-            entries = m;
-            n += 1;
-        }
-    }
-    defer alloc.free(entries);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[{s}]}}",
-        .{ id, entries });
-}
 
 /// getmininginfo — mining stats: blocks (height), difficulty, hashrate, mempool, chain.
 fn handleGetMiningInfo(ctx: *ServerCtx, id: u64) ![]u8 {
@@ -10895,7 +10251,7 @@ fn handleGetMiningInfo(ctx: *ServerCtx, id: u64) ![]u8 {
 /// `"params":[{"to":"0xabc","data":"0x"}, "latest"]`.
 /// Falls back to the top-level field if the params object isn't found —
 /// this lets callers POST flat JSON for testing.
-fn extractParamObjectField(json: []const u8, key: []const u8) ?[]const u8 {
+pub fn extractParamObjectField(json: []const u8, key: []const u8) ?[]const u8 {
     const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse {
         return extractStr(json, key);
     };
@@ -10918,7 +10274,7 @@ fn extractParamObjectField(json: []const u8, key: []const u8) ?[]const u8 {
 
 /// Extract a numeric field from the params object.  Accepts both bare ints
 /// (`"value":1000`) and hex strings (`"value":"0x3e8"`).
-fn extractParamObjectU64(json: []const u8, key: []const u8) u64 {
+pub fn extractParamObjectU64(json: []const u8, key: []const u8) u64 {
     if (extractParamObjectField(json, key)) |s| {
         // hex string?
         if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) {
@@ -10949,279 +10305,10 @@ fn extractParamObjectU64(json: []const u8, key: []const u8) u64 {
     return 0;
 }
 
-/// eth_call — view function call. Params: `[{from?,to,data,value?,gas?}, "latest"]`.
-fn handleEthCall(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const to = extractParamObjectField(body, "to") orelse
-        return errorJson(-32602, "eth_call: missing 'to'", id, alloc);
-    const from = extractParamObjectField(body, "from") orelse
-        "0x0000000000000000000000000000000000000000";
-    const data = extractParamObjectField(body, "data") orelse "0x";
-    const value = extractParamObjectU64(body, "value");
-    const gas = blk: {
-        const g = extractParamObjectU64(body, "gas");
-        if (g == 0) break :blk @as(u64, 30_000_000); // default 30M gas
-        break :blk g;
-    };
-
-    var result = evm_executor.call(alloc, to, from, data, value, gas) catch |err| {
-        const msg = switch (err) {
-            error.Reverted => "execution reverted",
-            error.OutOfMemory => "out of memory",
-            else => "evm call failed",
-        };
-        return errorJson(-32603, msg, id, alloc);
-    };
-    defer result.deinit(alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
-        .{ id, result.return_data });
-}
-
-/// eth_sendRawTransaction — accept signed RLP-encoded TX hex.
-///
-/// OmniBus chain does not yet decode RLP-signed Ethereum TXs. Returning
-/// a fake hash would mislead wallets into thinking the transfer succeeded
-/// when it did not — explicit rejection is safer. Native TXs use the
-/// `sendrawtransaction` (lowercase) and `sendTransaction` RPCs.
-fn handleEthSendRawTransaction(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    return errorJson(
-        -32004,
-        "eth_sendRawTransaction not supported on OmniBus chain — use sendrawtransaction (native TX format)",
-        id,
-        ctx.allocator,
-    );
-}
-
-/// eth_getCode — return deployed bytecode at address.
-fn handleEthGetCode(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "eth_getCode: missing address", id, alloc);
-
-    const code = evm_executor.getCode(alloc, addr) catch |err| {
-        const msg = switch (err) {
-            error.OutOfMemory => "out of memory",
-            else => "evm getCode failed",
-        };
-        return errorJson(-32603, msg, id, alloc);
-    };
-    defer alloc.free(code);
-
-    // If the binding returns raw bytes rather than hex, prefix with "0x".
-    // The Rust side currently emits hex already, so we just forward.
-    if (code.len == 0) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x\"}}", .{id});
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
-        .{ id, code });
-}
-
-/// eth_estimateGas — gas estimation. Params: `[{from?,to,data,value?}]`.
-fn handleEthEstimateGas(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const to = extractParamObjectField(body, "to") orelse
-        return errorJson(-32602, "eth_estimateGas: missing 'to'", id, alloc);
-    const from = extractParamObjectField(body, "from") orelse
-        "0x0000000000000000000000000000000000000000";
-    const data = extractParamObjectField(body, "data") orelse "0x";
-    const value = extractParamObjectU64(body, "value");
-
-    const gas = evm_executor.estimateGas(alloc, from, to, data, value) catch |err| {
-        const msg = switch (err) {
-            error.OutOfMemory => "out of memory",
-            else => "evm estimateGas failed",
-        };
-        return errorJson(-32603, msg, id, alloc);
-    };
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
-        .{ id, gas });
-}
-
-/// eth_chainId — return chain id as a hex string (per EIP-695).
-fn handleEthChainId(ctx: *ServerCtx, id: u64) ![]u8 {
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
-        .{ id, ctx.chain_id });
-}
-
-/// eth_blockNumber — return current chain tip as hex (EIP-695 standard).
-/// Required by ethers.js for any tx flow (deploy, send, query logs).
-fn handleEthBlockNumber(ctx: *ServerCtx, id: u64) ![]u8 {
-    const tip = ctx.bc.getBlockCount();
-    const height: u64 = if (tip == 0) 0 else tip - 1;
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
-        .{ id, height });
-}
-
-/// eth_getBalance — return account balance in wei as hex.
-/// Params: `[address, "latest"|"pending"|blockNumber]`. Block tag is
-/// ignored — we always return the current tip balance (no historical
-/// state lookup yet).
-fn handleEthGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    // params[0] = "0x..." address (string).
-    const addr_hex = extractStringFromArrayParams(body, 0) orelse
-        return errorJson(-32602, "eth_getBalance: missing address", id, alloc);
-    // Strip "0x" if present.
-    const addr_no_0x = if (addr_hex.len >= 2 and addr_hex[0] == '0' and (addr_hex[1] == 'x' or addr_hex[1] == 'X'))
-        addr_hex[2..]
-    else
-        addr_hex;
-    if (addr_no_0x.len != 40) {
-        return errorJson(-32602, "eth_getBalance: address must be 20 bytes hex", id, alloc);
-    }
-    // EVM addresses are last 20 bytes of keccak256(pubkey); OmniBus addresses
-    // are bech32(hash160(pubkey)). These are DIFFERENT derivations — no
-    // deterministic bidirectional mapping is possible without a registry.
-    // Wallets that want to read OmniBus balances should use the native
-    // `getaddressbalance` RPC with the ob1q... address. Returning 0 here
-    // keeps ethers.js pre-flight checks happy without lying about balance.
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x0\"}}",
-        .{id});
-}
-
-/// eth_getTransactionCount — return account nonce as hex.
-/// Params: `[address, "latest"]`. We track no nonces yet at the EVM-account
-/// level; return 0 so ethers.js can submit txs (which then go through
-/// eth_sendRawTransaction signed).
-fn handleEthGetTransactionCount(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x0\"}}",
-        .{id});
-}
-
-/// eth_gasPrice — return a fixed gas price in wei (1 gwei = 0x3b9aca00).
-/// We have no fee market yet; flat-rate is fine for testnets/regtest.
-fn handleEthGasPrice(ctx: *ServerCtx, id: u64) ![]u8 {
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x3b9aca00\"}}",
-        .{id});
-}
-
-/// net_version — legacy network identifier (decimal, not hex).
-/// Many wallets/libs still use this alongside eth_chainId.
-fn handleNetVersion(ctx: *ServerCtx, id: u64) ![]u8 {
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{d}\"}}",
-        .{ id, ctx.chain_id });
-}
-
-/// eth_getLogs — return matching logs. Params: `[{address, topics, fromBlock, toBlock}]`.
-/// Chain does not run EVM bytecode, so contract event logs do not exist.
-/// We return an empty array (valid result for any filter) — clients
-/// receive a well-formed response instead of an error.
-fn handleEthGetLogs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}",
-        .{id});
-}
-
-/// eth_getTransactionReceipt — receipt for a tx hash.
-/// Looks up the TX in the OmniBus chain (mined blocks only — pending TXs
-/// have no receipt in Ethereum semantics) and returns an EIP-1474 receipt
-/// shaped for ethers.js/web3 compatibility. status=0x1 for any TX that
-/// reached a block (OmniBus does not have TX-level revert semantics yet).
-fn handleEthGetTransactionReceipt(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const tx_hash_raw = extractStringFromArrayParams(body, 0) orelse
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
-
-    // Strip 0x prefix if present so we match the bare hex stored on chain.
-    var tx_hash = tx_hash_raw;
-    if (tx_hash.len >= 2 and tx_hash[0] == '0' and (tx_hash[1] == 'x' or tx_hash[1] == 'X'))
-        tx_hash = tx_hash[2..];
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    const block_height = ctx.bc.tx_block_height.get(tx_hash) orelse {
-        // Fallback: linear scan (TX not yet indexed)
-        for (ctx.bc.chain.items) |blk| {
-            for (blk.transactions.items) |tx| {
-                if (std.mem.eql(u8, tx.hash, tx_hash)) {
-                    return ethReceiptJson(alloc, id, tx.hash, blk.hash, @intCast(blk.index), tx.from_address, tx.to_address);
-                }
-            }
-        }
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
-    };
-
-    if (block_height >= ctx.bc.chain.items.len) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
-    }
-    const blk = ctx.bc.chain.items[block_height];
-    for (blk.transactions.items) |tx| {
-        if (std.mem.eql(u8, tx.hash, tx_hash)) {
-            return ethReceiptJson(alloc, id, tx.hash, blk.hash, block_height, tx.from_address, tx.to_address);
-        }
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
-}
-
-/// Render an EIP-1474 receipt JSON. Address fields are ob-bech32, which
-/// is non-standard for Ethereum tooling — clients that need 0x addresses
-/// should resolve them via a separate name service. Logs always empty
-/// because chain doesn't run EVM bytecode.
-fn ethReceiptJson(
-    alloc: std.mem.Allocator,
-    id: u64,
-    tx_hash: []const u8,
-    block_hash: []const u8,
-    block_height: u64,
-    from: []const u8,
-    to: []const u8,
-) ![]u8 {
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"transactionHash\":\"0x{s}\",\"transactionIndex\":\"0x0\"," ++
-            "\"blockHash\":\"0x{s}\",\"blockNumber\":\"0x{x}\"," ++
-            "\"from\":\"{s}\",\"to\":\"{s}\"," ++
-            "\"cumulativeGasUsed\":\"0x5208\",\"gasUsed\":\"0x5208\"," ++
-            "\"contractAddress\":null,\"logs\":[],\"logsBloom\":\"0x" ++
-            "0000000000000000000000000000000000000000000000000000000000000000" ++
-            "0000000000000000000000000000000000000000000000000000000000000000" ++
-            "0000000000000000000000000000000000000000000000000000000000000000" ++
-            "0000000000000000000000000000000000000000000000000000000000000000\"," ++
-            "\"status\":\"0x1\",\"type\":\"0x0\",\"effectiveGasPrice\":\"0x0\"" ++
-        "}}}}",
-        .{ id, tx_hash, block_hash, block_height, from, to });
-}
-
-/// eth_getBlockByNumber — block by tag/hex. V1 minimal: returns block info
-/// in EIP-1474 shape with hashed-out fields. Sufficient for chain detect.
-fn handleEthGetBlockByNumber(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    const tip = ctx.bc.getBlockCount();
-    const height: u64 = if (tip == 0) 0 else tip - 1;
-    // Minimal block object — many fields stubbed but ethers.js parses ok.
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"number\":\"0x{x}\",\"hash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"," ++
-            "\"parentHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"," ++
-            "\"timestamp\":\"0x0\",\"transactions\":[],\"gasLimit\":\"0x1c9c380\",\"gasUsed\":\"0x0\"," ++
-            "\"miner\":\"0x0000000000000000000000000000000000000000\",\"difficulty\":\"0x{x}\"," ++
-            "\"baseFeePerGas\":\"0x0\",\"extraData\":\"0x\"" ++
-        "}}}}",
-        .{ id, height, ctx.bc.difficulty });
-}
 
 /// Helper: extract param[idx] as a JSON string from {"params":[...]}
 /// Trivial parser — assumes params is a plain array of string/object/etc.
-fn extractStringFromArrayParams(body: []const u8, idx: usize) ?[]const u8 {
+pub fn extractStringFromArrayParams(body: []const u8, idx: usize) ?[]const u8 {
     // Find "params":[
     const params_key = "\"params\"";
     const k_pos = std.mem.indexOf(u8, body, params_key) orelse return null;
