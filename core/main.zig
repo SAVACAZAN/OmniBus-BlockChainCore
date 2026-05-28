@@ -6,38 +6,11 @@ const builtin = @import("builtin");
 // build.zig wires `build_options` into this exe via `addOptions()`.
 pub const build_options_evm_enabled: bool = @import("build_options").evm_enabled;
 
-// ── Single-instance lock — un singur miner per masina ────────────────────────
-// Windows: lock file exclusiv  omnibus-miner.lock (in directorul curent)
-// Linux/macOS: flock()         /tmp/omnibus-miner.lock
-fn acquireSingleInstanceLock() void {
-    if (comptime builtin.os.tag == .windows) {
-        windows_lock.acquire();
-        // handle ramas deschis pana la exit — OS il elibereaza + sterge fisierul
-    } else {
-        // Linux / macOS / BSD: flock pe /tmp/omnibus-miner.lock
-        const lock_path = "/tmp/omnibus-miner.lock";
-        var file = std.fs.createFileAbsolute(lock_path, .{}) catch {
-            std.debug.print("[LOCK] Nu pot crea {s} — continuam fara lock\n", .{lock_path});
-            return;
-        };
-        // flock(fd, LOCK_EX | LOCK_NB) = 6
-        const rc = std.posix.flock(file.handle, 6) catch {
-            std.debug.print("\n[BLOCKED] Un miner OmniBus ruleaza deja pe acest PC!\n", .{});
-            std.debug.print("          Un singur miner per masina — regula de retea.\n", .{});
-            std.debug.print("          Opreste instanta curenta inainte sa pornesti alta.\n\n", .{});
-            std.process.exit(1);
-            return;
-        };
-        _ = rc;
-        // Scrie PID in lock file
-        var pid_buf: [32]u8 = undefined;
-        const pid_str = std.fmt.bufPrint(&pid_buf, "{d}\n",
-            .{std.os.linux.getpid()}) catch "";
-        file.writeAll(pid_str) catch {};
-        // NU inchidem — lock activ pana la exit procesului (intentional leak)
-        std.mem.doNotOptimizeAway(&file);
-    }
-}
+// Single-instance lock — un singur miner per masina.
+// Vezi core/node/platform_lock.zig pentru implementare (Windows + POSIX).
+const platform_lock = @import("node/platform_lock.zig");
+const acquireSingleInstanceLock = platform_lock.acquireSingleInstanceLock;
+
 const pq_crypto_mod   = @import("pq_crypto.zig");
 const blockchain_mod  = @import("blockchain.zig");
 const rpc_mod         = @import("rpc_server.zig");
@@ -210,66 +183,14 @@ fn mempoolVerifierFn(ctx_opt: ?*anyopaque, tx: *const transaction_mod.Transactio
 }
 
 // ── Graceful Shutdown — Ctrl+C / SIGINT handler ─────────────────────────────
-// Atomic flag checked by the mining loop; set by OS signal handler.
-var g_shutdown = std.atomic.Value(bool).init(false);
+// Extracted to core/node/shutdown.zig (2026-05-29). The `g_shutdown` re-export
+// preserves the legacy name so any cross-module reference via `main_mod.g_shutdown`
+// continues to resolve (callers can use the pointer with .load/.store on `.*`).
+const shutdown_mod = @import("node/shutdown.zig");
+pub const g_shutdown = &shutdown_mod.g_shutdown;
 
 fn installShutdownHandler() void {
-    if (comptime builtin.os.tag == .windows) {
-        // Windows: use std.os.windows.SetConsoleCtrlHandler wrapper
-        std.os.windows.SetConsoleCtrlHandler(&windows_handlers.windowsCtrlHandler, true) catch {
-            std.debug.print("[SHUTDOWN] Failed to install Ctrl+C handler\n", .{});
-        };
-    } else {
-        // POSIX: catch SIGINT + SIGTERM
-        // empty_sigset removed in Zig 0.15 — use zeroes for portable empty mask.
-        const act = std.posix.Sigaction{
-            .handler = .{ .handler = posixSignalHandler },
-            .mask = std.mem.zeroes(std.posix.sigset_t),
-            .flags = 0,
-        };
-        std.posix.sigaction(std.posix.SIG.INT, &act, null);
-        std.posix.sigaction(std.posix.SIG.TERM, &act, null);
-    }
-}
-
-// Windows-only handler — wrapped in a struct so std.os.windows.DWORD/BOOL
-// type references don't get resolved on non-Windows targets.
-const windows_handlers = if (builtin.os.tag == .windows) struct {
-    pub fn windowsCtrlHandler(dwCtrlType: std.os.windows.DWORD) callconv(.winapi) std.os.windows.BOOL {
-        _ = dwCtrlType;
-        g_shutdown.store(true, .monotonic);
-        return std.os.windows.TRUE; // handled, don't terminate immediately
-    }
-} else struct {};
-
-// Windows-only single-instance lock via CreateFileW exclusive — wrapped so
-// kernel32 symbol references don't leak into non-Windows builds.
-const windows_lock = if (builtin.os.tag == .windows) struct {
-    pub fn acquire() void {
-        const lock_path_w = std.unicode.utf8ToUtf16LeStringLiteral("omnibus-miner.lock");
-        const handle = std.os.windows.kernel32.CreateFileW(
-            lock_path_w,
-            std.os.windows.GENERIC_WRITE,
-            0, // ShareMode = 0 → exclusiv, alt proces nu poate deschide
-            null,
-            std.os.windows.OPEN_ALWAYS,
-            std.os.windows.FILE_ATTRIBUTE_NORMAL,
-            null,
-        );
-        if (handle == std.os.windows.INVALID_HANDLE_VALUE) {
-            std.debug.print("\n[BLOCKED] Un miner OmniBus ruleaza deja pe acest PC!\n", .{});
-            std.debug.print("          Un singur miner per masina — regula de retea.\n", .{});
-            std.debug.print("          Opreste instanta curenta inainte sa pornesti alta.\n\n", .{});
-            std.process.exit(1);
-        }
-    }
-} else struct {
-    pub fn acquire() void {}
-};
-
-fn posixSignalHandler(sig: c_int) callconv(.c) void {
-    _ = sig;
-    g_shutdown.store(true, .monotonic);
+    shutdown_mod.installShutdownHandlers();
 }
 
 const NUM_SHARDS: u8 = 4;
@@ -337,68 +258,13 @@ pub var g_chainstate: ?chainstate_mod.ChainState = null;
 
 // ── State save thread — band-aid before Bitcoin-style storage refactor ─────
 //
-// Background thread that calls saveBlockchain() on a fixed interval. Decoupled
-// from the mining loop so a slow disk write never blocks block production.
-// The mining loop holds bc.mutex briefly while applying TXs; the saver also
-// takes that mutex to read a coherent snapshot, then writes outside the lock.
-//
-// Why this exists: commit b363095 disabled in-mining-loop saves to recover
-// the p99 latency we lost to "every block does a 50 MB rewrite". The
-// trade-off was that balances which weren't materialised as on-chain TXs
-// (faucet grants written directly to bc.balances) didn't survive restart.
-// Faucet recipients lost ~51 testnet balances at the next restart.
-//
-// This thread is the temporary fix. The proper fix is the Bitcoin-style
-// storage refactor (blocks/blkNNNNN.dat append + chainstate/ KV) tracked
-// in arch/leveldb-storage. See ARCH_BITCOIN_STORAGE.md for the full plan.
-pub var g_state_save_run: std.atomic.Value(bool) = std.atomic.Value(bool).init(false);
-pub var g_state_save_thread: ?std.Thread = null;
-
-// Reduced 60s → 30s ca extra safety net pe langa per-block save (vezi
-// fix-ul din mining loop dupa applyBlock). Pana cand storage-ul devine
-// incremental (Bitcoin-style blkNNNNN.dat), saveToDisc face un rewrite
-// monolitic, dar la ~hundreds-of-ms ramane sub block time. Daca per-block
-// save esueaza tranzitoriu, thread-ul ăsta prinde state-ul in 30s.
-const STATE_SAVE_INTERVAL_SEC: i64 = 30;
-
-fn stateSaveLoop(bc: *blockchain_mod.Blockchain) void {
-    // First save runs after the interval, not at startup, because the
-    // chain has just been restored from disk — saving immediately would
-    // be a no-op write of identical bytes. We sleep first.
-    while (g_state_save_run.load(.acquire)) {
-        var slept_s: i64 = 0;
-        while (slept_s < STATE_SAVE_INTERVAL_SEC and g_state_save_run.load(.acquire)) : (slept_s += 1) {
-            std.Thread.sleep(1 * std.time.ns_per_s);
-        }
-        if (!g_state_save_run.load(.acquire)) break;
-
-        // saveToDisc takes bc.mutex internally for the snapshot read; it
-        // does NOT hold it during the actual file write, so a slow disk
-        // doesn't stall the mining loop. Worst case the saver itself waits
-        // for the mining loop to release the mutex (~ms), which is fine.
-        bc.saveToDisc() catch |err| {
-            std.debug.print("[DB] Background save failed: {}\n", .{err});
-        };
-    }
-}
-
-pub fn startStateSaveThread(bc: *blockchain_mod.Blockchain) !void {
-    if (g_state_save_run.load(.acquire)) return;
-    g_state_save_run.store(true, .release);
-    g_state_save_thread = try std.Thread.spawn(.{}, stateSaveLoop, .{bc});
-    std.debug.print(
-        "[DB] Background state-save thread started (interval = {d}s)\n",
-        .{STATE_SAVE_INTERVAL_SEC},
-    );
-}
-
-pub fn stopStateSaveThread() void {
-    g_state_save_run.store(false, .release);
-    if (g_state_save_thread) |t| {
-        t.join();
-        g_state_save_thread = null;
-    }
-}
+// Extracted to core/node/state_save.zig. Re-exports kept here so callers
+// using `main_mod.startStateSaveThread` / `main_mod.stopStateSaveThread`
+// and `main_mod.g_state_save_*` (see persistence.zig comment) keep working.
+const state_save_mod = @import("node/state_save.zig");
+pub const STATE_SAVE_INTERVAL_SEC = state_save_mod.STATE_SAVE_INTERVAL_SEC;
+pub const startStateSaveThread = state_save_mod.startStateSaveThread;
+pub const stopStateSaveThread = state_save_mod.stopStateSaveThread;
 
 // ── Global Slot Calendar — pre-computed next 60 slots (PoH-style) ─────────
 // Rebuilt after each block from the validator set + tip hash. Read-only
