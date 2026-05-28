@@ -360,32 +360,13 @@ pub const Blockchain = struct {
     /// 6 PriceFetch entries from g_ws_feed.snapshot(). Stored under block height.
     /// Trims old entries (>1000 blocks behind tip) to bound memory.
     pub fn recordBlockPrices(self: *Blockchain, height: u32, entries: []const BlockPriceEntry) void {
-        if (!self.block_prices_initialized) return;
-        if (entries.len < 6) return;
-        var arr: [6]BlockPriceEntry = undefined;
-        for (0..6) |i| arr[i] = entries[i];
-        self.block_prices.put(height, arr) catch return;
-        // Bound memory: drop entries older than 1000 blocks behind current.
-        if (height > 1000) {
-            const cutoff = height - 1000;
-            var it = self.block_prices.iterator();
-            var to_remove: [16]u32 = undefined;
-            var rcount: usize = 0;
-            while (it.next()) |e| {
-                if (e.key_ptr.* < cutoff and rcount < to_remove.len) {
-                    to_remove[rcount] = e.key_ptr.*;
-                    rcount += 1;
-                }
-            }
-            for (to_remove[0..rcount]) |k| _ = self.block_prices.remove(k);
-        }
+        return @import("blockchain/accessors.zig").recordBlockPrices(self, height, entries);
     }
 
     /// Return the 6 price entries snapshot for a block, or null if not recorded
     /// (e.g. block was mined before WS feed came online, or after node restart).
     pub fn getBlockPrices(self: *const Blockchain, height: u32) ?[6]BlockPriceEntry {
-        if (!self.block_prices_initialized) return null;
-        return self.block_prices.get(height);
+        return @import("blockchain/accessors.zig").getBlockPrices(self, height);
     }
 
     pub fn deinit(self: *Blockchain) void {
@@ -466,21 +447,7 @@ pub const Blockchain = struct {
     /// Mirrors `computeReservedFromOrderbook` in rpc_server.zig but lives on
     /// Blockchain so the validation path (which has no rpc context) can use it.
     pub fn getReservedFromOrders(self: *const Blockchain, address: []const u8) u64 {
-        const eng = self.exchange_engine orelse return 0;
-        var total: u64 = 0;
-        var i: u32 = 0;
-        while (i < eng.ask_count) : (i += 1) {
-            const o = &eng.asks[i];
-            if (o.status != .active and o.status != .partial) continue;
-            // Only OMNI-base pairs lock real OMNI from the wallet. Pairs
-            // where OMNI is the quote (none today) or base lives off-chain
-            // (BTC/LCX/ETH) don't tie up native balance.
-            const omni_base = (o.pair_id == 0 or o.pair_id == 4 or o.pair_id == 5 or o.pair_id == 6);
-            if (!omni_base) continue;
-            if (!std.mem.eql(u8, o.getTraderAddress(), address)) continue;
-            total +%= o.remainingSat();
-        }
-        return total;
+        return @import("blockchain/accessors.zig").getReservedFromOrders(self, address);
     }
 
     /// Returneaza balanta matura (doar UTXO-uri cu >=100 confirmari).
@@ -1794,42 +1761,14 @@ pub const Blockchain = struct {
     /// by replaying the chain on startup. Restart resyncs from peers,
     /// which on a real mesh is faster than re-reading a multi-GB .dat
     /// file. Save now happens only on graceful shutdown (signal handler).
+    /// Delegates to blockchain/persistence.zig.
     pub fn checkAutoSave(self: *Blockchain) void {
-        const BLOCK_THRESHOLD: u32 = 100;
-        const TX_THRESHOLD: u32 = 1000;
-        if (self.blocks_since_save >= BLOCK_THRESHOLD or self.txs_since_save >= TX_THRESHOLD) {
-            if (self.persistent_db != null) {
-                self.saveToDisc() catch |err| {
-                    std.debug.print("[AUTOSAVE] saveToDisc failed: {}\n", .{err});
-                };
-            }
-            self.blocks_since_save = 0;
-            self.txs_since_save = 0;
-        }
+        return @import("blockchain/persistence.zig").checkAutoSave(self);
     }
 
-    /// Convenience method: save full blockchain state to disc via PersistentBlockchain.
-    /// No-op if persistent_db has not been attached (e.g. in unit tests).
-    ///
-    /// Thread-safety: takes self.mutex for the duration of the write. The
-    /// background save thread (g_state_save_thread in main.zig) calls this
-    /// every 30 s as backup, plus the mining loop calls it after every block
-    /// for primary persistence; the mining loop holds the mutex briefly to
-    /// apply each block's TXs, so the saver and the miner serialise cleanly.
-    /// A slow disk write blocks new blocks from being added during the save —
-    /// that's fine, our save is ~hundreds of ms and we're targeting
-    /// 1 s/block so there's plenty of slack.
+    /// Delegates to blockchain/persistence.zig.
     pub fn saveToDisc(self: *Blockchain) !void {
-        const pdb = self.persistent_db orelse return;
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        try pdb.saveBlockchain(self, self.db_path);
-        // Update bookkeeping fields so a graceful-shutdown save sees fresh
-        // numbers and the operator's log shows what was persisted.
-        self.last_save_time = std.time.timestamp();
-        self.blocks_since_save = 0;
-        self.txs_since_save = 0;
-        std.debug.print("[DB] Auto-saved: {d} blocks, {d} addresses\n", .{ self.chain.items.len, self.balances.count() });
+        return @import("blockchain/persistence.zig").saveToDisc(self);
     }
 
     /// Find the highest block index where both chains have the same hash.
@@ -2740,10 +2679,7 @@ pub const Blockchain = struct {
     }
 
     pub fn getBlock(self: *Blockchain, index: u32) ?Block {
-        if (index < self.chain.items.len) {
-            return self.chain.items[index];
-        }
-        return null;
+        return @import("blockchain/accessors.zig").getBlock(self, index);
     }
 
     // SEGFAULT-FIX [scan-2026-04-25] HIGH — getLatestBlock now deep-clones
@@ -2761,126 +2697,13 @@ pub const Blockchain = struct {
     // `getLatestBlock` is intentionally kept for code paths that need the
     // full Block (with TX list) — primarily test code.
     pub fn getLatestBlock(self: *Blockchain, alloc: std.mem.Allocator) !Block {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        if (self.chain.items.len == 0) return error.EmptyChain;
-        return cloneBlockOwned(alloc, &self.chain.items[self.chain.items.len - 1]);
+        return @import("blockchain/accessors.zig").getLatestBlock(self, alloc);
     }
 
     /// Free a Block returned by `getLatestBlock`. Frees every heap-borrowed
     /// slice, the cloned TX list, and the optional fills buffer.
     pub fn freeClonedBlock(alloc: std.mem.Allocator, block: *Block) void {
-        if (block.hash.len > 0) alloc.free(block.hash);
-        if (block.previous_hash.len > 0) alloc.free(block.previous_hash);
-        if (block.miner_address.len > 0) alloc.free(block.miner_address);
-        for (block.transactions.items) |*tx| {
-            freeClonedTx(alloc, tx);
-        }
-        block.transactions.deinit();
-        if (block.fills_heap and block.fills.len > 0) {
-            alloc.free(block.fills);
-        }
-    }
-
-    /// Internal: deep-clone a Block. Every heap-borrowed slice gets a fresh
-    /// allocation from `alloc`. The returned Block shares no memory with `src`.
-    fn cloneBlockOwned(alloc: std.mem.Allocator, src: *const Block) !Block {
-        var out = Block{
-            .index = src.index,
-            .timestamp = src.timestamp,
-            .transactions = array_list.Managed(Transaction).init(alloc),
-            .previous_hash = "",
-            .nonce = src.nonce,
-            .hash = "",
-            .merkle_root = src.merkle_root,
-            .miner_address = "",
-            .reward_sat = src.reward_sat,
-            .miner_heap = true,
-            .prices = src.prices,
-            .prices_root = src.prices_root,
-            .fills = &.{},
-            .fills_root = src.fills_root,
-            .fills_heap = false,
-        };
-        errdefer freeClonedBlock(alloc, &out);
-
-        if (src.hash.len > 0) {
-            out.hash = try alloc.dupe(u8, src.hash);
-        }
-        if (src.previous_hash.len > 0) {
-            out.previous_hash = try alloc.dupe(u8, src.previous_hash);
-        }
-        if (src.miner_address.len > 0) {
-            out.miner_address = try alloc.dupe(u8, src.miner_address);
-        }
-        try out.transactions.ensureTotalCapacity(src.transactions.items.len);
-        for (src.transactions.items) |*src_tx| {
-            const cloned_tx = try cloneTxOwned(alloc, src_tx);
-            try out.transactions.append(cloned_tx);
-        }
-        if (src.fills.len > 0) {
-            const Fill = @import("matching_engine.zig").Fill;
-            const fills_buf = try alloc.alloc(Fill, src.fills.len);
-            @memcpy(fills_buf, src.fills);
-            out.fills = fills_buf;
-            out.fills_heap = true;
-        }
-        return out;
-    }
-
-    fn cloneTxOwned(alloc: std.mem.Allocator, src: *const Transaction) !Transaction {
-        var out: Transaction = src.*;
-        // Reset slice fields so errdefer cleanup is well-defined if a later
-        // dupe() fails partway through.
-        out.from_address = "";
-        out.to_address = "";
-        out.op_return = "";
-        out.script_pubkey = "";
-        out.script_sig = "";
-        out.signature = "";
-        out.hash = "";
-        out.public_key = "";
-        out.inputs = &.{};
-        out.outputs = &.{};
-        out.data = "";
-        errdefer freeClonedTx(alloc, &out);
-
-        if (src.from_address.len > 0)  out.from_address  = try alloc.dupe(u8, src.from_address);
-        if (src.to_address.len > 0)    out.to_address    = try alloc.dupe(u8, src.to_address);
-        if (src.op_return.len > 0)     out.op_return     = try alloc.dupe(u8, src.op_return);
-        if (src.script_pubkey.len > 0) out.script_pubkey = try alloc.dupe(u8, src.script_pubkey);
-        if (src.script_sig.len > 0)    out.script_sig    = try alloc.dupe(u8, src.script_sig);
-        if (src.signature.len > 0)     out.signature     = try alloc.dupe(u8, src.signature);
-        if (src.hash.len > 0)          out.hash          = try alloc.dupe(u8, src.hash);
-        if (src.public_key.len > 0)    out.public_key    = try alloc.dupe(u8, src.public_key);
-        if (src.inputs.len > 0) {
-            const InT = @TypeOf(src.inputs[0]);
-            const buf = try alloc.alloc(InT, src.inputs.len);
-            @memcpy(buf, src.inputs);
-            out.inputs = buf;
-        }
-        if (src.outputs.len > 0) {
-            const OutT = @TypeOf(src.outputs[0]);
-            const buf = try alloc.alloc(OutT, src.outputs.len);
-            @memcpy(buf, src.outputs);
-            out.outputs = buf;
-        }
-        if (src.data.len > 0)          out.data          = try alloc.dupe(u8, src.data);
-        return out;
-    }
-
-    fn freeClonedTx(alloc: std.mem.Allocator, tx: *Transaction) void {
-        if (tx.from_address.len > 0)  alloc.free(tx.from_address);
-        if (tx.to_address.len > 0)    alloc.free(tx.to_address);
-        if (tx.op_return.len > 0)     alloc.free(tx.op_return);
-        if (tx.script_pubkey.len > 0) alloc.free(tx.script_pubkey);
-        if (tx.script_sig.len > 0)    alloc.free(tx.script_sig);
-        if (tx.signature.len > 0)     alloc.free(tx.signature);
-        if (tx.hash.len > 0)          alloc.free(tx.hash);
-        if (tx.public_key.len > 0)    alloc.free(tx.public_key);
-        if (tx.inputs.len > 0)        alloc.free(tx.inputs);
-        if (tx.outputs.len > 0)       alloc.free(tx.outputs);
-        if (tx.data.len > 0)          alloc.free(tx.data);
+        return @import("blockchain/accessors.zig").freeClonedBlock(alloc, block);
     }
 
     // SEGFAULT-FIX [scan-2026-04-25] LOW — read len under chain mutex so the
@@ -2892,9 +2715,7 @@ pub const Blockchain = struct {
     // chain only grows during normal operation, so the value remains valid
     // (as a high-water mark) until the next append on this same thread.
     pub fn getBlockCount(self: *Blockchain) u32 {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        return @intCast(self.chain.items.len);
+        return @import("blockchain/accessors.zig").getBlockCount(self);
     }
 
     /// Lock-free variant of getBlockCount for callers that already hold
@@ -2903,7 +2724,7 @@ pub const Blockchain = struct {
     /// Use this in RPC handlers that took the chain mutex earlier in the
     /// same function.
     pub fn getBlockCountUnlocked(self: *const Blockchain) u32 {
-        return @intCast(self.chain.items.len);
+        return @import("blockchain/accessors.zig").getBlockCountUnlocked(self);
     }
 
     /// Self-contained snapshot of the latest block — no slice-into-chain pointers,
@@ -2912,28 +2733,7 @@ pub const Blockchain = struct {
     /// SEGFAULT-FIX [scan-2026-04-25]: callers no longer need to keep bc.mutex
     /// locked across allocPrint — they get a stable copy and unlock immediately.
     pub fn getLatestBlockSnapshot(self: *Blockchain) BlockSnapshot {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        const last = &self.chain.items[self.chain.items.len - 1];
-        var snap = BlockSnapshot{
-            .height       = last.index,
-            .timestamp    = last.timestamp,
-            .nonce        = last.nonce,
-            .difficulty   = self.difficulty,
-            .tx_count     = last.transactions.items.len,
-            .hash_buf     = [_]u8{0} ** 96,
-            .hash_len     = 0,
-            .prev_hash_buf= [_]u8{0} ** 96,
-            .prev_hash_len= 0,
-            .merkle_root  = last.merkle_root,
-        };
-        const hl = @min(last.hash.len, snap.hash_buf.len);
-        @memcpy(snap.hash_buf[0..hl], last.hash[0..hl]);
-        snap.hash_len = hl;
-        const pl = @min(last.previous_hash.len, snap.prev_hash_buf.len);
-        @memcpy(snap.prev_hash_buf[0..pl], last.previous_hash[0..pl]);
-        snap.prev_hash_len = pl;
-        return snap;
+        return @import("blockchain/accessors.zig").getLatestBlockSnapshot(self);
     }
 
     // ─── PHASE 2F.2 — HTLC state transitions ────────────────────────────
@@ -3508,131 +3308,17 @@ pub const Blockchain = struct {
 };
 
 // ── PQ identity persistence ─────────────────────────────────────────────────
-// pq_identity_map needs to survive restarts. We append-only-log every accepted
-// pq_attest_v1 to a JSONL sidecar file at data/<chain>/pq_identities.jsonl,
-// then re-hydrate the in-memory map at startup (see loadPqIdentitiesFromDisk
-// below — called from main.zig after database restore).
+// Implementation lives in blockchain/persistence.zig. Re-exported here so
+// external callers (main.zig, etc.) continue to use blockchain_mod.<name>.
 
-var g_pq_persist_path_buf: [512]u8 = @splat(0);
-var g_pq_persist_path_len: usize = 0;
-var g_pq_persist_mutex: std.Thread.Mutex = .{};
+const persistence_mod = @import("blockchain/persistence.zig");
 
-pub fn pqPersistSetPath(path: []const u8) void {
-    g_pq_persist_mutex.lock();
-    defer g_pq_persist_mutex.unlock();
-    const n = @min(path.len, g_pq_persist_path_buf.len);
-    @memcpy(g_pq_persist_path_buf[0..n], path[0..n]);
-    g_pq_persist_path_len = n;
-}
-
-fn pqPersistPath() ?[]const u8 {
-    if (g_pq_persist_path_len == 0) return null;
-    return g_pq_persist_path_buf[0..g_pq_persist_path_len];
-}
-
-fn persistPqIdentityAppend(alloc: std.mem.Allocator, from: []const u8, idt: *const PqIdentity) void {
-    g_pq_persist_mutex.lock();
-    defer g_pq_persist_mutex.unlock();
-    const path = pqPersistPath() orelse return;
-
-    const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
-        std.debug.print("[PQ-IDENT] persist open {s} failed: {}\n", .{ path, err });
-        return;
-    };
-    defer f.close();
-    f.seekFromEnd(0) catch return;
-
-    // Layout:
-    //  {"from":"...","love":"...","food":"...","rent":"...","vacation":"...",
-    //   "btc":"...","eth":"...","attest_block":N,"attest_tx":"..."}\n
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    buf.writer().print(
-        "{{\"from\":\"{s}\",\"love\":\"{s}\",\"food\":\"{s}\",\"rent\":\"{s}\",\"vacation\":\"{s}\"," ++
-        "\"btc\":\"{s}\",\"eth\":\"{s}\",\"attest_block\":{d},\"attest_tx\":\"{s}\"}}\n",
-        .{
-            from,
-            idt.loveSlice(), idt.foodSlice(), idt.rentSlice(), idt.vacationSlice(),
-            idt.btcSlice(), idt.ethSlice(),
-            idt.attest_block, idt.attestTxSlice(),
-        },
-    ) catch return;
-    _ = f.writeAll(buf.items) catch |err| {
-        std.debug.print("[PQ-IDENT] append failed: {}\n", .{err});
-    };
-}
-
-/// Reload pq_identity_map from the JSONL sidecar. Called once at startup
-/// after the database restore. Idempotent — duplicate `from` entries are
-/// silently skipped (first-claim wins, matches on-chain semantics).
-pub fn loadPqIdentitiesFromDisk(bc: *Blockchain, path: []const u8) !void {
-    pqPersistSetPath(path);
-    const f = std.fs.cwd().openFile(path, .{}) catch |err| switch (err) {
-        error.FileNotFound => return,
-        else => return err,
-    };
-    defer f.close();
-    const stat = try f.stat();
-    if (stat.size == 0) return;
-
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const buf = try arena.allocator().alloc(u8, @intCast(stat.size));
-    _ = try f.readAll(buf);
-
-    var lines = std.mem.splitScalar(u8, buf, '\n');
-    var loaded: usize = 0;
-    while (lines.next()) |line| {
-        if (line.len == 0) continue;
-        const from = extractJsonStr(line, "\"from\":\"") orelse continue;
-        if (bc.pq_identity_map.contains(from)) continue;
-
-        var ident = PqIdentity{};
-        if (extractJsonStr(line, "\"love\":\""))     |s| { copyToFixed(&ident.love,     &ident.love_len,     s); }
-        if (extractJsonStr(line, "\"food\":\""))     |s| { copyToFixed(&ident.food,     &ident.food_len,     s); }
-        if (extractJsonStr(line, "\"rent\":\""))     |s| { copyToFixed(&ident.rent,     &ident.rent_len,     s); }
-        if (extractJsonStr(line, "\"vacation\":\"")) |s| { copyToFixed(&ident.vacation, &ident.vacation_len, s); }
-        if (extractJsonStr(line, "\"btc\":\""))      |s| { copyToFixed(&ident.btc,      &ident.btc_len,      s); }
-        if (extractJsonStr(line, "\"eth\":\""))      |s| { copyToFixed(&ident.eth,      &ident.eth_len,      s); }
-        if (extractJsonStr(line, "\"attest_tx\":\"")) |s| {
-            const c = @min(s.len, ident.attest_tx.len - 1);
-            @memcpy(ident.attest_tx[0..c], s[0..c]);
-            ident.attest_tx_len = @intCast(c);
-        }
-        if (extractJsonU64(line, "\"attest_block\":")) |n| ident.attest_block = n;
-
-        const owned = bc.allocator.dupe(u8, from) catch continue;
-        bc.pq_identity_map.put(owned, ident) catch {
-            bc.allocator.free(owned);
-            continue;
-        };
-        loaded += 1;
-    }
-    std.debug.print("[PQ-IDENT] Loaded {d} identity record(s) from {s}\n", .{ loaded, path });
-}
-
-fn extractJsonStr(line: []const u8, key: []const u8) ?[]const u8 {
-    const start = std.mem.indexOf(u8, line, key) orelse return null;
-    const from = start + key.len;
-    if (from >= line.len) return null;
-    const end = std.mem.indexOfScalarPos(u8, line, from, '"') orelse return null;
-    return line[from..end];
-}
-
-fn extractJsonU64(line: []const u8, key: []const u8) ?u64 {
-    const start = std.mem.indexOf(u8, line, key) orelse return null;
-    const from = start + key.len;
-    var end = from;
-    while (end < line.len and std.ascii.isDigit(line[end])) : (end += 1) {}
-    if (end == from) return null;
-    return std.fmt.parseInt(u64, line[from..end], 10) catch null;
-}
-
-fn copyToFixed(buf: []u8, len_field: *u8, src: []const u8) void {
-    const c = @min(src.len, buf.len);
-    @memcpy(buf[0..c], src[0..c]);
-    len_field.* = @intCast(c);
-}
+pub const pqPersistSetPath         = persistence_mod.pqPersistSetPath;
+pub const persistPqIdentityAppend  = persistence_mod.persistPqIdentityAppend;
+pub const loadPqIdentitiesFromDisk = persistence_mod.loadPqIdentitiesFromDisk;
+pub const extractJsonStr           = persistence_mod.extractJsonStr;
+pub const extractJsonU64           = persistence_mod.extractJsonU64;
+pub const copyToFixed              = persistence_mod.copyToFixed;
 
 /// Self-contained snapshot of a block's metadata. No heap pointers / no slices
 /// into the chain — safe to read after the originating Blockchain.mutex is released.
