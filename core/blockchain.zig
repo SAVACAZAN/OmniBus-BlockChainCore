@@ -436,7 +436,7 @@ pub const Blockchain = struct {
     /// Returneaza balanta unei adrese (0 daca nu exista).
     /// PHASE-B: sursa de adevar este UTXO set-ul, nu RAM cache.
     pub fn getAddressBalance(self: *const Blockchain, address: []const u8) u64 {
-        return self.utxo_set.getBalance(address);
+        return @import("blockchain/balances.zig").getAddressBalance(self, address);
     }
 
     /// Returns the OMNI amount this address has locked in resting SELL orders
@@ -453,45 +453,13 @@ pub const Blockchain = struct {
     /// Returneaza balanta matura (doar UTXO-uri cu >=100 confirmari).
     /// Coinbase-urile necesita 100 blocuri inainte de a fi cheltuibile.
     pub fn getMatureBalance(self: *const Blockchain, address: []const u8) u64 {
-        const current_height = if (self.chain.items.len == 0) 0
-                              else @as(u64, @intCast(self.chain.items.len - 1));
-        // Hold UTXO read-lock for the whole walk — otherwise the slice returned
-        // by getUTXOsForAddress could be invalidated by a concurrent addUTXO.
-        const lk = @constCast(&self.utxo_set.lock);
-        lk.lockShared();
-        defer lk.unlockShared();
-        const list = self.utxo_set.address_index.get(address) orelse return 0;
-        var total: u64 = 0;
-        for (list.items) |op| {
-            if (self.utxo_set.utxos.get(op)) |utxo| {
-                if (utxo.isMature(current_height)) total += utxo.amount;
-            }
-        }
-        return total;
+        return @import("blockchain/balances.zig").getMatureBalance(self, address);
     }
 
     /// Audit: compara RAM cache (bc.balances) cu UTXO set.
     /// In debug builds fail-fast pe divergente; in release doar log.
-    pub fn auditBalanceConsistency(self: *const Blockchain) struct {
-        addresses_checked: usize,
-        divergences: usize,
-    } {
-        var checked: usize = 0;
-        var diverged: usize = 0;
-        var it = self.balances.iterator();
-        while (it.next()) |kv| {
-            checked += 1;
-            const ram = kv.value_ptr.*;
-            const utxo = self.utxo_set.getBalance(kv.key_ptr.*);
-            if (ram != utxo) {
-                diverged += 1;
-                std.debug.print(
-                    "[AUDIT-DIVERGE] addr={s} ram={d} utxo={d}\n",
-                    .{ kv.key_ptr.*, ram, utxo },
-                );
-            }
-        }
-        return .{ .addresses_checked = checked, .divergences = diverged };
+    pub fn auditBalanceConsistency(self: *const Blockchain) @import("blockchain/balances.zig").AuditResult {
+        return @import("blockchain/balances.zig").auditBalanceConsistency(self);
     }
 
     /// Rebuild the active validator set from chain history + current balances.
@@ -550,73 +518,35 @@ pub const Blockchain = struct {
         self.validator_set = new_set;
     }
 
-    /// Returns the number of confirmations for a TX (null if TX not found in any block).
-    /// confirmations = current_chain_height - block_height_containing_tx
     pub fn getConfirmations(self: *const Blockchain, tx_hash: []const u8) ?u64 {
-        const block_height = self.tx_block_height.get(tx_hash) orelse return null;
-        const current_height: u64 = @intCast(self.chain.items.len);
-        if (current_height <= block_height) return 0;
-        return current_height - block_height;
+        return @import("blockchain/address_index.zig").getConfirmations(self, tx_hash);
     }
 
-    /// Returns the block height that contains a given TX (null if not found)
     pub fn getTxBlockHeight(self: *const Blockchain, tx_hash: []const u8) ?u64 {
-        return self.tx_block_height.get(tx_hash);
+        return @import("blockchain/address_index.zig").getTxBlockHeight(self, tx_hash);
     }
 
-    /// Index a TX hash for a given address in address_tx_index.
-    /// Creates the list if address not yet tracked.
     pub fn indexAddressTx(self: *Blockchain, address: []const u8, tx_hash: []const u8) void {
-        if (address.len == 0) return;
-        const list = self.address_tx_index.getPtr(address);
-        if (list) |l| {
-            l.append(self.allocator, tx_hash) catch {};
-        } else {
-            var new_list: std.ArrayList([]const u8) = .empty;
-            new_list.append(self.allocator, tx_hash) catch {};
-            self.address_tx_index.put(address, new_list) catch {};
-        }
+        return @import("blockchain/address_index.zig").indexAddressTx(self, address, tx_hash);
     }
 
-    /// Returns the list of TX hashes associated with an address (both sent and received).
-    /// Returns null if address has no history.
-    /// CALLER must hold self.mutex — this is the unlocked read path used by
-    /// applyBlock + RPC handlers that already hold the lock.
     pub fn getAddressHistory(self: *const Blockchain, address: []const u8) ?[]const []const u8 {
-        const list = self.address_tx_index.get(address) orelse return null;
-        if (list.items.len == 0) return null;
-        return list.items;
+        return @import("blockchain/address_index.zig").getAddressHistory(self, address);
     }
 
-    /// Thread-safe version of getAddressHistory: takes the chain mutex
-    /// briefly, returns an allocator-owned COPY of the hash list. Caller
-    /// must `allocator.free` the returned slice.
-    /// Fix B4: RPC handlers calling the unlocked variant concurrently with
-    /// applyBlock's writes triggered hashmap rehash → "incorrect alignment"
-    /// panic. This wrapper eliminates the race by returning a snapshot.
     pub fn getAddressHistoryLocked(
         self: *Blockchain,
         allocator: std.mem.Allocator,
         address: []const u8,
     ) !?[][]const u8 {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        const list = self.address_tx_index.get(address) orelse return null;
-        if (list.items.len == 0) return null;
-        const copy = try allocator.alloc([]const u8, list.items.len);
-        for (list.items, 0..) |hash, i| {
-            copy[i] = try allocator.dupe(u8, hash);
-        }
-        return copy;
+        return @import("blockchain/address_index.zig").getAddressHistoryLocked(self, allocator, address);
     }
 
     /// Adauga reward la balanta minerului.
     /// Lock-uit pentru a preveni race-ul cu RPC threads care citesc balances
     /// (HashMap-ul Zig nu e thread-safe; concurrent get/put produce segfault).
     pub fn creditBalance(self: *Blockchain, address: []const u8, amount: u64) !void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        try self.creditBalanceLocked(address, amount);
+        return @import("blockchain/balances.zig").creditBalance(self, address, amount);
     }
 
     /// Internal — caller must already hold self.mutex.
@@ -629,88 +559,19 @@ pub const Blockchain = struct {
     /// Solutie: getOrPut + dupe DOAR la prima insertie. Update-ul ulterior
     /// reutilizeaza key-ul deja persistent.
     pub fn creditBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
-        // PHASE C.3 — write-only contract enforcement.
-        //
-        // Every legitimate balance write happens inside applyBlock,
-        // mineBlockForMiner, or recalculateFromHeight (chain replay).
-        // All three flip `in_apply_block = true` for the duration of
-        // their work. Any write outside that window is a phantom
-        // mutation that vanishes on the next restart — the same class
-        // of bug that wiped 51 testnet faucet recipients on 2026-04-28.
-        // Count them, log them with a stack hint, surface via the
-        // stabilizer ALERT once a minute. Do NOT panic — that would
-        // kill the node on a real production run; the goal is to
-        // *catch* phantoms in CI/staging long before mainnet.
-        if (!self.in_apply_block) {
-            self.stray_balance_writes += 1;
-            std.debug.print(
-                "[STRAY-CREDIT] addr={s} amount={d} count={d} — must come from applyBlock/mineBlock/recalc\n",
-                .{ address[0..@min(20, address.len)], amount, self.stray_balance_writes },
-            );
-        }
-        // SEGFAULT-FIX [scan-2026-04-26]: dupe FIRST, then getOrPut on the duped slice.
-        // The previous code did getOrPut(externally-borrowed slice) and only duped
-        // on !found_existing. Problem: getOrPut iterates HashMap buckets calling
-        // eqlString on EXISTING keys. If any of those existing keys was inserted
-        // earlier when caller's slice memory was later freed (e.g. dropped block's
-        // miner_address) → eqlString dereferences dangling pointer → SEGFAULT
-        // observed live 2026-04-26 at blockchain.zig:334.
-        // The dupe-first approach trades a tiny extra alloc on found_existing
-        // for guaranteed-valid keys throughout HashMap lifetime.
-        // Debug print removed — was firing once per credit (~1/block) and
-        // spammed several MB of log during 143k-block replay on testnet,
-        // preventing the RPC server from starting before TimeoutStartSec=300.
-        // Re-enable only behind an env var if you need it for forensics.
-        if (address.len == 0) return; // skip empty addresses (no miner)
-
-        const owned = try self.allocator.dupe(u8, address);
-        const gop = self.balances.getOrPut(owned) catch |err| {
-            self.allocator.free(owned);
-            return err;
-        };
-        if (gop.found_existing) {
-            // Key already in map — free our dupe; the existing key stays valid
-            // (it was duped at its own first insertion).
-            self.allocator.free(owned);
-        } else {
-            // First time — `owned` becomes the persistent key.
-            gop.value_ptr.* = 0;
-        }
-        gop.value_ptr.* += amount;
+        return @import("blockchain/balances.zig").creditBalanceLocked(self, address, amount);
     }
 
     /// Scade din balanta (pentru tranzactii)
     pub fn debitBalance(self: *Blockchain, address: []const u8, amount: u64) !void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        try self.debitBalanceLocked(address, amount);
+        return @import("blockchain/balances.zig").debitBalance(self, address, amount);
     }
 
     /// Internal — caller must already hold self.mutex.
     /// Same dupe-first pattern as creditBalanceLocked to avoid dangling
     /// HashMap key pointers when caller passes a transient slice.
     pub fn debitBalanceLocked(self: *Blockchain, address: []const u8, amount: u64) !void {
-        // PHASE C.3 — same phantom-write detector as creditBalanceLocked.
-        if (!self.in_apply_block) {
-            self.stray_balance_writes += 1;
-            std.debug.print(
-                "[STRAY-DEBIT] addr={s} amount={d} count={d} — must come from applyBlock/mineBlock/recalc\n",
-                .{ address[0..@min(20, address.len)], amount, self.stray_balance_writes },
-            );
-        }
-        if (address.len == 0) return;
-        const owned = try self.allocator.dupe(u8, address);
-        const gop = self.balances.getOrPut(owned) catch |err| {
-            self.allocator.free(owned);
-            return err;
-        };
-        if (gop.found_existing) {
-            self.allocator.free(owned);
-        } else {
-            gop.value_ptr.* = 0;
-        }
-        if (gop.value_ptr.* < amount) return error.InsufficientBalance;
-        gop.value_ptr.* -= amount;
+        return @import("blockchain/balances.zig").debitBalanceLocked(self, address, amount);
     }
 
     /// Settle exchange fees from a single fill: debit taker + maker by their
@@ -749,71 +610,7 @@ pub const Blockchain = struct {
         amount_sat: u64,
         fill_id: u64,
     ) !void {
-        if (amount_sat == 0) return;
-
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
-        // Collect seller UTXOs until we cover amount_sat. Spend them all,
-        // create one buyer output, and one change output back to seller.
-        // Snapshot the keys first (spendUTXO mutates the index list).
-        const outpoint_keys_live = self.utxo_set.getUTXOsForAddress(seller_addr);
-        if (outpoint_keys_live.len == 0) return error.NoUTXO;
-        var outpoint_keys_snap = try self.allocator.alloc([]const u8, outpoint_keys_live.len);
-        defer self.allocator.free(outpoint_keys_snap);
-        for (outpoint_keys_live, 0..) |k, i| outpoint_keys_snap[i] = k;
-
-        var collected: u64 = 0;
-        var spent: usize = 0;
-        for (outpoint_keys_snap) |key| {
-            if (collected >= amount_sat) break;
-            const u = self.utxo_set.utxos.get(key) orelse continue;
-            collected += u.amount;
-            spent += 1;
-        }
-        if (collected < amount_sat) return error.InsufficientBalance;
-
-        // Actually spend them. We need to make owned copies of the keys
-        // because spendUTXO frees the original (it lives in address_index
-        // which spendUTXO mutates).
-        const to_spend_keys = try self.allocator.alloc([]u8, spent);
-        defer {
-            for (to_spend_keys) |k| self.allocator.free(k);
-            self.allocator.free(to_spend_keys);
-        }
-        for (outpoint_keys_snap[0..spent], 0..) |key, i| {
-            to_spend_keys[i] = try self.allocator.dupe(u8, key);
-        }
-        for (to_spend_keys) |key| {
-            const colon = std.mem.lastIndexOfScalar(u8, key, ':') orelse return error.BadOutpointKey;
-            const src_tx_hash = key[0..colon];
-            const src_idx = std.fmt.parseInt(u32, key[colon + 1 ..], 10) catch return error.BadOutpointKey;
-            _ = self.utxo_set.spendUTXO(src_tx_hash, src_idx) catch return error.SpendFailed;
-        }
-
-        const fill_tx_hash = try std.fmt.allocPrint(self.allocator, "fill:{d}", .{fill_id});
-        const change = collected - amount_sat;
-        const block_height: u64 = if (self.chain.items.len == 0) 0 else self.chain.items.len - 1;
-
-        const buyer_addr_owned = try self.allocator.dupe(u8, buyer_addr);
-        try self.utxo_set.addUTXO(
-            fill_tx_hash, 0, buyer_addr_owned, amount_sat, block_height, "", false,
-        );
-
-        if (change > 0) {
-            const seller_addr_owned = try self.allocator.dupe(u8, seller_addr);
-            try self.utxo_set.addUTXO(
-                fill_tx_hash, 1, seller_addr_owned, change, block_height, "", false,
-            );
-        }
-
-        // Also keep the RAM cache in sync so any reader using `balances`
-        // sees the right number until next UTXO sync.
-        const was_in_apply = self.in_apply_block;
-        self.in_apply_block = true;
-        defer self.in_apply_block = was_in_apply;
-        self.debitBalanceLocked(seller_addr, amount_sat) catch {};
-        self.creditBalanceLocked(buyer_addr, amount_sat) catch {};
+        return @import("blockchain/balances.zig").applyFillTransferOmniBase(self, buyer_addr, seller_addr, amount_sat, fill_id);
     }
 
     pub fn applyExchangeFees(
@@ -824,81 +621,19 @@ pub const Blockchain = struct {
         maker_fee: u64,
         network_fee_sat: u64,
     ) !void {
-        const treasury = registrar_mod.addressOf(.exchange) orelse return error.NoTreasury;
-        const net_taker_share = (network_fee_sat + 1) / 2; // ceil
-        const net_maker_share = network_fee_sat - net_taker_share; // floor
-        const taker_total = taker_fee + net_taker_share;
-        const maker_total = maker_fee + net_maker_share;
-
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
-        // Pre-check both balances so we never partial-mutate.
-        const taker_bal = self.balances.get(taker_addr) orelse 0;
-        const maker_bal = self.balances.get(maker_addr) orelse 0;
-        if (taker_bal < taker_total) return error.InsufficientBalance;
-        if (maker_bal < maker_total) return error.InsufficientBalance;
-
-        const was_in_apply = self.in_apply_block;
-        self.in_apply_block = true;
-        defer self.in_apply_block = was_in_apply;
-
-        if (taker_total > 0) try self.debitBalanceLocked(taker_addr, taker_total);
-        if (maker_total > 0) try self.debitBalanceLocked(maker_addr, maker_total);
-
-        // Treasury credit covers taker_fee + maker_fee always.
-        // Network-fee portion goes to either accumulator (miner) or treasury
-        // depending on the route_fees_to_miner switch.
-        const treasury_credit = if (self.consensus_params.route_fees_to_miner)
-            taker_fee + maker_fee
-        else
-            taker_total + maker_total;
-        if (treasury_credit > 0) try self.creditBalanceLocked(treasury, treasury_credit);
-
-        if (self.consensus_params.route_fees_to_miner and network_fee_sat > 0) {
-            self.pending_miner_fees +|= network_fee_sat;
-        }
+        return @import("blockchain/balances.zig").applyExchangeFees(self, taker_addr, maker_addr, taker_fee, maker_fee, network_fee_sat);
     }
 
-    /// Inregistreaza public key-ul unei adrese (pentru verificare semnatura TX)
-    /// pubkey_hex = compressed secp256k1 public key, 66 hex chars
     pub fn registerPubkey(self: *Blockchain, address: []const u8, pubkey_hex: []const u8) !void {
-        if (pubkey_hex.len != 66) return error.InvalidPubkeyLength;
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        // Nu suprascrie daca exista deja (prima inregistrare e autoritativa)
-        if (self.pubkey_registry.get(address) == null) {
-            try self.pubkey_registry.put(address, pubkey_hex);
-        }
+        return @import("blockchain/pubkey_registry.zig").registerPubkey(self, address, pubkey_hex);
     }
 
-    /// Register a multisig wallet configuration (address → M-of-N config).
-    /// Called by the "createmultisig" RPC handler.
     pub fn registerMultisig(self: *Blockchain, address: []const u8, config: multisig_mod.MultisigConfig) !void {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-        // Check if already registered
-        for (self.multisig_configs[0..self.multisig_count]) |entry| {
-            if (std.mem.eql(u8, entry.address[0..entry.address_len], address)) return; // already exists
-        }
-        if (self.multisig_count >= 64) return error.MultisigRegistryFull;
-        var entry = MultisigConfigEntry{};
-        const copy_len = @min(address.len, 64);
-        @memcpy(entry.address[0..copy_len], address[0..copy_len]);
-        entry.address_len = @intCast(copy_len);
-        entry.config = config;
-        self.multisig_configs[self.multisig_count] = entry;
-        self.multisig_count += 1;
+        return @import("blockchain/pubkey_registry.zig").registerMultisig(self, address, config);
     }
 
-    /// Look up a multisig config by address.
     pub fn getMultisigConfig(self: *const Blockchain, address: []const u8) ?*const multisig_mod.MultisigConfig {
-        for (self.multisig_configs[0..self.multisig_count]) |*entry| {
-            if (std.mem.eql(u8, entry.address[0..entry.address_len], address)) {
-                return &entry.config;
-            }
-        }
-        return null;
+        return @import("blockchain/pubkey_registry.zig").getMultisigConfig(self, address);
     }
 
     pub fn addTransaction(self: *Blockchain, tx: Transaction) !void {
@@ -932,34 +667,20 @@ pub const Blockchain = struct {
     /// Returneaza totalul outgoing pending din mempool pentru o adresa (amount + fee per TX)
     /// Folosit in validateTransaction() pentru a preveni double-spend cu TX-uri rapide
     pub fn getPendingOutgoing(self: *const Blockchain, address: []const u8) u64 {
-        var total: u64 = 0;
-        for (self.mempool.items) |tx| {
-            if (std.mem.eql(u8, tx.from_address, address)) {
-                total += tx.amount + tx.fee;
-            }
-        }
-        return total;
+        return @import("blockchain/balances.zig").getPendingOutgoing(self, address);
     }
 
     /// Returneaza urmatorul nonce confirmat pentru o adresa (0 daca nu exista)
     /// Acesta este nonce-ul pe chain — NU include TX-urile pending din mempool
     pub fn getNextNonce(self: *const Blockchain, address: []const u8) u64 {
-        return self.nonces.get(address) orelse 0;
+        return @import("blockchain/balances.zig").getNextNonce(self, address);
     }
 
     /// Returneaza urmatorul nonce disponibil pentru o adresa,
     /// incluzand TX-urile pending din mempool (chain_nonce + pending_count).
     /// Aceasta metoda este utila pentru RPC "getnonce" — clientul stie ce nonce sa puna pe urmatoarea TX.
     pub fn getNextAvailableNonce(self: *const Blockchain, address: []const u8) u64 {
-        const chain_nonce = self.nonces.get(address) orelse 0;
-        // Count pending TXs from this sender in mempool
-        var pending: u64 = 0;
-        for (self.mempool.items) |tx| {
-            if (std.mem.eql(u8, tx.from_address, address)) {
-                pending += 1;
-            }
-        }
-        return chain_nonce + pending;
+        return @import("blockchain/balances.zig").getNextAvailableNonce(self, address);
     }
 
     pub fn validateTransaction(self: *Blockchain, tx: *const Transaction) !bool {
