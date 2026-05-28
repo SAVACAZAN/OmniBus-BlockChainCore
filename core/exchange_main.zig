@@ -5,9 +5,9 @@
 /// signed orders as transactions; matching happens off-the-mining-loop
 /// in this dedicated daemon.
 ///
-/// Status: STUB. Exposes a health endpoint on :28400. Real matching
-/// engine extraction is the most sensitive part of the multi-process
-/// migration (orderbook, fees, paper/real isolation, balance updates)
+/// Status: OPERATIONAL SCAFFOLD. Health endpoint live on :28400 with chain
+/// height + counters. Real matching engine extraction is the most sensitive
+/// part of the multi-process migration (orderbook, fees, paper/real isolation,
 /// and is intentionally deferred to a dedicated session with thorough
 /// integration testing — getting it wrong = lost orders / lost funds.
 ///

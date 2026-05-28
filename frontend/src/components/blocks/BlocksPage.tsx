@@ -3,6 +3,7 @@ import { useBlockchain } from "../../stores/useBlockchainStore";
 import { rpc } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
+import { ExplorerSearchBar } from "../explorer/ExplorerSearchBar";
 import { midTrunc, fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
 import {
   ResponsiveContainer,
@@ -32,7 +33,6 @@ export function BlocksPage() {
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [jumpInput, setJumpInput] = useState("");
   const PAGE_SIZE = 20;
 
   // Reload when page changes OR a new block arrives (state.blockCount is WS-driven).
@@ -97,34 +97,8 @@ export function BlocksPage() {
           </span>
         </h2>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Jump to block */}
-          <form
-            className="flex items-center gap-1"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const n = parseInt(jumpInput.trim(), 10);
-              if (!isNaN(n) && n >= 0) {
-                window.location.hash = `#/block/${n}`;
-                setJumpInput("");
-              }
-            }}
-          >
-            <input
-              type="number"
-              min="0"
-              max={state.blockCount}
-              value={jumpInput}
-              onChange={(e) => setJumpInput(e.target.value)}
-              placeholder="Go to #…"
-              className="w-24 px-2 py-1 text-xs bg-mempool-bg border border-mempool-border rounded font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
-            />
-            <button
-              type="submit"
-              className="px-2 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light text-mempool-text-dim transition-colors"
-            >
-              ↵
-            </button>
-          </form>
+          {/* Unified explorer search: block height / tx hash / address (BTC-style). */}
+          <ExplorerSearchBar />
 
           {blocks.length > 0 && (
             <button

@@ -2870,7 +2870,38 @@ pub const P2PNode = struct {
                         std.debug.print("[PEX]   peer {d}.{d}.{d}.{d}:{d}\n",
                             .{ pa.ip[0], pa.ip[1], pa.ip[2], pa.ip[3], pa.port });
                     }
-                    // TODO: try connecting to new peers discovered via PEX
+                    // Auto-dial up to 3 new peers per PEX message. connectToPeer
+                    // already handles dedup-by-node-id, ban list, outbound cap
+                    // and total cap — we just rate-limit how many fresh dials
+                    // a single PEX response can trigger to avoid flooding.
+                    var dialed: usize = 0;
+                    for (peers) |pa| {
+                        if (dialed >= 3) break;
+                        var host_buf: [16]u8 = undefined;
+                        const host_str = std.fmt.bufPrint(&host_buf,
+                            "{d}.{d}.{d}.{d}",
+                            .{ pa.ip[0], pa.ip[1], pa.ip[2], pa.ip[3] }) catch continue;
+                        // Skip if we already have this host:port among connected peers.
+                        var already: bool = false;
+                        {
+                            node.peers_mutex.lock();
+                            defer node.peers_mutex.unlock();
+                            for (node.peers.items) |p| {
+                                if (p.port == pa.port and std.mem.eql(u8, p.host, host_str)) {
+                                    already = true; break;
+                                }
+                            }
+                        }
+                        if (already) continue;
+                        node.connectToPeer(host_str, pa.port, "pex") catch |err| {
+                            std.debug.print("[PEX] auto-dial {s}:{d} failed: {}\n",
+                                .{ host_str, pa.port, err });
+                            continue;
+                        };
+                        dialed += 1;
+                        std.debug.print("[PEX] auto-dialed {s}:{d}\n",
+                            .{ host_str, pa.port });
+                    }
                 }
             },
             .get_peers => {

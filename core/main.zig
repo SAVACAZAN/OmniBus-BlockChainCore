@@ -80,6 +80,7 @@ const bootstrap_mod        = @import("bootstrap.zig");
 
 // ── Subsystems integrated into node ─────────────────────────────────────────
 const finality_mod     = @import("finality.zig");
+const secp256k1_mod    = @import("secp256k1.zig");
 const governance_mod   = @import("governance.zig");
 const staking_mod      = @import("staking.zig");
 const chain_config_mod = @import("chain_config.zig");
@@ -1650,6 +1651,11 @@ pub fn main() !void {
 
     // ── Init Finality Engine (Casper FFG checkpoints) ────────────────────────
     var finality = finality_mod.FinalityEngine.init(1000); // initial voting power
+    // Register this node's miner wallet as validator 0 so its self-attestations
+    // can be cryptographically verified (secp256k1) instead of trusted by id.
+    // Power 1000 == total init voting power → a solo miner still finalises.
+    const finality_pubkey = secp256k1_mod.Secp256k1Crypto.privateKeyToPublicKey(wallet.private_key_bytes) catch [_]u8{0} ** 33;
+    finality.registerValidator(0, finality_pubkey, 1000) catch {};
     std.debug.print("[FINALITY] Casper FFG init | checkpoint every {d} blocks | soft finality: {d} confirms\n",
         .{ finality_mod.CHECKPOINT_INTERVAL, finality_mod.SOFT_FINALITY_CONFIRMS });
 
@@ -3427,15 +3433,20 @@ pub fn main() !void {
             // ── Finality: propose checkpoint every 64 blocks ────────────
             if (block_count % finality_mod.CHECKPOINT_INTERVAL == 0 and block_count > 0) {
                 _ = finality.proposeCheckpoint(block_count, block_hash_fixed) catch {};
-                // Self-attest (solo miner attests own checkpoint)
-                finality.attest(.{
+                // Self-attest (solo miner attests own checkpoint). The
+                // attestation is signed with the miner's secp256k1 key and
+                // verified against the validator registered above; the engine
+                // ignores the advisory voting_power and uses the registry's.
+                var self_att = finality_mod.Attestation{
                     .validator_id = 0,
                     .target_epoch = block_count / finality_mod.CHECKPOINT_INTERVAL,
                     .source_epoch = finality.last_justified_epoch,
                     .voting_power = 1000,
                     .block_hash = block_hash_fixed,
                     .timestamp = std.time.timestamp(),
-                }) catch {};
+                };
+                self_att.sign(wallet.private_key_bytes) catch {};
+                finality.attest(self_att) catch {};
                 std.debug.print("[FINALITY] Checkpoint epoch {d} | justified={d} finalized={d}\n",
                     .{ block_count / finality_mod.CHECKPOINT_INTERVAL,
                        finality.last_justified_epoch, finality.last_finalized_epoch });

@@ -7,9 +7,9 @@
 /// getlatestblock) and submits decisions back as signed transactions
 /// (sendrawtransaction).
 ///
-/// Status: STUB. The infrastructure (process, port, health endpoint)
-/// is in place; the actual agent_executor → chain RPC bridge is the
-/// follow-up work. The chain side already supports opt-out via
+/// Status: OPERATIONAL SCAFFOLD. The chain bridge is live (RPC poller +
+/// health endpoint exposing chain_height + counters); the agent_executor
+/// is the documented follow-up. The chain side already supports opt-out via
 /// OMNIBUS_EXTERNAL_AGENTS=1 — when that env is set, the chain skips
 /// loadAgentConfig entirely, so this stub running idle is enough to
 /// validate the multi-process plumbing without changing chain behaviour.

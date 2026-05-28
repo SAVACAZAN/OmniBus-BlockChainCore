@@ -5,9 +5,9 @@
 /// matches how mempool.space / blockstream.info / blockchain.info work
 /// against bitcoind — they're independent services.
 ///
-/// Status: STUB. Exposes a health endpoint on :28300; the real frontend
-/// HTTP/HTTPS serving + WebSocket broadcast pulled out of omnibus-node
-/// is a separate session of work (involves migrating frontend/dist
+/// Status: OPERATIONAL SCAFFOLD. Health endpoint live on :28300 with chain
+/// height + counters; HTTP/HTTPS serving + WebSocket broadcast pulled out
+/// of omnibus-node is the documented follow-up (involves migrating frontend
 /// serving + WS subscription multiplexing).
 ///
 /// Future evolution:
