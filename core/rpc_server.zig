@@ -85,6 +85,10 @@ const rpc_identity = @import("rpc/identity.zig");
 const rpc_agents = @import("rpc/agents.zig");
 const rpc_pq = @import("rpc/pq.zig");
 const rpc_swap = @import("rpc/swap.zig");
+const rpc_spv = @import("rpc/spv.zig");
+const rpc_oracle = @import("rpc/oracle.zig");
+const rpc_wallet = @import("rpc/wallet.zig");
+const rpc_exchange = @import("rpc/exchange.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const ExchangePair = struct {
@@ -115,11 +119,11 @@ pub const EXCHANGE_PAIRS = [_]ExchangePair{
 // `oracle_recordHeader` (PQ quorum gated); SPV verifiers read it.
 // File-private to keep ServerCtx untouched per the task's "don't
 // modify existing handlers" constraint.
-var g_xchain_oracle: cross_chain_oracle_mod.CrossChainOracle =
+pub var g_xchain_oracle: cross_chain_oracle_mod.CrossChainOracle =
     cross_chain_oracle_mod.CrossChainOracle.init();
-var g_xchain_oracle_mutex: std.Thread.Mutex = .{};
-var g_xchain_oracle_loaded: bool = false;
-const XCHAIN_ORACLE_PATH = "data/cross_chain_oracle.bin";
+pub var g_xchain_oracle_mutex: std.Thread.Mutex = .{};
+pub var g_xchain_oracle_loaded: bool = false;
+pub const XCHAIN_ORACLE_PATH = "data/cross_chain_oracle.bin";
 
 // ─── Oracle quorum validator pubkey set ───────────────────────────────────────
 //
@@ -144,8 +148,8 @@ const XCHAIN_ORACLE_PATH = "data/cross_chain_oracle.bin";
 pub const OracleQuorumPubkey = [33]u8;
 pub const ORACLE_QUORUM_MIN: usize = 3;
 pub const ORACLE_QUORUM_MAX: usize = 16;
-var g_oracle_quorum_pubkeys: [ORACLE_QUORUM_MAX]OracleQuorumPubkey = undefined;
-var g_oracle_quorum_count: usize = 0;
+pub var g_oracle_quorum_pubkeys: [ORACLE_QUORUM_MAX]OracleQuorumPubkey = undefined;
+pub var g_oracle_quorum_count: usize = 0;
 
 /// Install the quorum pubkey set. Validators-only — caller must enforce
 /// admin authentication (today: in-process startup wiring).
@@ -161,7 +165,7 @@ pub fn setOracleQuorumPubkeysForTest(pubs: []const OracleQuorumPubkey) void {
     setOracleQuorumPubkeys(pubs) catch unreachable;
 }
 
-fn isQuorumPubkey(pk: OracleQuorumPubkey) bool {
+pub fn isQuorumPubkey(pk: OracleQuorumPubkey) bool {
     var i: usize = 0;
     while (i < g_oracle_quorum_count) : (i += 1) {
         if (std.mem.eql(u8, &g_oracle_quorum_pubkeys[i], &pk)) return true;
@@ -169,7 +173,7 @@ fn isQuorumPubkey(pk: OracleQuorumPubkey) bool {
     return false;
 }
 
-fn ensureOracleLoaded() void {
+pub fn ensureOracleLoaded() void {
     g_xchain_oracle_mutex.lock();
     defer g_xchain_oracle_mutex.unlock();
     if (g_xchain_oracle_loaded) return;
@@ -349,7 +353,7 @@ const AuthNonce = struct {
     nonce_hex_len: u8 = 0,
     created_ms: i64 = 0,
 };
-const AUTH_NONCE_TTL_MS: i64 = 5 * 60 * 1000;
+pub const AUTH_NONCE_TTL_MS: i64 = 5 * 60 * 1000;
 
 /// Exchange API key. Plaintext secret is given to the user ONCE at
 /// creation time and never stored — only `secret_hash` (SHA256) lives on
@@ -432,9 +436,9 @@ const DemoQuota = struct {
 
 /// Cap demo issuance per address per 24h. Generous on testnet — the goal
 /// is letting users iterate on bot/UI strategies, not be a real onramp.
-const DEMO_MAX_PER_REQUEST_SAT: u64 = 10 * 1_000_000_000; // 10 OMNI
-const DEMO_MAX_PER_24H_SAT: u64 = 100 * 1_000_000_000;     // 100 OMNI / day
-const DEMO_WINDOW_MS: i64 = 24 * 60 * 60 * 1000;
+pub const DEMO_MAX_PER_REQUEST_SAT: u64 = 10 * 1_000_000_000; // 10 OMNI
+pub const DEMO_MAX_PER_24H_SAT: u64 = 100 * 1_000_000_000;     // 100 OMNI / day
+pub const DEMO_WINDOW_MS: i64 = 24 * 60 * 60 * 1000;
 
 /// Context public expus utilizatorilor externi (alias la ServerCtx)
 pub const RPCContext = ServerCtx;
@@ -953,7 +957,7 @@ fn normalizePair(alloc: std.mem.Allocator, raw: []const u8) struct {
 
 /// Convert a `pair_id` (0..6) back to its label form `BASE/QUOTE`.
 /// Returned slice is a const literal — caller does not free.
-fn pairIdToLabel(pair_id: u16) []const u8 {
+pub fn pairIdToLabel(pair_id: u16) []const u8 {
     return switch (pair_id) {
         0 => "OMNI/USDC",
         1 => "BTC/USDC",
@@ -2952,25 +2956,6 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
 // ─── JSON-RPC dispatcher ──────────────────────────────────────────────────────
 // Refactored: fiecare RPC method are handler propriu pentru claritate si testabilitate
 
-fn handleGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const req_addr = extractArrayStr(body, 0) orelse
-                     extractStr(body, "address") orelse
-                     ctx.wallet.address;
-    // Lock blockchain mutex — prevents segfault from concurrent hashmap resize
-    // during mining (creditBalance → put can realloc while we read).
-    // Use getBlockCountUnlocked while we already hold the mutex — calling
-    // getBlockCount here would re-lock and panic (non-reentrant Mutex).
-    ctx.bc.mutex.lock();
-    const bal_sat = ctx.bc.getAddressBalance(req_addr);
-    const height  = ctx.bc.getBlockCountUnlocked();
-    ctx.bc.mutex.unlock();
-    const bal_omni = bal_sat / 1_000_000_000;
-    const bal_frac = bal_sat % 1_000_000_000;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":\"{d}.{d:0>9}\",\"confirmed\":{d},\"unconfirmed\":0,\"utxos\":[],\"transactions\":[],\"txCount\":0,\"nodeHeight\":{d}}}}}",
-        .{ id, req_addr, bal_sat, bal_omni, bal_frac, bal_sat, height });
-}
 
 /// RPC "getwalletsummary" — single-call wallet snapshot for an address.
 ///
@@ -2987,110 +2972,6 @@ fn handleGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Returns: { address, height, wallet_sat, staked_sat, in_orders_sat,
 ///            available_sat, stakes:[{id, amount_sat, status, ...}],
 ///            open_sell_orders:[{pair_id, remaining_sat, price_micro_usd}] }
-fn handleGetWalletSummary(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const req_addr = extractArrayStr(body, 0) orelse
-                     extractStr(body, "address") orelse
-                     ctx.wallet.address;
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    // Single lock over the whole snapshot — guarantees the four numbers
-    // (wallet / staked / orders / height) all come from the same chain
-    // state. Without this, a mining round between calls could shift them.
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    const wallet_sat = ctx.bc.getAddressBalance(req_addr);
-    const height     = ctx.bc.getBlockCountUnlocked();
-
-    var staked_sat: u64 = 0;
-    if (ctx.bc.stake_amounts.get(req_addr)) |amt| {
-        staked_sat = amt;
-    }
-
-    // Walk active sell orders for this trader to compute in_orders_sat (OMNI
-    // reserved by resting sells). Buy orders reserve quote-asset (USDC/etc),
-    // not OMNI, so we don't count them here. Same scan pattern as
-    // handleExchangeGetUserOrders — kept tolerant of paper mode being off.
-    var in_orders_sat: u64 = 0;
-    var open_orders_json = std.array_list.Managed(u8).init(alloc);
-    defer open_orders_json.deinit();
-    const oow = open_orders_json.writer();
-    var first_order = true;
-
-    const engine_opt = pickEngine(ctx, false);
-    if (engine_opt) |engine| {
-        ctx.exchange_mutex.lock();
-        defer ctx.exchange_mutex.unlock();
-        inline for (.{ "bids", "asks" }) |which| {
-            const count = if (comptime std.mem.eql(u8, which, "bids")) engine.bid_count else engine.ask_count;
-            var i: u32 = 0;
-            while (i < count) : (i += 1) {
-                const o = if (comptime std.mem.eql(u8, which, "bids")) engine.bids[i] else engine.asks[i];
-                if (!std.mem.eql(u8, o.getTraderAddress(), req_addr)) continue;
-                const status_active = (o.status == .active) or (o.status == .partial);
-                if (!status_active) continue;
-                const is_sell = (comptime std.mem.eql(u8, which, "asks"));
-                const remaining = o.remainingSat();
-                if (is_sell) in_orders_sat += remaining;
-                if (!first_order) try oow.writeAll(",");
-                first_order = false;
-                try oow.print(
-                    "{{\"order_id\":{d},\"pair_id\":{d},\"side\":\"{s}\",\"remaining_sat\":{d},\"price_micro_usd\":{d}}}",
-                    .{ o.order_id, o.pair_id, if (is_sell) "sell" else "buy", remaining, o.price_micro_usd },
-                );
-            }
-        }
-    }
-
-    const reserved_sat: u64 = staked_sat + in_orders_sat;
-    const available_sat: u64 = if (wallet_sat > reserved_sat) wallet_sat - reserved_sat else 0;
-
-    const wallet_omni  = wallet_sat / 1_000_000_000;
-    const wallet_frac  = wallet_sat % 1_000_000_000;
-    const staked_omni  = staked_sat / 1_000_000_000;
-    const staked_frac  = staked_sat % 1_000_000_000;
-    const avail_omni   = available_sat / 1_000_000_000;
-    const avail_frac   = available_sat % 1_000_000_000;
-    const orders_omni  = in_orders_sat / 1_000_000_000;
-    const orders_frac  = in_orders_sat % 1_000_000_000;
-
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"height\":{d},\"wallet_sat\":{d},\"wallet_omni\":\"{d}.{d:0>9}\",\"staked_sat\":{d},\"staked_omni\":\"{d}.{d:0>9}\",\"in_orders_sat\":{d},\"in_orders_omni\":\"{d}.{d:0>9}\",\"available_sat\":{d},\"available_omni\":\"{d}.{d:0>9}\",\"stakes\":[",
-        .{
-            id, req_addr, height,
-            wallet_sat,  wallet_omni,  wallet_frac,
-            staked_sat,  staked_omni,  staked_frac,
-            in_orders_sat, orders_omni, orders_frac,
-            available_sat, avail_omni,  avail_frac,
-        },
-    );
-
-    if (staked_sat > 0) {
-        // Real lock metadata from stake_meta (populated by
-        // applyOpReturnRoles when "stake:<amt>[:<lock_blocks>]" lands).
-        // Legacy stakes from older chain.dat fall back to zeros.
-        var started_at: u64 = 0;
-        var lock_blk: u64 = 0;
-        if (ctx.bc.stake_meta.get(req_addr)) |meta| {
-            started_at = meta.started_at_block;
-            lock_blk = meta.lock_blocks;
-        }
-        const days_locked: u64 = lock_blk / 86_400;
-        try w.print(
-            "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":{d},\"started_at_block\":{d},\"days_locked\":{d},\"status\":\"active\"}}",
-            .{ staked_sat, lock_blk, started_at, days_locked },
-        );
-    }
-
-    try w.writeAll("],\"open_sell_orders\":[");
-    try w.writeAll(open_orders_json.items);
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 /// RPC "listunspent" — list all unspent transaction outputs (UTXOs) for an address.
 ///
@@ -3106,62 +2987,12 @@ fn handleGetWalletSummary(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 ///
 /// Returns: {address, total, count, utxos:[{tx_hash, output_index, amount,
 ///          block_height, is_coinbase, is_spent:false}]}
-fn handleListUnspent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const req_addr = extractArrayStr(body, 0) orelse
-                     extractStr(body, "address") orelse
-                     return errorJson(-32602, "address required", id, alloc);
-
-    if (req_addr.len == 0) return errorJson(-32602, "address must be non-empty", id, alloc);
-
-    // Lock blockchain mutex — UTXO set may be mutated by mining/sync threads.
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    var json = std.array_list.Managed(u8).init(alloc);
-    errdefer json.deinit();
-    var w = json.writer();
-
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"utxos\":[",
-        .{ id, req_addr },
-    );
-
-    var total: u64 = 0;
-    var count: usize = 0;
-
-    // Lock UTXOSet for the whole walk — see utxo.zig RwLock note.
-    ctx.bc.utxo_set.lock.lockShared();
-    defer ctx.bc.utxo_set.lock.unlockShared();
-
-    if (ctx.bc.utxo_set.address_index.get(req_addr)) |list| {
-        for (list.items) |outpoint_key| {
-            const utxo = ctx.bc.utxo_set.utxos.get(outpoint_key) orelse continue;
-            if (count > 0) try w.writeAll(",");
-            try w.print(
-                "{{\"tx_hash\":\"{s}\",\"output_index\":{d},\"amount\":{d}," ++
-                "\"block_height\":{d},\"is_coinbase\":{},\"is_spent\":false}}",
-                .{ utxo.tx_hash, utxo.output_index, utxo.amount, utxo.block_height, utxo.is_coinbase },
-            );
-            total += utxo.amount;
-            count += 1;
-        }
-    }
-
-    try w.print("],\"total\":{d},\"count\":{d}}}}}", .{ total, count });
-    return json.toOwnedSlice();
-}
 
 // SEGFAULT-FIX [scan-2026-04-25]: use getLatestBlockSnapshot() — locks bc.mutex,
 // copies fields into stable buffers, unlocks. allocPrint runs after the lock is
 // released, on data that no longer aliases chain memory. Eliminates UAF on
 // blk.hash / blk.previous_hash / blk.transactions.items when mining concurrently
 // reallocs/swaps the chain.
-fn handleGetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"running\",\"blockCount\":{d},\"mempoolSize\":{d},\"address\":\"{s}\",\"balance\":{d}}}}}",
-        .{ id, ctx.bc.getBlockCount(), ctx.bc.mempool.items.len, ctx.wallet.address, ctx.wallet.getBalance() });
-}
 
 // ─── SPV / Cross-chain oracle handlers ────────────────────────────────────────
 //
@@ -3174,30 +3005,9 @@ fn handleGetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
 // registered (dev/testnet bring-up); production operators install the
 // validator key set via oracle_quorum.json and the flag is ignored.
 
-fn handleOracleBtcHeight(ctx: *ServerCtx, id: u64) ![]u8 {
-    ensureOracleLoaded();
-    g_xchain_oracle_mutex.lock();
-    defer g_xchain_oracle_mutex.unlock();
-    const h = g_xchain_oracle.latestBtcHeight() orelse 0;
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"height\":{d}}}}}",
-        .{ id, h });
-}
 
-fn handleOracleEthHeight(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    ensureOracleLoaded();
-    const cid_str = extractStr(body, "chain_id") orelse "1";
-    const cid = std.fmt.parseInt(u64, cid_str, 10) catch
-        return errorJson(-32602, "Invalid chain_id", id, ctx.allocator);
-    g_xchain_oracle_mutex.lock();
-    defer g_xchain_oracle_mutex.unlock();
-    const h = g_xchain_oracle.latestEthHeight(cid) orelse 0;
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"chain_id\":{d},\"height\":{d}}}}}",
-        .{ id, cid, h });
-}
 
-fn parseHex32Spv(s: []const u8) ?[32]u8 {
+pub fn parseHex32Spv(s: []const u8) ?[32]u8 {
     var out: [32]u8 = undefined;
     var src = s;
     if (src.len >= 2 and src[0] == '0' and (src[1] == 'x' or src[1] == 'X')) src = src[2..];
@@ -3211,373 +3021,8 @@ fn parseHex32Spv(s: []const u8) ?[32]u8 {
     return out;
 }
 
-fn handleOracleRecordHeader(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    ensureOracleLoaded();
 
-    const chain = extractStr(body, "chain") orelse
-        return errorJson(-32602, "Missing param: chain (btc|eth)", id, ctx.allocator);
 
-    const ts_str = extractStr(body, "timestamp") orelse "0";
-    const ts = std.fmt.parseInt(u64, ts_str, 10) catch 0;
-
-    // ─── Quorum signature verification ──────────────────────────────────
-    // Build canonical message:
-    //   sha256("OMNI_ORACLE_v1\n" + chain + "\n" + height + "\n" + header_hash_hex)
-    // Then require ≥ ORACLE_QUORUM_MIN distinct valid secp256k1 sigs from
-    // pubkeys registered via setOracleQuorumPubkeys(). Any of:
-    //   - missing quorum_sigs field
-    //   - fewer than 3 valid+distinct sigs
-    //   - signers not in the registered pubkey set
-    // → reject with -32031.
-    //
-    // BACKWARD-COMPAT (dev-only): if the legacy `quorum_ok=true` flag is
-    // present AND the node has zero registered quorum pubkeys, we accept
-    // with a logged warning. This keeps dev/testnet bring-up scripts
-    // working while a real validator key set is being set up. Production
-    // operators MUST install pubkeys (and then quorum_ok is ignored).
-    // `quorum_sigs` may arrive in two shapes:
-    //   * NEW (preferred): JSON array of {"pubkey","sig"} objects
-    //   * LEGACY: a flat string "pk1:sig1,pk2:sig2,..." (comma-sep pairs)
-    // We detect new-format via findJsonArray; on miss we fall back to
-    // extractStr which handles the legacy string. When the legacy form
-    // is used we log a warning (one-shot per request) so operators know
-    // to migrate their callers.
-    const sigs_array_body: ?[]const u8 = findJsonArray(body, "quorum_sigs");
-    const sigs_blob: []const u8 = if (sigs_array_body == null)
-        (extractStr(body, "quorum_sigs") orelse "")
-    else
-        "";
-    if (sigs_array_body == null and sigs_blob.len > 0) {
-        std.debug.print(
-            "[oracle_recordHeader] DEPRECATED: legacy comma-separated quorum_sigs string accepted; clients should migrate to JSON array form.\n",
-            .{},
-        );
-    }
-    const legacy_flag = extractStr(body, "quorum_ok") orelse "";
-    const have_legacy = std.mem.eql(u8, legacy_flag, "true");
-
-    // We need the height + header hash up-front to build the canonical msg.
-    // Each chain-specific branch below re-parses these; here we do a
-    // pre-pass JUST to assemble the message.
-    //
-    // Field names — accept both new ("height") and legacy ("block_height"
-    // for BTC, "block_number" for ETH) for backward compatibility.
-    var height_for_msg: u64 = 0;
-    var header_hash_for_msg: [64]u8 = undefined;
-    var header_hash_hex_len: usize = 0;
-    if (std.mem.eql(u8, chain, "btc")) {
-        const h_str = extractStr(body, "height") orelse
-            extractStr(body, "block_height") orelse "0";
-        height_for_msg = std.fmt.parseInt(u64, h_str, 10) catch 0;
-        var hh = extractStr(body, "header_hash") orelse "";
-        if (hh.len >= 2 and hh[0] == '0' and (hh[1] == 'x' or hh[1] == 'X')) hh = hh[2..];
-        if (hh.len > 64) return errorJson(-32602, "Bad header_hash", id, ctx.allocator);
-        @memcpy(header_hash_for_msg[0..hh.len], hh);
-        header_hash_hex_len = hh.len;
-    } else if (std.mem.eql(u8, chain, "eth")) {
-        const bn_str = extractStr(body, "height") orelse
-            extractStr(body, "block_number") orelse "0";
-        height_for_msg = std.fmt.parseInt(u64, bn_str, 10) catch 0;
-        // For ETH the canonical message uses block_hash if available,
-        // otherwise fall back to header_hash (the new alias).
-        var bh = extractStr(body, "block_hash") orelse
-            extractStr(body, "header_hash") orelse "";
-        if (bh.len >= 2 and bh[0] == '0' and (bh[1] == 'x' or bh[1] == 'X')) bh = bh[2..];
-        if (bh.len > 64) return errorJson(-32602, "Bad block_hash", id, ctx.allocator);
-        @memcpy(header_hash_for_msg[0..bh.len], bh);
-        header_hash_hex_len = bh.len;
-    }
-
-    var canon_buf: [256]u8 = undefined;
-    const canon = std.fmt.bufPrint(
-        &canon_buf,
-        "OMNI_ORACLE_v1\n{s}\n{d}\n{s}",
-        .{ chain, height_for_msg, header_hash_for_msg[0..header_hash_hex_len] },
-    ) catch return errorJson(-32000, "Canonical msg overflow", id, ctx.allocator);
-    var canon_digest: [32]u8 = undefined;
-    std.crypto.hash.sha2.Sha256.hash(canon, &canon_digest, .{});
-
-    // Verify each pair, dedup signers, count valid.
-    // pubkey_hex = 66 chars (compressed secp256k1), sig_hex = 128 chars.
-    var distinct_signers: [ORACLE_QUORUM_MAX][33]u8 = undefined;
-    var distinct_count: usize = 0;
-    if (sigs_array_body) |arr_body| {
-        // NEW shape: JSON array of {pubkey, sig} objects. We walk by
-        // brace-counting to slice out each object body, then extract
-        // the two string fields with extractStr (it's scoped to that
-        // sub-slice so name collisions with the outer body are impossible).
-        var i: usize = 1; // skip leading '['
-        const end = arr_body.len - 1; // exclude trailing ']'
-        while (i < end) {
-            // Skip whitespace + commas.
-            while (i < end and (arr_body[i] == ' ' or arr_body[i] == ',' or
-                arr_body[i] == '\t' or arr_body[i] == '\r' or arr_body[i] == '\n')) : (i += 1) {}
-            if (i >= end) break;
-            if (arr_body[i] != '{') break; // malformed — bail safely
-            // Find matching '}'.
-            const obj_start = i;
-            var depth: i32 = 0;
-            var in_str = false;
-            while (i < end) : (i += 1) {
-                const c = arr_body[i];
-                if (in_str) {
-                    if (c == '\\') { i += 1; continue; }
-                    if (c == '"') in_str = false;
-                    continue;
-                }
-                if (c == '"') in_str = true
-                else if (c == '{') depth += 1
-                else if (c == '}') {
-                    depth -= 1;
-                    if (depth == 0) { i += 1; break; }
-                }
-            }
-            const obj = arr_body[obj_start..i];
-            const pk_hex = extractStr(obj, "pubkey") orelse continue;
-            const sig_hex = extractStr(obj, "sig") orelse continue;
-            if (pk_hex.len != 66 or sig_hex.len != 128) continue;
-            var pk_bytes: [33]u8 = undefined;
-            var sig_bytes: [64]u8 = undefined;
-            hex_utils.hexToBytes(pk_hex, &pk_bytes) catch continue;
-            hex_utils.hexToBytes(sig_hex, &sig_bytes) catch continue;
-            if (!isQuorumPubkey(pk_bytes)) continue;
-            var dup = false;
-            var j: usize = 0;
-            while (j < distinct_count) : (j += 1) {
-                if (std.mem.eql(u8, &distinct_signers[j], &pk_bytes)) { dup = true; break; }
-            }
-            if (dup) continue;
-            if (!secp256k1_mod.Secp256k1Crypto.verify(pk_bytes, &canon_digest, sig_bytes)) continue;
-            distinct_signers[distinct_count] = pk_bytes;
-            distinct_count += 1;
-            if (distinct_count >= ORACLE_QUORUM_MAX) break;
-        }
-    } else if (sigs_blob.len > 0) {
-        // LEGACY shape: comma-separated `pubkey_hex:sig_hex` pairs.
-        var it = std.mem.splitScalar(u8, sigs_blob, ',');
-        while (it.next()) |pair| {
-            const colon = std.mem.indexOfScalar(u8, pair, ':') orelse continue;
-            const pk_hex = pair[0..colon];
-            const sig_hex = pair[colon + 1 ..];
-            if (pk_hex.len != 66 or sig_hex.len != 128) continue;
-            var pk_bytes: [33]u8 = undefined;
-            var sig_bytes: [64]u8 = undefined;
-            hex_utils.hexToBytes(pk_hex, &pk_bytes) catch continue;
-            hex_utils.hexToBytes(sig_hex, &sig_bytes) catch continue;
-            if (!isQuorumPubkey(pk_bytes)) continue;
-            var dup = false;
-            var j: usize = 0;
-            while (j < distinct_count) : (j += 1) {
-                if (std.mem.eql(u8, &distinct_signers[j], &pk_bytes)) { dup = true; break; }
-            }
-            if (dup) continue;
-            if (!secp256k1_mod.Secp256k1Crypto.verify(pk_bytes, &canon_digest, sig_bytes)) continue;
-            distinct_signers[distinct_count] = pk_bytes;
-            distinct_count += 1;
-            if (distinct_count >= ORACLE_QUORUM_MAX) break;
-        }
-    }
-
-    if (distinct_count < ORACLE_QUORUM_MIN) {
-        // Legacy dev-mode escape hatch: only when no quorum pubkeys are
-        // configured AND the legacy flag is set.
-        if (g_oracle_quorum_count == 0 and have_legacy) {
-            std.debug.print(
-                "[oracle_recordHeader] WARNING: dev-mode (no quorum pubkeys configured); accepting on legacy quorum_ok=true\n",
-                .{},
-            );
-        } else {
-            return errorJson(-32031, "Quorum signature insufficient", id, ctx.allocator);
-        }
-    }
-
-    if (std.mem.eql(u8, chain, "btc")) {
-        // Accept new "height" alongside legacy "block_height".
-        const h_str = extractStr(body, "height") orelse
-            extractStr(body, "block_height") orelse
-            return errorJson(-32602, "Missing param: height (or block_height)", id, ctx.allocator);
-        const hh_str = extractStr(body, "header_hash") orelse
-            return errorJson(-32602, "Missing param: header_hash", id, ctx.allocator);
-        const h = std.fmt.parseInt(u64, h_str, 10) catch
-            return errorJson(-32602, "Bad height", id, ctx.allocator);
-        const hh = parseHex32Spv(hh_str) orelse
-            return errorJson(-32602, "Bad header_hash (need 32-byte hex)", id, ctx.allocator);
-
-        // Optional: caller may supply the raw 80-byte block header as hex
-        // (160 chars). When present, we extract merkle_root via parseHeader
-        // and store it on the anchor — defense-in-depth so SPV verifiers
-        // can ignore caller-supplied merkle_root and trust the anchor instead.
-        // Backward-compat: if `raw_header_hex` is absent, merkle_root stays
-        // zero on the anchor and SPV falls back to the legacy blob field.
-        var merkle_root: [32]u8 = [_]u8{0} ** 32;
-        if (extractStr(body, "raw_header_hex")) |raw_hex| {
-            if (raw_hex.len != 160) {
-                return errorJson(-32602, "raw_header_hex must be 160 hex chars (80 bytes)", id, ctx.allocator);
-            }
-            var raw_bytes: [80]u8 = undefined;
-            hex_utils.hexToBytes(raw_hex, &raw_bytes) catch
-                return errorJson(-32602, "Bad raw_header_hex", id, ctx.allocator);
-            const parsed = spv_btc_mod.parseHeader(raw_bytes);
-            merkle_root = parsed.merkle_root;
-        }
-
-        g_xchain_oracle_mutex.lock();
-        defer g_xchain_oracle_mutex.unlock();
-        g_xchain_oracle.recordBtcAnchor(.{
-            .block_height = h,
-            .header_hash = hh,
-            .merkle_root = merkle_root,
-            .timestamp = ts,
-        }) catch |e| {
-            const msg = if (e == error.NonMonotonic) "Non-monotonic update" else "Anchor rejected";
-            return errorJson(-32000, msg, id, ctx.allocator);
-        };
-        g_xchain_oracle.saveToFile(XCHAIN_ORACLE_PATH) catch {};
-        return std.fmt.allocPrint(ctx.allocator,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"chain\":\"btc\",\"height\":{d}}}}}",
-            .{ id, h });
-    }
-
-    if (std.mem.eql(u8, chain, "eth")) {
-        const cid_str = extractStr(body, "chain_id") orelse "1";
-        // Accept new "height" alongside legacy "block_number".
-        const bn_str = extractStr(body, "height") orelse
-            extractStr(body, "block_number") orelse
-            return errorJson(-32602, "Missing param: height (or block_number)", id, ctx.allocator);
-        // Accept new "header_hash" alias alongside legacy "block_hash".
-        const bh_str = extractStr(body, "block_hash") orelse
-            extractStr(body, "header_hash") orelse
-            return errorJson(-32602, "Missing param: header_hash (or block_hash)", id, ctx.allocator);
-        const rr_str = extractStr(body, "receipts_root") orelse
-            return errorJson(-32602, "Missing param: receipts_root", id, ctx.allocator);
-        const cid = std.fmt.parseInt(u64, cid_str, 10) catch
-            return errorJson(-32602, "Bad chain_id", id, ctx.allocator);
-        const bn = std.fmt.parseInt(u64, bn_str, 10) catch
-            return errorJson(-32602, "Bad height", id, ctx.allocator);
-        const bh = parseHex32Spv(bh_str) orelse
-            return errorJson(-32602, "Bad header_hash", id, ctx.allocator);
-        const rr = parseHex32Spv(rr_str) orelse
-            return errorJson(-32602, "Bad receipts_root", id, ctx.allocator);
-        g_xchain_oracle_mutex.lock();
-        defer g_xchain_oracle_mutex.unlock();
-        g_xchain_oracle.recordEthAnchor(.{
-            .chain_id = cid, .block_number = bn, .block_hash = bh,
-            .receipts_root = rr, .timestamp = ts,
-        }) catch |e| {
-            const msg = switch (e) {
-                error.NonMonotonic => "Non-monotonic update",
-                error.TooManyChains => "Chain registry full",
-            };
-            return errorJson(-32000, msg, id, ctx.allocator);
-        };
-        g_xchain_oracle.saveToFile(XCHAIN_ORACLE_PATH) catch {};
-        return std.fmt.allocPrint(ctx.allocator,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"chain\":\"eth\",\"chain_id\":{d},\"block_number\":{d}}}}}",
-            .{ id, cid, bn });
-    }
-
-    return errorJson(-32602, "Unknown chain (use 'btc' or 'eth')", id, ctx.allocator);
-}
-
-fn handleSpvBtcVerifyTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    ensureOracleLoaded();
-
-    const txh_str = extractStr(body, "tx_hash") orelse
-        return errorJson(-32602, "Missing param: tx_hash", id, ctx.allocator);
-    const root_str = extractStr(body, "merkle_root") orelse
-        return errorJson(-32602, "Missing param: merkle_root", id, ctx.allocator);
-    const path_str = extractStr(body, "merkle_path") orelse "";
-    const idx_str = extractStr(body, "indices") orelse "";
-
-    const txh = parseHex32Spv(txh_str) orelse
-        return errorJson(-32602, "Bad tx_hash", id, ctx.allocator);
-    const root = parseHex32Spv(root_str) orelse
-        return errorJson(-32602, "Bad merkle_root", id, ctx.allocator);
-
-    // merkle_path is a concatenated hex string of 32-byte siblings.
-    // indices is a string of '0'/'1' chars, one per level.
-    if (path_str.len % 64 != 0) {
-        return errorJson(-32602, "merkle_path must be multiples of 64 hex chars", id, ctx.allocator);
-    }
-    const levels = path_str.len / 64;
-    if (levels != idx_str.len) {
-        return errorJson(-32602, "merkle_path/indices length mismatch", id, ctx.allocator);
-    }
-    if (levels > 64) {
-        return errorJson(-32602, "Too many levels (>64)", id, ctx.allocator);
-    }
-
-    var path_buf: [64][32]u8 = undefined;
-    var idx_buf: [64]u1 = undefined;
-    var i: usize = 0;
-    while (i < levels) : (i += 1) {
-        const seg = path_str[i * 64 .. (i + 1) * 64];
-        path_buf[i] = parseHex32Spv(seg) orelse
-            return errorJson(-32602, "Bad merkle_path segment", id, ctx.allocator);
-        idx_buf[i] = if (idx_str[i] == '1') @as(u1, 1) else @as(u1, 0);
-    }
-
-    const ok = spv_btc_mod.verifyMerkleProof(txh, path_buf[0..levels], idx_buf[0..levels], root);
-    return std.fmt.allocPrint(ctx.allocator,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"valid\":{s}}}}}",
-        .{ id, if (ok) "true" else "false" });
-}
-
-fn handleSpvEthVerifyEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    ensureOracleLoaded();
-    // Full PMT verification path — caller supplies the trie key
-    // (RLP-encoded tx index), the receipt RLP, and the proof nodes
-    // (pipe-separated hex). receipts_root is read from the recorded
-    // ETH anchor for the requested chain_id.
-    const cid_str = extractStr(body, "chain_id") orelse "1";
-    const cid = std.fmt.parseInt(u64, cid_str, 10) catch
-        return errorJson(-32602, "Bad chain_id", id, ctx.allocator);
-
-    g_xchain_oracle_mutex.lock();
-    const anchor_opt = g_xchain_oracle.latestEth(cid);
-    g_xchain_oracle_mutex.unlock();
-    const anchor = anchor_opt orelse
-        return errorJson(-32030, "No anchor recorded for chain_id", id, ctx.allocator);
-
-    const tx_index_hex = extractStr(body, "tx_index_rlp_hex") orelse
-        return errorJson(-32602, "Missing tx_index_rlp_hex", id, ctx.allocator);
-    const receipt_hex = extractStr(body, "receipt_rlp_hex") orelse
-        return errorJson(-32602, "Missing receipt_rlp_hex", id, ctx.allocator);
-    const proof_hex = extractStr(body, "receipt_proof_hex") orelse
-        return errorJson(-32602, "Missing receipt_proof_hex", id, ctx.allocator);
-
-    const alloc = ctx.allocator;
-    const key = hexAlloc(alloc, tx_index_hex) orelse
-        return errorJson(-32602, "Bad tx_index_rlp_hex", id, alloc);
-    defer alloc.free(key);
-    const value = hexAlloc(alloc, receipt_hex) orelse
-        return errorJson(-32602, "Bad receipt_rlp_hex", id, alloc);
-    defer alloc.free(value);
-
-    var nodes_storage: [64][]u8 = undefined;
-    var node_slices: [64][]const u8 = undefined;
-    var n: usize = 0;
-    defer {
-        var k: usize = 0;
-        while (k < n) : (k += 1) alloc.free(nodes_storage[k]);
-    }
-    var it = std.mem.splitScalar(u8, proof_hex, '|');
-    while (it.next()) |part| {
-        if (n >= 64) return errorJson(-32602, "Too many proof nodes", id, alloc);
-        const decoded = hexAlloc(alloc, part) orelse
-            return errorJson(-32602, "Bad receipt_proof_hex element", id, alloc);
-        nodes_storage[n] = decoded;
-        node_slices[n] = decoded;
-        n += 1;
-    }
-
-    const ok = spv_eth_mod.verifyReceiptAtIndex(
-        anchor.receipts_root, key, value, node_slices[0..n],
-    );
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"verified\":{s},\"chain_id\":{d},\"block_number\":{d}}}}}",
-        .{ id, if (ok) "true" else "false", cid, anchor.block_number });
-}
 
 // ─── Stake / Validator / Agent / Reputation handlers ───────────────────────
 //
@@ -3614,17 +3059,17 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     // Mempool — see core/rpc/mempool.zig
     if (std.mem.eql(u8, method, "getmempoolsize")) return rpc_mempool.handleGetMempoolSize(ctx, id);
 
-    if (std.mem.eql(u8, method, "getbalance"))     return handleGetBalance(body, ctx, id);
-    if (std.mem.eql(u8, method, "getwalletsummary")) return handleGetWalletSummary(body, ctx, id);
-    if (std.mem.eql(u8, method, "listunspent"))    return handleListUnspent(body, ctx, id);
-    if (std.mem.eql(u8, method, "getstatus"))      return handleGetStatus(ctx, id);
+    if (std.mem.eql(u8, method, "getbalance"))     return rpc_wallet.handleGetBalance(body, ctx, id);
+    if (std.mem.eql(u8, method, "getwalletsummary")) return rpc_wallet.handleGetWalletSummary(body, ctx, id);
+    if (std.mem.eql(u8, method, "listunspent"))    return rpc_wallet.handleListUnspent(body, ctx, id);
+    if (std.mem.eql(u8, method, "getstatus"))      return rpc_wallet.handleGetStatus(ctx, id);
 
     // Route to handler functions (refactored for low cyclomatic complexity)
-    if (std.mem.eql(u8, method, "sendtransaction"))  return handleSendTx(body, ctx, id);
-    if (std.mem.eql(u8, method, "gettransactions"))  return handleGetTxs(body, ctx, id);
+    if (std.mem.eql(u8, method, "sendtransaction"))  return rpc_wallet.handleSendTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "gettransactions"))  return rpc_wallet.handleGetTxs(body, ctx, id);
     if (std.mem.eql(u8, method, "registerminer"))    return rpc_mining.handleRegMiner(body, ctx, id);
     if (std.mem.eql(u8, method, "getpoolstats"))     return rpc_mining.handlePoolStats(ctx, id);
-    if (std.mem.eql(u8, method, "getaddressbalance"))return handleAddrBal(body, ctx, id);
+    if (std.mem.eql(u8, method, "getaddressbalance"))return rpc_wallet.handleAddrBal(body, ctx, id);
     if (std.mem.eql(u8, method, "getmempoolstats"))  return rpc_mempool.handleMpStats(ctx, id);
     if (std.mem.eql(u8, method, "getpendingtxs"))   return rpc_mempool.handleGetPendingTxs(body, ctx, id);
     if (std.mem.eql(u8, method, "getpeers"))         return rpc_net.handlePeers(ctx, id);
@@ -3641,17 +3086,17 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getminerinfo"))     return rpc_mining.handleMinerInf(ctx, id);
     if (std.mem.eql(u8, method, "getnodelist"))      return rpc_net.handleNodeList(ctx, id);
     if (std.mem.eql(u8, method, "estimatefee"))       return rpc_mempool.handleEstimateFee(ctx, id);
-    if (std.mem.eql(u8, method, "getnonce"))          return handleGetNonce(body, ctx, id);
-    if (std.mem.eql(u8, method, "gettransaction"))   return handleGetTx(body, ctx, id);
-    if (std.mem.eql(u8, method, "sendopreturn"))     return handleSendOpReturn(body, ctx, id);
-    if (std.mem.eql(u8, method, "getaddresshistory")) return handleGetAddrHistory(body, ctx, id);
-    if (std.mem.eql(u8, method, "listtransactions"))  return handleListTx(body, ctx, id);
-    if (std.mem.eql(u8, method, "minersendtx"))      return handleMinerSendTx(body, ctx, id);
-    if (std.mem.eql(u8, method, "claimfaucet"))      return handleClaimFaucet(body, ctx, id);
-    if (std.mem.eql(u8, method, "getfaucetstatus"))  return handleFaucetStatus(ctx, id);
-    if (std.mem.eql(u8, method, "getrichlist"))      return handleRichList(body, ctx, id);
+    if (std.mem.eql(u8, method, "getnonce"))          return rpc_wallet.handleGetNonce(body, ctx, id);
+    if (std.mem.eql(u8, method, "gettransaction"))   return rpc_wallet.handleGetTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "sendopreturn"))     return rpc_wallet.handleSendOpReturn(body, ctx, id);
+    if (std.mem.eql(u8, method, "getaddresshistory")) return rpc_wallet.handleGetAddrHistory(body, ctx, id);
+    if (std.mem.eql(u8, method, "listtransactions"))  return rpc_wallet.handleListTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "minersendtx"))      return rpc_wallet.handleMinerSendTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "claimfaucet"))      return rpc_wallet.handleClaimFaucet(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfaucetstatus"))  return rpc_wallet.handleFaucetStatus(ctx, id);
+    if (std.mem.eql(u8, method, "getrichlist"))      return rpc_wallet.handleRichList(body, ctx, id);
     if (std.mem.eql(u8, method, "getchainmetrics"))  return rpc_chain.handleChainMetrics(ctx, id);
-    if (std.mem.eql(u8, method, "getschemestats"))   return handleSchemeStats(body, ctx, id);
+    if (std.mem.eql(u8, method, "getschemestats"))   return rpc_wallet.handleSchemeStats(body, ctx, id);
     if (std.mem.eql(u8, method, "registername"))     return rpc_ns.handleRegisterName(body, ctx, id);
     if (std.mem.eql(u8, method, "transfername"))     return rpc_ns.handleTransferName(body, ctx, id);
     if (std.mem.eql(u8, method, "updatename"))       return rpc_ns.handleUpdateName(body, ctx, id);
@@ -3671,48 +3116,48 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "setcategory"))      return rpc_ns.handleSetCategory(body, ctx, id);
     if (std.mem.eql(u8, method, "setpreferredslot")) return rpc_ns.handleSetPreferredSlot(body, ctx, id);
     if (std.mem.eql(u8, method, "getnamesbycategory")) return rpc_ns.handleGetNamesByCategory(body, ctx, id);
-    if (std.mem.eql(u8, method, "sendrawtransaction")) return handleSendRawTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "sendrawtransaction")) return rpc_wallet.handleSendRawTx(body, ctx, id);
 
     // ── Native DEX (matching engine on-chain) ───────────────────────────
-    if (std.mem.eql(u8, method, "exchange_placeOrder"))    return handleExchangePlaceOrder(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_cancelOrder"))   return handleExchangeCancelOrder(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getOrderbook")) return handleExchangeGetOrderbook(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getUserOrders"))return handleExchangeGetUserOrders(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getUserTrades"))return handleExchangeGetUserTrades(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getTrades"))     return handleExchangeGetTrades(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_listPairs"))     return handleExchangeListPairs(ctx, id);
-    if (std.mem.eql(u8, method, "exchange_pairInfo"))      return handleExchangePairInfo(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getStats"))      return handleExchangeGetStats(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getAuthNonce"))  return handleExchangeGetAuthNonce(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_login"))         return handleExchangeLogin(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_createApiKey"))  return handleExchangeCreateApiKey(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_listApiKeys"))   return handleExchangeListApiKeys(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_revokeApiKey")) return handleExchangeRevokeApiKey(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_deposit"))       return handleExchangeDeposit(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_withdraw"))      return handleExchangeWithdraw(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getBalance"))    return handleExchangeGetBalance(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getBalances"))   return handleExchangeGetBalances(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_depositDemo"))   return handleExchangeDepositDemo(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_depositReal"))   return handleExchangeDepositReal(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return handleExchangeGetEscrowAddress(ctx, id);
+    if (std.mem.eql(u8, method, "exchange_placeOrder"))    return rpc_exchange.handleExchangePlaceOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_cancelOrder"))   return rpc_exchange.handleExchangeCancelOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getOrderbook")) return rpc_exchange.handleExchangeGetOrderbook(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getUserOrders"))return rpc_exchange.handleExchangeGetUserOrders(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getUserTrades"))return rpc_exchange.handleExchangeGetUserTrades(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getTrades"))     return rpc_exchange.handleExchangeGetTrades(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_listPairs"))     return rpc_exchange.handleExchangeListPairs(ctx, id);
+    if (std.mem.eql(u8, method, "exchange_pairInfo"))      return rpc_exchange.handleExchangePairInfo(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getStats"))      return rpc_exchange.handleExchangeGetStats(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getAuthNonce"))  return rpc_exchange.handleExchangeGetAuthNonce(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_login"))         return rpc_exchange.handleExchangeLogin(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_createApiKey"))  return rpc_exchange.handleExchangeCreateApiKey(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_listApiKeys"))   return rpc_exchange.handleExchangeListApiKeys(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_revokeApiKey")) return rpc_exchange.handleExchangeRevokeApiKey(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_deposit"))       return rpc_exchange.handleExchangeDeposit(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_withdraw"))      return rpc_exchange.handleExchangeWithdraw(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getBalance"))    return rpc_exchange.handleExchangeGetBalance(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getBalances"))   return rpc_exchange.handleExchangeGetBalances(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_depositDemo"))   return rpc_exchange.handleExchangeDepositDemo(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_depositReal"))   return rpc_exchange.handleExchangeDepositReal(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getEscrowAddress")) return rpc_exchange.handleExchangeGetEscrowAddress(ctx, id);
 
     // ── Aliases for B9 (frontend/test naming inconsistencies) ───────────────
     // Frontend calls these names; chain canonical names differ. Forward to
     // the real handler so existing frontend / test scripts work without
     // renaming everywhere.
-    if (std.mem.eql(u8, method, "exchange_listOrders"))     return handleExchangeGetOrderbook(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_getRecentTrades")) return handleExchangeGetTrades(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_orderbook"))      return handleExchangeGetOrderbook(body, ctx, id);
-    if (std.mem.eql(u8, method, "exchange_trades"))         return handleExchangeGetTrades(body, ctx, id);
-    if (std.mem.eql(u8, method, "place_order"))             return handleExchangePlaceOrder(body, ctx, id);
-    if (std.mem.eql(u8, method, "cancel_order"))            return handleExchangeCancelOrder(body, ctx, id);
-    if (std.mem.eql(u8, method, "cancelOrder"))             return handleExchangeCancelOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_listOrders"))     return rpc_exchange.handleExchangeGetOrderbook(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_getRecentTrades")) return rpc_exchange.handleExchangeGetTrades(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_orderbook"))      return rpc_exchange.handleExchangeGetOrderbook(body, ctx, id);
+    if (std.mem.eql(u8, method, "exchange_trades"))         return rpc_exchange.handleExchangeGetTrades(body, ctx, id);
+    if (std.mem.eql(u8, method, "place_order"))             return rpc_exchange.handleExchangePlaceOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "cancel_order"))            return rpc_exchange.handleExchangeCancelOrder(body, ctx, id);
+    if (std.mem.eql(u8, method, "cancelOrder"))             return rpc_exchange.handleExchangeCancelOrder(body, ctx, id);
 
     // ── Grid trading engine ────────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "grid_create"))  return handleGridCreate(body, ctx, id);
-    if (std.mem.eql(u8, method, "grid_list"))    return handleGridList(body, ctx, id);
-    if (std.mem.eql(u8, method, "grid_status"))  return handleGridStatus(body, ctx, id);
-    if (std.mem.eql(u8, method, "grid_cancel"))  return handleGridCancel(body, ctx, id);
+    if (std.mem.eql(u8, method, "grid_create"))  return rpc_exchange.handleGridCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "grid_list"))    return rpc_exchange.handleGridList(body, ctx, id);
+    if (std.mem.eql(u8, method, "grid_status"))  return rpc_exchange.handleGridStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "grid_cancel"))  return rpc_exchange.handleGridCancel(body, ctx, id);
 
     // ── HTLC atomic swaps (Phase 2F.2 — TX 0x30/0x31/0x32) ───────────────
     if (std.mem.eql(u8, method, "htlc_init"))           return rpc_swap.handleHtlcInit(body, ctx, id);
@@ -3804,8 +3249,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getstakinginfo"))      return rpc_consensus.handleGetStakingInfo(body, ctx, id);
 
     // Multisig endpoints — real M-of-N implementation backed by core/multisig.zig
-    if (std.mem.eql(u8, method, "createmultisig"))      return handleCreateMultisig(body, ctx, id);
-    if (std.mem.eql(u8, method, "sendmultisig"))        return handleSendMultisig(body, ctx, id);
+    if (std.mem.eql(u8, method, "createmultisig"))      return rpc_wallet.handleCreateMultisig(body, ctx, id);
+    if (std.mem.eql(u8, method, "sendmultisig"))        return rpc_wallet.handleSendMultisig(body, ctx, id);
 
     // ── Cold Wallet (watch-only) ─────────────────────────────────────────────
     if (std.mem.eql(u8, method, "coldwallet_add"))     return rpc_wallet_advanced.handleColdWalletAdd(body, ctx, id);
@@ -3840,23 +3285,23 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     // ── OmniBus custom endpoints (exchange integration) ─────────────────
     if (std.mem.eql(u8, method, "getblockchaininfo"))    return rpc_chain.handleBlockchainInfo(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getminers"))    return handleOmnibusMiners(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getoracleprices")) return handleOmnibusPrices(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getblockprices")) return handleOmnibusBlockPrices(body, ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getpricerange")) return handleOmnibusPriceRange(body, ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getexchangefeed")) return handleOmnibusExchangeFeed(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getallprices")) return handleOmnibusAllPrices(ctx, body, id);
-    if (std.mem.eql(u8, method, "omnibus_getarbitrage")) return handleOmnibusArbitrage(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getfxrate"))    return handleOmnibusFxRate(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return handleOmnibusOrderbook(body, ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getoracleprices")) return rpc_oracle.handleOmnibusPrices(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getblockprices")) return rpc_oracle.handleOmnibusBlockPrices(body, ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getpricerange")) return rpc_oracle.handleOmnibusPriceRange(body, ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getexchangefeed")) return rpc_oracle.handleOmnibusExchangeFeed(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getallprices")) return rpc_oracle.handleOmnibusAllPrices(ctx, body, id);
+    if (std.mem.eql(u8, method, "omnibus_getarbitrage")) return rpc_oracle.handleOmnibusArbitrage(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getfxrate"))    return rpc_oracle.handleOmnibusFxRate(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getorderbook"))  return rpc_oracle.handleOmnibusOrderbook(body, ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getbridgestatus")) return rpc_swap.handleOmnibusBridge(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getoraclepolicy")) return handleOmnibusGetOraclePolicy(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_setoraclepolicy")) return handleOmnibusSetOraclePolicy(body, ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_gettotalmined"))   return handleOmnibusTotalMined(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_bridge_limits"))   return handleOmnibusBridgeLimits(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getoraclepolicy")) return rpc_oracle.handleOmnibusGetOraclePolicy(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_setoraclepolicy")) return rpc_oracle.handleOmnibusSetOraclePolicy(body, ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_gettotalmined"))   return rpc_oracle.handleOmnibusTotalMined(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_bridge_limits"))   return rpc_oracle.handleOmnibusBridgeLimits(ctx, id);
     if (std.mem.eql(u8, method, "getmempoolinfo"))        return rpc_mempool.handleMempoolInfo(ctx, id);
     if (std.mem.eql(u8, method, "getrawmempool"))         return rpc_mempool.handleMempoolInfo(ctx, id);
     if (std.mem.eql(u8, method, "getmempool"))            return rpc_mempool.handleMempoolInfo(ctx, id);
-    if (std.mem.eql(u8, method, "getdailyactivity"))      return handleGetDailyActivity(body, ctx, id);
+    if (std.mem.eql(u8, method, "getdailyactivity"))      return rpc_wallet.handleGetDailyActivity(body, ctx, id);
 
     // ── EVM-compat endpoints (Ethereum-style JSON-RPC) ─────────────────
     // Ethereum-compat JSON-RPC — see core/rpc/eth.zig
@@ -3912,11 +3357,11 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "htlc_btc_buildScript")) return rpc_swap.handleHtlcBtcBuildScript(body, ctx, id);
 
     // ── SPV + cross-chain oracle ─────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "spv_btc_verifyTx"))     return handleSpvBtcVerifyTx(body, ctx, id);
-    if (std.mem.eql(u8, method, "spv_eth_verifyEvent")) return handleSpvEthVerifyEvent(body, ctx, id);
-    if (std.mem.eql(u8, method, "oracle_btcHeight"))    return handleOracleBtcHeight(ctx, id);
-    if (std.mem.eql(u8, method, "oracle_ethHeight"))    return handleOracleEthHeight(body, ctx, id);
-    if (std.mem.eql(u8, method, "oracle_recordHeader")) return handleOracleRecordHeader(body, ctx, id);
+    if (std.mem.eql(u8, method, "spv_btc_verifyTx"))     return rpc_spv.handleSpvBtcVerifyTx(body, ctx, id);
+    if (std.mem.eql(u8, method, "spv_eth_verifyEvent")) return rpc_spv.handleSpvEthVerifyEvent(body, ctx, id);
+    if (std.mem.eql(u8, method, "oracle_btcHeight"))    return rpc_oracle.handleOracleBtcHeight(ctx, id);
+    if (std.mem.eql(u8, method, "oracle_ethHeight"))    return rpc_oracle.handleOracleEthHeight(body, ctx, id);
+    if (std.mem.eql(u8, method, "oracle_recordHeader")) return rpc_oracle.handleOracleRecordHeader(body, ctx, id);
 
     // ── Cross-chain atomic-swap binding (orderbook ↔ HTLC glue) ─────────
     if (std.mem.eql(u8, method, "swap_open"))         return rpc_swap.handleSwapOpen(body, ctx, id);
@@ -3958,21 +3403,6 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
 /// Considers both confirmed chain nonces and pending mempool TXs.
 /// Usage: {"method":"getnonce","params":["ob1qcx2p306xpf3c2gd6h4074kpux4tv2hnmx3ytuq"],"id":1}
 /// Response: {"result":{"address":"...","nonce":N,"chainNonce":M,"pendingCount":P}}
-fn handleGetNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    ctx.bc.mutex.lock();
-    const chain_nonce = ctx.bc.getNextNonce(addr);
-    const next_available = ctx.bc.getNextAvailableNonce(addr);
-    ctx.bc.mutex.unlock();
-    const pending = next_available - chain_nonce;
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nonce\":{d},\"chainNonce\":{d},\"pendingCount\":{d}}}}}",
-        .{ id, addr, next_available, chain_nonce, pending });
-}
 
 pub fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
     return switch (scheme) {
@@ -3995,194 +3425,23 @@ pub fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
 /// RPC "gettransaction" — returns a single TX by hash with confirmation count.
 /// Searches mempool (pending, 0 confirmations) then mined blocks (confirmed).
 /// Usage: {"method":"gettransaction","params":["tx_hash_hex"],"id":1}
-fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const tx_hash = extractArrayStr(body, 0) orelse extractStr(body, "txid") orelse
-        return errorJson(-32602, "Missing param: txid", id, alloc);
 
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    // 1. Check mempool (pending TXs — 0 confirmations)
-    for (ctx.bc.mempool.items) |tx| {
-        if (std.mem.eql(u8, tx.hash, tx_hash)) {
-            const scheme_label = txSchemeLabel(tx.scheme);
-            const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
-            defer alloc.free(op_ret);
-            const kind = inferTxKind(tx);
-            return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
-                .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret });
-        }
-    }
-
-    // 2. Check mined blocks via tx_block_height index
-    if (ctx.bc.tx_block_height.get(tx_hash)) |block_height| {
-        const confirmations = ctx.bc.getConfirmations(tx_hash) orelse 0;
-        // Find the actual TX data in the block
-        if (block_height < ctx.bc.chain.items.len) {
-            const blk = ctx.bc.chain.items[block_height];
-            for (blk.transactions.items) |tx| {
-                if (std.mem.eql(u8, tx.hash, tx_hash)) {
-                    const scheme_label = txSchemeLabel(tx.scheme);
-                    const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
-                    defer alloc.free(op_ret);
-                    const kind = inferTxKind(tx);
-                    return std.fmt.allocPrint(alloc,
-                        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret, confirmations, block_height });
-                }
-            }
-        }
-        // TX in index but not found in block (edge case) — return minimal info
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-            .{ id, tx_hash, confirmations, block_height });
-    }
-
-    // 3. Fallback: linear scan all blocks (for TXs not in index, e.g. restored from disk)
-    for (ctx.bc.chain.items) |blk| {
-        for (blk.transactions.items) |tx| {
-            if (std.mem.eql(u8, tx.hash, tx_hash)) {
-                const current_height: u64 = @intCast(ctx.bc.chain.items.len);
-                const bh: u64 = @intCast(blk.index);
-                const confirmations = if (current_height > bh) current_height - bh else 0;
-                const scheme_label = txSchemeLabel(tx.scheme);
-                const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
-                defer alloc.free(op_ret);
-                const kind = inferTxKind(tx);
-                return std.fmt.allocPrint(alloc,
-                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret, confirmations, blk.index });
-            }
-        }
-    }
-
-    return errorJson(-32602, "Transaction not found", id, alloc);
-}
-
-fn handleSendTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const to_addr = extractStr(body, "to") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: to", id, alloc);
-    const amount_sat = extractArrayNum(body, 1);
-    if (amount_sat == 0) return errorJson(-32602, "Missing param: amount", id, alloc);
-    // Optional fee param (3rd array element or "fee" field); default TX_MIN_FEE_SAT (1 SAT)
-    const fee_raw = extractArrayNum(body, 2);
-    const fee_from_str = if (extractStr(body, "fee")) |fs| std.fmt.parseInt(u64, fs, 10) catch @as(u64, 0) else @as(u64, 0);
-    const fee_sat: u64 = if (fee_raw > 0) fee_raw else if (fee_from_str > 0) fee_from_str else mempool_mod.TX_MIN_FEE_SAT;
-    // Optional locktime param (4th array element or "locktime" field); default 0 (immediate)
-    const lt_raw = extractArrayNum(body, 3);
-    const lt_from_str = if (extractStr(body, "locktime")) |ls| std.fmt.parseInt(u64, ls, 10) catch @as(u64, 0) else @as(u64, 0);
-    const locktime: u64 = if (lt_raw > 0) lt_raw else lt_from_str;
-    // Optional op_return param ("op_return" or "opreturn" field)
-    const op_return = extractStr(body, "op_return") orelse extractStr(body, "opreturn") orelse "";
-    // Optional script param: "p2pkh" = auto-generate P2PKH scripts, "none"/empty = legacy mode
-    const script_type = extractStr(body, "script") orelse "";
-    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
-    // Nonce = next available (chain nonce + pending mempool TXs from this sender)
-    const nonce = ctx.bc.getNextAvailableNonce(ctx.wallet.address);
-
-    // If script type is "p2pkh" and we know the receiver's pubkey, use P2PKH scripts
-    if (std.mem.eql(u8, script_type, "p2pkh")) {
-        // Look up receiver's pubkey from registry
-        if (ctx.bc.pubkey_registry.get(to_addr)) |receiver_pk_hex| {
-            if (receiver_pk_hex.len == 66) {
-                var receiver_pk: [33]u8 = undefined;
-                hex_utils.hexToBytes(receiver_pk_hex, &receiver_pk) catch
-                    return errorJson(-32000, "Invalid receiver pubkey in registry", id, alloc);
-                var tx = ctx.wallet.createTransactionP2PKH(
-                    to_addr, amount_sat, tx_id, nonce, fee_sat, locktime, op_return,
-                    receiver_pk, alloc,
-                ) catch return errorJson(-32000, "Sign error (P2PKH)", id, alloc);
-                if (!tx.isValid()) return errorJson(-32000, "Invalid transaction", id, alloc);
-                ctx.bc.registerPubkey(ctx.wallet.address, ctx.wallet.addresses[0].public_key_hex) catch {};
-                ctx.bc.addTransaction(tx) catch return errorJson(-32000, "Mempool error", id, alloc);
-                return std.fmt.allocPrint(alloc,
-                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"script\":\"p2pkh\",\"status\":\"accepted\"}}}}",
-                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime });
-            }
-        }
-        // Receiver pubkey not known — fall through to legacy mode
-    }
-
-    var tx = ctx.wallet.createTransactionFull(to_addr, amount_sat, tx_id, nonce, fee_sat, locktime, op_return, alloc) catch
-        return errorJson(-32000, "Sign error", id, alloc);
-    if (!tx.isValid()) return errorJson(-32000, "Invalid transaction", id, alloc);
-    // Inregistreaza pubkey-ul wallet-ului in blockchain (pentru verificare semnatura)
-    ctx.bc.registerPubkey(ctx.wallet.address, ctx.wallet.addresses[0].public_key_hex) catch {};
-    ctx.bc.addTransaction(tx) catch return errorJson(-32000, "Mempool error", id, alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"status\":\"accepted\"}}}}",
-        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime });
-}
 
 /// RPC "sendopreturn" — create OP_RETURN TX with embedded data and amount=0.
 /// Usage: {"method":"sendopreturn","params":["data_string", fee_sat],"id":1}
 /// Or:    {"method":"sendopreturn","params":{"data":"data_string","fee":100},"id":1}
-fn handleSendOpReturn(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const data = extractArrayStr(body, 0) orelse extractStr(body, "data") orelse
-        return errorJson(-32602, "Missing param: data (OP_RETURN payload)", id, alloc);
-    if (data.len == 0) return errorJson(-32602, "OP_RETURN data cannot be empty", id, alloc);
-    if (data.len > transaction_mod.Transaction.MAX_OP_RETURN)
-        return errorJson(-32602, "OP_RETURN data exceeds 80 bytes", id, alloc);
-
-    const fee_raw = extractArrayNum(body, 1);
-    const fee_from_str = if (extractStr(body, "fee")) |fs| std.fmt.parseInt(u64, fs, 10) catch @as(u64, 0) else @as(u64, 0);
-    const fee_sat: u64 = if (fee_raw > 0) fee_raw else if (fee_from_str > 0) fee_from_str else mempool_mod.TX_MIN_FEE_SAT;
-
-    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
-    const nonce = ctx.bc.getNextAvailableNonce(ctx.wallet.address);
-    // OP_RETURN TX: amount=0, to=self (data carrier, not a payment)
-    var tx = ctx.wallet.createTransactionFull(ctx.wallet.address, 0, tx_id, nonce, fee_sat, 0, data, alloc) catch
-        return errorJson(-32000, "Sign error", id, alloc);
-    if (!tx.isValid()) return errorJson(-32000, "Invalid OP_RETURN transaction", id, alloc);
-    ctx.bc.registerPubkey(ctx.wallet.address, ctx.wallet.addresses[0].public_key_hex) catch {};
-    ctx.bc.addTransaction(tx) catch return errorJson(-32000, "Mempool error", id, alloc);
-    {
-        const opr_safe = try jsonSanitize(alloc, tx.op_return);
-        defer alloc.free(opr_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"op_return\":\"{s}\",\"fee\":{d},\"status\":\"accepted\"}}}}",
-            .{ id, tx.hash, tx.from_address, opr_safe, tx.fee });
-    }
-}
-
-/// RPC "minersendtx" — send TX from a registered miner's wallet.
-/// The miner's private key is looked up from the MinerWalletPool.
-/// Usage: {"method":"minersendtx","params":["from_miner_address","to_address",amount_sat,fee_sat],"id":1}
-// ─── Faucet rate-limit state (in-memory, per-process) ────────────────────────
-//
-// ── Faucet — Protocol Onboarding Gate ────────────────────────────────────────
-//
-// The faucet address is derived from the well-known OmniBus protocol mnemonic
-// ("abandon x11 about"). Its address and mnemonic are PUBLIC — security comes
-// from the chain rule in validateTransaction (5b-faucet), not from key secrecy.
-//
-// Every claimer signs the Declaration of Honesty (faucet_mod.DECLARATION_TEXT).
-// The SHA-256 hash of the declaration is embedded in the op_return and stored
-// on-chain permanently — irrevocable proof of agreement.
-//
-// Anti-Sybil rules:
-//   - One claim per address (ever) — enforced by g_faucet_addr_set
-//   - One claim per IP per 24h   — enforced by g_faucet_ip_map
-//   - Chain rule: faucet TX invalid if destination already has pq_attest
-
-// Global in-memory state — reset on node restart intentionally (persist via
-// chain state: if an address has balance, it already claimed).
-var g_faucet_addr_set = faucet_mod.ClaimedSet{
+pub var g_faucet_addr_set = faucet_mod.ClaimedSet{
     .set   = @as(@TypeOf(faucet_mod.ClaimedSet.init(undefined).set), undefined),
     .mutex = .{},
 };
-var g_faucet_ip_map = faucet_mod.IpCooldownMap{
+pub var g_faucet_ip_map = faucet_mod.IpCooldownMap{
     .map   = @as(@TypeOf(faucet_mod.IpCooldownMap.init(undefined).map), undefined),
     .mutex = .{},
 };
-var g_faucet_state_init = false;
-var g_faucet_state_mutex: std.Thread.Mutex = .{};
+pub var g_faucet_state_init: bool = false;
+pub var g_faucet_state_mutex: std.Thread.Mutex = .{};
 
-fn ensureFaucetState(alloc: std.mem.Allocator) void {
+pub fn ensureFaucetState(alloc: std.mem.Allocator) void {
     g_faucet_state_mutex.lock();
     defer g_faucet_state_mutex.unlock();
     if (g_faucet_state_init) return;
@@ -4202,131 +3461,8 @@ fn ensureFaucetState(alloc: std.mem.Allocator) void {
 ///   4. Submit this request
 ///
 /// On success: TX is queued in mempool, 0.001 OMNI arrives after next block.
-fn handleClaimFaucet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    ensureFaucetState(alloc);
-
-    const recipient = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    if (recipient.len < 8 or recipient.len > 64)
-        return errorJson(-32602, "Invalid address length", id, alloc);
-
-    const decl_hash = extractStr(body, "declaration_hash") orelse
-        return errorJson(-32602, "Missing param: declaration_hash — read the Declaration of Honesty", id, alloc);
-    if (decl_hash.len != 64)
-        return errorJson(-32602, "declaration_hash must be 64-char SHA-256 hex", id, alloc);
-
-    // Verify the client hashed the correct declaration text.
-    if (!std.mem.eql(u8, decl_hash, faucet_mod.DECLARATION_HASH))
-        return errorJson(-32015,
-            "declaration_hash mismatch — you must hash the exact OmniBus Declaration of Honesty v1",
-            id, alloc);
-
-    const sig    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature",  id, alloc);
-    const pubkey = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce  = extractParamObjectU64(body, "nonce");
-
-    // One-time per address.
-    if (!g_faucet_addr_set.tryRecord(recipient)) {
-        // Also check on-chain: if address already has balance it claimed before.
-        const existing_bal = ctx.bc.getAddressBalance(recipient);
-        if (existing_bal > 0 or g_faucet_addr_set.hasClaimed(recipient))
-            return errorJson(-32011, "Address already received faucet funds", id, alloc);
-    }
-
-    // IP cooldown (best-effort — peer IP not available in all call paths,
-    // skip enforcement when empty).
-    const peer_ip = extractStr(body, "_peer_ip") orelse "";
-    if (peer_ip.len > 0) {
-        const now_s = std.time.timestamp();
-        if (!g_faucet_ip_map.tryRecord(peer_ip, now_s)) {
-            const last = g_faucet_ip_map.lastClaim(peer_ip);
-            const wait = faucet_mod.FAUCET_COOLDOWN_S - (now_s - last);
-            return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32016,\"message\":\"IP cooldown: wait {d}s before claiming again\"}}}}",
-                .{ id, wait });
-        }
-    }
-
-    // Check faucet balance.
-    const faucet_bal = ctx.bc.getAddressBalance(faucet_mod.FAUCET_ADDR);
-    const fee_sat: u64 = 1_000;
-    if (faucet_bal < faucet_mod.FAUCET_AMOUNT_SAT + fee_sat)
-        return errorJson(-32012, "Faucet drained — community refill needed", id, alloc);
-
-    // Build op_return: "faucet_claim:<decl_hash>:<recipient>"
-    const op_return = try std.fmt.allocPrint(alloc,
-        "faucet_claim:{s}:{s}", .{ decl_hash, recipient });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, faucet_mod.FAUCET_ADDR, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = faucet_mod.FAUCET_ADDR,
-        .to_address   = recipient,
-        .amount       = faucet_mod.FAUCET_AMOUNT_SAT,
-        .fee          = fee_sat,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32014, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    std.debug.print("[FAUCET] Onboarding {d} SAT → {s} (decl_hash={s})\n",
-        .{ faucet_mod.FAUCET_AMOUNT_SAT, recipient[0..@min(recipient.len, 20)], decl_hash[0..8] });
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"txid\":\"{s}\"," ++
-        "\"recipient\":\"{s}\"," ++
-        "\"amount\":{d}," ++
-        "\"declaration\":\"signed\"," ++
-        "\"status\":\"accepted\"," ++
-        "\"message\":\"Welcome to OmniBus. Now complete pq_attest to unlock full access.\"" ++
-        "}}}}",
-        .{ id, canonical, recipient, faucet_mod.FAUCET_AMOUNT_SAT });
-}
 
 /// RPC "getfaucetstatus"
-fn handleFaucetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const faucet_bal = ctx.bc.getAddressBalance(faucet_mod.FAUCET_ADDR);
-    const enabled = faucet_bal >= faucet_mod.FAUCET_AMOUNT_SAT;
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"enabled\":{}," ++
-        "\"address\":\"{s}\"," ++
-        "\"balance\":{d}," ++
-        "\"grantPerClaim\":{d}," ++
-        "\"cooldownHours\":24," ++
-        "\"declaration_hash\":\"{s}\"," ++
-        "\"declaration_text\":\"{s}\"" ++
-        "}}}}",
-        .{ id, enabled,
-           faucet_mod.FAUCET_ADDR,
-           faucet_bal,
-           faucet_mod.FAUCET_AMOUNT_SAT,
-           faucet_mod.DECLARATION_HASH,
-           faucet_mod.DECLARATION_TEXT });
-}
 
 /// Keep the old faucetSetPersistPath symbol so main.zig call sites still compile.
 /// The new faucet doesn't need disk persistence (chain state is authoritative).
@@ -4334,7 +3470,7 @@ pub fn faucetSetPersistPath(_: []const u8) void {}
 
 // ─── Rich list + chain metrics ──────────────────────────────────────────────
 
-const RichEntry = struct {
+pub const RichEntry = struct {
     address: []const u8,
     balance: u64,
     tx_count: u32 = 0,
@@ -4414,154 +3550,6 @@ pub fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
 /// Usage:
 ///   {"method":"getrichlist","params":[100],"id":1}   // top 100
 ///   {"method":"getrichlist","params":[],"id":1}      // top 100 default
-fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const limit_raw = extractArrayNum(body, 0);
-    const limit: usize = if (limit_raw > 0) @min(@as(usize, @intCast(limit_raw)), 1000) else 100;
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    // Collect (address, balance) pairs from the UTXO set (PHASE-B source of truth).
-    var entries = std.array_list.Managed(RichEntry).init(alloc);
-    defer entries.deinit();
-    // Lock UTXOSet for the iteration — getBalance() takes a recursive shared lock.
-    ctx.bc.utxo_set.lock.lockShared();
-    defer ctx.bc.utxo_set.lock.unlockShared();
-    var ait = ctx.bc.utxo_set.address_index.iterator();
-    while (ait.next()) |kv| {
-        const addr = kv.key_ptr.*;
-        // Inline tally to avoid re-locking (getBalance would try to lockShared again).
-        const list = kv.value_ptr.*;
-        var bal: u64 = 0;
-        for (list.items) |op| {
-            if (ctx.bc.utxo_set.utxos.get(op)) |u| bal += u.amount;
-        }
-        if (bal == 0) continue; // skip dust/zero balances
-        try entries.append(.{ .address = addr, .balance = bal });
-    }
-
-    // Sort by balance descending; tie-break by address string for determinism.
-    std.mem.sort(RichEntry, entries.items, {}, struct {
-        fn lt(_: void, a: RichEntry, b: RichEntry) bool {
-            if (a.balance != b.balance) return a.balance > b.balance;
-            return std.mem.lessThan(u8, a.address, b.address);
-        }
-    }.lt);
-
-    // Build per-address indexes:
-    //   - mined_count: blocks mined by miner_address (=> MINER role) — one
-    //                  pass over chain (block headers only, always available).
-    //   - stake_amount / is_agent: now read directly from the persisted
-    //     bc.stake_amounts / bc.registered_agents maps so roles survive a
-    //     node restart (chain.dat doesn't serialise full TX list — see
-    //     database.zig stake_state / agent_state sections, 2026-05-04).
-    //   - tx_stats: {count, received, sent, first_height, last_height}
-    //               — still computed by iterating in-memory blocks. After a
-    //               restart this is empty until new blocks land; treat as
-    //               cosmetic, while role classification stays correct.
-    var mined_count = std.StringHashMap(u32).init(alloc);
-    defer mined_count.deinit();
-
-    const TxStats = struct {
-        count: u32 = 0,
-        received: u64 = 0,
-        sent: u64 = 0,
-        first_height: u64 = 0,
-        last_height: u64 = 0,
-        first_seen: bool = false,
-    };
-    var tx_stats = std.StringHashMap(TxStats).init(alloc);
-    defer tx_stats.deinit();
-
-    for (ctx.bc.chain.items, 0..) |blk, height| {
-        if (blk.miner_address.len > 0) {
-            const gop = try mined_count.getOrPut(blk.miner_address);
-            if (!gop.found_existing) gop.value_ptr.* = 0;
-            gop.value_ptr.* += 1;
-        }
-        for (blk.transactions.items) |tx| {
-            const h: u64 = @intCast(height);
-            // Sender side (skip coinbase — empty from)
-            if (tx.from_address.len > 0) {
-                const gop = try tx_stats.getOrPut(tx.from_address);
-                if (!gop.found_existing) gop.value_ptr.* = .{};
-                gop.value_ptr.count += 1;
-                gop.value_ptr.sent += tx.amount;
-                if (!gop.value_ptr.first_seen) {
-                    gop.value_ptr.first_height = h;
-                    gop.value_ptr.first_seen = true;
-                }
-                gop.value_ptr.last_height = h;
-            }
-            // Receiver side
-            if (tx.to_address.len > 0) {
-                const gop = try tx_stats.getOrPut(tx.to_address);
-                if (!gop.found_existing) gop.value_ptr.* = .{};
-                gop.value_ptr.count += 1;
-                gop.value_ptr.received += tx.amount;
-                if (!gop.value_ptr.first_seen) {
-                    gop.value_ptr.first_height = h;
-                    gop.value_ptr.first_seen = true;
-                }
-                gop.value_ptr.last_height = h;
-            }
-        }
-    }
-
-    // Emit JSON: {result: {entries:[…], total:N, totalSupply:N}}
-    var json = std.array_list.Managed(u8).init(alloc);
-    errdefer json.deinit();
-    var w = json.writer();
-
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"entries\":[", .{id});
-
-    var total_supply: u64 = 0;
-    for (entries.items) |e| total_supply += e.balance;
-
-    const out_count = @min(limit, entries.items.len);
-    for (entries.items[0..out_count], 0..) |e, i| {
-        if (i > 0) try w.writeAll(",");
-        const blocks = mined_count.get(e.address) orelse 0;
-        // Restart-safe: read stake/agent state from persisted maps in
-        // bc, populated by applyOpReturnRoles + restored from chain.dat.
-        const stake = ctx.bc.stake_amounts.get(e.address) orelse 0;
-        const agent = ctx.bc.registered_agents.contains(e.address);
-        const stats = tx_stats.get(e.address) orelse TxStats{};
-
-        // 4-role classification (multi-role: address can be VALIDATOR + MINER + AGENT etc.)
-        const is_validator = stake >= staking_mod.VALIDATOR_MIN_STAKE;
-        const is_miner = blocks > 0;
-        // USER role implicit — included if no other role is active.
-        const is_user = !is_validator and !is_miner and !agent;
-
-        // Build roles JSON array
-        try w.print(
-            "{{\"rank\":{d},\"address\":\"{s}\",\"balance\":{d}," ++
-            "\"roles\":[",
-            .{ i + 1, e.address, e.balance },
-        );
-        var role_first = true;
-        if (is_validator) { try w.writeAll("\"validator\""); role_first = false; }
-        if (is_miner)     { if (!role_first) try w.writeAll(","); try w.writeAll("\"miner\""); role_first = false; }
-        if (agent)        { if (!role_first) try w.writeAll(","); try w.writeAll("\"agent\""); role_first = false; }
-        if (is_user)      { try w.writeAll("\"user\""); }
-        try w.print(
-            "],\"stake\":{d},\"blocksMined\":{d}," ++
-            // Backward-compat: keep isValidator boolean (true if validator role active)
-            "\"isValidator\":{}," ++
-            "\"txCount\":{d},\"received\":{d},\"sent\":{d},\"firstHeight\":{d},\"lastHeight\":{d}}}",
-            .{ stake, blocks, is_validator,
-               stats.count, stats.received, stats.sent, stats.first_height, stats.last_height },
-        );
-    }
-
-    try w.print("],\"total\":{d},\"shown\":{d},\"totalSupply\":{d}}}}}", .{
-        entries.items.len, out_count, total_supply,
-    });
-
-    return json.toOwnedSlice();
-}
 
 /// RPC "getchainmetrics" — high-level dashboard stats.
 ///
@@ -4577,67 +3565,6 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// RPC "getschemestats" — signing-scheme distribution across last N blocks.
 /// Params: [blocks_count]  (default 100, max 1000)
 /// Returns: { totalTxs, blocks, schemes: [{scheme, count, pct}] }
-fn handleSchemeStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const req_blocks = extractArrayNum(body, 0);
-    const scan: u64 = if (req_blocks > 0 and req_blocks <= 1000) req_blocks else 100;
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    const chain_len: u64 = @intCast(ctx.bc.chain.items.len);
-    const start: u64 = if (chain_len > scan) chain_len - scan else 0;
-
-    // Counters for 13 schemes (indices match transaction.Scheme enum order)
-    var counts: [13]u64 = .{0} ** 13;
-    var total: u64 = 0;
-
-    var hi: u64 = start;
-    while (hi < chain_len) : (hi += 1) {
-        const blk = ctx.bc.chain.items[@intCast(hi)];
-        for (blk.transactions.items) |tx| {
-            const idx: usize = @intFromEnum(tx.scheme);
-            if (idx < 13) counts[idx] += 1;
-            total += 1;
-        }
-    }
-
-    const scanned = chain_len - start;
-    const scheme_labels = [13][]const u8{
-        "ECDSA (secp256k1)",
-        "ML-DSA-87 (LOVE soulbound)",
-        "Falcon-512 (FOOD soulbound)",
-        "ML-DSA-87 (RENT soulbound)",
-        "SLH-DSA-256s (VACATION soulbound)",
-        "ML-DSA-87",
-        "Falcon-512",
-        "ML-DSA-87 (Dilithium-5)",
-        "SLH-DSA-256s",
-        "Hybrid ECDSA+ML-DSA-87",
-        "Hybrid ECDSA+Falcon-512",
-        "Hybrid ECDSA+Dilithium-5",
-        "Hybrid ECDSA+SLH-DSA",
-    };
-
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var written: usize = 0;
-    for (scheme_labels, 0..) |label, i| {
-        if (counts[i] == 0) continue;
-        const pct_x100: u64 = if (total > 0) counts[i] * 10000 / total else 0;
-        const sep: []const u8 = if (written == 0) "" else ",";
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"scheme\":\"{s}\",\"count\":{d},\"pct\":{d}}}",
-            .{ sep, label, counts[i], pct_x100 });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m;
-        written += 1;
-    }
-    defer alloc.free(entries);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"totalTxs\":{d},\"blocks\":{d},\"schemes\":[{s}]}}}}",
-        .{ id, total, scanned, entries });
-}
 
 // ─── DNS / ENS handlers ─────────────────────────────────────────────────────
 //
@@ -4786,122 +3713,6 @@ fn handleSchemeStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // is ECDSA secp256k1 over the resulting 32-byte digest.
 //
 // Returns {txid, status:"accepted"} on success or an RPC error otherwise.
-fn handleSendRawTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    // Required string fields
-    const from_addr = extractStr(body, "from") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: from", id, alloc);
-    const to_addr = extractStr(body, "to") orelse
-        return errorJson(-32602, "Missing param: to", id, alloc);
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature (128 hex chars)", id, alloc);
-    const hash_hex = extractStr(body, "hash") orelse
-        return errorJson(-32602, "Missing param: hash (64 hex chars)", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-
-    // Required numeric fields
-    const amount = extractArrayNumByKey(body, "amount");
-    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
-    const fee = extractArrayNumByKey(body, "fee");
-    const fee_sat: u64 = if (fee > 0) fee else mempool_mod.TX_MIN_FEE_SAT;
-    const ts_raw = extractArrayNumByKey(body, "timestamp");
-    const ts: i64 = if (ts_raw > 0) @intCast(ts_raw) else std.time.timestamp();
-    const nonce = extractArrayNumByKey(body, "nonce");
-    const tx_id_raw = extractArrayNumByKey(body, "id");
-    const tx_id: u32 = if (tx_id_raw > 0) @intCast(@min(tx_id_raw, std.math.maxInt(u32))) else g_tx_counter.fetchAdd(1, .monotonic);
-    const locktime = extractArrayNumByKey(body, "locktime");
-    const op_return = extractStr(body, "opReturn") orelse extractStr(body, "op_return") orelse "";
-
-    // Auto-detect scheme from sender address prefix. ECDSA expects fixed
-    // 128-char signature + 66-char pubkey; PQ schemes carry much larger
-    // signatures (Falcon ~700 bytes, ML-DSA ~3-4 KB, SLH-DSA-256s ~30 KB)
-    // so we skip the length check for non-ECDSA schemes — the verifier
-    // does the real validation per-scheme.
-    const scheme_opt = isolated_wallet_mod.Scheme.fromAddress(from_addr);
-    const scheme: isolated_wallet_mod.Scheme = scheme_opt orelse .omni_ecdsa;
-
-    // Field-length sanity for the legacy ECDSA path. PQ paths skip this.
-    if (scheme == .omni_ecdsa) {
-        if (sig_hex.len != 128) return errorJson(-32602, "signature must be 128 hex chars (ECDSA)", id, alloc);
-        if (hash_hex.len != 64) return errorJson(-32602, "hash must be 64 hex chars", id, alloc);
-        if (pubkey_hex.len != 66) return errorJson(-32602, "publicKey must be 66 hex chars (compressed secp256k1)", id, alloc);
-    } else {
-        // PQ TX: hash is still 32 bytes (sha256 output, 64 hex). signature
-        // and pubkey lengths vary per scheme — verifier checks them.
-        if (hash_hex.len != 64) return errorJson(-32602, "hash must be 64 hex chars", id, alloc);
-        if (sig_hex.len < 100) return errorJson(-32602, "PQ signature too short", id, alloc);
-        if (pubkey_hex.len < 100) return errorJson(-32602, "PQ public key too short", id, alloc);
-    }
-
-    // Allocate owned copies so the Transaction struct outlives the request body.
-    const from_owned = try alloc.dupe(u8, from_addr);
-    errdefer alloc.free(from_owned);
-    const to_owned = try alloc.dupe(u8, to_addr);
-    errdefer alloc.free(to_owned);
-    const sig_owned = try alloc.dupe(u8, sig_hex);
-    errdefer alloc.free(sig_owned);
-    const hash_owned = try alloc.dupe(u8, hash_hex);
-    errdefer alloc.free(hash_owned);
-    const op_owned: []const u8 = if (op_return.len > 0) try alloc.dupe(u8, op_return) else "";
-    errdefer if (op_return.len > 0) alloc.free(op_owned);
-
-    // For PQ TXs, the public_key field on the Transaction struct is the
-    // raw PQ pubkey BYTES (not hex). Decode here. ECDSA TXs leave it empty
-    // and use the chain pubkey registry instead.
-    var pq_pubkey_owned: []const u8 = "";
-    if (scheme != .omni_ecdsa) {
-        const pq_buf = try alloc.alloc(u8, pubkey_hex.len / 2);
-        errdefer alloc.free(pq_buf);
-        _ = hex_utils.hexToBytes(pubkey_hex, pq_buf) catch {
-            alloc.free(pq_buf);
-            return errorJson(-32602, "publicKey must be valid hex", id, alloc);
-        };
-        pq_pubkey_owned = pq_buf;
-    }
-
-    var tx = transaction_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from_owned,
-        .to_address   = to_owned,
-        .amount       = amount,
-        .fee          = fee_sat,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .locktime     = locktime,
-        .op_return    = op_owned,
-        .signature    = sig_owned,
-        .hash         = hash_owned,
-        .scheme       = @as(transaction_mod.Scheme, @enumFromInt(@intFromEnum(scheme))),
-        .public_key   = pq_pubkey_owned,
-    };
-
-    if (!tx.isValid()) return errorJson(-32000, "Transaction failed isValid (bad addresses or amount)", id, alloc);
-
-    // Register sender pubkey BEFORE validating — addTransaction's signature
-    // check looks the pubkey up by address. Without this, fresh senders
-    // would always fail validation on their first TX.
-    ctx.bc.registerPubkey(from_owned, pubkey_hex) catch {};
-
-    ctx.bc.addTransaction(tx) catch |err| {
-        // The `errdefer alloc.free(...)` chain above doesn't fire here because
-        // addTransaction took ownership (or didn't) depending on where it
-        // failed. We err on the side of leaking a few bytes per rejected TX
-        // rather than risk a double-free.
-        const msg = switch (err) {
-            error.OutOfMemory => "Out of memory",
-            else              => "Mempool refused TX",
-        };
-        std.debug.print("[RAW-TX] addTransaction error: {} (from={s})\n",
-            .{ err, from_owned[0..@min(from_owned.len, 16)] });
-        return errorJson(-32000, msg, id, alloc);
-    };
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"status\":\"accepted\"}}}}",
-        .{ id, hash_owned, from_owned, to_owned, amount, fee_sat });
-}
 
 /// Helper: read a u64 from either an object key (e.g. `"amount":123`) or
 /// — fallback — try interpreting `body` as a positional array. Returns 0
@@ -4924,113 +3735,10 @@ pub fn extractArrayNumByKey(body: []const u8, key: []const u8) u64 {
     return if (seen) n else 0;
 }
 
-fn handleMinerSendTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    const from_addr = extractArrayStr(body, 0) orelse extractStr(body, "from") orelse
-        return errorJson(-32602, "Missing param: from (miner address)", id, alloc);
-    const to_addr = extractArrayStr(body, 1) orelse extractStr(body, "to") orelse
-        return errorJson(-32602, "Missing param: to (recipient address)", id, alloc);
-    const amount_sat = extractArrayNum(body, 2);
-    if (amount_sat == 0) return errorJson(-32602, "Missing/zero param: amount", id, alloc);
-    const fee_raw = extractArrayNum(body, 3);
-    const fee_sat: u64 = if (fee_raw > 0) fee_raw else mempool_mod.TX_MIN_FEE_SAT;
-
-    // Look up the miner's wallet in the pool
-    const mw = main_mod.g_miner_pool.findByAddress(from_addr) orelse
-        return errorJson(-32602, "Miner not found in wallet pool", id, alloc);
-
-    // Check balance
-    const sender_bal = ctx.bc.getAddressBalance(from_addr);
-    if (sender_bal < amount_sat + fee_sat) {
-        return errorJson(-32000, "Insufficient balance", id, alloc);
-    }
-
-    // Create and sign TX using miner's private key
-    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
-    const nonce = ctx.bc.getNextAvailableNonce(from_addr);
-    var tx = mw.createSignedTx(to_addr, amount_sat, tx_id, nonce, fee_sat, alloc) catch
-        return errorJson(-32000, "Sign error", id, alloc);
-    if (!tx.isValid()) return errorJson(-32000, "Invalid transaction", id, alloc);
-
-    // Ensure pubkey is registered for signature verification
-    ctx.bc.registerPubkey(from_addr, mw.getPubkeyHex()) catch {};
-
-    // Add to mempool/blockchain
-    ctx.bc.addTransaction(tx) catch
-        return errorJson(-32000, "Mempool rejected TX", id, alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"status\":\"accepted\"}}}}",
-        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee });
-}
 
 /// RPC "getaddresshistory" — returns all TXs (sent + received) for an address.
 /// Uses address_tx_index for confirmed TXs, scans mempool for pending.
 /// Usage: {"method":"getaddresshistory","params":["ob1qcx2p306xpf3c2gd6h4074kpux4tv2hnmx3ytuq"],"id":1}
-fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var count: usize = 0;
-    var total_received: u64 = 0;
-    var total_sent: u64 = 0;
-    const current_height: u64 = @intCast(ctx.bc.chain.items.len);
-
-    // 1. Pending TXs from mempool (0 confirmations)
-    for (ctx.bc.mempool.items) |tx| {
-        const is_from = std.mem.eql(u8, tx.from_address, addr);
-        const is_to = std.mem.eql(u8, tx.to_address, addr);
-        if (!is_from and !is_to) continue;
-        const dir: []const u8 = if (is_from) "sent" else "received";
-        if (is_from) total_sent += tx.amount else total_received += tx.amount;
-        const kind = inferTxKind(tx);
-        const sep: []const u8 = if (count == 0) "" else ",";
-        const memo = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
-        defer alloc.free(memo);
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"pending\",\"memo\":\"{s}\"}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp, memo });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m; count += 1;
-    }
-
-    // 2. Confirmed TXs via address_tx_index (fast lookup)
-    if (ctx.bc.getAddressHistory(addr)) |tx_hashes| {
-        for (tx_hashes) |tx_hash| {
-            const block_height = ctx.bc.tx_block_height.get(tx_hash) orelse continue;
-            if (block_height >= ctx.bc.chain.items.len) continue;
-            const blk = ctx.bc.chain.items[block_height];
-            const confirmations = if (current_height > block_height) current_height - block_height else 0;
-            for (blk.transactions.items) |tx| {
-                if (!std.mem.eql(u8, tx.hash, tx_hash)) continue;
-                const is_from = std.mem.eql(u8, tx.from_address, addr);
-                const dir: []const u8 = if (is_from) "sent" else "received";
-                if (is_from) total_sent += tx.amount else total_received += tx.amount;
-                const kind = inferTxKind(tx);
-                const sep: []const u8 = if (count == 0) "" else ",";
-                const memo2 = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
-                defer alloc.free(memo2);
-                const e = try std.fmt.allocPrint(alloc,
-                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"confirmed\",\"memo\":\"{s}\"}}",
-                    .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp, memo2 });
-                const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-                alloc.free(entries); alloc.free(e); entries = m; count += 1;
-                break;
-            }
-        }
-    }
-
-    defer alloc.free(entries);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"transactions\":[{s}],\"count\":{d},\"totalReceived\":{d},\"totalSent\":{d}}}}}",
-        .{ id, addr, entries, count, total_received, total_sent });
-}
 
 /// RPC "getdailyactivity" — per-day breakdown of all TX activity for an address.
 ///
@@ -5056,278 +3764,11 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Params:
 ///   { "address": "ob1q...", "days": 30 }   (default 30, max 365)
 /// or positional: ["ob1q...", 30]
-fn handleGetDailyActivity(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    // Parse `days` from positional[1] or `"days":N`. Default 30, clamp to [1, 365].
-    var days: u64 = extractArrayNum(body, 1);
-    if (days == 0) days = extractArrayNumByKey(body, "days");
-    if (days == 0) days = 30;
-    if (days > 365) days = 365;
-
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    const current_height: u64 = @intCast(ctx.bc.chain.items.len);
-
-    // Block-time → blocks/day. Mainnet 1000ms → 86400. Guard against zero.
-    // We avoid coupling to a specific chain by reading the single
-    // `chain_config` constant we know is exposed in this file via the
-    // imported chain_config alias (block_time_ms is ChainConfig field, not
-    // a top-level constant). Fall back to the OmniBus mainnet 1s block.
-    const block_time_ms: u64 = 1000;
-    var blocks_per_day: u64 = (24 * 60 * 60 * 1000) / block_time_ms;
-    if (blocks_per_day == 0) blocks_per_day = 86_400;
-
-    // Walk window = last `days` days, but cap by chain height.
-    const window_blocks: u64 = days * blocks_per_day;
-    const start_height: u64 = if (window_blocks >= current_height) 0 else current_height - window_blocks;
-
-    // Per-day accumulators. Stored as a parallel-slice struct-of-arrays so
-    // we don't bring in std.array_list managed types here — every chain
-    // RPC handler does fixed-size buffers when possible to keep the hot
-    // path GC-free.
-    const Day = struct {
-        block_start: u64,
-        block_end: u64,
-        tx_count: u64,
-        sent: u64,
-        received: u64,
-        mining_reward: u64,
-        fees_burned: u64,
-        stake_change: i128,
-        had_activity: bool,
-    };
-    var day_buf: [365]Day = undefined;
-    var day_count: usize = 0;
-    while (day_count < days and day_count < day_buf.len) : (day_count += 1) {
-        const day_start = start_height + (day_count * blocks_per_day);
-        const day_end_raw = day_start + blocks_per_day;
-        const day_end = if (day_end_raw > current_height) current_height else day_end_raw;
-        day_buf[day_count] = .{
-            .block_start = day_start,
-            .block_end = day_end,
-            .tx_count = 0,
-            .sent = 0,
-            .received = 0,
-            .mining_reward = 0,
-            .fees_burned = 0,
-            .stake_change = 0,
-            .had_activity = false,
-        };
-    }
-
-    // Iterate the address index → resolve each tx to a block → bucket into a day.
-    if (ctx.bc.getAddressHistory(addr)) |tx_hashes| {
-        for (tx_hashes) |tx_hash| {
-            const block_height = ctx.bc.tx_block_height.get(tx_hash) orelse continue;
-            if (block_height >= ctx.bc.chain.items.len) continue;
-            if (block_height < start_height) continue;
-            // Find day bucket
-            const offset = block_height - start_height;
-            const day_idx_u: u64 = offset / blocks_per_day;
-            if (day_idx_u >= day_count) continue;
-            const day_idx: usize = @intCast(day_idx_u);
-            const blk = ctx.bc.chain.items[block_height];
-            for (blk.transactions.items) |tx| {
-                if (!std.mem.eql(u8, tx.hash, tx_hash)) continue;
-                const is_from = std.mem.eql(u8, tx.from_address, addr);
-                const is_to = std.mem.eql(u8, tx.to_address, addr);
-                if (!is_from and !is_to) break;
-                day_buf[day_idx].tx_count += 1;
-                day_buf[day_idx].had_activity = true;
-                if (is_from) {
-                    day_buf[day_idx].sent += tx.amount;
-                    day_buf[day_idx].fees_burned += tx.fee;
-                    // stake / unstake op_return — only counted when sender
-                    if (tx.op_return.len > 0) {
-                        if (std.mem.startsWith(u8, tx.op_return, "stake:")) {
-                            day_buf[day_idx].stake_change += @intCast(tx.amount);
-                        } else if (std.mem.startsWith(u8, tx.op_return, "unstake:")) {
-                            day_buf[day_idx].stake_change -= @intCast(tx.amount);
-                        }
-                    }
-                }
-                if (is_to) {
-                    day_buf[day_idx].received += tx.amount;
-                    // Coinbase = mining reward credited to miner
-                    if (tx.from_address.len == 0) {
-                        day_buf[day_idx].mining_reward += tx.amount;
-                    }
-                }
-                break;
-            }
-        }
-    }
-
-    // Serialize → JSON array of per-day objects.
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var i: usize = 0;
-    while (i < day_count) : (i += 1) {
-        const d = day_buf[i];
-        const sep: []const u8 = if (i == 0) "" else ",";
-        // stake_change can be negative — split sign from magnitude for {d} formatter.
-        const sc_neg: bool = d.stake_change < 0;
-        const sc_abs: u128 = if (sc_neg) @intCast(-d.stake_change) else @intCast(d.stake_change);
-        const sc_sign: []const u8 = if (sc_neg) "-" else "";
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"dayIndex\":{d},\"blockStart\":{d},\"blockEnd\":{d},\"txCount\":{d},\"sent\":{d},\"received\":{d},\"miningReward\":{d},\"feesBurned\":{d},\"stakeChange\":{s}{d}}}",
-            .{ sep, i, d.block_start, d.block_end, d.tx_count, d.sent, d.received, d.mining_reward, d.fees_burned, sc_sign, sc_abs });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m;
-    }
-
-    // Reference timestamps so the client can render real calendar dates.
-    // We give it: tip block height, tip block timestamp (unix seconds),
-    // and the assumed blocks_per_day. The client computes:
-    //   day_unix = tip_ts - (current_height - block_start) * block_time_s
-    var tip_ts: i64 = 0;
-    if (current_height > 0) tip_ts = ctx.bc.chain.items[current_height - 1].timestamp;
-
-    defer alloc.free(entries);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"days\":{d},\"blocksPerDay\":{d},\"blockTimeMs\":{d},\"tipHeight\":{d},\"tipTimestamp\":{d},\"daily\":[{s}]}}}}",
-        .{ id, addr, days, blocks_per_day, block_time_ms, current_height, tip_ts, entries });
-}
 
 /// RPC "listtransactions" — returns last N transactions for the node's own wallet.
 /// Usage: {"method":"listtransactions","params":[count],"id":1}  (default count=10)
-fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const count_raw = extractArrayNum(body, 0);
-    const max_count: usize = if (count_raw > 0 and count_raw <= 1000) @intCast(count_raw) else 10;
-    const wallet_addr = ctx.wallet.address;
 
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
 
-    // Collect all TXs for this wallet (pending + confirmed), newest first
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var count: usize = 0;
-    const current_height: u64 = @intCast(ctx.bc.chain.items.len);
-
-    // 1. Pending TXs from mempool (newest first — mempool is FIFO, scan reverse)
-    var mp_idx: usize = ctx.bc.mempool.items.len;
-    while (mp_idx > 0 and count < max_count) {
-        mp_idx -= 1;
-        const tx = ctx.bc.mempool.items[mp_idx];
-        const is_from = std.mem.eql(u8, tx.from_address, wallet_addr);
-        const is_to = std.mem.eql(u8, tx.to_address, wallet_addr);
-        if (!is_from and !is_to) continue;
-        const dir: []const u8 = if (is_from) "sent" else "received";
-        const sep: []const u8 = if (count == 0) "" else ",";
-        const kind = inferTxKind(tx);
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"pending\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.timestamp });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m; count += 1;
-    }
-
-    // 2. Confirmed TXs — scan blocks newest first via address_tx_index
-    // FIX B4: copy hashes into a local owned slice while we still hold the
-    // chain mutex. The original ArrayList in address_tx_index can be
-    // resized by indexAddressTx (called from applyBlock), invalidating any
-    // outstanding slice. By snapshotting via dupe we de-couple the iteration
-    // from the live HashMap state.
-    if (count < max_count) {
-        const hashes_copy: ?[][]const u8 = blk: {
-            const live = ctx.bc.getAddressHistory(wallet_addr) orelse break :blk null;
-            if (live.len == 0) break :blk null;
-            const owned = alloc.alloc([]const u8, live.len) catch break :blk null;
-            for (live, 0..) |h, i| {
-                owned[i] = alloc.dupe(u8, h) catch {
-                    // free what we already duped on failure
-                    for (owned[0..i]) |x| alloc.free(x);
-                    alloc.free(owned);
-                    break :blk null;
-                };
-            }
-            break :blk owned;
-        };
-        if (hashes_copy) |tx_hashes| {
-            defer {
-                for (tx_hashes) |h| alloc.free(h);
-                alloc.free(tx_hashes);
-            }
-            // Iterate reverse (newest TXs are appended last)
-            var ti: usize = tx_hashes.len;
-            while (ti > 0 and count < max_count) {
-                ti -= 1;
-                const tx_hash = tx_hashes[ti];
-                const block_height = ctx.bc.tx_block_height.get(tx_hash) orelse continue;
-                if (block_height >= ctx.bc.chain.items.len) continue;
-                const blk = ctx.bc.chain.items[block_height];
-                const confirmations = if (current_height > block_height) current_height - block_height else 0;
-                for (blk.transactions.items) |tx| {
-                    if (!std.mem.eql(u8, tx.hash, tx_hash)) continue;
-                    const is_from = std.mem.eql(u8, tx.from_address, wallet_addr);
-                    const dir: []const u8 = if (is_from) "sent" else "received";
-                    const sep: []const u8 = if (count == 0) "" else ",";
-                    const kind = inferTxKind(tx);
-                    const e = try std.fmt.allocPrint(alloc,
-                        "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"confirmed\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
-                        .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.timestamp });
-                    const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-                    alloc.free(entries); alloc.free(e); entries = m; count += 1;
-                    break;
-                }
-            }
-        }
-    }
-
-    defer alloc.free(entries);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"transactions\":[{s}],\"count\":{d}}}}}",
-        .{ id, wallet_addr, entries, count });
-}
-
-fn handleGetTxs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const filter = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse "";
-    var entries: []u8 = try alloc.dupe(u8, "");
-    var count: usize = 0;
-    const current_height: u64 = @intCast(ctx.bc.chain.items.len);
-    for (ctx.bc.mempool.items) |tx| {
-        if (filter.len > 0 and !std.mem.eql(u8, tx.from_address, filter) and !std.mem.eql(u8, tx.to_address, filter)) continue;
-        const dir: []const u8 = if (filter.len > 0 and std.mem.eql(u8, tx.from_address, filter)) "sent" else "received";
-        const sep: []const u8 = if (count == 0) "" else ",";
-        const op_ret = try jsonSanitize(alloc, tx.op_return);
-        defer alloc.free(op_ret);
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"op_return\":\"{s}\",\"confirmations\":0,\"status\":\"pending\",\"direction\":\"{s}\"}}", .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime, op_ret, dir });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries); alloc.free(e); entries = m; count += 1;
-    }
-    for (ctx.bc.chain.items) |blk| {
-        for (blk.transactions.items) |tx| {
-            if (filter.len > 0 and !std.mem.eql(u8, tx.from_address, filter) and !std.mem.eql(u8, tx.to_address, filter)) continue;
-            const dir: []const u8 = if (filter.len > 0 and std.mem.eql(u8, tx.from_address, filter)) "sent" else "received";
-            const sep: []const u8 = if (count == 0) "" else ",";
-            const bh: u64 = @intCast(blk.index);
-            const confirmations = if (current_height > bh) current_height - bh else 0;
-            const op_ret2 = try jsonSanitize(alloc, tx.op_return);
-            defer alloc.free(op_ret2);
-            const e = try std.fmt.allocPrint(alloc, "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"op_return\":\"{s}\",\"confirmations\":{d},\"status\":\"confirmed\",\"direction\":\"{s}\",\"blockHeight\":{d}}}", .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime, op_ret2, confirmations, dir, blk.index });
-            const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-            alloc.free(entries); alloc.free(e); entries = m; count += 1;
-        }
-    }
-    defer alloc.free(entries);
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"transactions\":[{s}],\"count\":{d}}}}}", .{ id, filter, entries, count });
-}
-
-fn handleAddrBal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    // Lock blockchain mutex — prevents segfault from concurrent hashmap access
-    ctx.bc.mutex.lock();
-    const bal = ctx.bc.getAddressBalance(addr);
-    ctx.bc.mutex.unlock();
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"balanceOMNI\":{d}}}}}", .{ id, addr, bal, bal / 1_000_000_000 });
-}
 
 // SEGFAULT-FIX [scan-2026-04-25]: snapshot mempool size under bc.mutex (fallback path).
 // External mempool struct (ctx.mempool) has its own internal sync; only the bc.mempool
@@ -5420,161 +3861,14 @@ const MultisigWallet = multisig_mod.MultisigWallet;
 /// RPC "createmultisig" — create M-of-N multisig wallet, register it, return address.
 /// Usage: {"method":"createmultisig","params":[M, ["pubkey1_hex", "pubkey2_hex", ...]],"id":1}
 /// Pubkeys are 66-char hex compressed secp256k1 public keys.
-fn handleCreateMultisig(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    // Extract M (threshold) from first param
-    const m_val = extractArrayNum(body, 0);
-    if (m_val == 0 or m_val > 16) return errorJson(-32602, "Invalid M (threshold): must be 1-16", id, alloc);
-    const m: u8 = @intCast(m_val);
-
-    // Extract pubkeys from the nested array (second param)
-    // We look for the inner array in params: [M, ["pk1","pk2",...]]
-    const pubkey_strs = extractInnerArray(body) orelse
-        return errorJson(-32602, "Missing param: pubkeys array", id, alloc);
-
-    // Parse hex pubkeys
-    var pubkeys: [multisig_mod.MAX_SIGNERS][33]u8 = undefined;
-    var pk_count: u8 = 0;
-
-    var parse_pos: usize = 0;
-    while (parse_pos < pubkey_strs.len and pk_count < multisig_mod.MAX_SIGNERS) {
-        // Find next quoted string
-        const q1 = std.mem.indexOf(u8, pubkey_strs[parse_pos..], "\"") orelse break;
-        const start = parse_pos + q1 + 1;
-        if (start >= pubkey_strs.len) break;
-        const q2 = std.mem.indexOf(u8, pubkey_strs[start..], "\"") orelse break;
-        const pk_hex = pubkey_strs[start .. start + q2];
-
-        if (pk_hex.len != 66) return errorJson(-32602, "Pubkey must be 66 hex chars (33 bytes compressed)", id, alloc);
-        hex_utils.hexToBytes(pk_hex, &pubkeys[pk_count]) catch
-            return errorJson(-32602, "Invalid hex in pubkey", id, alloc);
-        pk_count += 1;
-        parse_pos = start + q2 + 1;
-    }
-
-    if (pk_count == 0) return errorJson(-32602, "No valid pubkeys provided", id, alloc);
-    if (m > pk_count) return errorJson(-32602, "M cannot exceed number of pubkeys", id, alloc);
-
-    // Create multisig wallet
-    const wallet = MultisigWallet.create(m, pubkeys[0..pk_count]) catch
-        return errorJson(-32000, "Failed to create multisig wallet", id, alloc);
-
-    // Register in blockchain
-    ctx.bc.registerMultisig(wallet.getAddress(), wallet.config) catch
-        return errorJson(-32000, "Failed to register multisig", id, alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"required\":{d},\"total\":{d},\"status\":\"registered\"}}}}",
-        .{ id, wallet.getAddress(), m, pk_count });
-}
 
 /// RPC "sendmultisig" — create and sign a multisig TX with provided private keys.
 /// Usage: {"method":"sendmultisig","params":["multisig_address","to_address",amount_sat,fee_sat,"privkey1_hex","privkey2_hex",...],"id":1}
 /// The private keys (params[4..]) must belong to signers in the multisig config.
 /// M signatures must be provided for the TX to be accepted.
-fn handleSendMultisig(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    const from_addr = extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: multisig_address", id, alloc);
-    const to_addr = extractArrayStr(body, 1) orelse
-        return errorJson(-32602, "Missing param: to_address", id, alloc);
-    const amount_sat = extractArrayNum(body, 2);
-    if (amount_sat == 0) return errorJson(-32602, "Missing/zero param: amount", id, alloc);
-    const fee_raw = extractArrayNum(body, 3);
-    const fee_sat: u64 = if (fee_raw > 0) fee_raw else mempool_mod.TX_MIN_FEE_SAT;
-
-    // Validate multisig address
-    if (!std.mem.startsWith(u8, from_addr, multisig_mod.MULTISIG_PREFIX))
-        return errorJson(-32602, "from_address must start with ob_ms_", id, alloc);
-
-    const config_ptr = ctx.bc.getMultisigConfig(from_addr) orelse
-        return errorJson(-32000, "Multisig address not registered. Call createmultisig first.", id, alloc);
-
-    const config = config_ptr.*;
-
-    // Build the on-chain Transaction skeleton FIRST so signers sign over the
-    // canonical Transaction.calculateHash() — same hash the chain re-checks.
-    const tx_id = g_tx_counter.fetchAdd(1, .monotonic);
-    const nonce = ctx.bc.getNextAvailableNonce(from_addr);
-    const ts = std.time.timestamp();
-
-    var tx = transaction_mod.Transaction{
-        .id = tx_id,
-        .from_address = from_addr,
-        .to_address = to_addr,
-        .amount = amount_sat,
-        .fee = fee_sat,
-        .timestamp = ts,
-        .nonce = nonce,
-        .signature = "multisig", // marker; real sigs in script_sig
-        .hash = "",
-    };
-    const tx_hash = tx.calculateHash();
-
-    // Collect private keys from params[4..]; for each, derive its pubkey,
-    // find the matching signer index in the multisig config, sign tx_hash.
-    var indices: [multisig_mod.MAX_SIGNERS]u8 = [_]u8{0} ** multisig_mod.MAX_SIGNERS;
-    var sigs: [multisig_mod.MAX_SIGNERS][64]u8 = [_][64]u8{[_]u8{0} ** 64} ** multisig_mod.MAX_SIGNERS;
-    var used: [multisig_mod.MAX_SIGNERS]bool = [_]bool{false} ** multisig_mod.MAX_SIGNERS;
-    var signed: u8 = 0;
-
-    var pk_idx: usize = 4;
-    while (pk_idx < 4 + multisig_mod.MAX_SIGNERS) : (pk_idx += 1) {
-        const pk_hex = extractArrayStr(body, pk_idx) orelse break;
-        if (pk_hex.len != 64) continue;
-        var privkey: [32]u8 = undefined;
-        hex_utils.hexToBytes(pk_hex, &privkey) catch continue;
-        const pubkey = Secp256k1Crypto.privateKeyToPublicKey(privkey) catch continue;
-
-        // Find this pubkey's index in the config
-        var found_idx: ?u8 = null;
-        for (0..config.pubkey_count) |i| {
-            if (std.mem.eql(u8, &config.pubkeys[i], &pubkey)) {
-                found_idx = @intCast(i);
-                break;
-            }
-        }
-        const sidx = found_idx orelse continue; // not a signer
-        if (used[sidx]) continue;                // dedupe
-
-        const sig = Secp256k1Crypto.sign(privkey, &tx_hash) catch continue;
-        indices[signed] = sidx;
-        sigs[signed] = sig;
-        used[sidx] = true;
-        signed += 1;
-        if (signed >= config.threshold) break;
-    }
-
-    if (signed < config.threshold) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32000,\"message\":\"Insufficient signatures: {d}/{d} required\"}}}}",
-            .{ id, signed, config.threshold });
-    }
-
-    // Encode bundle and attach to script_sig + commit hash
-    var bundle_buf: [multisig_mod.BUNDLE_MAX_SIZE]u8 = undefined;
-    const bundle_len = multisig_mod.encodeBundle(signed, &indices, &sigs, &bundle_buf) catch
-        return errorJson(-32000, "Failed to encode multisig bundle", id, alloc);
-
-    // Sanity: re-verify locally before submitting
-    if (!multisig_mod.verifyBundle(&config, tx_hash, bundle_buf[0..bundle_len])) {
-        return errorJson(-32000, "Multisig bundle self-verification failed", id, alloc);
-    }
-
-    tx.script_sig = try alloc.dupe(u8, bundle_buf[0..bundle_len]);
-    tx.hash = try hex_utils.bytesToHexAlloc(tx_hash, alloc);
-
-    ctx.bc.addTransaction(tx) catch return errorJson(-32000, "Mempool rejected TX", id, alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"signatures\":{d},\"required\":{d},\"txid\":\"{s}\",\"status\":\"accepted\"}}}}",
-        .{ id, from_addr, to_addr, amount_sat, fee_sat, signed, config.threshold, tx.hash });
-}
 
 /// Extract the inner array from params: "params":[2, ["a","b"]] -> returns content of inner [...]
-fn extractInnerArray(json: []const u8) ?[]const u8 {
+pub fn extractInnerArray(json: []const u8) ?[]const u8 {
     const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse return null;
     const outer = std.mem.indexOf(u8, json[params_pos..], "[") orelse return null;
     const after_outer = params_pos + outer + 1;
@@ -5820,7 +4114,7 @@ pub fn extractStr(json: []const u8, key: []const u8) ?[]const u8 {
 /// at the opening '[' and ends just past the matching ']'. String-aware:
 /// skips brackets that live inside `"..."` strings. Returns null if the
 /// key is missing OR the value isn't an array.
-fn findJsonArray(json: []const u8, key: []const u8) ?[]const u8 {
+pub fn findJsonArray(json: []const u8, key: []const u8) ?[]const u8 {
     var nbuf: [128]u8 = undefined;
     if (key.len + 2 > nbuf.len) return null;
     nbuf[0] = '"';
@@ -6080,7 +4374,7 @@ fn blobField(blob: []const u8, key: []const u8) ?[]const u8 {
 }
 
 /// Decode a hex string into a heap-allocated byte slice. Caller frees.
-fn hexAlloc(alloc: std.mem.Allocator, hex: []const u8) ?[]u8 {
+pub fn hexAlloc(alloc: std.mem.Allocator, hex: []const u8) ?[]u8 {
     if (hex.len % 2 != 0) return null;
     const out = alloc.alloc(u8, hex.len / 2) catch return null;
     hex_utils.hexToBytes(hex, out) catch {
@@ -6426,20 +4720,6 @@ pub fn main() !void {
 // Primeste mnemonic de la client, genereaza wallet Zig real, returneaza adresa
 // Asta garanteaza ca adresele sunt identice cu cele din blockchain (BIP32 + Base58)
 
-fn handleGenWallet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const mnemonic = extractArrayStr(body, 0) orelse extractStr(body, "mnemonic") orelse
-        return errorJson(-32602, "Missing param: mnemonic", id, alloc);
-
-    // Genereaza wallet Zig real din mnemonic
-    var w = Wallet.fromMnemonic(mnemonic, "", alloc) catch
-        return errorJson(-32000, "Invalid mnemonic", id, alloc);
-    defer w.deinit();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"mnemonic\":\"{s}\"}}}}",
-        .{ id, w.address, mnemonic });
-}
 
 // ─── Payment Channel RPC Handlers — moved to core/rpc/lightning.zig
 
@@ -6522,45 +4802,6 @@ fn handleOmnibusMiners(ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// omnibus_getoracleprices — current consensus prices from distributed oracle
-fn handleOmnibusPrices(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    if (ctx.oracle) |oracle| {
-        // Build prices for main chains
-        var buf: [4096]u8 = undefined;
-        var pos: usize = 0;
-        const prefix = std.fmt.bufPrint(buf[pos..], "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[", .{id}) catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += prefix.len;
-
-        const chains = [_]struct { name: []const u8, idx: usize }{
-            .{ .name = "OMNI/USD", .idx = 0 },
-            .{ .name = "BTC/USD", .idx = 1 },
-            .{ .name = "ETH/USD", .idx = 2 },
-        };
-
-        for (chains, 0..) |chain, ci| {
-            if (ci > 0) { buf[pos] = ','; pos += 1; }
-            const cp = oracle.consensus_prices[chain.idx];
-            const price_usd = cp.price_micro_usd / 1_000_000;
-            const price_cents = (cp.price_micro_usd % 1_000_000) / 10_000;
-            const entry = std.fmt.bufPrint(buf[pos..],
-                "{{\"pair\":\"{s}\",\"price\":\"{d}.{d:0>2}\",\"sources\":{d},\"valid\":{s}}}",
-                .{ chain.name, price_usd, price_cents, cp.submission_count, if (cp.is_valid) "true" else "false" },
-            ) catch break;
-            pos += entry.len;
-        }
-
-        const suffix = std.fmt.bufPrint(buf[pos..], "]}}", .{}) catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += suffix.len;
-        return alloc.dupe(u8, buf[0..pos]);
-    }
-
-    // No oracle attached — return empty
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}",
-        .{id},
-    );
-}
 
 // ─── omnibus_getblockprices / omnibus_getpricerange ────────────────────────
 //
@@ -6632,114 +4873,11 @@ fn hashToHex(hash: [32]u8, out: *[64]u8) void {
 /// `omnibus_getblockprices [height]` — returns just the 21 price entries
 /// for the given block, plus pricesRoot + pricesValidated. Lightweight path
 /// for clients (charts, oracles) that don't need the rest of the block.
-fn handleOmnibusBlockPrices(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const height: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
-    const blk_opt = ctx.bc.getBlock(height);
-    const blk = blk_opt orelse return errorJson(-5, "Block not found", id, alloc);
-
-    var buf: [4096]u8 = undefined;
-    var pos: usize = 0;
-    const prefix = std.fmt.bufPrint(buf[pos..],
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"height\":{d},\"prices\":",
-        .{ id, blk.index },
-    ) catch return errorJson(-32603, "buf overflow", id, alloc);
-    pos += prefix.len;
-
-    pos += appendPricesJson(ctx.bc, &blk, &buf, pos);
-
-    var pr_hex: [64]u8 = undefined;
-    hashToHex(blk.prices_root, &pr_hex);
-    const validated = blk.validatePrices();
-
-    const suffix = std.fmt.bufPrint(buf[pos..],
-        ",\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
-        .{ pr_hex, if (validated) "true" else "false" },
-    ) catch return errorJson(-32603, "buf overflow", id, alloc);
-    pos += suffix.len;
-
-    return alloc.dupe(u8, buf[0..pos]);
-}
 
 /// `omnibus_getpricerange [from_height, count]` — returns an array of
 /// {height, prices, pricesRoot, pricesValidated} for the range
 /// [from_height, from_height + count). Capped at 100 blocks. Useful for
 /// charting historical bid/ask trajectories.
-fn handleOmnibusPriceRange(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const from: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
-    const req_count = extractArrayNum(body, 1);
-    const max_count: u32 = 100;
-    const count: u32 = if (req_count == 0 or req_count > max_count)
-        max_count
-    else
-        std.math.cast(u32, req_count) orelse max_count;
-
-    // Build into a heap buffer — each block can be ~3 KiB at the upper bound,
-    // so a 100-block window is ~300 KiB. Far too large for the stack.
-    const cap: usize = @as(usize, count) * 4096 + 256;
-    var buf = try alloc.alloc(u8, cap);
-    defer alloc.free(buf);
-    var pos: usize = 0;
-
-    const prefix = std.fmt.bufPrint(buf[pos..],
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"from\":{d},\"count\":",
-        .{ id, from },
-    ) catch return errorJson(-32603, "buf overflow", id, alloc);
-    pos += prefix.len;
-
-    // Reserve placeholder for actual count (zero-padded to 4 chars). We
-    // overwrite this once we know how many blocks we actually emitted.
-    const count_marker_pos = pos;
-    {
-        const placeholder = std.fmt.bufPrint(buf[pos..], "0000,\"blocks\":[", .{})
-            catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += placeholder.len;
-    }
-
-    var emitted: u32 = 0;
-    var h: u32 = from;
-    while (emitted < count) : ({ h += 1; emitted += 1; }) {
-        const blk_opt = ctx.bc.getBlock(h);
-        const blk = blk_opt orelse break;
-
-        if (emitted > 0) {
-            if (pos >= buf.len) break;
-            buf[pos] = ','; pos += 1;
-        }
-        const open = std.fmt.bufPrint(buf[pos..], "{{\"height\":{d},\"prices\":", .{blk.index})
-            catch break;
-        pos += open.len;
-
-        pos += appendPricesJson(ctx.bc, &blk, buf, pos);
-
-        var pr_hex: [64]u8 = undefined;
-        hashToHex(blk.prices_root, &pr_hex);
-        const validated = blk.validatePrices();
-        const close = std.fmt.bufPrint(buf[pos..],
-            ",\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}",
-            .{ pr_hex, if (validated) "true" else "false" },
-        ) catch break;
-        pos += close.len;
-    }
-
-    const suffix = std.fmt.bufPrint(buf[pos..], "]}}}}", .{})
-        catch return errorJson(-32603, "buf overflow", id, alloc);
-    pos += suffix.len;
-
-    // Patch the count placeholder. emitted is at most 100 so 4 chars is plenty.
-    var count_str: [4]u8 = .{ '0', '0', '0', '0' };
-    var n = emitted;
-    var idx: usize = 4;
-    while (idx > 0) {
-        idx -= 1;
-        count_str[idx] = '0' + @as(u8, @intCast(n % 10));
-        n /= 10;
-    }
-    @memcpy(buf[count_marker_pos .. count_marker_pos + 4], &count_str);
-
-    return alloc.dupe(u8, buf[0..pos]);
-}
 
 /// omnibus_getexchangefeed — live BTC + LCX bid/ask from 3 exchanges
 /// (Coinbase, Kraken, LCX) via WebSocket. Returns raw feed snapshot from
@@ -6747,59 +4885,6 @@ fn handleOmnibusPriceRange(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Slots layout:
 ///   [0] BTC Coinbase  [1] BTC Kraken  [2] BTC LCX
 ///   [3] LCX Coinbase  [4] LCX Kraken  [5] LCX LCX
-fn handleOmnibusExchangeFeed(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    if (main_mod.g_ws_feed) |*feed| {
-        const snap = feed.snapshot();
-        const median_btc = feed.getMedianBtc();
-        const median_lcx = feed.getMedianLcx();
-
-        var buf: [4096]u8 = undefined;
-        var pos: usize = 0;
-        const prefix = std.fmt.bufPrint(buf[pos..],
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[", .{id})
-            catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += prefix.len;
-
-        for (snap, 0..) |p, i| {
-            if (i > 0) { buf[pos] = ','; pos += 1; }
-            // Bid + ask in micro-USD as integer values (avoid float in JSON).
-            const entry = std.fmt.bufPrint(buf[pos..],
-                "{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s}}}",
-                .{ p.exchange, p.pair, p.bid_micro_usd, p.ask_micro_usd, p.timestamp_ms, if (p.success) "true" else "false" },
-            ) catch break;
-            pos += entry.len;
-        }
-
-        // Median BTC: emit number or null.
-        if (median_btc) |m| {
-            const t = std.fmt.bufPrint(buf[pos..], "],\"medianBtcMicroUsd\":{d}", .{m})
-                catch return errorJson(-32603, "buf overflow", id, alloc);
-            pos += t.len;
-        } else {
-            const t = std.fmt.bufPrint(buf[pos..], "],\"medianBtcMicroUsd\":null", .{})
-                catch return errorJson(-32603, "buf overflow", id, alloc);
-            pos += t.len;
-        }
-
-        // Median LCX: emit number or null.
-        if (median_lcx) |m| {
-            const t = std.fmt.bufPrint(buf[pos..], ",\"medianLcxMicroUsd\":{d}}}}}", .{m})
-                catch return errorJson(-32603, "buf overflow", id, alloc);
-            pos += t.len;
-        } else {
-            const t = std.fmt.bufPrint(buf[pos..], ",\"medianLcxMicroUsd\":null}}}}", .{})
-                catch return errorJson(-32603, "buf overflow", id, alloc);
-            pos += t.len;
-        }
-        return alloc.dupe(u8, buf[0..pos]);
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[],\"medianBtcMicroUsd\":null,\"medianLcxMicroUsd\":null}}}}",
-        .{id});
-}
 
 // ─── omnibus_getallprices / omnibus_getarbitrage ────────────────────────────
 //
@@ -6947,98 +5032,10 @@ test "canonicalPair: non-stable quote unchanged" {
 ///
 /// Each entry: {exchange, pair, bidMicroUsd, askMicroUsd, timestampMs,
 ///              success, stale}. `stale` uses a 30 000 ms threshold.
-fn handleOmnibusAllPrices(ctx: *ServerCtx, body: []const u8, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    if (main_mod.g_ws_feed) |*feed| {
-        const offset: usize = @intCast(extractArrayNum(body, 0));
-        const limit_raw = extractArrayNum(body, 1);
-        const limit: usize = if (limit_raw == 0) 1000 else @intCast(limit_raw);
-
-        // WIRE-UP-MARKER: feed.getAllPrices(alloc) once API lands.
-        const all = try feedGetAllPrices(feed, alloc);
-        defer alloc.free(all);
-
-        const total = all.len;
-        const start = if (offset >= total) total else offset;
-        const want_end = start +| limit;
-        const end = if (want_end > total) total else want_end;
-
-        // 256 KiB output bound. allocPrint into a stack-arena'd buffer
-        // is awkward in Zig 0.15; use a heap buffer with bufPrint cursor and
-        // dupe at the end (same shape as handleOmnibusExchangeFeed).
-        const BUF_SZ: usize = 256 * 1024;
-        var buf = try alloc.alloc(u8, BUF_SZ);
-        defer alloc.free(buf);
-
-        const now_ms = std.time.milliTimestamp();
-        var pos: usize = 0;
-
-        const prefix = std.fmt.bufPrint(buf[pos..],
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[", .{id})
-            catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += prefix.len;
-
-        // Track the most recent timestamp seen across emitted entries.
-        var last_update_ms: i64 = 0;
-        var emitted: usize = 0;
-        // Effective end after pagination, possibly truncated if buffer fills.
-        var i: usize = start;
-        while (i < end) : (i += 1) {
-            const p = all[i];
-            const stale = feedIsStale(p, now_ms, 30_000);
-            const sep = if (emitted == 0) "" else ",";
-            const entry = std.fmt.bufPrint(buf[pos..],
-                "{s}{{\"exchange\":\"{s}\",\"pair\":\"{s}\",\"bidMicroUsd\":{d},\"askMicroUsd\":{d},\"timestampMs\":{d},\"success\":{s},\"stale\":{s}}}",
-                .{
-                    sep, p.exchange, p.pair, p.bid_micro_usd, p.ask_micro_usd,
-                    p.timestamp_ms,
-                    if (p.success) "true" else "false",
-                    if (stale) "true" else "false",
-                },
-            ) catch {
-                // Buffer would overflow — stop here. Pagination request can
-                // re-query with a smaller limit / next offset.
-                break;
-            };
-            pos += entry.len;
-            emitted += 1;
-            if (p.timestamp_ms > last_update_ms) last_update_ms = p.timestamp_ms;
-        }
-
-        const suffix = std.fmt.bufPrint(buf[pos..],
-            "],\"count\":{d},\"offset\":{d},\"limit\":{d},\"total\":{d},\"lastUpdateMs\":{d}}}}}",
-            .{ emitted, start, limit, total, last_update_ms })
-            catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += suffix.len;
-
-        return alloc.dupe(u8, buf[0..pos]);
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"prices\":[],\"count\":0,\"offset\":0,\"limit\":0,\"total\":0,\"lastUpdateMs\":0}}}}",
-        .{id});
-}
 
 /// omnibus_getfxrate — current EUR→USD multiplier (median of USDC/EUR mid
 /// across Coinbase, Kraken, LCX). Returned as both micro-USD per EUR and a
 /// human-readable string. Null result if no FX feed has populated yet.
-fn handleOmnibusFxRate(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (main_mod.g_ws_feed) |*feed| {
-        const rate = feed.getEurToUsdRate();
-        if (rate) |r| {
-            const whole = r / 1_000_000;
-            const frac = r % 1_000_000;
-            return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"eurToUsdMicro\":{d},\"eurToUsd\":\"{d}.{d:0>6}\"}}}}",
-                .{ id, r, whole, frac });
-        }
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"eurToUsdMicro\":null,\"eurToUsd\":null}}}}",
-        .{id});
-}
 
 /// omnibus_getarbitrage — pre-compute cross-exchange arbitrage opportunities.
 ///
@@ -7046,193 +5043,8 @@ fn handleOmnibusFxRate(ctx: *ServerCtx, id: u64) ![]u8 {
 /// non-stale, success=true entries from all exchanges, then for each ordered
 /// (buy, sell) combination compute spread_pct = (sell.bid - buy.ask)/buy.ask*100.
 /// Anything above 0.05 % (5 bps) is emitted; the top 50 by spread are returned.
-fn handleOmnibusArbitrage(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    if (main_mod.g_ws_feed) |*feed| {
-        // WIRE-UP-MARKER: feed.getAllPrices(alloc) once API lands.
-        const all = try feedGetAllPrices(feed, alloc);
-        defer alloc.free(all);
-
-        const now_ms = std.time.milliTimestamp();
-        // Live EUR→USD rate, micro-USD per EUR. null if no FX feed yet.
-        const eur_to_usd_micro: ?u64 = feed.getEurToUsdRate();
-
-        // Filter to non-stale fresh entries with both bid & ask populated.
-        //
-        // BUCKET POLICY (corectat 2026-04-27):
-        //   USD bucket  → match doar intre USD/USDC/USDT/DAI/USDS (toti se
-        //                 colapseaza la "BASE/USD" prin canonicalPair).
-        //   EUR bucket  → match doar intre EUR/EURC ("BASE/EUR").
-        //   BTC/ETH/GBP → match doar in propriul bucket.
-        //
-        // EUR <-> USD CROSS-CURRENCY: NU se face arbitraj direct intre buckets
-        // diferite. Daca user vrea sa profite de spread BTC/EUR vs BTC/USD,
-        // trebuie un trade explicit FX side (USDC/EUR sau EUR/USD spot) — care
-        // are propriul fee + spread. Auto-conversia anterioara (bid_eur * fx
-        // → bid_usd) era misleading: ascundea costul FX si crea oportunitati
-        // false. `eur_to_usd_micro` ramane disponibil prin RPC `omnibus_getfxrate`
-        // pentru afisare, dar NU mai e folosit in matcher.
-        _ = eur_to_usd_micro;
-        var fresh = try alloc.alloc(ws_exchange_feed_mod.PriceFetch, all.len);
-        defer alloc.free(fresh);
-        var fresh_n: usize = 0;
-        // Threshold widened to 5 minutes for arbitrage: Kraken doesn't push
-        // ticker updates for low-volume pairs when there's no trading activity.
-        const ARBITRAGE_STALE_MS: i64 = 5 * 60 * 1000; // 5 min
-        for (all) |p| {
-            if (!p.success) continue;
-            if (feedIsStale(p, now_ms, ARBITRAGE_STALE_MS)) continue;
-            if (p.bid_micro_usd == 0 or p.ask_micro_usd == 0) continue;
-            // Skip stable-FX pairs themselves — they're FX tools, not arbitrage candidates.
-            if (std.mem.eql(u8, p.pair, "USDC/EUR") or
-                std.mem.eql(u8, p.pair, "USDC-EUR") or
-                std.mem.eql(u8, p.pair, "USDT/EUR") or
-                std.mem.eql(u8, p.pair, "USDT-EUR") or
-                std.mem.eql(u8, p.pair, "DAI/EUR")) continue;
-            fresh[fresh_n] = p;
-            fresh_n += 1;
-        }
-
-        // Opportunity record.
-        const Opp = struct {
-            pair: []const u8,
-            buy_ex: []const u8,
-            sell_ex: []const u8,
-            buy_ask: u64,
-            sell_bid: u64,
-            spread_micro: u64,
-            spread_pct: f64,
-            buy_ts: i64,
-            sell_ts: i64,
-        };
-
-        // Up to N*(N-1) ordered combos; with 6 slots that's 30 max.
-        const max_combos: usize = if (fresh_n == 0) 1 else fresh_n * fresh_n;
-        var opps = try alloc.alloc(Opp, max_combos);
-        defer alloc.free(opps);
-        var opps_n: usize = 0;
-
-        // Pre-compute canonical pair label for each fresh entry into stable
-        // owned storage. canonicalPair() returns a thread-local rotating
-        // buffer slice — if we kept references across loop iterations they'd
-        // get clobbered. We dupe via `alloc` and free at end via the arena.
-        var canon_labels = try alloc.alloc([]u8, fresh_n);
-        defer {
-            for (canon_labels) |s| alloc.free(s);
-            alloc.free(canon_labels);
-        }
-        for (fresh[0..fresh_n], 0..) |p, idx| {
-            const c = canonicalPair(p.pair);
-            canon_labels[idx] = try alloc.dupe(u8, c);
-        }
-
-        var i: usize = 0;
-        while (i < fresh_n) : (i += 1) {
-            var j: usize = 0;
-            while (j < fresh_n) : (j += 1) {
-                if (i == j) continue;
-                const buy = fresh[i];
-                const sell = fresh[j];
-                // Match canonical pairs. USD bucket = "BASE/USD" (cuprinde
-                // USD/USDC/USDT/DAI). EUR bucket = "BASE/EUR". Bucket-uri
-                // diferite NU fac match (BTC/USD ≠ BTC/EUR — ar cere FX trade).
-                if (!std.mem.eql(u8, canon_labels[i], canon_labels[j])) continue;
-                // Same exchange isn't arbitrage.
-                if (std.mem.eql(u8, buy.exchange, sell.exchange)) continue;
-                if (sell.bid_micro_usd <= buy.ask_micro_usd) continue;
-                // Filter dust orderbooks: if either price is < 1000 micro-units
-                // (= $0.001 sau €0.001), it's almost certainly a stale or empty
-                // book. These produce absurd spreads (3M%) that are NOT real
-                // arbitrage — they're just bad data.
-                if (buy.ask_micro_usd < 1000 or sell.bid_micro_usd < 1000) continue;
-                const spread = sell.bid_micro_usd - buy.ask_micro_usd;
-                const pct = (@as(f64, @floatFromInt(spread)) /
-                             @as(f64, @floatFromInt(buy.ask_micro_usd))) * 100.0;
-                if (pct <= 0.05) continue; // 5 bps floor
-                // Cap upper-bound: spreads >50% are NEVER real arbitrage on
-                // liquid pairs — always orderbook desync or thin venue.
-                if (pct > 50.0) continue;
-                opps[opps_n] = .{
-                    // canon_labels[i] e owned slice — refera direct.
-                    .pair = canon_labels[i],
-                    .buy_ex = buy.exchange,
-                    .sell_ex = sell.exchange,
-                    .buy_ask = buy.ask_micro_usd,
-                    .sell_bid = sell.bid_micro_usd,
-                    .spread_micro = spread,
-                    .spread_pct = pct,
-                    .buy_ts = buy.timestamp_ms,
-                    .sell_ts = sell.timestamp_ms,
-                };
-                opps_n += 1;
-            }
-        }
-
-        // Sort descending by spread_pct (insertion sort — opps_n is tiny).
-        var k: usize = 1;
-        while (k < opps_n) : (k += 1) {
-            var m = k;
-            while (m > 0 and opps[m - 1].spread_pct < opps[m].spread_pct) : (m -= 1) {
-                const tmp = opps[m - 1];
-                opps[m - 1] = opps[m];
-                opps[m] = tmp;
-            }
-        }
-
-        const cap: usize = if (opps_n > 50) 50 else opps_n;
-
-        // Emit JSON. 256 KiB plenty for ≤50 opportunities.
-        const BUF_SZ: usize = 256 * 1024;
-        var buf = try alloc.alloc(u8, BUF_SZ);
-        defer alloc.free(buf);
-        var pos: usize = 0;
-
-        const prefix = std.fmt.bufPrint(buf[pos..],
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"opportunities\":[", .{id})
-            catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += prefix.len;
-
-        var emitted: usize = 0;
-        var idx: usize = 0;
-        while (idx < cap) : (idx += 1) {
-            const o = opps[idx];
-            // f64 → 4-decimal string via std.fmt format spec.
-            const sep = if (emitted == 0) "" else ",";
-            const entry = std.fmt.bufPrint(buf[pos..],
-                "{s}{{\"pair\":\"{s}\",\"buyAt\":\"{s}\",\"buyAskMicroUsd\":{d},\"sellAt\":\"{s}\",\"sellBidMicroUsd\":{d},\"spreadMicroUsd\":{d},\"spreadPct\":{d:.4},\"buyTimestampMs\":{d},\"sellTimestampMs\":{d}}}",
-                .{
-                    sep, o.pair, o.buy_ex, o.buy_ask, o.sell_ex, o.sell_bid,
-                    o.spread_micro, o.spread_pct, o.buy_ts, o.sell_ts,
-                },
-            ) catch break;
-            pos += entry.len;
-            emitted += 1;
-        }
-
-        const suffix = std.fmt.bufPrint(buf[pos..],
-            "],\"count\":{d}}}}}", .{emitted})
-            catch return errorJson(-32603, "buf overflow", id, alloc);
-        pos += suffix.len;
-
-        return alloc.dupe(u8, buf[0..pos]);
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"opportunities\":[],\"count\":0}}}}",
-        .{id});
-}
 
 /// omnibus_getorderbook — placeholder (matching engine not heap-allocated yet)
-fn handleOmnibusOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const pair = extractStr(body, "pair") orelse extractArrayStr(body, 0) orelse "OMNI/USDC";
-    _ = pair;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"bids\":[],\"asks\":[],\"note\":\"Matching engine active — connect via P2P for live orderbook\"}}}}",
-        .{id},
-    );
-}
 
 /// omnibus_getbridgestatus — real bridge state from BridgeState
 
@@ -7274,105 +5086,25 @@ fn handleOmnibusOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// at height 0 carries no reward). Returns SAT and OMNI strings; callers
 /// do not need to know SAT/OMNI conversion. Halving is honored automatically
 /// by blockRewardAt.
-fn handleOmnibusTotalMined(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const tip = ctx.bc.getBlockCount(); // chain length (height + 1)
-    var total_sat: u64 = 0;
-    var h: u64 = 1; // skip genesis
-    while (h < tip) : (h += 1) {
-        total_sat +%= blockchain_mod.blockRewardAt(h);
-    }
-    // Format OMNI with 9 decimals (1 OMNI = 1e9 SAT)
-    const omni_int  = total_sat / 1_000_000_000;
-    const omni_frac = total_sat % 1_000_000_000;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"totalMinedSAT\":{d},\"totalMinedOMNI\":\"{d}.{d:0>9}\",\"blockHeight\":{d}}}}}",
-        .{ id, total_sat, omni_int, omni_frac, if (tip == 0) 0 else tip - 1 },
-    );
-}
 
 /// omnibus_bridge_limits — public-facing bridge configuration so any wallet
 /// or relayer can verify the active per-tx and daily caps, the threshold
 /// sig requirement, and the challenge window length. Read-only; numbers
 /// come from chain_config compile-time constants.
-fn handleOmnibusBridgeLimits(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"maxPerTxSAT\":{d}," ++
-            "\"maxDailySAT\":{d}," ++
-            "\"dailyWindowBlocks\":{d}," ++
-            "\"requiredSigs\":{d}," ++
-            "\"maxRelayers\":{d}," ++
-            "\"challengeWindowBlocks\":{d}," ++
-            "\"autoPauseFractionBps\":{d}," ++
-            "\"vaultAddrHex\":\"{s}\"" ++
-        "}}}}",
-        .{
-            id,
-            chain_config.BRIDGE_MAX_PER_TX_SAT,
-            chain_config.BRIDGE_MAX_DAILY_SAT,
-            chain_config.BRIDGE_DAILY_WINDOW_BLOCKS,
-            chain_config.BRIDGE_REQUIRED_SIGS,
-            chain_config.BRIDGE_MAX_RELAYERS,
-            chain_config.BRIDGE_CHALLENGE_WINDOW_BLOCKS,
-            chain_config.BRIDGE_AUTO_PAUSE_BLOCK_FRACTION_BPS,
-            chain_config.BRIDGE_VAULT_ADDR_HEX,
-        },
-    );
-}
 
 /// omnibus_getoraclepolicy — return current price-deviation policy as JSON.
 /// Read under the global mutex so callers see a consistent snapshot even if
 /// `omnibus_setoraclepolicy` is racing.
-fn handleOmnibusGetOraclePolicy(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    main_mod.g_oracle_policy_mutex.lock();
-    const pol = main_mod.g_oracle_policy;
-    main_mod.g_oracle_policy_mutex.unlock();
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"warn_pct\":{d:.4},\"reject_pct\":{d:.4},\"fillgap_pct\":{d:.4},\"enabled\":{s}}}}}",
-        .{ id, pol.warn_pct, pol.reject_pct, pol.fillgap_pct, if (pol.enabled) "true" else "false" },
-    );
-}
 
 /// omnibus_setoraclepolicy — atomically replace the price-deviation policy.
 /// Accepts both array and object params shapes:
 ///   {"params":[2.0, 5.0, 10.0, true]}
 ///   {"params":{"warn_pct":2.0,"reject_pct":5.0,"fillgap_pct":10.0,"enabled":true}}
 /// Missing fields keep their current value. Returns the new policy.
-fn handleOmnibusSetOraclePolicy(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    main_mod.g_oracle_policy_mutex.lock();
-    var pol = main_mod.g_oracle_policy;
-
-    // Try object-shape first: {"params":{...}} or top-level fields.
-    if (extractParamObjectFloat(body, "warn_pct")) |v| pol.warn_pct = v;
-    if (extractParamObjectFloat(body, "reject_pct")) |v| pol.reject_pct = v;
-    if (extractParamObjectFloat(body, "fillgap_pct")) |v| pol.fillgap_pct = v;
-    if (extractParamObjectBool(body, "enabled")) |v| pol.enabled = v;
-
-    // Array-shape fallback: parse `"params":[w,r,f,e]` positionally.
-    if (extractParamArrayFloats(body)) |vals| {
-        if (vals.count >= 1) pol.warn_pct = vals.values[0];
-        if (vals.count >= 2) pol.reject_pct = vals.values[1];
-        if (vals.count >= 3) pol.fillgap_pct = vals.values[2];
-        if (vals.bool_present) pol.enabled = vals.bool_value;
-    }
-
-    main_mod.g_oracle_policy = pol;
-    main_mod.g_oracle_policy_mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"warn_pct\":{d:.4},\"reject_pct\":{d:.4},\"fillgap_pct\":{d:.4},\"enabled\":{s}}}}}",
-        .{ id, pol.warn_pct, pol.reject_pct, pol.fillgap_pct, if (pol.enabled) "true" else "false" },
-    );
-}
 
 /// Extract a float field from `"params":{...}` (or top-level if no params).
 /// Accepts `"key":2.5` and `"key":"2.5"` forms.
-fn extractParamObjectFloat(json: []const u8, key: []const u8) ?f64 {
+pub fn extractParamObjectFloat(json: []const u8, key: []const u8) ?f64 {
     if (extractParamObjectField(json, key)) |s| {
         return std.fmt.parseFloat(f64, s) catch null;
     }
@@ -7402,7 +5134,7 @@ fn extractParamObjectFloat(json: []const u8, key: []const u8) ?f64 {
 }
 
 /// Extract a bool field — looks for `"key":true` or `"key":false`.
-fn extractParamObjectBool(json: []const u8, key: []const u8) ?bool {
+pub fn extractParamObjectBool(json: []const u8, key: []const u8) ?bool {
     var nbuf: [128]u8 = undefined;
     if (key.len + 2 > nbuf.len) return null;
     nbuf[0] = '"';
@@ -7421,7 +5153,7 @@ fn extractParamObjectBool(json: []const u8, key: []const u8) ?bool {
     return null;
 }
 
-const ParamArrayFloats = struct {
+pub const ParamArrayFloats = struct {
     values: [4]f64 = .{ 0, 0, 0, 0 },
     count: usize = 0,
     bool_present: bool = false,
@@ -7430,7 +5162,7 @@ const ParamArrayFloats = struct {
 
 /// Parse `"params":[w,r,f,e]` positionally. Up to 3 leading floats and 1
 /// trailing bool. Returns null when no params array is found.
-fn extractParamArrayFloats(json: []const u8) ?ParamArrayFloats {
+pub fn extractParamArrayFloats(json: []const u8) ?ParamArrayFloats {
     const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse return null;
     const arr_start = std.mem.indexOfScalarPos(u8, json, params_pos, '[') orelse return null;
     // Make sure no `{` appears between "params" and `[` (object shape wins).
@@ -8030,19 +5762,19 @@ const id_layer_mod = @import("identity/identity.zig");
 /// Network fee per fill, denominated in SAT of the BASE currency. Flat.
 /// 1000 SAT = 0.000001 OMNI on OMNI/* pairs. Tiny on testnet so it doesn't
 /// drown out the small grants. Mainnet would be tuned higher.
-const FILL_NETWORK_FEE_SAT: u64 = 1000;
+pub const FILL_NETWORK_FEE_SAT: u64 = 1000;
 
 /// Exchange fee — basis points (1 bp = 0.01%). Charged in QUOTE currency.
 /// 10 bps = 0.10% taker, 5 bps = 0.05% maker → matches Kraken's lowest tier.
-const EXCHANGE_FEE_TAKER_BPS: u64 = 10;
-const EXCHANGE_FEE_MAKER_BPS: u64 = 5;
+pub const EXCHANGE_FEE_TAKER_BPS: u64 = 10;
+pub const EXCHANGE_FEE_MAKER_BPS: u64 = 5;
 const FEE_BPS_DENOMINATOR: u64 = 10_000;
 
 /// Compute the exchange fee for a fill leg.
 ///   notional_micro = price (micro-USD) × amount (SAT) / 1e9
 ///   fee = notional × bps / 10_000
 /// Returned value is in micro-USD (or whatever unit the quote uses).
-fn computeExchangeFeeMicro(price_micro: u64, amount_sat: u64, bps: u64) u64 {
+pub fn computeExchangeFeeMicro(price_micro: u64, amount_sat: u64, bps: u64) u64 {
     // Use u128 intermediate to avoid overflow on big trades.
     const notional: u128 =
         (@as(u128, price_micro) * @as(u128, amount_sat)) / 1_000_000_000;
@@ -8054,7 +5786,7 @@ fn computeExchangeFeeMicro(price_micro: u64, amount_sat: u64, bps: u64) u64 {
 // Per-tier max notional (in micro-USD) for a single order. `none` is
 // blocked entirely; `pro` is uncapped. Mirrors LCX/Kraken brackets,
 // scaled to micro-USD to match `computeExchangeFeeMicro` units.
-fn kycMaxNotionalMicro(level: kyc_mod.Level) u64 {
+pub fn kycMaxNotionalMicro(level: kyc_mod.Level) u64 {
     return switch (level) {
         .none     => 0,
         .starter  => 1_000_000_000,         // $1k
@@ -8065,7 +5797,7 @@ fn kycMaxNotionalMicro(level: kyc_mod.Level) u64 {
 
 /// Notional for a single order: price (micro-USD) × amount (SAT) / 1e9.
 /// Saturates at u64.max instead of overflowing.
-fn orderNotionalMicro(price_micro: u64, amount_sat: u64) u64 {
+pub fn orderNotionalMicro(price_micro: u64, amount_sat: u64) u64 {
     const n: u128 =
         (@as(u128, price_micro) * @as(u128, amount_sat)) / 1_000_000_000;
     return @intCast(@min(n, @as(u128, std.math.maxInt(u64))));
@@ -8076,12 +5808,12 @@ fn orderNotionalMicro(price_micro: u64, amount_sat: u64) u64 {
 /// oracle reference. 1000 bps = 10%. Hardcoded for now; future work:
 /// expose via `omnibus_setoraclepolicy` (would add `order_band_bps` to
 /// `oracle_policy.OraclePolicy`).
-const ORDER_BAND_BPS: u64 = 1000;
+pub const ORDER_BAND_BPS: u64 = 1000;
 
 /// Map an exchange pair_id to the oracle ChainId for its BASE leg, when
 /// the chain is one the oracle tracks. LCX (pair_id 2) returns null —
 /// no oracle feed, skip the band check.
-fn oracleChainForPair(pair_id: u16) ?price_oracle_mod.ChainId {
+pub fn oracleChainForPair(pair_id: u16) ?price_oracle_mod.ChainId {
     return switch (pair_id) {
         0, 4, 5, 6 => .omni,
         1          => .btc,
@@ -8090,7 +5822,7 @@ fn oracleChainForPair(pair_id: u16) ?price_oracle_mod.ChainId {
     };
 }
 
-fn exchangePairLookup(label: []const u8) ?u16 {
+pub fn exchangePairLookup(label: []const u8) ?u16 {
     // Accept "BASE/QUOTE" sau "BASE-QUOTE". Case-insensitive.
     var sep: ?usize = null;
     for (label, 0..) |c, i| {
@@ -8107,7 +5839,7 @@ fn exchangePairLookup(label: []const u8) ?u16 {
     return null;
 }
 
-fn asciiEqIgnoreCase(a: []const u8, b: []const u8) bool {
+pub fn asciiEqIgnoreCase(a: []const u8, b: []const u8) bool {
     if (a.len != b.len) return false;
     for (a, b) |ca, cb| {
         if (std.ascii.toLower(ca) != std.ascii.toLower(cb)) return false;
@@ -8155,7 +5887,7 @@ fn ordersPathSlice(ctx: *ServerCtx) ?[]const u8 {
     return ctx.orders_path_buf[0..ctx.orders_path_len];
 }
 
-fn gridPathSlice(ctx: *ServerCtx) ?[]const u8 {
+pub fn gridPathSlice(ctx: *ServerCtx) ?[]const u8 {
     if (ctx.grid_path_len == 0) return null;
     return ctx.grid_path_buf[0..ctx.grid_path_len];
 }
@@ -8163,7 +5895,7 @@ fn gridPathSlice(ctx: *ServerCtx) ?[]const u8 {
 /// Scrie o intrare in jurnalul append-only orders.jsonl.
 /// `kind` = "place" sau "cancel". Ignoram erorile de I/O — jurnalul e
 /// best-effort; in-memory state e adevarul curent.
-fn ordersAppendJournal(
+pub fn ordersAppendJournal(
     ctx: *ServerCtx,
     kind: []const u8,
     line: []const u8,
@@ -8283,7 +6015,7 @@ pub fn nonceSet(ctx: *ServerCtx, addr: []const u8, nonce: u64) void {
 /// Inregistreaza un fill in trade_log circular (cele mai recente 256).
 /// `is_paper` selects which log gets the fill. Paper and real are kept
 /// isolated so a paper trade never appears in the real feed and vice-versa.
-fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill, is_paper: bool) void {
+pub fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill, is_paper: bool) void {
     const es = ctx.exstate orelse return;
     if (is_paper) {
         es.trade_log_paper[es.trade_head_paper] = fill;
@@ -8299,7 +6031,7 @@ fn tradeLogPush(ctx: *ServerCtx, fill: matching_mod.Fill, is_paper: bool) void {
 /// createOrderTransaction — construieste TX JSON pentru o ordine Exchange.
 /// Returns: TX JSON string cu order_id + tx_hash + parity fields.
 /// Caller owns returned memory.
-fn createOrderTransaction(
+pub fn createOrderTransaction(
     allocator: std.mem.Allocator,
     trader: []const u8,
     side: []const u8,
@@ -8359,7 +6091,7 @@ fn createOrderTransaction(
 /// All string fields are heap-duped from the caller's allocator so the TX
 /// can outlive this function frame. Caller must NOT free them — ownership
 /// transfers into the mempool via `addTransaction`.
-fn submitOrderPlaceTx(
+pub fn submitOrderPlaceTx(
     ctx: *ServerCtx,
     trader: []const u8,
     side: matching_mod.Side,
@@ -8418,7 +6150,7 @@ fn submitOrderPlaceTx(
 
 /// Build and submit a Phase-2A typed `order_cancel` chain TX. Same
 /// ownership/signature semantics as `submitOrderPlaceTx`.
-fn submitOrderCancelTx(
+pub fn submitOrderCancelTx(
     ctx: *ServerCtx,
     trader: []const u8,
     order_id: u64,
@@ -8545,13 +6277,13 @@ pub fn submitHtlcTx(
 /// True dacă body-ul cere mod paper. Cautam `"mode":"paper"` literal —
 /// orice altceva (default, "real", missing) → real engine. Ca și pe REST
 /// (`/exchange/0/*` vs `/paper/0/*`) modul e doar un selector de routing.
-fn isPaperMode(body: []const u8) bool {
+pub fn isPaperMode(body: []const u8) bool {
     return std.mem.indexOf(u8, body, "\"mode\":\"paper\"") != null;
 }
 
 /// Picks the engine matching the requested mode. Returns null + sets a
 /// flag for the caller if the requested engine isn't allocated.
-fn pickEngine(ctx: *ServerCtx, paper: bool) ?*matching_mod.MatchingEngine {
+pub fn pickEngine(ctx: *ServerCtx, paper: bool) ?*matching_mod.MatchingEngine {
     return if (paper) ctx.exchange_paper else ctx.exchange;
 }
 
@@ -8560,7 +6292,7 @@ fn pickEngine(ctx: *ServerCtx, paper: bool) ?*matching_mod.MatchingEngine {
 /// no separate state to keep in sync (auto-correct after fills, cancels,
 /// partial-fills, and journal replay).
 /// Caller must hold `ctx.exchange_mutex`.
-fn computeReservedFromOrderbook(engine: *matching_mod.MatchingEngine, address: []const u8) u64 {
+pub fn computeReservedFromOrderbook(engine: *matching_mod.MatchingEngine, address: []const u8) u64 {
     var total: u64 = 0;
     var i: u32 = 0;
     while (i < engine.ask_count) : (i += 1) {
@@ -8575,7 +6307,7 @@ fn computeReservedFromOrderbook(engine: *matching_mod.MatchingEngine, address: [
 /// Construieste mesajul canonical pentru semnatura unui placeOrder.
 /// MUST match exactly ce semneaza clientul (frontend).
 /// Format: "EXCHANGE_ORDER_V1\n<side>\n<pairId>\n<price>\n<amount>\n<nonce>\n<trader>"
-fn buildOrderSignMessage(
+pub fn buildOrderSignMessage(
     side: []const u8,
     pair_id: u16,
     price: u64,
@@ -8590,7 +6322,7 @@ fn buildOrderSignMessage(
 }
 
 /// Construieste mesajul canonical pentru cancelOrder.
-fn buildCancelSignMessage(
+pub fn buildCancelSignMessage(
     order_id: u64,
     nonce: u64,
     trader: []const u8,
@@ -8750,712 +6482,15 @@ pub fn dnsAuditAppend(ctx: *ServerCtx, op: []const u8, fields: []const u8) void 
 /// Required: trader, side ("buy"|"sell"), pair, price, amount, nonce,
 ///           signature, publicKey. Optional: pairId (in lieu of pair).
 /// Pretul e in micro-USD (u64), amount in SAT (u64).
-fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const is_paper = isPaperMode(body);
-    const engine = pickEngine(ctx, is_paper) orelse
-        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
-
-    const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: trader", id, alloc);
-    const side_str = extractStr(body, "side") orelse
-        return errorJson(-32602, "Missing param: side (buy|sell)", id, alloc);
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-
-    const price = extractArrayNumByKey(body, "price");
-    const amount = extractArrayNumByKey(body, "amount");
-    const nonce = extractArrayNumByKey(body, "nonce");
-
-    if (price == 0) return errorJson(-32602, "Missing or zero: price", id, alloc);
-    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
-    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
-
-    // Determina pair_id: prefer "pair" label (string) când e prezent —
-    // pairId=0 (OMNI/USD) e perfect valid și nu trebuie tratat ca "missing",
-    // dar `extractArrayNumByKey` nu distinge missing de zero. Așa că prima
-    // dată căutăm string-ul `pair`, apoi numărul.
-    var pair_id: u16 = 0;
-    if (extractStr(body, "pair")) |label| {
-        pair_id = exchangePairLookup(label) orelse
-            return errorJson(-32602, "Unknown pair (try OMNI/USD, BTC/USD, LCX/USD, ETH/USD)", id, alloc);
-    } else {
-        const pair_id_u = extractArrayNumByKey(body, "pairId");
-        // pairId 0..MAX_PAIRS-1 valid. Nu putem verifica "missing" cu
-        // sentinel 0 (e indistinct de pairId 0 = OMNI/USD), deci dacă nici
-        // "pair" nici "pairId" key nu există, trebuie să detectăm asta
-        // explicit prin substring match.
-        const has_pair_id_key = std.mem.indexOf(u8, body, "\"pairId\"") != null;
-        if (!has_pair_id_key) {
-            return errorJson(-32602, "Missing param: pair or pairId", id, alloc);
-        }
-        pair_id = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
-    }
-
-    // Oracle price-band: reject orders priced > ORDER_BAND_BPS bps from
-    // the consensus oracle. Skip when oracle is unavailable, the pair has
-    // no oracle feed (e.g. LCX), or the consensus price isn't valid yet.
-    if (!is_paper) if (ctx.oracle) |oracle_ptr| {
-        if (oracleChainForPair(pair_id)) |chain| {
-            if (oracle_ptr.getPrice(chain)) |ref| {
-                if (ref.is_valid and ref.price_micro_usd > 0) {
-                    const ref_p = ref.price_micro_usd;
-                    const diff = if (price > ref_p) price - ref_p else ref_p - price;
-                    const dev_bps = (@as(u128, diff) * 10_000) / @as(u128, ref_p);
-                    if (dev_bps > ORDER_BAND_BPS) {
-                        const msg = std.fmt.allocPrint(alloc,
-                            "oracle_band_exceeded: ref={d} price={d} band_bps={d} dev_bps={d}",
-                            .{ ref_p, price, ORDER_BAND_BPS, dev_bps },
-                        ) catch return errorJson(-32098, "oracle_band_exceeded", id, alloc);
-                        defer alloc.free(msg);
-                        return errorJson(-32098, msg, id, alloc);
-                    }
-                }
-            }
-        }
-    };
-
-    const side: matching_mod.Side =
-        if (asciiEqIgnoreCase(side_str, "buy")) .buy
-        else if (asciiEqIgnoreCase(side_str, "sell")) .sell
-        else return errorJson(-32602, "side must be 'buy' or 'sell'", id, alloc);
-
-    if (trader.len > 64) return errorJson(-32602, "trader address too long", id, alloc);
-
-    // PHASE 1: REST HMAC-authenticated requests bypass ECDSA by sending
-    // signature="REST_HMAC_BYPASS". The REST layer already verified HMAC-SHA512
-    // before dispatching to this handler, so we trust the trader identity.
-    const side_canon: []const u8 = if (side == .buy) "buy" else "sell";
-    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
-    if (!is_hmac_bypass) {
-        var msg_buf: [256]u8 = undefined;
-        const msg = buildOrderSignMessage(side_canon, pair_id, price, amount, nonce, trader, &msg_buf) catch
-            return errorJson(-32603, "Failed to build sign message", id, alloc);
-        if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-            return errorJson(-32000, "Signature verify failed (bad sig or pubkey/address mismatch)", id, alloc);
-        }
-
-        // 2) Verify pubkey -> address (so a stranger can't sign for someone else's address).
-        //    Reuse existing chain helper that derives `ob1q...` from compressed pubkey.
-        var pk_bytes: [33]u8 = undefined;
-        _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-            return errorJson(-32000, "Bad pubkey hex", id, alloc);
-        const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-            return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-        defer alloc.free(derived_addr);
-        if (!std.mem.eql(u8, derived_addr, trader)) {
-            return errorJson(-32000, "Public key does not match trader address", id, alloc);
-        }
-    }
-
-    // 3) Lock + nonce check (replay protection) + balance check + place
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const last_nonce = nonceLookup(ctx, trader);
-    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
-        return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
-    }
-
-    // Balance check for SELL orders:
-    // - OMNI base pairs (0,4,5,6): verify on-chain OMNI balance via getAddressBalance.
-    // - Non-OMNI base pairs (1=BTC,2=LCX,3=ETH): balance lives on external chain —
-    //   verification happens at HTLC fill time, not here. Skip check.
-    // BUY side: skip (buyer locks quote asset at fill via HTLC, not at order placement).
-    const base_is_omni = (pair_id == 0 or pair_id == 4 or pair_id == 5 or pair_id == 6);
-
-    if (side == .sell and base_is_omni) {
-        const balance = if (is_paper) blk: {
-            const b = balanceLookup(ctx, trader, "OMNI_DEMO");
-            break :blk if (b) |bal| bal.available_sat else 0;
-        } else
-            ctx.bc.getAddressBalance(trader);
-
-        const reserved = if (is_paper)
-            0
-        else
-            computeReservedFromOrderbook(engine, trader);
-
-        const available = if (balance < reserved) 0 else (balance - reserved);
-
-        if (available < amount) {
-            return errorJson(-32000, "Insufficient available balance for sell", id, alloc);
-        }
-    }
-    // BUY notional check skipped — quote asset lives on external chain (USDC/ETH/LCX),
-    // verified at HTLC fill time, not at order placement.
-
-    // KYC tier cap: gate per-order notional. `none` blocked, `pro` unlimited.
-    // Skipped in paper mode, when no KYC store is wired (dev/local), and on
-    // testnet/regtest (chain_id != 1) so testers can place orders freely.
-    const is_mainnet = (ctx.chain_id == 1);
-    if (!is_paper and is_mainnet) if (ctx.kyc_store) |ks| {
-        const tier: kyc_mod.Level =
-            if (ks.highest(trader, std.time.milliTimestamp())) |att| att.level else .none;
-        const cap = kycMaxNotionalMicro(tier);
-        const order_notional = orderNotionalMicro(price, amount);
-        if (order_notional > cap) {
-            const msg = std.fmt.allocPrint(alloc,
-                "kyc_tier_exceeded: tier={s} max={d} requested={d}",
-                .{ tier.label(), cap, order_notional },
-            ) catch return errorJson(-32099, "kyc_tier_exceeded", id, alloc);
-            defer alloc.free(msg);
-            return errorJson(-32099, msg, id, alloc);
-        }
-    };
-
-    var order = matching_mod.Order.empty();
-    order.side = side;
-    order.pair_id = pair_id;
-    order.price_micro_usd = price;
-    order.amount_sat = amount;
-    order.timestamp_ms = std.time.milliTimestamp();
-    const tn = @min(trader.len, order.trader_address.len);
-    @memcpy(order.trader_address[0..tn], trader[0..tn]);
-    order.trader_addr_len = @intCast(tn);
-    order.status = .active;
-
-    // EVM-leg validation for OMNI/<EVM-token> pairs. Atomic-swap-style:
-    //   SELL must provide sellerEvm so the settler knows where to deliver.
-    //   BUY  must provide evmOrderId, and the chain MUST already have seen
-    //        an OrderPlaced event with that id on the EVM contract (via
-    //        evm_escrow_watcher) with amount matching this BID's quote.
-    // Without these checks, OMNI moves at fill but the quote stays untouched
-    // (cf. testnet fill #10 2026-05-15 — buyer paid nothing, seller lost
-    // 95 OMNI). Refuse unbacked orders up front.
-    //
-    // pair_id 0 = OMNI/USDC, 6 = OMNI/ETH, 7 = OMNI/LINK — all settle on
-    // an EVM chain via OmnibusDEX. Add more pair_ids here when new
-    // OMNI/<EVM-asset> pairs come online (LCX, EURC, etc.). Without this
-    // guard a SELL with no sellerEvm crosses fine on OmniBus but the
-    // settler skips it silently — buyer's escrow stays locked forever
-    // (cf. testnet LINK fill #13 2026-05-16).
-    const omni_evm_pair = (pair_id == 0 or pair_id == 6 or pair_id == 7);
-    if (omni_evm_pair) {
-        if (side == .sell) {
-            const evm_str_raw = extractStr(body, "sellerEvm") orelse
-                return errorJson(-32602, "Missing param: sellerEvm (required for OMNI/<EVM> SELL)", id, alloc);
-            var evm_str = evm_str_raw;
-            if (std.mem.startsWith(u8, evm_str, "0x") or std.mem.startsWith(u8, evm_str, "0X")) {
-                evm_str = evm_str[2..];
-            }
-            if (evm_str.len != 40) return errorJson(-32602, "sellerEvm must be 0x + 40 hex chars", id, alloc);
-            hex_utils.hexToBytes(evm_str, &order.seller_evm) catch
-                return errorJson(-32602, "sellerEvm: invalid hex", id, alloc);
-        } else { // .buy
-            const evm_order_id = extractArrayNumByKey(body, "evmOrderId");
-            if (evm_order_id == 0) {
-                return errorJson(-32602,
-                    "Missing param: evmOrderId (BUY on OMNI/<EVM> must reference an on-chain escrow)",
-                    id, alloc);
-            }
-            // Verify the chain has seen this escrow via the watcher.
-            if (ctx.evm_escrow_watcher) |w| {
-                const esc = w.getOpen(evm_order_id) orelse {
-                    return errorJson(-32000,
-                        "No open OmnibusDEX escrow with this evmOrderId on Sepolia — did your placeBuyOrderNative tx mine?",
-                        id, alloc);
-                };
-                // Amount sanity: the escrow amount must cover price * amount
-                // in the quote token's smallest unit.
-                //
-                // For OMNI/USDC (pair_id 0): both micro-USD and USDC use 1e-6,
-                // so expected_smallest = price_micro_usd * amount_sat / 1e9.
-                // We enforce that exactly (with a 1-wei tolerance for rounding).
-                //
-                // For OMNI/ETH (6) and OMNI/LINK (7): the quote is an 18-dec
-                // token whose USD value floats, so we can't compute the exact
-                // expected amount without an oracle price for ETH/LINK. We
-                // fall back to "non-zero" here; the EVM contract's own
-                // settle() enforces the per-fill amount against the buyer's
-                // signed intent, so an under-funded escrow won't actually pay
-                // the seller. TODO when an oracle quote is wired here, swap
-                // this branch for the same exact-match logic as USDC.
-                if (esc.amount == 0) {
-                    return errorJson(-32000, "Escrow amount is zero", id, alloc);
-                }
-                if (pair_id == 0) {
-                    // price (micro-USD) * amount (SAT) / 1e9 = micro-USD owed
-                    // = USDC smallest-unit owed (since 1 micro-USD = 1e-6 USDC
-                    // and USDC has 6 decimals). u128 is wide enough: max
-                    // 21M OMNI × $1e9 ≈ 2e25.
-                    const expected_u128: u128 =
-                        @as(u128, price) * @as(u128, amount) / 1_000_000_000;
-                    if (esc.amount >> 128 != 0) {
-                        return errorJson(-32000, "Escrow amount > 2^128 micro-USD — refusing", id, alloc);
-                    }
-                    const escrow_u128: u128 = @intCast(esc.amount & ((@as(u256, 1) << 128) - 1));
-                    if (escrow_u128 < expected_u128) {
-                        return errorJson(-32000,
-                            "Escrow underfunded — locked amount is less than price * size in USDC smallest units",
-                            id, alloc);
-                    }
-                }
-                // SECURITY: refuse escrows that lock a token not on the
-                // hard-coded whitelist for this pair_id + chain. Without
-                // this gate, a malicious buyer could deploy a fake-USDC
-                // contract and lock 5 units of it to claim 5 OMNI of real
-                // liquidity. The whitelist binds (pair_id, chain_id, token)
-                // tuples to Circle's official USDC, native ETH, etc.
-                if (token_whitelist.check(pair_id, esc.chain_id, esc.token)) |label| {
-                    std.debug.print(
-                        "[token_whitelist] OK pair={d} chain={d} token={s}\n",
-                        .{ pair_id, esc.chain_id, label },
-                    );
-                } else {
-                    var token_hex_buf: [42]u8 = undefined;
-                    token_hex_buf[0] = '0';
-                    token_hex_buf[1] = 'x';
-                    const hex_chars = "0123456789abcdef";
-                    for (esc.token, 0..) |b, bi| {
-                        token_hex_buf[2 + bi * 2] = hex_chars[b >> 4];
-                        token_hex_buf[2 + bi * 2 + 1] = hex_chars[b & 0x0F];
-                    }
-                    std.debug.print(
-                        "[token_whitelist] REJECT pair={d} chain={d} token={s}\n",
-                        .{ pair_id, esc.chain_id, &token_hex_buf },
-                    );
-                    const msg = std.fmt.allocPrint(alloc,
-                        "Escrow token not whitelisted for this pair (chain={d} token={s}). " ++
-                        "Only Circle USDC / native ETH on supported chains are accepted.",
-                        .{ esc.chain_id, &token_hex_buf },
-                    ) catch return errorJson(-32000, "Escrow token not whitelisted", id, alloc);
-                    defer alloc.free(msg);
-                    return errorJson(-32000, msg, id, alloc);
-                }
-            } else {
-                // Watcher disabled → refuse to be safe.
-                return errorJson(-32000,
-                    "evm_escrow_watcher not running — cannot verify on-chain escrow",
-                    id, alloc);
-            }
-            order.evm_order_id = evm_order_id;
-        }
-    }
-
-    const fills_before = engine.fill_count;
-    engine.placeOrder(order) catch |err| {
-        return errorJson(-32000, switch (err) {
-            error.OrderbookFull => "Orderbook full",
-            error.FillBufferFull => "Fill buffer full",
-            error.InvalidPrice => "Invalid price",
-            error.InvalidAmount => "Invalid amount",
-            error.InvalidPair => "Invalid pair",
-            else => "Order rejected",
-        }, id, alloc);
-    };
-    const new_order_id = engine.next_order_id - 1;
-
-    // Move newly produced fills into rolling trade_log + accumulate fees.
-    // Maker = the trader whose order was already in the book.
-    //         Taker = the incoming order (the one we just placed).
-    // For a BUY incoming, the matched ask was the resting maker; for a
-    // SELL incoming, the matched bid was the resting maker. So the
-    // taker_id below is always our just-placed `new_order_id`.
-    var total_network_fee_sat: u64 = 0;
-    var total_taker_fee_micro: u64 = 0;
-    var total_maker_fee_micro: u64 = 0;
-    const block_height_now: u64 = ctx.bc.chain.items.len;
-    var fi = fills_before;
-    while (fi < engine.fill_count) : (fi += 1) {
-        const f = engine.fills[fi];
-        tradeLogPush(ctx, f, is_paper);
-
-        const taker_fee = computeExchangeFeeMicro(
-            f.price_micro_usd, f.amount_sat, EXCHANGE_FEE_TAKER_BPS);
-        const maker_fee = computeExchangeFeeMicro(
-            f.price_micro_usd, f.amount_sat, EXCHANGE_FEE_MAKER_BPS);
-        const quote_micro = orderNotionalMicro(f.price_micro_usd, f.amount_sat);
-
-        total_network_fee_sat += FILL_NETWORK_FEE_SAT;
-        total_taker_fee_micro += taker_fee;
-        total_maker_fee_micro += maker_fee;
-
-        // Settle fees on chain — the taker is always our newly-placed
-        // order; the maker is the resting opposite-side order.
-        const buyer_addr = f.getBuyerAddress();
-        const seller_addr = f.getSellerAddress();
-        const taker_addr = if (side == .buy) buyer_addr else seller_addr;
-        const maker_addr = if (side == .buy) seller_addr else buyer_addr;
-        if (!is_paper) {
-            // For OMNI-base pairs (0=OMNI/USDC, 4=OMNI/BTC, 5=OMNI/LCX,
-            // 6=OMNI/ETH) we move OMNI on-chain from seller → buyer at
-            // fill time. Quote leg lives on a foreign chain (USDC/BTC/
-            // LCX/ETH) and is handled by dex_settler.zig if/when needed.
-            const omni_base_fill = (f.pair_id == 0 or f.pair_id == 4 or f.pair_id == 5 or f.pair_id == 6);
-            if (omni_base_fill) {
-                ctx.bc.applyFillTransferOmniBase(
-                    buyer_addr, seller_addr, f.amount_sat, f.fill_id,
-                ) catch |err| {
-                    std.debug.print(
-                        "[FILL-TRANSFER] OMNI debit/credit failed for fill {d}: {} — buyer not credited!\n",
-                        .{ f.fill_id, err },
-                    );
-                };
-            }
-
-            ctx.bc.applyExchangeFees(
-                taker_addr, maker_addr, taker_fee, maker_fee, FILL_NETWORK_FEE_SAT,
-            ) catch |err| {
-                std.debug.print(
-                    "[EXCHANGE-FEE] settlement failed for fill {d}: {} — fees not collected on this fill\n",
-                    .{ f.fill_id, err },
-                );
-            };
-        }
-
-        // Persist fill receipt for "My Trades" UI + audit. Local to this
-        // node; not propagated through P2P. Failure here is non-fatal —
-        // the fill itself already succeeded.
-        if (ctx.fills_log) |flog| {
-            const taker_side_byte: u8 = if (side == .buy) 0 else 1;
-            // Read the actual chain_id from the EVM escrow (watcher tagged
-            // it at OrderPlaced time). Falls back to 0 (= OMNI-only fill)
-            // for non-cross-chain pairs or when watcher isn't running.
-            var evm_chain_id: u64 = 0;
-            if (f.evm_order_id != 0) {
-                if (ctx.evm_escrow_watcher) |w| {
-                    if (w.getOpen(f.evm_order_id)) |esc| {
-                        evm_chain_id = esc.chain_id;
-                    }
-                }
-            }
-            flog.append(f, taker_side_byte, block_height_now, evm_chain_id) catch |err| {
-                std.debug.print(
-                    "[FILLS-LOG] append failed for fill {d}: {} — entry skipped\n",
-                    .{ f.fill_id, err },
-                );
-            };
-        }
-
-        // Per-fill audit log (forensics — taker/maker addrs, fees, height).
-        var fbuf: [512]u8 = undefined;
-        const fline = std.fmt.bufPrint(&fbuf,
-            "\"fillId\":{d},\"pairId\":{d},\"taker\":\"{s}\",\"maker\":\"{s}\"," ++
-            "\"price\":{d},\"amount\":{d},\"quote\":{d}," ++
-            "\"takerFee\":{d},\"makerFee\":{d},\"networkFee\":{d}," ++
-            "\"blockHeight\":{d},\"ts\":{d},\"paper\":{}",
-            .{
-                f.fill_id, f.pair_id, taker_addr, maker_addr,
-                f.price_micro_usd, f.amount_sat, quote_micro,
-                taker_fee, maker_fee, FILL_NETWORK_FEE_SAT,
-                block_height_now, f.timestamp_ms, is_paper,
-            },
-        ) catch "";
-        if (fline.len > 0) ordersAppendJournal(ctx, "fill", fline);
-
-        // Push new_trade event to WebSocket subscribers.
-        if (main_mod.g_ws_srv) |ws| {
-            const pair_label = pairIdToLabel(f.pair_id);
-            const trade_side = if (side == .buy) "buy" else "sell";
-            ws.broadcastTrade(f.pair_id, pair_label, f.price_micro_usd,
-                f.amount_sat, trade_side, block_height_now);
-        }
-    }
-
-    // Push orderbook_update after all fills so subscribers see final state.
-    if (main_mod.g_ws_srv) |ws| {
-        const pair_label = pairIdToLabel(pair_id);
-        ws.broadcastOrderbook(
-            pair_id, pair_label,
-            engine.bestBid(pair_id) orelse 0,
-            engine.bestAsk(pair_id) orelse 0,
-            engine.spread(pair_id) orelse 0,
-            engine.orderCountForPair(pair_id),
-            @intCast(ctx.bc.chain.items.len),
-        );
-    }
-
-    nonceSet(ctx, trader, nonce);
-
-    // Note: reservation is derived from `engine.asks[]` directly (single source
-    // of truth — see computeReservedFromOrderbook). No separate state to update.
-
-    // ── Submit canonical typed `order_place` TX into the chain mempool ──
-    // The in-memory matching engine path above is now a *preview* — the
-    // authoritative orderbook is rebuilt deterministically by every node
-    // from on-chain `order_place` TXs via `applyOrderTxs`. Skip in paper
-    // mode (paper trades never touch chain). On submission failure we log
-    // but don't fail the RPC — the user-facing orderbook still saw the
-    // order place via the preview engine.
-    if (!is_paper) {
-        submitOrderPlaceTx(ctx, trader, side, pair_id, price, amount) catch |sub_err| {
-            std.debug.print("[EXCHANGE] order_place chain TX submit failed: {} (orderbook will rebuild from preview-only on this node)\n",
-                .{sub_err});
-        };
-    }
-
-    // Create on-chain order TX with hash
-    const tx_result = createOrderTransaction(
-        alloc,
-        trader,
-        side_canon,
-        pair_id,
-        price,
-        amount,
-        nonce,
-        new_order_id,
-        sig_hex,
-        pubkey_hex,
-    ) catch |err| {
-        std.debug.print("[EXCHANGE] TX creation failed: {}\n", .{err});
-        return errorJson(-32603, "Failed to create order TX", id, alloc);
-    };
-    defer alloc.free(tx_result.tx_json);
-    defer alloc.free(tx_result.tx_hash);
-
-    // Persist the place event with TX hash
-    var jbuf: [1024]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf,
-        "\"trader\":\"{s}\",\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"orderId\":{d},\"ts\":{d},\"txHash\":\"{s}\"",
-        .{ trader, side_canon, pair_id, price, amount, new_order_id, order.timestamp_ms, tx_result.tx_hash },
-    ) catch "";
-    if (jline.len > 0) ordersAppendJournal(ctx, "place", jline);
-
-    // Compute filled amount this order achieved (sum of new fills where this order_id appears)
-    var filled_total: u64 = 0;
-    var k = fills_before;
-    while (k < engine.fill_count) : (k += 1) {
-        const f = engine.fills[k];
-        if (f.buy_order_id == new_order_id or f.sell_order_id == new_order_id) {
-            filled_total += f.amount_sat;
-        }
-    }
-    const remaining: u64 = if (filled_total >= amount) 0 else amount - filled_total;
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"mode\":\"{s}\"," ++
-            "\"orderId\":{d},\"txHash\":\"{s}\",\"side\":\"{s}\",\"pairId\":{d}," ++
-            "\"price\":{d},\"amount\":{d}," ++
-            "\"filled\":{d},\"remaining\":{d},\"status\":\"{s}\"," ++
-            "\"fees\":{{" ++
-                "\"networkFeeSat\":{d}," ++
-                "\"exchangeTakerFeeMicroUsd\":{d}," ++
-                "\"exchangeMakerFeeMicroUsd\":{d}," ++
-                "\"takerBps\":{d},\"makerBps\":{d}" ++
-            "}}" ++
-        "}}}}",
-        .{ id, if (is_paper) "paper" else "real",
-           new_order_id, tx_result.tx_hash, side_canon, pair_id,
-           price, amount, filled_total, remaining,
-           if (remaining == 0) "filled" else if (filled_total > 0) "partial" else "active",
-           total_network_fee_sat, total_taker_fee_micro, total_maker_fee_micro,
-           EXCHANGE_FEE_TAKER_BPS, EXCHANGE_FEE_MAKER_BPS });
-}
 
 /// exchange_cancelOrder — anuleaza o ordine. Required: orderId, trader,
 /// nonce, signature, publicKey. Verifica pe lant ca trader == owner.
-fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const is_paper = isPaperMode(body);
-    const engine = pickEngine(ctx, is_paper) orelse
-        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
-
-    var order_id = extractArrayNumByKey(body, "orderId");
-    if (order_id == 0) order_id = extractArrayNumByKey(body, "order_id");
-    if (order_id == 0) return errorJson(-32602, "Missing param: orderId (or order_id)", id, alloc);
-    const trader = extractStr(body, "trader") orelse
-        return errorJson(-32602, "Missing param: trader", id, alloc);
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
-
-    // Verify signature (skip for REST HMAC-authenticated requests)
-    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
-    if (!is_hmac_bypass) {
-        var msg_buf: [128]u8 = undefined;
-        const msg = buildCancelSignMessage(order_id, nonce, trader, &msg_buf) catch
-            return errorJson(-32603, "Failed to build sign message", id, alloc);
-        if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-            return errorJson(-32000, "Signature verify failed", id, alloc);
-        }
-
-        // Pubkey -> trader address must match
-        var pk_bytes: [33]u8 = undefined;
-        _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-            return errorJson(-32000, "Bad pubkey hex", id, alloc);
-        const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-            return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-        defer alloc.free(derived_addr);
-        if (!std.mem.eql(u8, derived_addr, trader)) {
-            return errorJson(-32000, "Public key does not match trader address", id, alloc);
-        }
-    }
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    // Look up order, verify ownership BEFORE cancelling
-    const order = engine.getOrder(order_id) orelse
-        return errorJson(-32000, "Order not found", id, alloc);
-    if (!std.mem.eql(u8, order.getTraderAddress(), trader)) {
-        return errorJson(-32000, "Not order owner", id, alloc);
-    }
-
-    const last_nonce = nonceLookup(ctx, trader);
-    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
-        return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
-    }
-
-    engine.cancelOrder(order_id) catch |err| {
-        return errorJson(-32000, switch (err) {
-            error.OrderNotFound => "Order not found",
-            else => "Cancel failed",
-        }, id, alloc);
-    };
-
-    // Note: cancelOrder marks the order .cancelled, so it's automatically
-    // excluded from computeReservedFromOrderbook on next balance check.
-
-    // ── Submit canonical typed `order_cancel` TX into the chain mempool ──
-    // Replaying nodes apply this via `applyOrderTxs`, which removes the
-    // order from the deterministic book.
-    if (!is_paper) {
-        submitOrderCancelTx(ctx, trader, order_id) catch |sub_err| {
-            std.debug.print("[EXCHANGE] order_cancel chain TX submit failed: {}\n", .{sub_err});
-        };
-    }
-
-    nonceSet(ctx, trader, nonce);
-
-    var jbuf: [128]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf,
-        "\"trader\":\"{s}\",\"orderId\":{d},\"ts\":{d}",
-        .{ trader, order_id, std.time.milliTimestamp() },
-    ) catch "";
-    if (jline.len > 0) ordersAppendJournal(ctx, "cancel", jline);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"orderId\":{d},\"cancelled\":true}}}}",
-        .{ id, order_id });
-}
 
 /// exchange_getOrderbook — top N bids/asks pentru o pereche.
 /// Params: pair sau pairId, optional depth (default 25, max 50).
-fn handleExchangeGetOrderbook(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const is_paper = isPaperMode(body);
-    const engine = pickEngine(ctx, is_paper) orelse
-        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
-
-    var pair_id: u16 = 0;
-    const pair_id_u = extractArrayNumByKey(body, "pairId");
-    if (pair_id_u > 0) {
-        pair_id = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
-    } else if (extractStr(body, "pair")) |label| {
-        pair_id = exchangePairLookup(label) orelse 0;
-    }
-
-    const depth_raw = extractArrayNumByKey(body, "depth");
-    const depth: u32 = if (depth_raw == 0) 25 else @intCast(@min(depth_raw, @as(u64, 50)));
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":{\"pairId\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{pair_id});
-    try out.appendSlice(alloc, ",\"bids\":[");
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    var emitted: u32 = 0;
-    var first = true;
-    var i: u32 = 0;
-    while (i < engine.bid_count and emitted < depth) : (i += 1) {
-        const o = engine.bids[i];
-        if (o.pair_id != pair_id) continue;
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        try std.fmt.format(out.writer(alloc),
-            "{{\"orderId\":{d},\"price\":{d},\"amount\":{d},\"remaining\":{d},\"trader\":\"{s}\",\"ts\":{d}}}",
-            .{ o.order_id, o.price_micro_usd, o.amount_sat, o.remainingSat(),
-               o.trader_address[0..o.trader_addr_len], o.timestamp_ms });
-        emitted += 1;
-    }
-
-    try out.appendSlice(alloc, "],\"asks\":[");
-    emitted = 0;
-    first = true;
-    i = 0;
-    while (i < engine.ask_count and emitted < depth) : (i += 1) {
-        const o = engine.asks[i];
-        if (o.pair_id != pair_id) continue;
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        try std.fmt.format(out.writer(alloc),
-            "{{\"orderId\":{d},\"price\":{d},\"amount\":{d},\"remaining\":{d},\"trader\":\"{s}\",\"ts\":{d}}}",
-            .{ o.order_id, o.price_micro_usd, o.amount_sat, o.remainingSat(),
-               o.trader_address[0..o.trader_addr_len], o.timestamp_ms });
-        emitted += 1;
-    }
-
-    const best_bid = engine.bestBid(pair_id) orelse 0;
-    const best_ask = engine.bestAsk(pair_id) orelse 0;
-    const spread_v = engine.spread(pair_id) orelse 0;
-
-    try std.fmt.format(out.writer(alloc),
-        "],\"bestBid\":{d},\"bestAsk\":{d},\"spread\":{d},\"orderCount\":{d}}}}}",
-        .{ best_bid, best_ask, spread_v, engine.orderCountForPair(pair_id) });
-
-    return alloc.dupe(u8, out.items);
-}
 
 /// exchange_getUserOrders — toate ordinele active ale unei adrese.
 /// Params: trader. Optional: pairId / pair (filtru).
-fn handleExchangeGetUserOrders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const is_paper = isPaperMode(body);
-    const engine = pickEngine(ctx, is_paper) orelse
-        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
-    const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: trader", id, alloc);
-
-    var filter_pair: ?u16 = null;
-    const pair_id_u = extractArrayNumByKey(body, "pairId");
-    if (pair_id_u > 0) {
-        filter_pair = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
-    } else if (extractStr(body, "pair")) |label| {
-        filter_pair = exchangePairLookup(label);
-    }
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":[");
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    var first = true;
-    inline for (.{ "bids", "asks" }) |which| {
-        const count = if (comptime std.mem.eql(u8, which, "bids")) engine.bid_count else engine.ask_count;
-        var i: u32 = 0;
-        while (i < count) : (i += 1) {
-            const o = if (comptime std.mem.eql(u8, which, "bids")) engine.bids[i] else engine.asks[i];
-            if (!std.mem.eql(u8, o.getTraderAddress(), trader)) continue;
-            if (filter_pair) |fp| if (o.pair_id != fp) continue;
-            if (!first) try out.appendSlice(alloc, ",");
-            first = false;
-            try std.fmt.format(out.writer(alloc),
-                "{{\"orderId\":{d},\"side\":\"{s}\",\"pairId\":{d},\"price\":{d},\"amount\":{d},\"filled\":{d},\"remaining\":{d},\"status\":\"{s}\",\"ts\":{d}}}",
-                .{ o.order_id, o.side.name(), o.pair_id, o.price_micro_usd, o.amount_sat,
-                   o.filled_sat, o.remainingSat(),
-                   switch (o.status) { .active => "active", .partial => "partial", .filled => "filled", .cancelled => "cancelled" },
-                   o.timestamp_ms });
-        }
-    }
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 /// exchange_getUserTrades — istoricul on-chain de fills al unui trader.
 ///
@@ -9473,135 +6508,9 @@ fn handleExchangeGetUserOrders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8
 ///     evmChainId (0 if no EVM leg), evmSettleTxHash (null pana la settle) },
 ///   ...
 /// ]
-fn handleExchangeGetUserTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const flog = ctx.fills_log orelse
-        return errorJson(-32601, "Fills log not enabled on this node", id, alloc);
-    const trader = extractStr(body, "trader") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: trader", id, alloc);
-
-    var filter_pair: ?u16 = null;
-    const pair_id_u = extractArrayNumByKey(body, "pairId");
-    if (pair_id_u > 0) {
-        filter_pair = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
-    } else if (extractStr(body, "pair")) |label| {
-        filter_pair = exchangePairLookup(label);
-    }
-    const limit_raw = extractArrayNumByKey(body, "limit");
-    const limit: usize = if (limit_raw == 0) 100 else @intCast(@min(limit_raw, 500));
-
-    const recs = flog.readForTrader(alloc, trader, 0) catch &.{};
-    defer if (recs.len > 0) alloc.free(recs);
-
-    // Merge settle map so we can attach EVM tx hash where available.
-    var settle_map = flog.loadSettleMap() catch fills_log_mod.SettleMap.init(alloc);
-    defer settle_map.deinit();
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":[");
-
-    // Walk newest-first so the UI shows latest trade at the top.
-    var emitted: usize = 0;
-    var idx: usize = recs.len;
-    while (idx > 0 and emitted < limit) {
-        idx -= 1;
-        const r = &recs[idx];
-        if (filter_pair) |fp| if (r.pair_id != fp) continue;
-
-        const is_buyer = std.mem.eql(u8, r.buyerAddrSlice(), trader);
-        // Trader's perspective of the trade — if they're the buyer they
-        // "bought" base; otherwise they "sold" it.
-        const role = if (is_buyer) "buy" else "sell";
-        const counterparty = if (is_buyer) r.sellerAddrSlice() else r.buyerAddrSlice();
-
-        if (emitted > 0) try out.appendSlice(alloc, ",");
-        emitted += 1;
-
-        try std.fmt.format(out.writer(alloc),
-            "{{\"fillId\":{d},\"pairId\":{d},\"side\":\"{s}\",\"counterparty\":\"{s}\"," ++
-            "\"price\":{d},\"amount\":{d},\"buyOrderId\":{d},\"sellOrderId\":{d}," ++
-            "\"blockHeight\":{d},\"ts\":{d},\"evmChainId\":{d}",
-            .{
-                r.fill_id, r.pair_id, role, counterparty,
-                r.price_micro_usd, r.amount_sat, r.buy_order_id, r.sell_order_id,
-                r.block_height, r.timestamp_ms, r.evm_chain_id,
-            },
-        );
-
-        if (settle_map.get(r.fill_id)) |s| {
-            try out.appendSlice(alloc, ",\"evmSettleTxHash\":\"0x");
-            for (s.tx_hash) |b| try std.fmt.format(out.writer(alloc), "{x:0>2}", .{b});
-            try out.appendSlice(alloc, "\"");
-        } else {
-            try out.appendSlice(alloc, ",\"evmSettleTxHash\":null");
-        }
-
-        try out.appendSlice(alloc, "}");
-    }
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 /// exchange_getTrades — ultimele N fills. Optional: pair/pairId, address (filtru),
 /// limit (default 50, max 256).
-fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const is_paper = isPaperMode(body);
-    if (pickEngine(ctx, is_paper) == null) return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
-
-    var filter_pair: ?u16 = null;
-    const pair_id_u = extractArrayNumByKey(body, "pairId");
-    if (pair_id_u > 0) {
-        filter_pair = @intCast(@min(pair_id_u, std.math.maxInt(u16)));
-    } else if (extractStr(body, "pair")) |label| {
-        filter_pair = exchangePairLookup(label);
-    }
-    const filter_addr = extractStr(body, "address") orelse extractStr(body, "trader");
-    const limit_raw = extractArrayNumByKey(body, "limit");
-    const limit: u32 = if (limit_raw == 0) 50 else @intCast(@min(limit_raw, 256));
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":[");
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    // Walk newest-to-oldest in circular buffer (per-mode log).
-    const es = ctx.exstate.?;
-    const log_count = if (is_paper) es.trade_count_paper else es.trade_count;
-    const log_head = if (is_paper) es.trade_head_paper else es.trade_head;
-    var emitted: u32 = 0;
-    var first = true;
-    var c: u32 = 0;
-    while (c < log_count and emitted < limit) : (c += 1) {
-        // Most recent index = (head - 1 - c) mod len
-        const len_u: u32 = 256;
-        const idx = (log_head + len_u - 1 - c) % len_u;
-        const f = if (is_paper) es.trade_log_paper[idx] else es.trade_log[idx];
-        if (filter_pair) |fp| if (f.pair_id != fp) continue;
-        if (filter_addr) |a| {
-            const buyer = f.getBuyerAddress();
-            const seller = f.getSellerAddress();
-            if (!std.mem.eql(u8, buyer, a) and !std.mem.eql(u8, seller, a)) continue;
-        }
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        try std.fmt.format(out.writer(alloc),
-            "{{\"fillId\":{d},\"pairId\":{d},\"price\":{d},\"amount\":{d},\"buyer\":\"{s}\",\"seller\":\"{s}\",\"buyOrderId\":{d},\"sellOrderId\":{d},\"ts\":{d}}}",
-            .{ f.fill_id, f.pair_id, f.price_micro_usd, f.amount_sat,
-               f.buyer_address[0..f.buyer_addr_len], f.seller_address[0..f.seller_addr_len],
-               f.buy_order_id, f.sell_order_id, f.timestamp_ms });
-        emitted += 1;
-    }
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 /// exchange_listPairs — perechi suportate. Static (definite la compile-time).
 /// exchange_pairInfo — returns multi-chain routing + HTLC contract addresses for a pair.
@@ -9609,98 +6518,9 @@ fn handleExchangeGetTrades(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Result: { pair_id, base, quote,
 ///            maker_chains: [{chain, chain_id, contract}...],
 ///            taker_chains: [{chain, chain_id, contract}...] }
-fn handleExchangePairInfo(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const pair_id_u = extractU64Param(body, "\"pair_id\"") orelse
-        return errorJson(-32602, "Missing param: pair_id", id, alloc);
-    const route = swap_link_mod.routeForPair(@intCast(pair_id_u)) orelse
-        return errorJson(-32602, "Unknown pair_id", id, alloc);
 
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try std.fmt.format(out.writer(alloc),
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"pair_id\":{d},\"base\":\"{s}\",\"quote\":\"{s}\"," ++
-        "\"maker_chains\":[",
-        .{ id, route.pair_id, route.base_asset, route.quote_asset });
-
-    const maker_chains = swap_link_mod.chainsForAsset(route.base_asset);
-    var first: bool = true;
-    for (maker_chains) |ch| {
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        try std.fmt.format(out.writer(alloc),
-            "{{\"chain\":\"{s}\",\"chain_id\":{d},\"contract\":\"{s}\"}}",
-            .{ ch.label(), ch.evmChainId(), swap_link_mod.htlcContractFor(ch) });
-    }
-    try out.appendSlice(alloc, "],\"taker_chains\":[");
-
-    const taker_chains = swap_link_mod.chainsForAsset(route.quote_asset);
-    first = true;
-    for (taker_chains) |ch| {
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        try std.fmt.format(out.writer(alloc),
-            "{{\"chain\":\"{s}\",\"chain_id\":{d},\"contract\":\"{s}\"}}",
-            .{ ch.label(), ch.evmChainId(), swap_link_mod.htlcContractFor(ch) });
-    }
-    try out.appendSlice(alloc, "]}}");
-    return alloc.dupe(u8, out.items);
-}
-
-fn handleExchangeListPairs(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":[");
-    var first = true;
-    for (EXCHANGE_PAIRS) |p| {
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        try std.fmt.format(out.writer(alloc),
-            "{{\"id\":{d},\"base\":\"{s}\",\"quote\":\"{s}\",\"label\":\"{s}/{s}\"}}",
-            .{ p.id, p.base, p.quote, p.base, p.quote });
-    }
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 /// exchange_getStats — sumar global: total ordine, total fills, best/spread per pereche.
-fn handleExchangeGetStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const is_paper = isPaperMode(body);
-    const engine = pickEngine(ctx, is_paper) orelse
-        return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const trade_count = if (is_paper) ctx.exstate.?.trade_count_paper else ctx.exstate.?.trade_count;
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try std.fmt.format(out.writer(alloc),
-        ",\"result\":{{\"mode\":\"{s}\",\"totalOrders\":{d},\"bidCount\":{d},\"askCount\":{d},\"trades\":{d},\"pairs\":[",
-        .{ if (is_paper) "paper" else "real", engine.orderCount(), engine.bid_count, engine.ask_count, trade_count });
-    var first = true;
-    for (EXCHANGE_PAIRS) |p| {
-        const bb = engine.bestBid(p.id) orelse 0;
-        const ba = engine.bestAsk(p.id) orelse 0;
-        const sp = engine.spread(p.id) orelse 0;
-        const oc = engine.orderCountForPair(p.id);
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        try std.fmt.format(out.writer(alloc),
-            "{{\"id\":{d},\"label\":\"{s}/{s}\",\"bestBid\":{d},\"bestAsk\":{d},\"spread\":{d},\"orderCount\":{d}}}",
-            .{ p.id, p.base, p.quote, bb, ba, sp, oc });
-    }
-    try out.appendSlice(alloc, "]}}");
-    return alloc.dupe(u8, out.items);
-}
 
 // ─── DEX users / API keys / exchange balances ─────────────────────────────
 //
@@ -9714,7 +6534,7 @@ fn usersPathSlice(ctx: *ServerCtx) ?[]const u8 {
     return ctx.users_path_buf[0..ctx.users_path_len];
 }
 
-fn usersAppendJournal(ctx: *ServerCtx, kind: []const u8, line: []const u8) void {
+pub fn usersAppendJournal(ctx: *ServerCtx, kind: []const u8, line: []const u8) void {
     const path = usersPathSlice(ctx) orelse return;
     const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
         std.debug.print("[EXCHANGE] cannot open {s} for append: {}\n", .{ path, err });
@@ -9783,7 +6603,7 @@ fn replayUsersJournal(ctx: *ServerCtx) !void {
 
 // ── API key table ops ────────────────────────────────────────────────
 
-fn apiKeyInsert(
+pub fn apiKeyInsert(
     ctx: *ServerCtx,
     key_id: []const u8,
     secret_raw: []const u8,
@@ -9815,7 +6635,7 @@ fn apiKeyInsert(
     ctx.exstate.?.api_key_count += 1;
 }
 
-fn apiKeyRevoke(ctx: *ServerCtx, key_id: []const u8) void {
+pub fn apiKeyRevoke(ctx: *ServerCtx, key_id: []const u8) void {
     var i: u16 = 0;
     while (i < ctx.exstate.?.api_key_count) : (i += 1) {
         const k = &ctx.exstate.?.api_keys[i];
@@ -9891,7 +6711,7 @@ fn findOrderByIdAndOwner(
     return null;
 }
 
-fn apiKeyLookup(ctx: *ServerCtx, key_id: []const u8) ?*ExchangeApiKey {
+pub fn apiKeyLookup(ctx: *ServerCtx, key_id: []const u8) ?*ExchangeApiKey {
     var i: u16 = 0;
     while (i < ctx.exstate.?.api_key_count) : (i += 1) {
         const k = &ctx.exstate.?.api_keys[i];
@@ -9905,7 +6725,7 @@ fn apiKeyLookup(ctx: *ServerCtx, key_id: []const u8) ?*ExchangeApiKey {
 
 // SHA256 hex of a string. Used to verify api-key secrets without storing
 // them in the clear. NOTE: not constant-time — for testnet only.
-fn sha256Hex(input: []const u8, out: *[64]u8) void {
+pub fn sha256Hex(input: []const u8, out: *[64]u8) void {
     var hash: [32]u8 = undefined;
     std.crypto.hash.sha2.Sha256.hash(input, &hash, .{});
     const hex_chars = "0123456789abcdef";
@@ -9957,7 +6777,7 @@ fn verifyHmacSignature(
 
 // ── Balance table ops ──────────────────────────────────────────────────
 
-fn balanceLookup(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*ExchangeBalance {
+pub fn balanceLookup(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*ExchangeBalance {
     var i: u16 = 0;
     while (i < ctx.exstate.?.balance_count) : (i += 1) {
         const b = &ctx.exstate.?.balances[i];
@@ -9971,7 +6791,7 @@ fn balanceLookup(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*Exchan
     return null;
 }
 
-fn balanceGetOrCreate(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*ExchangeBalance {
+pub fn balanceGetOrCreate(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*ExchangeBalance {
     if (balanceLookup(ctx, owner, token)) |b| return b;
     if (ctx.exstate.?.balance_count >= ctx.exstate.?.balances.len) return null;
     const slot = &ctx.exstate.?.balances[ctx.exstate.?.balance_count];
@@ -9986,13 +6806,13 @@ fn balanceGetOrCreate(ctx: *ServerCtx, owner: []const u8, token: []const u8) ?*E
     return slot;
 }
 
-fn balanceCredit(ctx: *ServerCtx, owner: []const u8, token: []const u8, amount: u64) bool {
+pub fn balanceCredit(ctx: *ServerCtx, owner: []const u8, token: []const u8, amount: u64) bool {
     const b = balanceGetOrCreate(ctx, owner, token) orelse return false;
     b.available_sat +%= amount;
     return true;
 }
 
-fn balanceDebit(ctx: *ServerCtx, owner: []const u8, token: []const u8, amount: u64) bool {
+pub fn balanceDebit(ctx: *ServerCtx, owner: []const u8, token: []const u8, amount: u64) bool {
     const b = balanceLookup(ctx, owner, token) orelse return false;
     if (b.available_sat < amount) return false;
     b.available_sat -= amount;
@@ -10001,7 +6821,7 @@ fn balanceDebit(ctx: *ServerCtx, owner: []const u8, token: []const u8, amount: u
 
 // ── Auth nonce / login ────────────────────────────────────────────────
 
-fn authNoncePurge(ctx: *ServerCtx, now_ms: i64) void {
+pub fn authNoncePurge(ctx: *ServerCtx, now_ms: i64) void {
     var i: u16 = 0;
     while (i < ctx.exstate.?.auth_nonce_count) {
         const n = &ctx.exstate.?.auth_nonces[i];
@@ -10018,7 +6838,7 @@ fn authNoncePurge(ctx: *ServerCtx, now_ms: i64) void {
     }
 }
 
-fn authNoncePut(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8, now_ms: i64) void {
+pub fn authNoncePut(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8, now_ms: i64) void {
     if (ctx.exstate.?.auth_nonce_count >= ctx.exstate.?.auth_nonces.len) {
         // FIFO evict
         var j: u16 = 0;
@@ -10039,7 +6859,7 @@ fn authNoncePut(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8, now
     ctx.exstate.?.auth_nonce_count += 1;
 }
 
-fn authNonceConsume(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8) bool {
+pub fn authNonceConsume(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8) bool {
     var i: u16 = 0;
     while (i < ctx.exstate.?.auth_nonce_count) : (i += 1) {
         const n = &ctx.exstate.?.auth_nonces[i];
@@ -10065,496 +6885,36 @@ fn authNonceConsume(ctx: *ServerCtx, address: []const u8, nonce_hex: []const u8)
 /// exchange_getAuthNonce — generates a 32-byte random nonce (hex) bound
 /// to the caller's address. The user signs "OmniBus Exchange Login: <nonce>"
 /// and submits via `exchange_login` to prove key ownership.
-fn handleExchangeGetAuthNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    if (address.len > 64) return errorJson(-32602, "address too long", id, alloc);
-
-    var nonce_bytes: [32]u8 = undefined;
-    std.crypto.random.bytes(&nonce_bytes);
-    var nonce_hex: [64]u8 = undefined;
-    const hex_chars = "0123456789abcdef";
-    var i: usize = 0;
-    while (i < 32) : (i += 1) {
-        nonce_hex[i * 2] = hex_chars[nonce_bytes[i] >> 4];
-        nonce_hex[i * 2 + 1] = hex_chars[nonce_bytes[i] & 0xF];
-    }
-
-    const now_ms = std.time.milliTimestamp();
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-    authNoncePurge(ctx, now_ms);
-    authNoncePut(ctx, address, &nonce_hex, now_ms);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"nonce\":\"{s}\",\"message\":\"OmniBus Exchange Login: {s}\",\"ttlMs\":{d}}}}}",
-        .{ id, nonce_hex, nonce_hex, AUTH_NONCE_TTL_MS });
-}
 
 /// exchange_login — verify nonce signature, mark the address as a known
 /// exchange user (just allocates a default OMNI balance row if missing).
 /// Returns the address + a list of currently active api keys (without
 /// revealing secrets). Stateless — no JWT; future calls re-prove
 /// ownership either via signature or via api-key+secret headers.
-fn handleExchangeLogin(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const nonce_hex = extractStr(body, "nonce") orelse
-        return errorJson(-32602, "Missing param: nonce", id, alloc);
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-
-    var msg_buf: [128]u8 = undefined;
-    const msg = std.fmt.bufPrint(&msg_buf, "OmniBus Exchange Login: {s}", .{nonce_hex}) catch
-        return errorJson(-32603, "Failed to build sign message", id, alloc);
-    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-        return errorJson(-32000, "Signature verify failed", id, alloc);
-    }
-    var pk_bytes: [33]u8 = undefined;
-    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-        return errorJson(-32000, "Bad pubkey hex", id, alloc);
-    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-    defer alloc.free(derived_addr);
-    if (!std.mem.eql(u8, derived_addr, address)) {
-        return errorJson(-32000, "Public key does not match address", id, alloc);
-    }
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    if (!authNonceConsume(ctx, address, nonce_hex)) {
-        return errorJson(-32000, "Nonce expired or unknown — request a fresh one", id, alloc);
-    }
-
-    // Allocate a default OMNI balance row so the user appears in
-    // exchange_get_balances even before depositing.
-    _ = balanceGetOrCreate(ctx, address, "OMNI");
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"loggedIn\":true,\"sessionTtlMs\":{d}}}}}",
-        .{ id, address, AUTH_NONCE_TTL_MS });
-}
 
 /// exchange_createApiKey — generate a fresh (key_id, secret) pair owned
 /// by the caller. The secret is returned ONCE (plaintext) and stored as
 /// SHA256 hash. Caller must prove address ownership via signature on
 /// the canonical message "EXCHANGE_APIKEY_V1\n<name>\n<address>\n<nonce>".
-fn handleExchangeCreateApiKey(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const name = extractStr(body, "name") orelse "default";
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
-
-    if (name.len > 32) return errorJson(-32602, "name too long (max 32)", id, alloc);
-
-    var msg_buf: [256]u8 = undefined;
-    const msg = std.fmt.bufPrint(&msg_buf, "EXCHANGE_APIKEY_V1\n{s}\n{s}\n{d}", .{ name, owner, nonce }) catch
-        return errorJson(-32603, "Failed to build sign message", id, alloc);
-    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-        return errorJson(-32000, "Signature verify failed", id, alloc);
-    }
-    var pk_bytes: [33]u8 = undefined;
-    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-        return errorJson(-32000, "Bad pubkey hex", id, alloc);
-    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-    defer alloc.free(derived_addr);
-    if (!std.mem.eql(u8, derived_addr, owner)) {
-        return errorJson(-32000, "Public key does not match owner address", id, alloc);
-    }
-
-    // Generate key + secret
-    var key_random: [12]u8 = undefined;
-    var secret_random: [32]u8 = undefined;
-    std.crypto.random.bytes(&key_random);
-    std.crypto.random.bytes(&secret_random);
-    const hex_chars = "0123456789abcdef";
-    var key_id: [28]u8 = undefined; // "obx_" + 24 hex chars
-    @memcpy(key_id[0..4], "obx_");
-    var i: usize = 0;
-    while (i < 12) : (i += 1) {
-        key_id[4 + i * 2] = hex_chars[key_random[i] >> 4];
-        key_id[4 + i * 2 + 1] = hex_chars[key_random[i] & 0xF];
-    }
-    var secret_str: [68]u8 = undefined; // "obs_" + 64 hex chars
-    @memcpy(secret_str[0..4], "obs_");
-    i = 0;
-    while (i < 32) : (i += 1) {
-        secret_str[4 + i * 2] = hex_chars[secret_random[i] >> 4];
-        secret_str[4 + i * 2 + 1] = hex_chars[secret_random[i] & 0xF];
-    }
-
-    var sec_hash: [64]u8 = undefined;
-    sha256Hex(&secret_str, &sec_hash);
-
-    // Base64-encode the raw secret for Kraken-compatible HMAC signing
-    var secret_b64_buf: [64]u8 = undefined;
-    const secret_b64 = std.base64.standard.Encoder.encode(&secret_b64_buf, &secret_random);
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const last_nonce = nonceLookup(ctx, owner);
-    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
-        return errorJson(-32000, "Nonce already used (replay rejected)", id, alloc);
-    }
-
-    const now_ms = std.time.milliTimestamp();
-    apiKeyInsert(ctx, &key_id, &secret_random, &sec_hash, name, owner, now_ms);
-    nonceSet(ctx, owner, nonce);
-
-    var jbuf: [512]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf,
-        "\"keyId\":\"{s}\",\"secretHash\":\"{s}\",\"name\":\"{s}\",\"owner\":\"{s}\",\"ts\":{d}",
-        .{ key_id, sec_hash, name, owner, now_ms },
-    ) catch "";
-    if (jline.len > 0) usersAppendJournal(ctx, "apikey", jline);
-
-    const apikey_name_safe = try jsonSanitize(alloc, name);
-    defer alloc.free(apikey_name_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"keyId\":\"{s}\",\"secret\":\"{s}\",\"secretB64\":\"{s}\",\"name\":\"{s}\",\"warning\":\"Save the secret — it is only shown once. Use secretB64 for HMAC-SHA512 signing.\",\"createdMs\":{d}}}}}",
-        .{ id, key_id, secret_str, secret_b64, apikey_name_safe, now_ms });
-}
 
 /// exchange_listApiKeys — list keys owned by an address. Secrets are
 /// never returned (only the SHA256 hash for transparency).
-fn handleExchangeListApiKeys(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":[");
-    var first = true;
-    var i: u16 = 0;
-    while (i < ctx.exstate.?.api_key_count) : (i += 1) {
-        const k = &ctx.exstate.?.api_keys[i];
-        if (k.owner_len != owner.len) continue;
-        if (!std.mem.eql(u8, k.owner[0..k.owner_len], owner)) continue;
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        const kname_safe = try jsonSanitize(alloc, k.name[0..k.name_len]);
-        defer alloc.free(kname_safe);
-        try std.fmt.format(out.writer(alloc),
-            "{{\"keyId\":\"{s}\",\"name\":\"{s}\",\"createdMs\":{d},\"lastUsedMs\":{d},\"revoked\":{s}}}",
-            .{ k.key_id[0..k.key_id_len], kname_safe, k.created_ms, k.last_used_ms,
-               if (k.revoked) "true" else "false" });
-    }
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 /// exchange_revokeApiKey — owner revokes one of their keys.
 /// Verified by signature on "EXCHANGE_APIKEY_REVOKE_V1\n<keyId>\n<owner>\n<nonce>".
-fn handleExchangeRevokeApiKey(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const key_id = extractStr(body, "keyId") orelse
-        return errorJson(-32602, "Missing param: keyId", id, alloc);
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
-
-    var msg_buf: [256]u8 = undefined;
-    const msg = std.fmt.bufPrint(&msg_buf, "EXCHANGE_APIKEY_REVOKE_V1\n{s}\n{s}\n{d}", .{ key_id, owner, nonce }) catch
-        return errorJson(-32603, "Failed to build sign message", id, alloc);
-    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-        return errorJson(-32000, "Signature verify failed", id, alloc);
-    }
-    var pk_bytes: [33]u8 = undefined;
-    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-        return errorJson(-32000, "Bad pubkey hex", id, alloc);
-    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-    defer alloc.free(derived_addr);
-    if (!std.mem.eql(u8, derived_addr, owner)) {
-        return errorJson(-32000, "Public key does not match owner", id, alloc);
-    }
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const k = apiKeyLookup(ctx, key_id) orelse
-        return errorJson(-32000, "Key not found or already revoked", id, alloc);
-    if (k.owner_len != owner.len or !std.mem.eql(u8, k.owner[0..k.owner_len], owner)) {
-        return errorJson(-32000, "Not owner of this key", id, alloc);
-    }
-    const last_nonce = nonceLookup(ctx, owner);
-    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
-        return errorJson(-32000, "Nonce already used", id, alloc);
-    }
-    apiKeyRevoke(ctx, key_id);
-    nonceSet(ctx, owner, nonce);
-
-    var jbuf: [128]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf, "\"keyId\":\"{s}\",\"ts\":{d}", .{ key_id, std.time.milliTimestamp() }) catch "";
-    if (jline.len > 0) usersAppendJournal(ctx, "revoke", jline);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"keyId\":\"{s}\",\"revoked\":true}}}}",
-        .{ id, key_id });
-}
 
 /// exchange_deposit — credit internal exchange balance.
 /// On testnet/regtest: credits directly (no on-chain proof required).
 /// On mainnet (chain_id == 1): requires a `txid` that actually sent OMNI
 /// to the exchange escrow address — use exchange_depositReal instead.
-fn handleExchangeDeposit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-
-    // Block fake-credit on mainnet — callers must use exchange_depositReal.
-    if (ctx.chain_id == 1) {
-        return errorJson(-32000,
-            "exchange_deposit disabled on mainnet; use exchange_depositReal with a confirmed txid",
-            id, alloc);
-    }
-
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const token = extractStr(body, "token") orelse "OMNI";
-    const amount = extractArrayNumByKey(body, "amount");
-    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
-
-    var msg_buf: [256]u8 = undefined;
-    const msg = std.fmt.bufPrint(&msg_buf,
-        "EXCHANGE_DEPOSIT_V1\n{s}\n{s}\n{d}\n{d}",
-        .{ owner, token, amount, nonce }) catch
-        return errorJson(-32603, "Failed to build sign message", id, alloc);
-    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-        return errorJson(-32000, "Signature verify failed", id, alloc);
-    }
-    var pk_bytes: [33]u8 = undefined;
-    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-        return errorJson(-32000, "Bad pubkey hex", id, alloc);
-    const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-    defer alloc.free(derived_addr);
-    if (!std.mem.eql(u8, derived_addr, owner)) {
-        return errorJson(-32000, "Public key does not match owner", id, alloc);
-    }
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const last_nonce = nonceLookup(ctx, owner);
-    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
-        return errorJson(-32000, "Nonce already used", id, alloc);
-    }
-
-    if (!balanceCredit(ctx, owner, token, amount)) {
-        return errorJson(-32000, "Balance table full", id, alloc);
-    }
-    nonceSet(ctx, owner, nonce);
-
-    var jbuf: [256]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf,
-        "\"owner\":\"{s}\",\"token\":\"{s}\",\"amount\":{d},\"ts\":{d}",
-        .{ owner, token, amount, std.time.milliTimestamp() }) catch "";
-    if (jline.len > 0) usersAppendJournal(ctx, "deposit", jline);
-
-    const b = balanceLookup(ctx, owner, token).?;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"{s}\",\"available\":{d},\"locked\":{d}}}}}",
-        .{ id, owner, token, b.available_sat, b.locked_sat });
-}
 
 /// exchange_withdraw — debit internal balance. Symmetric to deposit;
 /// on mainnet the chain would also credit the user's on-chain wallet
 /// here (atomic transfer). Testnet: just debits the internal pool.
-fn handleExchangeWithdraw(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const is_paper = isPaperMode(body);
-
-    // Phase 1E: destination required for real mode (on-chain TX)
-    const destination = if (!is_paper)
-        (extractStr(body, "destination") orelse
-            return errorJson(-32602, "Missing param: destination (for real mode)", id, alloc))
-    else
-        owner;  // paper mode: withdraw to self (internal debit only)
-
-    const amount = extractArrayNumByKey(body, "amount");
-    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
-
-    // PHASE 1: REST HMAC-authenticated requests bypass ECDSA.
-    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
-    if (!is_hmac_bypass) {
-        var msg_buf: [512]u8 = undefined;
-        const msg_result = if (is_paper)
-            std.fmt.bufPrint(&msg_buf,
-                "EXCHANGE_WITHDRAW_V1\n{s}\nOMNI_DEMO\n{d}\n{d}",
-                .{ owner, amount, nonce })
-        else
-            std.fmt.bufPrint(&msg_buf,
-                "EXCHANGE_WITHDRAW_V1\n{s}\n{s}\nOMNI\n{d}\n{d}",
-                .{ owner, destination, amount, nonce });
-
-        const msg = msg_result catch
-            return errorJson(-32603, "Failed to build sign message", id, alloc);
-
-        if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-            return errorJson(-32000, "Signature verify failed", id, alloc);
-        }
-        var pk_bytes: [33]u8 = undefined;
-        _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-            return errorJson(-32000, "Bad pubkey hex", id, alloc);
-        const derived_addr = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-            return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-        defer alloc.free(derived_addr);
-        if (!std.mem.eql(u8, derived_addr, owner)) {
-            return errorJson(-32000, "Public key does not match owner", id, alloc);
-        }
-    }
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const last_nonce = nonceLookup(ctx, owner);
-    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
-        return errorJson(-32000, "Nonce already used", id, alloc);
-    }
-
-    // Phase 1E: Real mode creates on-chain TX, paper mode debits internal table
-    if (is_paper) {
-        const token = "OMNI_DEMO";
-        if (!balanceDebit(ctx, owner, token, amount)) {
-            return errorJson(-32000, "Insufficient balance", id, alloc);
-        }
-        nonceSet(ctx, owner, nonce);
-
-        var jbuf: [256]u8 = undefined;
-        const jline = std.fmt.bufPrint(&jbuf,
-            "\"owner\":\"{s}\",\"token\":\"{s}\",\"amount\":{d},\"ts\":{d}",
-            .{ owner, token, amount, std.time.milliTimestamp() }) catch "";
-        if (jline.len > 0) usersAppendJournal(ctx, "withdraw", jline);
-
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"destination\":\"{s}\",\"amount\":{d},\"status\":\"completed\"}}}}",
-            .{ id, owner, owner, amount });
-    } else {
-        // Real mode: check blockchain balance and create on-chain TX
-        const balance = ctx.bc.getAddressBalance(owner);
-        if (balance < amount) {
-            return errorJson(-32000, "Insufficient blockchain balance", id, alloc);
-        }
-
-        // Create on-chain TX: owner -> destination
-        var tx = transaction_mod.Transaction{
-            .id = @intCast(@min(ctx.bc.chain.items.len, std.math.maxInt(u32))),
-            .scheme = .omni_ecdsa,
-            .from_address = try alloc.dupe(u8, owner),
-            .to_address = try alloc.dupe(u8, destination),
-            .amount = amount,
-            .fee = 0,
-            .timestamp = std.time.milliTimestamp(),
-            .nonce = nonce,
-            .op_return = "",
-            .locktime = 0,
-            .sequence = 0xFFFFFFFF,
-            .script_pubkey = "",
-            .script_sig = "",
-            .signature = try alloc.dupe(u8, sig_hex),
-            .hash = try alloc.dupe(u8, "pending"),  // will be computed during addTransaction
-            .public_key = try alloc.dupe(u8, pubkey_hex),
-        };
-
-        // Add to blockchain
-        ctx.bc.addTransaction(tx) catch |err| {
-            alloc.free(tx.from_address);
-            alloc.free(tx.to_address);
-            alloc.free(tx.signature);
-            alloc.free(tx.hash);
-            alloc.free(tx.public_key);
-            std.debug.print("[EXCHANGE] Withdraw TX creation failed: {}\n", .{err});
-            return errorJson(-32603, "Failed to create withdraw TX", id, alloc);
-        };
-        defer {
-            alloc.free(tx.from_address);
-            alloc.free(tx.to_address);
-            alloc.free(tx.signature);
-            alloc.free(tx.hash);
-            alloc.free(tx.public_key);
-        }
-
-        nonceSet(ctx, owner, nonce);
-
-        var jbuf: [512]u8 = undefined;
-        const jline = std.fmt.bufPrint(&jbuf,
-            "\"owner\":\"{s}\",\"destination\":\"{s}\",\"amount\":{d},\"txHash\":\"{s}\",\"ts\":{d}",
-            .{ owner, destination, amount, tx.hash[0..@min(64, tx.hash.len)], std.time.milliTimestamp() }) catch "";
-        if (jline.len > 0) usersAppendJournal(ctx, "withdraw", jline);
-
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"destination\":\"{s}\",\"amount\":{d},\"txHash\":\"{s}\",\"status\":\"pending\"}}}}",
-            .{ id, owner, destination, amount, tx.hash[0..@min(64, tx.hash.len)] });
-    }
-}
 
 /// exchange_getBalance — returns single address balance with reservation info (Phase 1B).
 /// For real mode: balance from blockchain, reserved from orders.
 /// For paper mode: balance from OMNI_DEMO internal table.
-fn handleExchangeGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractStr(body, "address") orelse extractStr(body, "owner") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const is_paper = isPaperMode(body);
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    if (is_paper) {
-        const b = balanceLookup(ctx, address, "OMNI_DEMO");
-        const balance_amt = if (b) |bal| bal.available_sat else 0;
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"reserved\":0,\"available\":{d},\"mode\":\"paper\"}}}}",
-            .{ id, address, balance_amt, balance_amt });
-    } else {
-        const balance = ctx.bc.getAddressBalance(address);
-        const reserved = if (ctx.exchange) |eng|
-            computeReservedFromOrderbook(eng, address)
-        else
-            0;
-        const available = if (balance < reserved) 0 else (balance - reserved);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"balance\":{d},\"reserved\":{d},\"available\":{d},\"mode\":\"real\"}}}}",
-            .{ id, address, balance, reserved, available });
-    }
-}
 
 /// exchange_getBalances — read-only listing of balances for an owner.
 ///
@@ -10565,225 +6925,27 @@ fn handleExchangeGetBalance(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 ///
 /// Paper mode: balance comes from internal `_DEMO`-suffixed table (sandbox
 /// credits issued by exchange_depositDemo, never on-chain).
-fn handleExchangeGetBalances(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-
-    const is_paper = isPaperMode(body);
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":[");
-
-    if (is_paper) {
-        // Paper mode: walk internal table for `_DEMO`-suffixed tokens only.
-        var first = true;
-        var i: u16 = 0;
-        while (i < ctx.exstate.?.balance_count) : (i += 1) {
-            const b = &ctx.exstate.?.balances[i];
-            if (b.owner_len != owner.len) continue;
-            if (!std.mem.eql(u8, b.owner[0..b.owner_len], owner)) continue;
-            const token = b.token[0..b.token_len];
-            if (!std.mem.endsWith(u8, token, "_DEMO")) continue;
-
-            if (!first) try out.appendSlice(alloc, ",");
-            first = false;
-            try std.fmt.format(out.writer(alloc),
-                "{{\"token\":\"{s}\",\"available\":{d},\"locked\":{d}}}",
-                .{ token, b.available_sat, b.locked_sat });
-        }
-    } else {
-        // Real mode: OMNI balance from on-chain UTXO + orderbook-derived lock.
-        const balance = ctx.bc.getAddressBalance(owner);
-        const locked = if (ctx.exchange) |eng|
-            computeReservedFromOrderbook(eng, owner)
-        else
-            0;
-        const available = if (balance < locked) 0 else (balance - locked);
-        try std.fmt.format(out.writer(alloc),
-            "{{\"token\":\"OMNI\",\"available\":{d},\"locked\":{d}}}",
-            .{ available, locked });
-    }
-
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 // ── Demo / Real deposit + escrow ─────────────────────────────────────
 
 /// exchange_getEscrowAddress — return the on-chain address users send
 /// real deposits to. Always the canonical exchange.omnibus registrar
 /// wallet (slot #2). Never the local node's wallet.
-fn handleExchangeGetEscrowAddress(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const escrow = registrar_mod.addressOf(.exchange) orelse ctx.wallet.address;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"note\":\"Send OMNI to this address, then call exchange_depositReal with the txid\"}}}}",
-        .{ id, escrow });
-}
 
 
 // ── Grid trading RPC handlers ─────────────────────────────────────────────
 
 /// grid_create — pornește un grid nou pentru un owner pe o pereche.
 /// Params: { pair_id, price_low, price_high, levels, total_base, total_quote, owner }
-fn handleGridCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const pair_id_u   = extractU64Param(body, "\"pair_id\"")    orelse return errorJson(-32602, "Missing pair_id", id, alloc);
-    const price_low   = extractU64Param(body, "\"price_low\"")  orelse return errorJson(-32602, "Missing price_low", id, alloc);
-    const price_high  = extractU64Param(body, "\"price_high\"") orelse return errorJson(-32602, "Missing price_high", id, alloc);
-    const levels_u    = extractU64Param(body, "\"levels\"")     orelse return errorJson(-32602, "Missing levels", id, alloc);
-    const total_base  = extractU64Param(body, "\"total_base\"") orelse return errorJson(-32602, "Missing total_base", id, alloc);
-    const total_quote = extractU64Param(body, "\"total_quote\"") orelse return errorJson(-32602, "Missing total_quote", id, alloc);
-    const owner      = extractStr(body, "owner") orelse return errorJson(-32602, "Missing owner", id, alloc);
-
-    if (levels_u > grid_mod.MAX_LEVELS) return errorJson(-32602, "levels too large (max 100)", id, alloc);
-
-    ctx.grid_mutex.lock();
-    defer ctx.grid_mutex.unlock();
-
-    const reg = ctx.grid_registry orelse return errorJson(-32000, "Grid engine not initialized", id, alloc);
-
-    const current_block: u64 = ctx.bc.getBlockCount();
-    const grid_id = reg.create(
-        owner, @intCast(pair_id_u), price_low, price_high,
-        @intCast(levels_u), total_base, total_quote, current_block,
-    ) catch |err| return errorJson(-32000, @errorName(err), id, alloc);
-
-    // Wire grid orders into the matching engine so they appear in the orderbook.
-    if (ctx.exchange) |eng| reg.placeLevelOrders(grid_id, eng);
-
-    if (gridPathSlice(ctx)) |p| reg.saveToFile(p) catch {};
-
-    const g = reg.find(grid_id).?;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"grid_id\":{d},\"pair_id\":{d},\"levels_generated\":{d}," ++
-        "\"buy_orders\":{d},\"sell_orders\":{d},\"price_step\":{d}}}}}",
-        .{ id, grid_id, pair_id_u, @as(u32, g.levels) * 2,
-           g.levels, g.levels, g.priceStep() });
-}
 
 /// grid_list — listează grid-urile active (opțional filtrate după owner).
 /// Params: { owner? }
-fn handleGridList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const filter_owner = extractStr(body, "owner");
-
-    ctx.grid_mutex.lock();
-    defer ctx.grid_mutex.unlock();
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try std.fmt.format(out.writer(alloc), "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[", .{id});
-
-    var first = true;
-    if (ctx.grid_registry) |reg| {
-        var i: u32 = 0;
-        while (i < reg.count) : (i += 1) {
-            const g = &reg.grids[i];
-            if (filter_owner) |fo| {
-                if (!std.mem.eql(u8, g.owner[0..g.owner_len], fo)) continue;
-            }
-            if (!first) try out.appendSlice(alloc, ",");
-            first = false;
-            try grid_mod.writeGridJson(g, &out, alloc);
-        }
-    }
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 /// grid_status — detalii complete pentru un grid (inclusiv levels calculate).
 /// Params: { grid_id }
-fn handleGridStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const grid_id = extractU64Param(body, "\"grid_id\"") orelse
-        return errorJson(-32602, "Missing grid_id", id, alloc);
-
-    ctx.grid_mutex.lock();
-    defer ctx.grid_mutex.unlock();
-
-    const reg = ctx.grid_registry orelse return errorJson(-32000, "Grid engine not initialized", id, alloc);
-    const g = reg.find(grid_id) orelse return errorJson(-32602, "Grid not found", id, alloc);
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    // Open the JSON-RPC envelope and result object inline so we can append
-    // buy_levels/sell_levels INSIDE the same result object.
-    // We do NOT call writeGridJson here because that emits a complete {...} object
-    // and appending after its closing brace produces invalid JSON.
-    {
-        const w = out.writer(alloc);
-        try std.fmt.format(w,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"",
-            .{ id, g.id, g.pair_id });
-        try writeJsonSafeStr(w, g.owner[0..g.owner_len]);
-        try std.fmt.format(w,
-            "\"," ++
-            "\"price_low\":{d},\"price_high\":{d},\"levels\":{d}," ++
-            "\"total_base\":{d},\"total_quote\":{d}," ++
-            "\"filled_count\":{d},\"profit_quote\":{d},\"active\":{s}," ++
-            "\"created_block\":{d}",
-            .{
-                g.price_low, g.price_high, g.levels,
-                g.total_base, g.total_quote,
-                g.filled_count, g.profit_quote,
-                if (g.active) "true" else "false",
-                g.created_block,
-            });
-    }
-
-    // Adaugă levels calculate (still inside the result object)
-    try out.appendSlice(alloc, ",\"buy_levels\":[");
-    var lvl: u16 = 0;
-    while (lvl < g.levels) : (lvl += 1) {
-        if (lvl > 0) try out.appendSlice(alloc, ",");
-        try std.fmt.format(out.writer(alloc),
-            "{{\"level\":{d},\"price\":{d},\"amount\":{d}}}",
-            .{ lvl, g.buyPrice(lvl), g.basePerLevel() });
-    }
-    try out.appendSlice(alloc, "],\"sell_levels\":[");
-    lvl = 0;
-    while (lvl < g.levels) : (lvl += 1) {
-        if (lvl > 0) try out.appendSlice(alloc, ",");
-        try std.fmt.format(out.writer(alloc),
-            "{{\"level\":{d},\"price\":{d},\"amount\":{d}}}",
-            .{ lvl, g.sellPrice(lvl), g.basePerLevel() });
-    }
-    // Close: sell_levels array "]", result object "}", envelope "}"
-    try out.appendSlice(alloc, "]}}");
-    return alloc.dupe(u8, out.items);
-}
 
 /// grid_cancel — oprește un grid activ.
 /// Params: { grid_id, owner }
-fn handleGridCancel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const grid_id = extractU64Param(body, "\"grid_id\"") orelse
-        return errorJson(-32602, "Missing grid_id", id, alloc);
-    const owner = extractStr(body, "owner") orelse
-        return errorJson(-32602, "Missing owner", id, alloc);
-
-    ctx.grid_mutex.lock();
-    defer ctx.grid_mutex.unlock();
-
-    const reg = ctx.grid_registry orelse return errorJson(-32000, "Grid engine not initialized", id, alloc);
-    reg.cancel(grid_id, owner) catch |err| return errorJson(-32000, @errorName(err), id, alloc);
-
-    if (gridPathSlice(ctx)) |p| reg.saveToFile(p) catch {};
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"grid_id\":{d},\"cancelled\":true}}}}",
-        .{ id, grid_id });
-}
 
 fn demoQuotaLookup(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
     var i: u16 = 0;
@@ -10796,7 +6958,7 @@ fn demoQuotaLookup(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
     return null;
 }
 
-fn demoQuotaGetOrCreate(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
+pub fn demoQuotaGetOrCreate(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
     if (demoQuotaLookup(es, addr)) |q| return q;
     if (es.demo_quota_count >= es.demo_quotas.len) {
         // FIFO evict — table is small (256), eviction means heaviest user
@@ -10823,58 +6985,8 @@ fn demoQuotaGetOrCreate(es: *ExchangeState, addr: []const u8) ?*DemoQuota {
 /// max 100 OMNI / 24h rolling window). Marks the credited balance row
 /// with token "OMNI_DEMO" so demo and real money are visibly separate
 /// and never mixed when settling trades. No on-chain TX needed.
-fn handleExchangeDepositDemo(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.exstate == null) return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
 
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const amount = extractArrayNumByKey(body, "amount");
-    if (amount == 0) return errorJson(-32602, "Missing or zero: amount", id, alloc);
-    if (amount > DEMO_MAX_PER_REQUEST_SAT) {
-        return errorJson(-32000, "Demo deposit too large (max 10 OMNI per request)", id, alloc);
-    }
-    if (owner.len > 64 or owner.len < 4) return errorJson(-32602, "Bad owner address", id, alloc);
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const es = ctx.exstate.?;
-    const now_ms = std.time.milliTimestamp();
-    const q = demoQuotaGetOrCreate(es, owner) orelse
-        return errorJson(-32000, "Demo quota table full", id, alloc);
-
-    // Reset the rolling window if it's been 24h since first grant.
-    if (now_ms - q.window_start_ms > DEMO_WINDOW_MS) {
-        q.granted_sat = 0;
-        q.window_start_ms = now_ms;
-    }
-    if (q.granted_sat + amount > DEMO_MAX_PER_24H_SAT) {
-        const remaining = if (q.granted_sat >= DEMO_MAX_PER_24H_SAT) 0
-            else DEMO_MAX_PER_24H_SAT - q.granted_sat;
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32000,\"message\":\"Daily demo limit reached. {d} SAT remaining in this 24h window.\"}}}}",
-            .{ id, remaining });
-    }
-
-    if (!balanceCredit(ctx, owner, "OMNI_DEMO", amount)) {
-        return errorJson(-32000, "Balance table full", id, alloc);
-    }
-    q.granted_sat += amount;
-
-    var jbuf: [256]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf,
-        "\"owner\":\"{s}\",\"token\":\"OMNI_DEMO\",\"amount\":{d},\"ts\":{d}",
-        .{ owner, amount, now_ms }) catch "";
-    if (jline.len > 0) usersAppendJournal(ctx, "deposit", jline);
-
-    const b = balanceLookup(ctx, owner, "OMNI_DEMO").?;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"OMNI_DEMO\",\"amount\":{d},\"available\":{d},\"locked\":{d},\"granted24h\":{d},\"max24h\":{d},\"kind\":\"demo\"}}}}",
-        .{ id, owner, amount, b.available_sat, b.locked_sat, q.granted_sat, DEMO_MAX_PER_24H_SAT });
-}
-
-fn realDepositTxidUsed(es: *ExchangeState, txid: []const u8) bool {
+pub fn realDepositTxidUsed(es: *ExchangeState, txid: []const u8) bool {
     if (txid.len != 64) return false;
     var i: u16 = 0;
     while (i < es.real_deposit_count) : (i += 1) {
@@ -10883,7 +6995,7 @@ fn realDepositTxidUsed(es: *ExchangeState, txid: []const u8) bool {
     return false;
 }
 
-fn realDepositTxidRecord(es: *ExchangeState, txid: []const u8) bool {
+pub fn realDepositTxidRecord(es: *ExchangeState, txid: []const u8) bool {
     if (txid.len != 64) return false;
     if (es.real_deposit_count >= es.real_deposit_txids.len) {
         // Shift FIFO out
@@ -10904,87 +7016,6 @@ fn realDepositTxidRecord(es: *ExchangeState, txid: []const u8) bool {
 /// address. Idempotent (each txid usable exactly once). The credited
 /// row uses token "OMNI" (real money) so trades against demo balances
 /// can be kept separate.
-fn handleExchangeDepositReal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.exstate == null) return errorJson(-32601, "Exchange not enabled on this node", id, alloc);
-
-    const owner = extractStr(body, "owner") orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const txid = extractStr(body, "txid") orelse extractStr(body, "txHash") orelse
-        return errorJson(-32602, "Missing param: txid", id, alloc);
-    if (txid.len != 64) return errorJson(-32602, "txid must be 64 hex chars", id, alloc);
-
-    const escrow = ctx.wallet.address;
-
-    // Look the TX up on-chain. Mirrors handleGetTx logic — same indexes.
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    var found_tx: ?transaction_mod.Transaction = null;
-    var confirmations: u64 = 0;
-    if (ctx.bc.tx_block_height.get(txid)) |bh| {
-        if (bh < ctx.bc.chain.items.len) {
-            const blk = ctx.bc.chain.items[bh];
-            for (blk.transactions.items) |tx| {
-                if (std.mem.eql(u8, tx.hash, txid)) {
-                    found_tx = tx;
-                    const tip: u64 = @intCast(ctx.bc.chain.items.len);
-                    confirmations = if (tip > bh) tip - bh else 0;
-                    break;
-                }
-            }
-        }
-    }
-    if (found_tx == null) {
-        // Linear scan fallback — older TXs not in index.
-        outer: for (ctx.bc.chain.items) |blk| {
-            for (blk.transactions.items) |tx| {
-                if (std.mem.eql(u8, tx.hash, txid)) {
-                    found_tx = tx;
-                    const tip: u64 = @intCast(ctx.bc.chain.items.len);
-                    const bh: u64 = @intCast(blk.index);
-                    confirmations = if (tip > bh) tip - bh else 0;
-                    break :outer;
-                }
-            }
-        }
-    }
-    const tx = found_tx orelse return errorJson(-32000, "Transaction not found in chain (still pending? wait for confirmation)", id, alloc);
-
-    if (!std.mem.eql(u8, tx.from_address, owner)) {
-        return errorJson(-32000, "TX sender does not match owner address", id, alloc);
-    }
-    if (!std.mem.eql(u8, tx.to_address, escrow)) {
-        return errorJson(-32000, "TX recipient is not the exchange escrow address", id, alloc);
-    }
-    if (confirmations < 1) {
-        return errorJson(-32000, "TX not yet confirmed (need >= 1 block)", id, alloc);
-    }
-
-    ctx.exchange_mutex.lock();
-    defer ctx.exchange_mutex.unlock();
-
-    const es = ctx.exstate.?;
-    if (realDepositTxidUsed(es, txid)) {
-        return errorJson(-32000, "This txid has already been credited", id, alloc);
-    }
-
-    if (!balanceCredit(ctx, owner, "OMNI", tx.amount)) {
-        return errorJson(-32000, "Balance table full", id, alloc);
-    }
-    _ = realDepositTxidRecord(es, txid);
-
-    var jbuf: [320]u8 = undefined;
-    const jline = std.fmt.bufPrint(&jbuf,
-        "\"owner\":\"{s}\",\"token\":\"OMNI\",\"amount\":{d},\"txid\":\"{s}\",\"ts\":{d}",
-        .{ owner, tx.amount, txid, std.time.milliTimestamp() }) catch "";
-    if (jline.len > 0) usersAppendJournal(ctx, "deposit", jline);
-
-    const b = balanceLookup(ctx, owner, "OMNI").?;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"owner\":\"{s}\",\"token\":\"OMNI\",\"amount\":{d},\"available\":{d},\"locked\":{d},\"txid\":\"{s}\",\"confirmations\":{d},\"kind\":\"real\"}}}}",
-        .{ id, owner, tx.amount, b.available_sat, b.locked_sat, txid, confirmations });
-}
 
 // ── Identity (public name / ENS pref / visibility) ────────────────────
 //
