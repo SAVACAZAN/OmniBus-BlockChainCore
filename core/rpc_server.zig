@@ -80,6 +80,8 @@ const rpc_wallet_advanced = @import("rpc/wallet_advanced.zig");
 const rpc_escrow = @import("rpc/escrow.zig");
 const rpc_notarize = @import("rpc/notarize.zig");
 const rpc_subscription = @import("rpc/subscription.zig");
+const rpc_ns = @import("rpc/ns.zig");
+const rpc_identity = @import("rpc/identity.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 // Process-global cross-chain oracle. Validators populate this via
@@ -3759,25 +3761,25 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getrichlist"))      return handleRichList(body, ctx, id);
     if (std.mem.eql(u8, method, "getchainmetrics"))  return rpc_chain.handleChainMetrics(ctx, id);
     if (std.mem.eql(u8, method, "getschemestats"))   return handleSchemeStats(body, ctx, id);
-    if (std.mem.eql(u8, method, "registername"))     return handleRegisterName(body, ctx, id);
-    if (std.mem.eql(u8, method, "transfername"))     return handleTransferName(body, ctx, id);
-    if (std.mem.eql(u8, method, "updatename"))       return handleUpdateName(body, ctx, id);
-    if (std.mem.eql(u8, method, "renewname"))        return handleRenewName(body, ctx, id);
-    if (std.mem.eql(u8, method, "resolvename"))      return handleResolveName(body, ctx, id);
-    if (std.mem.eql(u8, method, "ns_resolveforsend")) return handleResolveForSend(body, ctx, id);
-    if (std.mem.eql(u8, method, "reverseresolvename")) return handleReverseResolveName(body, ctx, id);
-    if (std.mem.eql(u8, method, "listnames"))        return handleListNames(body, ctx, id);
-    if (std.mem.eql(u8, method, "getensfee"))        return handleGetEnsFee(body, ctx, id);
-    if (std.mem.eql(u8, method, "ns_listTlds"))      return handleNsListTlds(ctx, id);
-    if (std.mem.eql(u8, method, "ns_yearTiers"))     return handleNsYearTiers(ctx, id);
-    if (std.mem.eql(u8, method, "ns_stats"))         return handleNsStats(ctx, id);
-    if (std.mem.eql(u8, method, "ns_expiringSoon"))  return handleNsExpiringSoon(body, ctx, id);
-    if (std.mem.eql(u8, method, "ns_pruneExpired"))  return handleNsPruneExpired(ctx, id);
+    if (std.mem.eql(u8, method, "registername"))     return rpc_ns.handleRegisterName(body, ctx, id);
+    if (std.mem.eql(u8, method, "transfername"))     return rpc_ns.handleTransferName(body, ctx, id);
+    if (std.mem.eql(u8, method, "updatename"))       return rpc_ns.handleUpdateName(body, ctx, id);
+    if (std.mem.eql(u8, method, "renewname"))        return rpc_ns.handleRenewName(body, ctx, id);
+    if (std.mem.eql(u8, method, "resolvename"))      return rpc_ns.handleResolveName(body, ctx, id);
+    if (std.mem.eql(u8, method, "ns_resolveforsend")) return rpc_ns.handleResolveForSend(body, ctx, id);
+    if (std.mem.eql(u8, method, "reverseresolvename")) return rpc_ns.handleReverseResolveName(body, ctx, id);
+    if (std.mem.eql(u8, method, "listnames"))        return rpc_ns.handleListNames(body, ctx, id);
+    if (std.mem.eql(u8, method, "getensfee"))        return rpc_ns.handleGetEnsFee(body, ctx, id);
+    if (std.mem.eql(u8, method, "ns_listTlds"))      return rpc_ns.handleNsListTlds(ctx, id);
+    if (std.mem.eql(u8, method, "ns_yearTiers"))     return rpc_ns.handleNsYearTiers(ctx, id);
+    if (std.mem.eql(u8, method, "ns_stats"))         return rpc_ns.handleNsStats(ctx, id);
+    if (std.mem.eql(u8, method, "ns_expiringSoon"))  return rpc_ns.handleNsExpiringSoon(body, ctx, id);
+    if (std.mem.eql(u8, method, "ns_pruneExpired"))  return rpc_ns.handleNsPruneExpired(ctx, id);
     // Phase 2 NS — multi-address per name + category badges
-    if (std.mem.eql(u8, method, "setpqaddress"))     return handleSetPqAddress(body, ctx, id);
-    if (std.mem.eql(u8, method, "setcategory"))      return handleSetCategory(body, ctx, id);
-    if (std.mem.eql(u8, method, "setpreferredslot")) return handleSetPreferredSlot(body, ctx, id);
-    if (std.mem.eql(u8, method, "getnamesbycategory")) return handleGetNamesByCategory(body, ctx, id);
+    if (std.mem.eql(u8, method, "setpqaddress"))     return rpc_ns.handleSetPqAddress(body, ctx, id);
+    if (std.mem.eql(u8, method, "setcategory"))      return rpc_ns.handleSetCategory(body, ctx, id);
+    if (std.mem.eql(u8, method, "setpreferredslot")) return rpc_ns.handleSetPreferredSlot(body, ctx, id);
+    if (std.mem.eql(u8, method, "getnamesbycategory")) return rpc_ns.handleGetNamesByCategory(body, ctx, id);
     if (std.mem.eql(u8, method, "sendrawtransaction")) return handleSendRawTx(body, ctx, id);
 
     // ── Native DEX (matching engine on-chain) ───────────────────────────
@@ -3883,17 +3885,17 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getproposal"))      return rpc_governance.handleGetProposal(body, ctx, id);
 
     // ── Identity Hub ──────────────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "getidentity"))      return handleGetIdentity(body, ctx, id);
+    if (std.mem.eql(u8, method, "getidentity"))      return rpc_identity.handleGetIdentity(body, ctx, id);
 
     // ── Identity (public nickname + ENS-pref + visibility) ─────────────
-    if (std.mem.eql(u8, method, "identity_set"))    return handleIdentitySet(body, ctx, id);
-    if (std.mem.eql(u8, method, "identity_get"))    return handleIdentityGet(body, ctx, id);
-    if (std.mem.eql(u8, method, "identity_search")) return handleIdentitySearch(body, ctx, id);
+    if (std.mem.eql(u8, method, "identity_set"))    return rpc_identity.handleIdentitySet(body, ctx, id);
+    if (std.mem.eql(u8, method, "identity_get"))    return rpc_identity.handleIdentityGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "identity_search")) return rpc_identity.handleIdentitySearch(body, ctx, id);
 
     // ── KYC (signed attestations, no PII on chain) ─────────────────────
-    if (std.mem.eql(u8, method, "kyc_getStatus"))   return handleKycGetStatus(body, ctx, id);
-    if (std.mem.eql(u8, method, "kyc_attest"))      return handleKycAttest(body, ctx, id);
-    if (std.mem.eql(u8, method, "kyc_listIssuers")) return handleKycListIssuers(ctx, id);
+    if (std.mem.eql(u8, method, "kyc_getStatus"))   return rpc_identity.handleKycGetStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "kyc_attest"))      return rpc_identity.handleKycAttest(body, ctx, id);
+    if (std.mem.eql(u8, method, "kyc_listIssuers")) return rpc_identity.handleKycListIssuers(ctx, id);
     // generatewallet disabled — causes stack overflow on RPC thread
     // Use seed node address derivation instead
     if (std.mem.eql(u8, method, "generatewallet"))  return errorJson(-32601, "Use CLI wallet generation", id, alloc);
@@ -3991,19 +3993,19 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
 
     // ── AI Agent endpoints (consumate de clientul Python/Rust extern) ───
     if (std.mem.eql(u8, method, "agent_list"))              return handleAgentList(ctx, id);
-    if (std.mem.eql(u8, method, "getreputation"))           return handleGetReputation(body, ctx, id);
-    if (std.mem.eql(u8, method, "getreputationtop"))        return handleGetReputationTop(body, ctx, id);
-    if (std.mem.eql(u8, method, "getdid"))                  return handleGetDid(body, ctx, id);
-    if (std.mem.eql(u8, method, "getobm"))                  return handleGetObm(body, ctx, id);
-    if (std.mem.eql(u8, method, "getfacets"))               return handleGetFacets(body, ctx, id);
-    if (std.mem.eql(u8, method, "profile_init"))            return handleProfileInit(body, ctx, id);
-    if (std.mem.eql(u8, method, "profile_update"))          return handleProfileUpdate(body, ctx, id);
-    if (std.mem.eql(u8, method, "profile_get"))             return handleProfileGet(body, ctx, id);
-    if (std.mem.eql(u8, method, "mica_attest"))             return handleMicaAttest(body, ctx, id);
-    if (std.mem.eql(u8, method, "mica_disclose"))           return handleMicaDisclose(body, ctx, id);
-    if (std.mem.eql(u8, method, "disclose_post"))           return handleDisclosePost(body, ctx, id);
-    if (std.mem.eql(u8, method, "disclose_cert"))           return handleDiscloseCert(body, ctx, id);
-    if (std.mem.eql(u8, method, "disclose_work"))           return handleDiscloseWork(body, ctx, id);
+    if (std.mem.eql(u8, method, "getreputation"))           return rpc_identity.handleGetReputation(body, ctx, id);
+    if (std.mem.eql(u8, method, "getreputationtop"))        return rpc_identity.handleGetReputationTop(body, ctx, id);
+    if (std.mem.eql(u8, method, "getdid"))                  return rpc_identity.handleGetDid(body, ctx, id);
+    if (std.mem.eql(u8, method, "getobm"))                  return rpc_identity.handleGetObm(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfacets"))               return rpc_identity.handleGetFacets(body, ctx, id);
+    if (std.mem.eql(u8, method, "profile_init"))            return rpc_identity.handleProfileInit(body, ctx, id);
+    if (std.mem.eql(u8, method, "profile_update"))          return rpc_identity.handleProfileUpdate(body, ctx, id);
+    if (std.mem.eql(u8, method, "profile_get"))             return rpc_identity.handleProfileGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "mica_attest"))             return rpc_identity.handleMicaAttest(body, ctx, id);
+    if (std.mem.eql(u8, method, "mica_disclose"))           return rpc_identity.handleMicaDisclose(body, ctx, id);
+    if (std.mem.eql(u8, method, "disclose_post"))           return rpc_identity.handleDisclosePost(body, ctx, id);
+    if (std.mem.eql(u8, method, "disclose_cert"))           return rpc_identity.handleDiscloseCert(body, ctx, id);
+    if (std.mem.eql(u8, method, "disclose_work"))           return rpc_identity.handleDiscloseWork(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_status"))            return handleAgentStatus(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_pending_decisions")) return handleAgentPendingDecisions(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_report_execution"))  return handleAgentReportExecution(body, ctx, id);
@@ -4053,8 +4055,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "agent_follow"))      return handleAgentFollow(body, ctx, id);
     if (std.mem.eql(u8, method, "getagents"))         return handleGetAgents(body, ctx, id);
     if (std.mem.eql(u8, method, "getagent"))          return handleGetAgent(body, ctx, id);
-    if (std.mem.eql(u8, method, "getreputation"))     return handleGetReputation(body, ctx, id);
-    if (std.mem.eql(u8, method, "getreputationtop"))  return handleGetReputationTop(body, ctx, id);
+    if (std.mem.eql(u8, method, "getreputation"))     return rpc_identity.handleGetReputation(body, ctx, id);
+    if (std.mem.eql(u8, method, "getreputationtop"))  return rpc_identity.handleGetReputationTop(body, ctx, id);
 
     return errorJson(-32601, "Method not found", id, alloc);
 }
@@ -4757,220 +4759,7 @@ fn handleSchemeStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // Registration is permissionless on testnet (no fee enforced yet) so the
 // stress-test scripts can populate it freely.
 
-fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
 
-    const name = extractArrayStr(body, 0) orelse extractStr(body, "name") orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    const address = extractArrayStr(body, 1) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    // Owner defaults to the address being registered (self-ownership).
-    const owner = extractArrayStr(body, 2) orelse extractStr(body, "owner") orelse address;
-    // TLD optional — default "omnibus" (backward compat).
-    const tld = extractArrayStr(body, 3) orelse extractStr(body, "tld") orelse "omnibus";
-    // Fee txid optional — param[4] sau key "fee_txid".
-    const fee_txid = extractArrayStr(body, 4) orelse extractStr(body, "fee_txid") orelse null;
-    // Phase 2: years tier (1, 2, 3, 4, 5, 10, 25, 50, 100). Default 1.
-    const years_raw = extractArrayNumByKey(body, "years");
-    const years: u32 = if (years_raw == 0) 1 else @intCast(@min(years_raw, dns_mod.MAX_REGISTRATION_YEARS));
-    if (!dns_mod.isValidYears(years)) {
-        return errorJson(-32602, "Invalid years (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)", id, alloc);
-    }
-
-    // Phase 1: optional signature params (param[5..7] sau keys).
-    const nonce = extractArrayNumByKey(body, "nonce");
-    const sig_hex = extractStr(body, "signature") orelse "";
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
-
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    // Sybil-resistant fee: scales with how many names `owner` already holds
-    // (cheap for first-time registrants, progressively expensive for bulk
-    // squatters). Owner count snapshotted at current_block, before this TX.
-    const owner_count = dns.countNamesOwnedBy(owner, current_block);
-    const required_fee = dns_mod.feeForRegistrationWithOwnerCount(name, tld, years, owner_count);
-
-    // Phase 1: signature verification when signed_required is true.
-    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
-    if (dns.signed_required) {
-        if (sig_hex.len == 0 or (pubkey_hex.len == 0 and !is_hmac_bypass)) {
-            return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
-        }
-        if (!is_hmac_bypass) {
-            var msg_buf: [512]u8 = undefined;
-            const msg = buildDnsRegisterSignMessage(name, tld, address, owner, nonce, &msg_buf) catch
-                return errorJson(-32603, "Failed to build sign message", id, alloc);
-            if (!verifyDnsSignature(msg, sig_hex, pubkey_hex, owner, alloc)) {
-                return errorJson(-32401, "Signing pubkey does not match owner address", id, alloc);
-            }
-        }
-    }
-
-    // Fee enforcement
-    if (dns.fee_enforcement) {
-        const txid = fee_txid orelse
-            return errorJson(-32602, "fee_txid required (mainnet)", id, alloc);
-        if (txid.len != dns_mod.TXID_LEN) {
-            return errorJson(-32031, "fee TX invalid: txid must be 64 hex chars", id, alloc);
-        }
-        if (dns.isTxidConsumed(txid)) {
-            return errorJson(-32031, "fee TX invalid: txid already used", id, alloc);
-        }
-
-        // Cauta TX in chain (confirmed blocks)
-        var found_tx: ?*const transaction_mod.Transaction = null;
-        ctx.bc.mutex.lock();
-        for (ctx.bc.chain.items) |blk| {
-            for (blk.transactions.items) |*tx| {
-                if (std.mem.eql(u8, tx.hash, txid)) {
-                    found_tx = tx;
-                    break;
-                }
-            }
-            if (found_tx != null) break;
-        }
-        ctx.bc.mutex.unlock();
-
-        const tx = found_tx orelse
-            return errorJson(-32031, "fee TX invalid: transaction not found in chain", id, alloc);
-
-        const treasury = dns.getTreasury();
-        if (!std.mem.eql(u8, tx.to_address, treasury)) {
-            return errorJson(-32031, "fee TX invalid: destination is not treasury", id, alloc);
-        }
-        if (tx.amount < required_fee) {
-            return errorJson(-32031, "fee TX invalid: amount too low", id, alloc);
-        }
-    }
-
-    dns.registerWithTldYearsAndFee(name, tld, address, owner, current_block, fee_txid, years) catch |err| {
-        const msg: []const u8 = switch (err) {
-            error.InvalidName     => "Invalid name (3-25 chars, lowercase a-z 0-9 _, must start with letter)",
-            error.InvalidTld      => "Invalid TLD (allowed: omnibus, arbitraje, quantum, bank, gov, mil, fin, edu, org, dev)",
-            error.NameTaken       => "Name already taken on this TLD",
-            error.NameTakenCrossTld => "Name already held by another owner on a different TLD (cross-TLD uniqueness — anti-squatting)",
-            error.InvalidYears    => "Invalid years tier (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)",
-            error.RegistryFull    => "Registry full",
-            error.FeeRequired     => "Fee required",
-            error.InvalidTxid     => "Invalid txid",
-            error.TxidAlreadyUsed => "Txid already used",
-            error.ConsumedTxidsFull => "Consumed txids full",
-            error.ReservedName    => "Reserved name",
-            error.OwnerCapExceeded => "Per-owner name cap exceeded (max 10)",
-        };
-        return errorJson(-32031, msg, id, alloc);
-    };
-
-    // Update last_nonce on the newly created entry.
-    if (dns.lookupEntry(name, tld)) |e| {
-        e.last_nonce = nonce;
-    }
-
-    std.debug.print("[DNS] Registered '{s}.{s}' -> {s}\n",
-        .{ name[0..@min(name.len, 25)], tld[0..@min(tld.len, 16)], address[0..@min(address.len, 16)] });
-
-    const fee_paid_sat: u64 = if (fee_txid) |_| required_fee else 0;
-    const fee_txid_esc = fee_txid orelse "";
-
-    // Audit log
-    var audit_buf: [1024]u8 = undefined;
-    const audit_fields = std.fmt.bufPrint(&audit_buf,
-        "\"name\":\"{s}\",\"tld\":\"{s}\",\"address\":\"{s}\",\"owner\":\"{s}\",\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\",\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"",
-        .{ name, tld, address, owner, nonce, pubkey_hex, sig_hex, fee_paid_sat, fee_txid_esc }) catch "";
-    if (audit_fields.len > 0) dnsAuditAppend(ctx, "register", audit_fields);
-
-    // WS push — frontend name-list refreshes without polling.
-    if (main_mod.g_ws_srv) |ws| {
-        ws.broadcastNameRegistered(name, tld, address, @intCast(@min(years, 255)));
-    }
-
-    {
-        const rn_safe = try jsonSanitize(alloc, name);
-        defer alloc.free(rn_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"}}}}",
-            .{ id, rn_safe, tld, rn_safe, tld, address, current_block, fee_paid_sat, fee_txid_esc });
-    }
-}
-
-fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-
-    var name = extractArrayStr(body, 0) orelse extractStr(body, "name") orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    // Tolerant: strip the TLD suffix if user includes it (UI typically
-    // displays "alice.omnibus" or "alice.bank" — Phase 2 extends to all 10).
-    var tld_from_name: ?[]const u8 = null;
-    inline for (.{
-        ".omnibus", ".arbitraje", ".quantum", ".bank", ".gov",
-        ".mil", ".fin", ".edu", ".org", ".dev",
-    }) |suffix| {
-        if (name.len > suffix.len and std.mem.eql(u8, name[name.len - suffix.len ..], suffix)) {
-            tld_from_name = suffix[1..]; // drop leading dot
-            name = name[0 .. name.len - suffix.len];
-            break;
-        }
-    }
-    // Explicit `tld` param overrides; else use the one stripped from the name; else default.
-    const tld = extractArrayStr(body, 1) orelse extractStr(body, "tld") orelse
-        (tld_from_name orelse "omnibus");
-
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    // Phase 2: lookup the full entry (not just the address) so we can
-    // surface category, PQ slots, preferred slot, and registered_years.
-    const name_safe = try jsonSanitize(alloc, name);
-    defer alloc.free(name_safe);
-    const entry = dns.lookupEntry(name, tld);
-    if (entry) |e| {
-        if (e.active and !e.isExpired(current_block)) {
-            // Pull each PQ slot — empty slot returns the primary as fallback,
-            // so JS sees a usable address either way. Mark `*_set` so the UI
-            // can still render "not configured" badges where appropriate.
-            const pq_k = e.getPqAddress(.ml_dsa);
-            const pq_f = e.getPqAddress(.falcon);
-            const pq_s = e.getPqAddress(.dilithium);
-            const pq_d = e.getPqAddress(.slh_dsa);
-            return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-                    "\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
-                    "\"address\":\"{s}\"," ++  // primary (legacy field)
-                    "\"addresses\":{{" ++
-                        "\"primary\":\"{s}\"," ++
-                        "\"k\":\"{s}\",\"k_set\":{}," ++
-                        "\"f\":\"{s}\",\"f_set\":{}," ++
-                        "\"s\":\"{s}\",\"s_set\":{}," ++
-                        "\"d\":\"{s}\",\"d_set\":{}" ++
-                    "}}," ++
-                    "\"category\":\"{s}\"," ++
-                    "\"preferred_slot\":{d}," ++
-                    "\"registered_years\":{d}," ++
-                    "\"registered_block\":{d}," ++
-                    "\"expires_block\":{d}," ++
-                    "\"found\":true" ++
-                "}}}}",
-                .{
-                    id, name_safe, tld, name_safe, tld,
-                    e.getAddress(),
-                    e.getAddress(),
-                    pq_k, e.addr_pq_lens[0] > 0,
-                    pq_f, e.addr_pq_lens[1] > 0,
-                    pq_s, e.addr_pq_lens[2] > 0,
-                    pq_d, e.addr_pq_lens[3] > 0,
-                    e.category.toString(),
-                    e.preferred_slot,
-                    e.registered_years,
-                    e.registered_block,
-                    e.expires_block,
-                });
-        }
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":null,\"found\":false}}}}",
-        .{ id, name_safe, tld, name_safe, tld });
-}
 
 /// Phase 2 send-routing helper — closes the loop on `preferred_slot`.
 ///
@@ -4997,590 +4786,42 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// When `preferred_slot == 0` or the corresponding PQ slot is unset, the chain
 /// falls back to the primary ECDSA address and `route_slot == 0`. Default
 /// behavior is therefore unchanged for legacy entries.
-fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
 
-    var name = extractArrayStr(body, 0) orelse extractStr(body, "name") orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    // Mirror `resolvename` tolerance — accept "alice.bank" or just "alice".
-    var tld_from_name: ?[]const u8 = null;
-    inline for (.{
-        ".omnibus", ".arbitraje", ".quantum", ".bank", ".gov",
-        ".mil", ".fin", ".edu", ".org", ".dev",
-    }) |suffix| {
-        if (name.len > suffix.len and std.mem.eql(u8, name[name.len - suffix.len ..], suffix)) {
-            tld_from_name = suffix[1..];
-            name = name[0 .. name.len - suffix.len];
-            break;
-        }
-    }
-    const tld = extractArrayStr(body, 1) orelse extractStr(body, "tld") orelse
-        (tld_from_name orelse "omnibus");
 
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const entry = dns.lookupEntry(name, tld);
-    if (entry) |e| {
-        if (e.active and !e.isExpired(current_block)) {
-            const primary = e.getAddress();
-            var route_slot: u8 = 0;
-            var route_addr: []const u8 = primary;
-            var route_kind: []const u8 = "ecdsa";
-            var fell_back: bool = false;
 
-            if (e.preferred_slot >= 1 and e.preferred_slot <= dns_mod.PQ_SLOT_COUNT) {
-                const idx = e.preferred_slot - 1;
-                if (e.addr_pq_lens[idx] > 0) {
-                    route_slot = e.preferred_slot;
-                    route_addr = e.addr_pq[idx][0..e.addr_pq_lens[idx]];
-                    route_kind = switch (idx) {
-                        0 => "ml_dsa",
-                        1 => "falcon",
-                        2 => "dilithium",
-                        3 => "slh_dsa",
-                        else => "ecdsa",
-                    };
-                } else {
-                    // Owner declared a preference but never populated the slot;
-                    // wallet falls through to ECDSA so the TX still lands.
-                    fell_back = true;
-                }
-            }
-
-            const rfs_safe = try jsonSanitize(alloc, name);
-            defer alloc.free(rfs_safe);
-            return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-                    "\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
-                    "\"primary_address\":\"{s}\"," ++
-                    "\"route_slot\":{d}," ++
-                    "\"route_address\":\"{s}\"," ++
-                    "\"route_address_kind\":\"{s}\"," ++
-                    "\"preferred_slot\":{d}," ++
-                    "\"fell_back_to_primary\":{}," ++
-                    "\"found\":true" ++
-                "}}}}",
-                .{
-                    id, rfs_safe, tld, rfs_safe, tld,
-                    primary,
-                    route_slot,
-                    route_addr,
-                    route_kind,
-                    e.preferred_slot,
-                    fell_back,
-                });
-        }
-    }
-    {
-        const rfs_nf = try jsonSanitize(alloc, name);
-        defer alloc.free(rfs_nf);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
-                "\"primary_address\":null,\"route_slot\":0,\"route_address\":null," ++
-                "\"route_address_kind\":\"ecdsa\",\"preferred_slot\":0," ++
-                "\"fell_back_to_primary\":false,\"found\":false}}}}",
-            .{ id, rfs_nf, tld, rfs_nf, tld });
-    }
-}
-
-fn handleReverseResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-
-    const address = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const found = dns.reverseResolve(address, current_block);
-
-    if (found) |name| {
-        const rr_safe = try jsonSanitize(alloc, name);
-        defer alloc.free(rr_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":\"{s}\",\"found\":true}}}}",
-            .{ id, address, rr_safe });
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":null,\"found\":false}}}}",
-        .{ id, address });
-}
-
-fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-    _ = body;
-
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-
-    var json = std.array_list.Managed(u8).init(alloc);
-    errdefer json.deinit();
-    var w = json.writer();
-
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"entries\":[", .{id});
-
-    var first = true;
-    var active_count: usize = 0;
-    for (dns.entries[0..dns.entry_count]) |*e| {
-        if (!e.active or e.isExpired(current_block)) continue;
-        if (!first) try w.writeAll(",");
-        first = false;
-        try w.writeAll("{\"name\":\"");
-        try writeJsonSafeStr(w, e.getName());
-        try w.print(
-            "\",\"tld\":\"{s}\",\"fullLabel\":\"",
-            .{e.getTld()},
-        );
-        try writeJsonSafeStr(w, e.getName());
-        try w.print(
-            ".{s}\",\"address\":\"{s}\",\"category\":\"{s}\"," ++
-                "\"preferred_slot\":{d},\"registered_years\":{d}," ++
-                "\"registeredAtBlock\":{d},\"expiresAtBlock\":{d}}}",
-            .{
-                e.getTld(), e.getAddress(),
-                e.category.toString(), e.preferred_slot, e.registered_years,
-                e.registered_block, e.expires_block,
-            },
-        );
-        active_count += 1;
-    }
-
-    try w.print("],\"total\":{d}}}}}", .{active_count});
-    return json.toOwnedSlice();
-}
-
-fn handleGetEnsFee(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    // Name registration PRICE — same on every chain. This is what the user
-    // pays to claim the name (think domain-registrar pricing, not gas fee).
-    // The TX-level network fee is separate and tiny (TX_MIN_FEE_SAT).
-    //
-    // Optional `owner_address` (param[0] or key) — when provided, returns
-    // the Sybil progressive multiplier the owner currently faces (1.0× for
-    // 0 names, 2.0× at 5 names, 3.0× at 10, etc.). Without it, multiplier
-    // defaults to 1.0× (base price). Frontend wallet UI passes the
-    // connected address so the displayed price matches what the chain
-    // will actually charge.
-    if (ctx.dns == null) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"\",\"enforcement\":false,\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10,\"owner_count\":0,\"sybil_multiplier_milli\":1000}}}}",
-            .{id});
-    }
-    const dns = ctx.dns.?;
-    const treasury = dns.getTreasury();
-
-    var owner_count: usize = 0;
-    var multiplier_milli: u64 = 1000;
-    if (extractArrayStr(body, 0) orelse extractStr(body, "owner_address")) |owner_addr| {
-        if (owner_addr.len > 0) {
-            const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-            owner_count = dns.countNamesOwnedBy(owner_addr, current_block);
-            multiplier_milli = dns_mod.sybilFeeMultiplierMilli(owner_count);
-        }
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury\":\"{s}\",\"enforcement\":{},\"cost_omnibus_omni\":5,\"cost_arbitraje_omni\":10,\"owner_count\":{d},\"sybil_multiplier_milli\":{d}}}}}",
-        .{ id, treasury, dns.fee_enforcement, owner_count, multiplier_milli });
-}
 
 /// ns_listTlds — read-only. Returneaza toate TLD-urile permise + fee-uri
 /// pentru auto-discovery la wallet UI / SDK. Equivalent cu pq_listSchemes
 /// dar pentru namespace.
-fn handleNsListTlds(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    // Hardcoded list — must mirror dns_mod.ALLOWED_TLDS exactly.
-    // Each entry: {tld, fee_sat (raw), fee_omni (display), category, mainnet_fee_omni}
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[" ++
-            "{{\"tld\":\"omnibus\",\"fee_sat\":5000000000,\"fee_omni\":\"5\",\"category\":\"personal\",\"mainnet_fee_omni\":5}}," ++
-            "{{\"tld\":\"arbitraje\",\"fee_sat\":10000000000,\"fee_omni\":\"10\",\"category\":\"trading\",\"mainnet_fee_omni\":10}}," ++
-            "{{\"tld\":\"quantum\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"premium_personal\",\"mainnet_fee_omni\":10}}," ++
-            "{{\"tld\":\"bank\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"financial_institution\",\"mainnet_fee_omni\":50}}," ++
-            "{{\"tld\":\"gov\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"government\",\"mainnet_fee_omni\":100}}," ++
-            "{{\"tld\":\"mil\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"military\",\"mainnet_fee_omni\":50}}," ++
-            "{{\"tld\":\"fin\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"financial_trustee\",\"mainnet_fee_omni\":50}}," ++
-            "{{\"tld\":\"edu\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"academic\",\"mainnet_fee_omni\":20}}," ++
-            "{{\"tld\":\"org\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"non_profit\",\"mainnet_fee_omni\":10}}," ++
-            "{{\"tld\":\"dev\",\"fee_sat\":1000000,\"fee_omni\":\"0.001\",\"category\":\"developer\",\"mainnet_fee_omni\":5}}" ++
-        "]}}",
-        .{id});
-}
 
 /// ns_yearTiers — read-only. Returns the allowed registration durations
 /// (years) and their fee multipliers. Wallet UI uses this to render the
 /// "register for X years" dropdown without hardcoding the table.
-fn handleNsYearTiers(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[" ++
-            "{{\"years\":1,\"multiplier\":1.000,\"per_year_pct\":100}}," ++
-            "{{\"years\":2,\"multiplier\":1.900,\"per_year_pct\":95}}," ++
-            "{{\"years\":3,\"multiplier\":2.800,\"per_year_pct\":93}}," ++
-            "{{\"years\":4,\"multiplier\":3.700,\"per_year_pct\":92}}," ++
-            "{{\"years\":5,\"multiplier\":4.500,\"per_year_pct\":90}}," ++
-            "{{\"years\":10,\"multiplier\":8.000,\"per_year_pct\":80}}," ++
-            "{{\"years\":25,\"multiplier\":18.000,\"per_year_pct\":72}}," ++
-            "{{\"years\":50,\"multiplier\":32.000,\"per_year_pct\":64}}," ++
-            "{{\"years\":100,\"multiplier\":55.000,\"per_year_pct\":55}}" ++
-        "]}}",
-        .{id});
-}
 
 /// ns_stats — read-only. Returns the full NS Health Dashboard snapshot in
 /// a single round-trip: totals, per-category / per-TLD / per-years counts,
 /// and PQ/preferred-slot adoption metrics. Replaces the old fan-out where
 /// the UI called `getnamesbycategory` per category or downloaded all 1000
 /// entries via `listnames`.
-fn handleNsStats(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const s = dns.getStats(current_block);
-    // Category indices (match dns_mod.Category enum):
-    //   0=none, 1=personal, 2=bank, 3=gov, 4=mil, 5=fin, 6=edu, 7=org, 8=dev, 9=trading
-    // TLD indices (match dns_mod.ALLOWED_TLDS):
-    //   0=omnibus, 1=arbitraje, 2=quantum, 3=bank, 4=gov, 5=mil, 6=fin, 7=edu, 8=org, 9=dev
-    // Years indices (match dns_mod.ALLOWED_YEARS):
-    //   0=1, 1=2, 2=3, 3=4, 4=5, 5=10, 6=25, 7=50, 8=100
-    // Split into 3 chunks — std.fmt.allocPrint caps at 32 args per call.
-    const head = try std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"total_active\":{d},\"total_expired\":{d}," ++
-            "\"by_category\":{{" ++
-                "\"personal\":{d},\"bank\":{d},\"gov\":{d},\"mil\":{d},\"fin\":{d}," ++
-                "\"edu\":{d},\"org\":{d},\"dev\":{d},\"trading\":{d},\"none\":{d}" ++
-            "}},",
-        .{
-            id, s.total_active, s.total_expired,
-            s.counts_by_category[1], s.counts_by_category[2], s.counts_by_category[3],
-            s.counts_by_category[4], s.counts_by_category[5], s.counts_by_category[6],
-            s.counts_by_category[7], s.counts_by_category[8], s.counts_by_category[9],
-            s.counts_by_category[0],
-        });
-    defer alloc.free(head);
-    const middle = try std.fmt.allocPrint(alloc,
-        "\"by_tld\":{{" ++
-            "\"omnibus\":{d},\"arbitraje\":{d},\"quantum\":{d},\"bank\":{d},\"gov\":{d}," ++
-            "\"mil\":{d},\"fin\":{d},\"edu\":{d},\"org\":{d},\"dev\":{d}" ++
-        "}},",
-        .{
-            s.counts_by_tld[0], s.counts_by_tld[1], s.counts_by_tld[2], s.counts_by_tld[3],
-            s.counts_by_tld[4], s.counts_by_tld[5], s.counts_by_tld[6], s.counts_by_tld[7],
-            s.counts_by_tld[8], s.counts_by_tld[9],
-        });
-    defer alloc.free(middle);
-    const tail = try std.fmt.allocPrint(alloc,
-        "\"by_years\":{{" ++
-            "\"1\":{d},\"2\":{d},\"3\":{d},\"4\":{d},\"5\":{d}," ++
-            "\"10\":{d},\"25\":{d},\"50\":{d},\"100\":{d}" ++
-        "}}," ++
-        "\"pq_slots_set\":{d},\"preferred_slot_set\":{d}}}}}",
-        .{
-            s.counts_by_years[0], s.counts_by_years[1], s.counts_by_years[2],
-            s.counts_by_years[3], s.counts_by_years[4], s.counts_by_years[5],
-            s.counts_by_years[6], s.counts_by_years[7], s.counts_by_years[8],
-            s.pq_slots_set, s.preferred_slot_set,
-        });
-    defer alloc.free(tail);
-    return std.mem.concat(alloc, u8, &.{ head, middle, tail });
-}
 
 // ─── Phase 2 NS — multi-address per name + categories ──────────────────────
 
 /// setpqaddress — owner attaches/clears a specific PQ scheme address slot.
 /// Params: { name, tld?, slot ("ml_dsa"|"falcon"|"dilithium"|"slh_dsa" or 0..3),
 ///           pq_address (empty string to clear), owner }
-fn handleSetPqAddress(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
-    const slot_str = extractStr(body, "slot") orelse extractArrayStr(body, 2) orelse
-        return errorJson(-32602, "Missing param: slot (ml_dsa|falcon|dilithium|slh_dsa)", id, alloc);
-    const pq_addr = extractStr(body, "pq_address") orelse extractArrayStr(body, 3) orelse "";
-    const owner = extractStr(body, "owner") orelse extractArrayStr(body, 4) orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-
-    const slot: dns_mod.PqSlot = blk: {
-        if (std.mem.eql(u8, slot_str, "ml_dsa")    or std.mem.eql(u8, slot_str, "obk1") or std.mem.eql(u8, slot_str, "0")) break :blk .ml_dsa;
-        if (std.mem.eql(u8, slot_str, "falcon")    or std.mem.eql(u8, slot_str, "obf5") or std.mem.eql(u8, slot_str, "1")) break :blk .falcon;
-        if (std.mem.eql(u8, slot_str, "dilithium") or std.mem.eql(u8, slot_str, "obd5") or std.mem.eql(u8, slot_str, "2")) break :blk .dilithium;
-        if (std.mem.eql(u8, slot_str, "slh_dsa")   or std.mem.eql(u8, slot_str, "obs3") or std.mem.eql(u8, slot_str, "3")) break :blk .slh_dsa;
-        return errorJson(-32602, "Invalid slot (use ml_dsa|falcon|dilithium|slh_dsa or 0..3)", id, alloc);
-    };
-
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    dns.updatePqAddress(name, tld, owner, slot, pq_addr, current_block) catch |err| {
-        const msg: []const u8 = switch (err) {
-            error.NameNotFound => "Name not found",
-            error.NotOwner     => "Not owner of this name",
-            error.AddrTooLong  => "PQ address exceeds 64 chars",
-        };
-        return errorJson(-32030, msg, id, alloc);
-    };
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"slot\":\"{s}\",\"pq_address\":\"{s}\",\"updated\":true}}}}",
-        .{ id, name, tld, slot_str, pq_addr });
-}
 
 /// setcategory — owner assigns a category badge to their name.
 /// Params: { name, tld?, category ("personal"|"bank"|...), owner }
-fn handleSetCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
-    const cat_str = extractStr(body, "category") orelse extractArrayStr(body, 2) orelse
-        return errorJson(-32602, "Missing param: category", id, alloc);
-    const owner = extractStr(body, "owner") orelse extractArrayStr(body, 3) orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-
-    const cat: dns_mod.Category = blk: {
-        if (std.mem.eql(u8, cat_str, "personal")) break :blk .personal;
-        if (std.mem.eql(u8, cat_str, "bank"))     break :blk .bank;
-        if (std.mem.eql(u8, cat_str, "gov"))      break :blk .gov;
-        if (std.mem.eql(u8, cat_str, "mil"))      break :blk .mil;
-        if (std.mem.eql(u8, cat_str, "fin"))      break :blk .fin;
-        if (std.mem.eql(u8, cat_str, "edu"))      break :blk .edu;
-        if (std.mem.eql(u8, cat_str, "org"))      break :blk .org;
-        if (std.mem.eql(u8, cat_str, "dev"))      break :blk .dev;
-        if (std.mem.eql(u8, cat_str, "trading"))  break :blk .trading;
-        if (std.mem.eql(u8, cat_str, "none"))     break :blk .none;
-        return errorJson(-32602, "Invalid category (use personal|bank|gov|mil|fin|edu|org|dev|trading|none)", id, alloc);
-    };
-
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    dns.updateCategory(name, tld, owner, cat, current_block) catch |err| {
-        const msg: []const u8 = switch (err) {
-            error.NameNotFound => "Name not found",
-            error.NotOwner     => "Not owner of this name",
-        };
-        return errorJson(-32030, msg, id, alloc);
-    };
-    {
-        const scat_safe = try jsonSanitize(alloc, name);
-        defer alloc.free(scat_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"category\":\"{s}\",\"updated\":true}}}}",
-            .{ id, scat_safe, tld, cat.toString() });
-    }
-}
 
 /// setpreferredslot — owner sets which scheme they want funds delivered to by default.
 /// Params: { name, tld?, slot (0=primary, 1=ml_dsa, 2=falcon, 3=dilithium, 4=slh_dsa), owner }
-fn handleSetPreferredSlot(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
-    const slot_raw = extractArrayNumByKey(body, "slot");
-    const owner = extractStr(body, "owner") orelse extractArrayStr(body, 3) orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-
-    if (slot_raw > 4) return errorJson(-32602, "Invalid slot (0=primary, 1..4=PQ)", id, alloc);
-    const slot_idx: u8 = @intCast(slot_raw);
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    dns.updatePreferredSlot(name, tld, owner, slot_idx, current_block) catch |err| {
-        const msg: []const u8 = switch (err) {
-            error.NameNotFound => "Name not found",
-            error.NotOwner     => "Not owner of this name",
-            error.InvalidSlot  => "Invalid slot",
-        };
-        return errorJson(-32030, msg, id, alloc);
-    };
-    {
-        const sps_safe = try jsonSanitize(alloc, name);
-        defer alloc.free(sps_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"preferred_slot\":{d},\"updated\":true}}}}",
-            .{ id, sps_safe, tld, slot_idx });
-    }
-}
 
 /// getnamesbycategory — list all names with a given category badge.
 /// Params: { category ("bank"|"gov"|...), limit? }
-fn handleGetNamesByCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-    const cat_str = extractStr(body, "category") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: category", id, alloc);
-    const limit_raw = extractArrayNumByKey(body, "limit");
-    const limit: usize = if (limit_raw > 0 and limit_raw <= 200) @intCast(limit_raw) else 50;
-
-    const cat: dns_mod.Category = blk: {
-        if (std.mem.eql(u8, cat_str, "personal")) break :blk .personal;
-        if (std.mem.eql(u8, cat_str, "bank"))     break :blk .bank;
-        if (std.mem.eql(u8, cat_str, "gov"))      break :blk .gov;
-        if (std.mem.eql(u8, cat_str, "mil"))      break :blk .mil;
-        if (std.mem.eql(u8, cat_str, "fin"))      break :blk .fin;
-        if (std.mem.eql(u8, cat_str, "edu"))      break :blk .edu;
-        if (std.mem.eql(u8, cat_str, "org"))      break :blk .org;
-        if (std.mem.eql(u8, cat_str, "dev"))      break :blk .dev;
-        if (std.mem.eql(u8, cat_str, "trading"))  break :blk .trading;
-        return errorJson(-32602, "Invalid category", id, alloc);
-    };
-
-    var buf: [200]*const dns_mod.DnsEntry = undefined;
-    const slice = buf[0..@min(limit, buf.len)];
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const found = dns.listByCategory(cat, slice, current_block);
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    const gncw = out.writer(alloc);
-    try std.fmt.format(gncw,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"category\":\"{s}\",\"total\":{d},\"entries\":[",
-        .{ id, cat.toString(), found });
-    var i: usize = 0;
-    while (i < found) : (i += 1) {
-        const e = slice[i];
-        if (i > 0) try gncw.writeByte(',');
-        try gncw.writeAll("{\"name\":\"");
-        try writeJsonSafeStr(gncw, e.getName());
-        try std.fmt.format(gncw,
-            "\",\"tld\":\"{s}\",\"address\":\"{s}\",\"preferred_slot\":{d},\"registeredAtBlock\":{d}}}",
-            .{ e.getTld(), e.getAddress(), e.preferred_slot, e.registered_block });
-    }
-    try gncw.writeAll("]}}");
-    return alloc.dupe(u8, out.items);
-}
 
 // ─── Phase 1: transfername ──────────────────────────────────────────────────
-fn handleTransferName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-
-    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
-    const new_owner = extractStr(body, "new_owner") orelse extractArrayStr(body, 2) orelse
-        return errorJson(-32602, "Missing param: new_owner", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    const sig_hex = extractStr(body, "signature") orelse "";
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
-
-    const entry = dns.lookupEntry(name, tld) orelse
-        return errorJson(-32400, "Name not found", id, alloc);
-    const owner = entry.getOwner();
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-
-    // Signature check
-    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
-    if (dns.signed_required and !is_hmac_bypass) {
-        if (sig_hex.len == 0 or pubkey_hex.len == 0) {
-            return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
-        }
-        var msg_buf: [512]u8 = undefined;
-        const msg = buildDnsTransferSignMessage(name, tld, new_owner, nonce, &msg_buf) catch
-            return errorJson(-32603, "Failed to build sign message", id, alloc);
-        if (!verifyDnsSignature(msg, sig_hex, pubkey_hex, owner, alloc)) {
-            return errorJson(-32401, "Signing pubkey does not match current owner", id, alloc);
-        }
-    }
-
-    // Nonce replay protection
-    if (nonce <= entry.last_nonce) {
-        return errorJson(-32402, "Nonce too low (replay rejected)", id, alloc);
-    }
-
-    const old_address = entry.getAddress();
-    dns.transfer(name, tld, owner, old_address, new_owner, current_block) catch |err| {
-        const msg: []const u8 = switch (err) {
-            error.NameNotFound => "Name not found",
-            error.NotOwner => "Not owner",
-            error.OwnerCapExceeded => "Per-owner name cap exceeded for new_owner",
-        };
-        return errorJson(-32031, msg, id, alloc);
-    };
-    entry.last_nonce = nonce;
-
-    var audit_buf: [1024]u8 = undefined;
-    const audit_fields = std.fmt.bufPrint(&audit_buf,
-        "\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\"",
-        .{ name, tld, owner, new_owner, nonce, pubkey_hex, sig_hex }) catch "";
-    if (audit_fields.len > 0) dnsAuditAppend(ctx, "transfer", audit_fields);
-
-    {
-        const tn_safe = try jsonSanitize(alloc, name);
-        defer alloc.free(tn_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"transferredAtBlock\":{d}}}}}",
-            .{ id, tn_safe, tld, owner, new_owner, current_block });
-    }
-}
 
 // ─── Phase 1: updatename ────────────────────────────────────────────────────
-fn handleUpdateName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-
-    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
-    const new_address = extractStr(body, "new_address") orelse extractArrayStr(body, 2) orelse
-        return errorJson(-32602, "Missing param: new_address", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    const sig_hex = extractStr(body, "signature") orelse "";
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
-
-    const entry = dns.lookupEntry(name, tld) orelse
-        return errorJson(-32400, "Name not found", id, alloc);
-    const owner = entry.getOwner();
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const old_address = entry.getAddress();
-
-    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
-    if (dns.signed_required and !is_hmac_bypass) {
-        if (sig_hex.len == 0 or pubkey_hex.len == 0) {
-            return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
-        }
-        var msg_buf: [512]u8 = undefined;
-        const msg = buildDnsUpdateSignMessage(name, tld, new_address, nonce, &msg_buf) catch
-            return errorJson(-32603, "Failed to build sign message", id, alloc);
-        if (!verifyDnsSignature(msg, sig_hex, pubkey_hex, owner, alloc)) {
-            return errorJson(-32401, "Signing pubkey does not match current owner", id, alloc);
-        }
-    }
-
-    if (nonce <= entry.last_nonce) {
-        return errorJson(-32402, "Nonce too low (replay rejected)", id, alloc);
-    }
-
-    dns.updateAddress(name, tld, owner, new_address, current_block) catch |err| {
-        const msg: []const u8 = switch (err) {
-            error.NameNotFound => "Name not found",
-            error.NotOwner => "Not owner",
-        };
-        return errorJson(-32031, msg, id, alloc);
-    };
-    entry.last_nonce = nonce;
-
-    var audit_buf: [1024]u8 = undefined;
-    const audit_fields = std.fmt.bufPrint(&audit_buf,
-        "\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\"",
-        .{ name, tld, old_address, new_address, nonce, pubkey_hex, sig_hex }) catch "";
-    if (audit_fields.len > 0) dnsAuditAppend(ctx, "update", audit_fields);
-
-    {
-        const un_safe = try jsonSanitize(alloc, name);
-        defer alloc.free(un_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"updatedAtBlock\":{d}}}}}",
-            .{ id, un_safe, tld, old_address, new_address, current_block });
-    }
-}
 
 // ─── Phase 1+2: renewname ───────────────────────────────────────────────────
 //
@@ -5593,135 +4834,6 @@ fn handleUpdateName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // The signing message is V2 when years is supplied (embeds years to prevent
 // cross-tier replay). Phase 1 V1 callers (no years key, signed_required off)
 // still work — we fall back to renewWithYears(1y) and do NOT verify a V2 sig.
-fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-
-    const name = extractStr(body, "name") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: name", id, alloc);
-    const tld = extractStr(body, "tld") orelse extractArrayStr(body, 1) orelse "omnibus";
-    const nonce = extractArrayNumByKey(body, "nonce");
-    const sig_hex = extractStr(body, "signature") orelse "";
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse "";
-    const fee_txid = extractStr(body, "fee_txid") orelse null;
-    // Phase 2: years tier (default 1 for V1 compat).
-    const years_raw = extractArrayNumByKey(body, "years");
-    const years: u32 = if (years_raw == 0) 1 else @intCast(@min(years_raw, dns_mod.MAX_REGISTRATION_YEARS));
-    if (!dns_mod.isValidYears(years)) {
-        return errorJson(-32602, "Invalid years (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)", id, alloc);
-    }
-
-    const entry = dns.lookupEntry(name, tld) orelse
-        return errorJson(-32400, "Name not found", id, alloc);
-    const owner = entry.getOwner();
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const old_expires = entry.expires_block;
-    const old_years = entry.registered_years;
-
-    const is_hmac_bypass = std.mem.eql(u8, sig_hex, "REST_HMAC_BYPASS");
-    if (dns.signed_required and !is_hmac_bypass) {
-        if (sig_hex.len == 0 or pubkey_hex.len == 0) {
-            return errorJson(-32602, "signature and publicKey required (signed mode)", id, alloc);
-        }
-        var msg_buf: [512]u8 = undefined;
-        // V2 signing message embeds years; V1 message kept for legacy callers
-        // that don't pass `years` (defaulted to 1). We try V2 first; if it
-        // fails AND years==1, fall back to V1 to keep Phase 1 clients alive.
-        const msg_v2 = buildDnsRenewYearsSignMessage(name, tld, years, nonce, &msg_buf) catch
-            return errorJson(-32603, "Failed to build sign message", id, alloc);
-        var ok = verifyDnsSignature(msg_v2, sig_hex, pubkey_hex, owner, alloc);
-        if (!ok and years == 1) {
-            var legacy_buf: [512]u8 = undefined;
-            const msg_v1 = buildDnsRenewSignMessage(name, tld, nonce, &legacy_buf) catch
-                return errorJson(-32603, "Failed to build sign message", id, alloc);
-            ok = verifyDnsSignature(msg_v1, sig_hex, pubkey_hex, owner, alloc);
-        }
-        if (!ok) {
-            return errorJson(-32401, "Signing pubkey does not match current owner", id, alloc);
-        }
-    }
-
-    if (nonce <= entry.last_nonce) {
-        return errorJson(-32402, "Nonce too low (replay rejected)", id, alloc);
-    }
-
-    // Fee enforcement for renewal — Phase 2: scales with `years` via the
-    // same multiplier curve as registration. 100y renew costs ~55× base,
-    // not 100× (long-term commitment discount).
-    const required_fee = dns_mod.feeForRenewal(name, tld, years);
-    if (dns.fee_enforcement) {
-        const txid = fee_txid orelse
-            return errorJson(-32602, "fee_txid required (mainnet)", id, alloc);
-        if (txid.len != dns_mod.TXID_LEN) {
-            return errorJson(-32031, "fee TX invalid: txid must be 64 hex chars", id, alloc);
-        }
-        if (dns.isTxidConsumed(txid)) {
-            return errorJson(-32031, "fee TX invalid: txid already used", id, alloc);
-        }
-        var found_tx: ?*const transaction_mod.Transaction = null;
-        ctx.bc.mutex.lock();
-        for (ctx.bc.chain.items) |blk| {
-            for (blk.transactions.items) |*tx| {
-                if (std.mem.eql(u8, tx.hash, txid)) {
-                    found_tx = tx;
-                    break;
-                }
-            }
-            if (found_tx != null) break;
-        }
-        ctx.bc.mutex.unlock();
-        const tx = found_tx orelse
-            return errorJson(-32031, "fee TX invalid: transaction not found in chain", id, alloc);
-        const treasury = dns.getTreasury();
-        if (!std.mem.eql(u8, tx.to_address, treasury)) {
-            return errorJson(-32031, "fee TX invalid: destination is not treasury", id, alloc);
-        }
-        if (tx.amount < required_fee) {
-            return errorJson(-32031, "fee TX invalid: amount too low", id, alloc);
-        }
-        dns.consumeTxid(txid) catch |err| {
-            const msg: []const u8 = switch (err) {
-                error.InvalidTxid => "Invalid txid",
-                error.ConsumedTxidsFull => "Consumed txids full",
-            };
-            return errorJson(-32031, msg, id, alloc);
-        };
-    }
-
-    dns.renewWithYears(name, tld, owner, years, current_block) catch |err| {
-        const msg: []const u8 = switch (err) {
-            error.NameNotFound      => "Name not found",
-            error.NotOwner          => "Not owner",
-            error.InvalidYears      => "Invalid years tier (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)",
-            error.YearsCapExceeded  => "Cumulative registered_years would exceed 100 (hard cap)",
-        };
-        return errorJson(-32031, msg, id, alloc);
-    };
-    entry.last_nonce = nonce;
-
-    const fee_paid_sat: u64 = if (fee_txid) |_| required_fee else 0;
-    const fee_txid_esc = fee_txid orelse "";
-
-    var audit_buf: [1024]u8 = undefined;
-    const audit_fields = std.fmt.bufPrint(&audit_buf,
-        "\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"old_years\":{d},\"new_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"nonce\":{d},\"signer_pubkey\":\"{s}\",\"signature\":\"{s}\",\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"",
-        .{ name, tld, years, old_years, entry.registered_years, old_expires, entry.expires_block, nonce, pubkey_hex, sig_hex, fee_paid_sat, fee_txid_esc }) catch "";
-    if (audit_fields.len > 0) dnsAuditAppend(ctx, "renew", audit_fields);
-
-    // WS push — UI updates the expiry pill on the renewed name.
-    if (main_mod.g_ws_srv) |ws| {
-        ws.broadcastNameRenewed(name, tld, owner, @intCast(@min(years, 255)));
-    }
-
-    {
-        const ren_safe = try jsonSanitize(alloc, name);
-        defer alloc.free(ren_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"registered_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
-            .{ id, ren_safe, tld, years, entry.registered_years, old_expires, entry.expires_block, fee_paid_sat });
-    }
-}
 
 // ─── Phase 2: ns_expiringSoon ───────────────────────────────────────────────
 //
@@ -5745,51 +4857,6 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 //
 // Note: `blocks_remaining` is signed conceptually but JSON-emitted unsigned;
 // when the entry is in grace, it's reported as 0 and `in_grace: true`.
-fn handleNsExpiringSoon(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-
-    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    // Default ~30 days at 10s block time = 259200 blocks.
-    const DEFAULT_THRESHOLD_BLOCKS: u64 = 259_200;
-    const t_raw = extractArrayNumByKey(body, "blocks_threshold");
-    const blocks_threshold: u64 = if (t_raw == 0) DEFAULT_THRESHOLD_BLOCKS else t_raw;
-
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    var buf: [dns_mod.MAX_NAMES_PER_OWNER]*const dns_mod.DnsEntry = undefined;
-    const n = dns.getExpiringNames(address, current_block, blocks_threshold, &buf);
-
-    // Build JSON result. ~512B per entry is plenty.
-    var out = std.array_list.Managed(u8).init(alloc);
-    defer out.deinit();
-    const w = out.writer();
-    try std.fmt.format(w,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"current_block\":{d},\"blocks_threshold\":{d},\"entries\":[",
-        .{ id, address, current_block, blocks_threshold });
-    for (buf[0..n], 0..) |e, i| {
-        if (i > 0) try w.writeAll(",");
-        const tld_s = e.getTld();
-        const in_grace = e.isInGrace(current_block);
-        const remaining: u64 = if (in_grace or e.expires_block <= current_block)
-            0
-        else
-            e.expires_block - current_block;
-        // 10s/block, so days = remaining / (86400/10) = remaining / 8640
-        const est_days: u64 = remaining / 8640;
-        try w.writeAll("{\"name\":\"");
-        try writeJsonSafeStr(w, e.getName());
-        try std.fmt.format(w, "\",\"tld\":\"{s}\",\"fullLabel\":\"", .{tld_s});
-        try writeJsonSafeStr(w, e.getName());
-        try std.fmt.format(w,
-            ".{s}\",\"expiresAtBlock\":{d},\"blocks_remaining\":{d},\"estimated_days_remaining\":{d},\"registered_years\":{d},\"in_grace\":{}}}",
-            .{ tld_s, e.expires_block, remaining, est_days, e.registered_years, in_grace });
-    }
-    try w.writeAll("]}}");
-    return out.toOwnedSlice();
-}
 
 // ─── Phase 2: ns_pruneExpired ───────────────────────────────────────────────
 //
@@ -5799,16 +4866,6 @@ fn handleNsExpiringSoon(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // and (optionally) every N blocks during mining.
 //
 // Result: { removed: u64, entry_count: u64, current_block: u64 }
-fn handleNsPruneExpired(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.dns == null) return errorJson(-32030, "DNS registry not enabled on this node", id, alloc);
-    const dns = ctx.dns.?;
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    const removed = dns.pruneExpiredNames(current_block);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"removed\":{d},\"entry_count\":{d},\"current_block\":{d}}}}}",
-        .{ id, removed, dns.entry_count, current_block });
-}
 
 // ─── sendrawtransaction — submit a CLIENT-SIGNED OmniBus transaction ────────
 //
@@ -5958,7 +5015,7 @@ fn handleSendRawTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Helper: read a u64 from either an object key (e.g. `"amount":123`) or
 /// — fallback — try interpreting `body` as a positional array. Returns 0
 /// if the field is missing or non-numeric.
-fn extractArrayNumByKey(body: []const u8, key: []const u8) u64 {
+pub fn extractArrayNumByKey(body: []const u8, key: []const u8) u64 {
     // Look for "key":<digits> in the JSON body. Tolerant of whitespace.
     var search_buf: [64]u8 = undefined;
     const needle = std.fmt.bufPrint(&search_buf, "\"{s}\":", .{key}) catch return 0;
@@ -6678,7 +5735,7 @@ pub fn extractArrayStr(json: []const u8, index: usize) ?[]const u8 {
 /// Extrage al N-lea token brut din params array (string SAU literal: true/false/number).
 /// Pentru string-uri returneaza continutul fara ghilimele; pentru literali ca `true`
 /// returneaza textul ca atare. Folosit pentru a citi booleeni JSON din params.
-fn extractArrayToken(json: []const u8, index: usize) ?[]const u8 {
+pub fn extractArrayToken(json: []const u8, index: usize) ?[]const u8 {
     const params_pos = std.mem.indexOf(u8, json, "\"params\"") orelse return null;
     const bracket = std.mem.indexOf(u8, json[params_pos..], "[") orelse return null;
     var pos = params_pos + bracket + 1;
@@ -9700,79 +8757,9 @@ fn extractStrParam(body: []const u8, key_with_quotes: []const u8) ?[]const u8 {
 const id_layer_mod = @import("identity/identity.zig");
 
 /// RPC `getdid` — returns `did:omnibus:<base58(sha256(h160))>` for an address.
-fn handleGetDid(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    // Recover the 20-byte hash160 from the bech32 address.
-    const decoded = bech32_mod.decodeWitnessAddress(bech32_mod.OB_HRP, addr, alloc) catch
-        return errorJson(-32602, "Invalid bech32 address", id, alloc);
-    defer alloc.free(decoded.program);
-    if (decoded.program.len != 20) return errorJson(-32602, "Address is not P2WPKH-equivalent", id, alloc);
-    var h160: [20]u8 = undefined;
-    @memcpy(&h160, decoded.program);
-
-    const did = try id_layer_mod.did.didFromHash160(h160, alloc);
-    defer alloc.free(did);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"did\":\"{s}\"}}}}",
-        .{ id, addr, did });
-}
 
 /// RPC `getobm` — 1-byte OmniBus Binary Map for an address, with each bit
 /// also surfaced as a named boolean so clients don't have to decode it.
-fn handleGetObm(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    const cups = blk: {
-        if (main_mod.g_reputation != null) {
-            if (main_mod.g_reputation.?.snapshot(addr)) |c| break :blk c;
-        }
-        break :blk @import("reputation.zig").ReputationCups{};
-    };
-
-    // Validator = stake_amounts >= 100 OMNI. Same threshold as getvalidators.
-    var is_validator = false;
-    {
-        ctx.bc.mutex.lock();
-        defer ctx.bc.mutex.unlock();
-        if (ctx.bc.stake_amounts.get(addr)) |amt| {
-            if (amt / 1_000_000_000 >= 100) is_validator = true;
-        }
-    }
-
-    // DNS-name flag: we don't iterate the whole registry here (potentially
-    // expensive). The flag stays false unless a future indexer exposes a
-    // per-owner count. Conservative on purpose.
-    const has_dns_name = false;
-    // PQ-key flag: chain does not yet maintain a per-address PQ registry,
-    // so we leave the bit dark. Will flip true once pq_attest indexes it.
-    const has_pq_key = false;
-
-    const obm_byte = id_layer_mod.obm.compute(.{
-        .cups = cups,
-        .has_pq_key = has_pq_key,
-        .has_dns_name = has_dns_name,
-        .is_validator = is_validator,
-    });
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"obm\":{d},\"love_badge\":{},\"food_badge\":{},\"rent_badge\":{},\"vacation_badge\":{},\"has_pq_key\":{},\"has_dns_name\":{},\"is_validator\":{},\"is_zen_tier\":{}}}}}",
-        .{
-            id, addr, obm_byte,
-            id_layer_mod.obm.has(obm_byte, .love_badge),
-            id_layer_mod.obm.has(obm_byte, .food_badge),
-            id_layer_mod.obm.has(obm_byte, .rent_badge),
-            id_layer_mod.obm.has(obm_byte, .vacation_badge),
-            id_layer_mod.obm.has(obm_byte, .has_pq_key),
-            id_layer_mod.obm.has(obm_byte, .has_dns_name),
-            id_layer_mod.obm.has(obm_byte, .is_validator),
-            id_layer_mod.obm.has(obm_byte, .is_zen_tier),
-        });
-}
 
 /// RPC `getfacets <addr>` — returns which OmniBus ID facets (Social,
 /// Professional, Cultural) the holder has populated.
@@ -9786,62 +8773,6 @@ fn handleGetObm(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 ///
 /// This is intentionally conservative — false negatives are expected for
 /// holders who keep everything off-chain. Only true positives are reliable.
-fn handleGetFacets(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    // Resolve h160 so we can look up the ProfileStore entry.
-    const h160_opt: ?[20]u8 = addrToH160(addr, alloc) catch null;
-
-    // Per-facet results: populated flag + root hex string (64 hex chars or empty).
-    const FacetResult = struct {
-        populated: bool,
-        root_hex: [64]u8,
-        root_hex_len: usize,
-    };
-    var results: [4]FacetResult = .{
-        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
-        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
-        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
-        .{ .populated = false, .root_hex = undefined, .root_hex_len = 0 },
-    };
-
-    if (h160_opt) |h160| {
-        const store = getProfileStore(alloc);
-        store.mutex.lock();
-        defer store.mutex.unlock();
-        if (store.get(h160)) |entry| {
-            for (&results, 0..) |*r, i| {
-                const facet = &entry.facets[i];
-                if (facet.fields.count() > 0) {
-                    const root = computeFacetRoot(facet, alloc) catch continue;
-                    const hex_chars = "0123456789abcdef";
-                    for (root, 0..) |b, bi| {
-                        r.root_hex[bi * 2]     = hex_chars[b >> 4];
-                        r.root_hex[bi * 2 + 1] = hex_chars[b & 0x0f];
-                    }
-                    r.root_hex_len = 64;
-                    r.populated = true;
-                }
-            }
-        }
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\"," ++
-        "\"social\":{{\"populated\":{},\"root_hex\":\"{s}\"}}," ++
-        "\"professional\":{{\"populated\":{},\"root_hex\":\"{s}\"}}," ++
-        "\"cultural\":{{\"populated\":{},\"root_hex\":\"{s}\"}}," ++
-        "\"economic\":{{\"populated\":{},\"root_hex\":\"{s}\"}}}}}}",
-        .{
-            id, addr,
-            results[0].populated, results[0].root_hex[0..results[0].root_hex_len],
-            results[1].populated, results[1].root_hex[0..results[1].root_hex_len],
-            results[2].populated, results[2].root_hex[0..results[2].root_hex_len],
-            results[3].populated, results[3].root_hex[0..results[3].root_hex_len],
-        });
-}
 
 /// RPC `getreputation` — citeste paharele LOVE/FOOD/RENT/VACATION pentru o
 /// adresa, plus rep total agregat (0-1M) si tier (OMNI/LOVE/FOOD/RENT/VACATION).
@@ -9851,139 +8782,9 @@ fn handleGetFacets(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// Răspuns: { "address", "cups": {love, food, rent, vacation}, "total",
 ///           "tier", "satoshi_badge", "first_active_block", "last_active_block",
 ///           "total_blocks_mined", "violations" }
-fn handleGetReputation(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    if (main_mod.g_reputation == null) {
-        return errorJson(-32030, "Reputation system not enabled on this node", id, alloc);
-    }
-    const cups = main_mod.g_reputation.?.snapshot(addr) orelse {
-        // Address never seen — return zero cups (still valid response).
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"cups\":{{\"love\":\"0.00\",\"food\":\"0.00\",\"rent\":\"0.00\",\"vacation\":\"0.00\"}},\"total\":0,\"tier\":\"OMNI\",\"satoshi_badge\":false,\"first_active_block\":0,\"last_active_block\":0,\"total_blocks_mined\":0,\"violations\":0}}}}",
-            .{ id, addr });
-    };
-    const total = cups.computeRepTotal();
-    const tier = cups.tier();
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"cups\":{{\"love\":\"{d}.{d:0>2}\",\"food\":\"{d}.{d:0>2}\",\"rent\":\"{d}.{d:0>2}\",\"vacation\":\"{d}.{d:0>2}\"}},\"total\":{d},\"tier\":\"{s}\",\"satoshi_badge\":{},\"is_zen\":{},\"first_active_block\":{d},\"last_active_block\":{d},\"uptime_blocks\":{d},\"total_blocks_mined\":{d},\"violations\":{d}}}}}",
-        .{
-            id, addr,
-            cups.love_stored / 100, cups.love_stored % 100,
-            cups.food_stored / 100, cups.food_stored % 100,
-            cups.rent_stored / 100, cups.rent_stored % 100,
-            cups.vacation_stored / 100, cups.vacation_stored % 100,
-            total,
-            tier.name(),
-            cups.hasSatoshiBadge(),
-            cups.hasSatoshiBadge(),
-            cups.first_active_block,
-            cups.last_active_block,
-            cups.uptimeBlocks(),
-            cups.total_blocks_mined,
-            cups.violations,
-        },
-    );
-}
 
 /// RPC `getreputationtop` — top N adrese sortate după reputation total descendent.
 /// Body: {"limit": 50}  (default 50, max 200)
-fn handleGetReputationTop(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (main_mod.g_reputation == null) {
-        return errorJson(-32030, "Reputation system not enabled on this node", id, alloc);
-    }
-    var limit: u32 = 50;
-    if (extractStr(body, "limit")) |s| {
-        limit = std.fmt.parseInt(u32, s, 10) catch 50;
-    }
-    if (limit == 0) limit = 50;
-    if (limit > 200) limit = 200;
-
-    const Entry = struct {
-        addr: []const u8,
-        total: u64,
-        tier: []const u8,
-        love: u32,
-        food: u32,
-        rent: u32,
-        vacation: u32,
-        satoshi: bool,
-        blocks_mined: u64,
-        first_block: u64,
-        uptime_blocks: u64,
-        rank_score: u128,
-    };
-
-    const rep = &main_mod.g_reputation.?;
-    rep.lock();
-    defer rep.unlock();
-
-    var entries = std.array_list.Managed(Entry).init(alloc);
-    defer entries.deinit();
-
-    var it = rep.iterate();
-    while (it.next()) |kv| {
-        const total = kv.value_ptr.computeRepTotal();
-        if (total == 0 and kv.value_ptr.total_blocks_mined == 0) continue;
-        try entries.append(.{
-            .addr = kv.key_ptr.*,
-            .total = total,
-            .tier = kv.value_ptr.tier().name(),
-            .love = kv.value_ptr.love_stored,
-            .food = kv.value_ptr.food_stored,
-            .rent = kv.value_ptr.rent_stored,
-            .vacation = kv.value_ptr.vacation_stored,
-            .satoshi = kv.value_ptr.hasSatoshiBadge(),
-            .blocks_mined = kv.value_ptr.total_blocks_mined,
-            .first_block = kv.value_ptr.first_active_block,
-            .uptime_blocks = kv.value_ptr.uptimeBlocks(),
-            .rank_score = kv.value_ptr.rankScore(),
-        });
-    }
-
-    // Sort by rank_score descending — Zen-i automat sus, intre Zen-i tiebreaker
-    // = uptime_blocks (incorporat in rank_score). Intre non-Zen: rep_total.
-    std.sort.insertion(Entry, entries.items, {}, struct {
-        fn less(_: void, a: Entry, b: Entry) bool {
-            return a.rank_score > b.rank_score;
-        }
-    }.less);
-
-    const cap_n: usize = if (entries.items.len < limit) entries.items.len else limit;
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    errdefer buf.deinit();
-    const w = buf.writer();
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"total\":{d},\"entries\":[",
-        .{ id, cap_n, entries.items.len },
-    );
-    for (entries.items[0..cap_n], 0..) |e, idx| {
-        if (idx > 0) try w.writeByte(',');
-        try w.print(
-            "{{\"rank\":{d},\"address\":\"{s}\",\"total\":{d},\"tier\":\"{s}\",\"cups\":{{\"love\":\"{d}.{d:0>2}\",\"food\":\"{d}.{d:0>2}\",\"rent\":\"{d}.{d:0>2}\",\"vacation\":\"{d}.{d:0>2}\"}},\"satoshi_badge\":{},\"is_zen\":{},\"blocks_mined\":{d},\"first_active_block\":{d},\"uptime_blocks\":{d}}}",
-            .{
-                idx + 1,
-                e.addr,
-                e.total,
-                e.tier,
-                e.love / 100, e.love % 100,
-                e.food / 100, e.food % 100,
-                e.rent / 100, e.rent % 100,
-                e.vacation / 100, e.vacation % 100,
-                e.satoshi,
-                e.satoshi, // is_zen alias for clarity in UI
-                e.blocks_mined,
-                e.first_block,
-                e.uptime_blocks,
-            },
-        );
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 fn handleAgentList(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
@@ -10403,7 +9204,7 @@ fn replayOrdersJournal(ctx: *ServerCtx) !void {
 }
 
 /// Cauta nonce-ul ultim folosit pentru o adresa. -1 daca nu exista intrare.
-fn nonceLookup(ctx: *ServerCtx, addr: []const u8) i64 {
+pub fn nonceLookup(ctx: *ServerCtx, addr: []const u8) i64 {
     var i: u16 = 0;
     while (i < ctx.exstate.?.nonce_count) : (i += 1) {
         const n = &ctx.exstate.?.nonces[i];
@@ -10416,7 +9217,7 @@ fn nonceLookup(ctx: *ServerCtx, addr: []const u8) i64 {
 
 /// Inregistreaza nonce-ul curent pentru o adresa. Daca tabelul e plin,
 /// suprascrie cea mai veche intrare (FIFO simplu — testnet, nu DoS-rezistent).
-fn nonceSet(ctx: *ServerCtx, addr: []const u8, nonce: u64) void {
+pub fn nonceSet(ctx: *ServerCtx, addr: []const u8, nonce: u64) void {
     var i: u16 = 0;
     while (i < ctx.exstate.?.nonce_count) : (i += 1) {
         const n = &ctx.exstate.?.nonces[i];
@@ -10952,7 +9753,7 @@ fn buildCancelSignMessage(
 
 /// Deriva adresa nativa OmniBus (ob1q...) dintr-un compressed pubkey.
 /// = bech32(hash160(pubkey)). Caller detine memoria.
-fn deriveOBAddressFromPubkey(
+pub fn deriveOBAddressFromPubkey(
     compressed_pubkey: [33]u8,
     allocator: std.mem.Allocator,
 ) ![]u8 {
@@ -10962,7 +9763,7 @@ fn deriveOBAddressFromPubkey(
 
 /// Verifica semnatura ECDSA secp256k1 pe mesajul canonical.
 /// Returneaza true daca pubkey-ul corespunde adresei E si semnatura e valida.
-fn verifyOrderSig(
+pub fn verifyOrderSig(
     msg: []const u8,
     sig_hex: []const u8,
     pubkey_hex: []const u8,
@@ -10979,7 +9780,7 @@ fn verifyOrderSig(
 //  DNS Phase 1 — Canonical messages + signature verification
 // ═════════════════════════════════════════════════════════════════════════════
 
-fn buildDnsRegisterSignMessage(
+pub fn buildDnsRegisterSignMessage(
     name: []const u8,
     tld: []const u8,
     address: []const u8,
@@ -10992,7 +9793,7 @@ fn buildDnsRegisterSignMessage(
         .{ name, tld, address, owner, nonce });
 }
 
-fn buildDnsTransferSignMessage(
+pub fn buildDnsTransferSignMessage(
     name: []const u8,
     tld: []const u8,
     new_owner: []const u8,
@@ -11004,7 +9805,7 @@ fn buildDnsTransferSignMessage(
         .{ name, tld, new_owner, nonce });
 }
 
-fn buildDnsUpdateSignMessage(
+pub fn buildDnsUpdateSignMessage(
     name: []const u8,
     tld: []const u8,
     new_address: []const u8,
@@ -11016,7 +9817,7 @@ fn buildDnsUpdateSignMessage(
         .{ name, tld, new_address, nonce });
 }
 
-fn buildDnsRenewSignMessage(
+pub fn buildDnsRenewSignMessage(
     name: []const u8,
     tld: []const u8,
     nonce: u64,
@@ -11030,7 +9831,7 @@ fn buildDnsRenewSignMessage(
 /// Phase 2 — years-aware renewal sign message. Owner signs over the
 /// {name, tld, additional_years, nonce} tuple so a captured V1 signature
 /// can't be replayed at a different years tier.
-fn buildDnsRenewYearsSignMessage(
+pub fn buildDnsRenewYearsSignMessage(
     name: []const u8,
     tld: []const u8,
     years: u32,
@@ -11044,7 +9845,7 @@ fn buildDnsRenewYearsSignMessage(
 
 /// Verifica semnatura ECDSA pentru operatii DNS.
 /// Returneaza true daca semnatura e valida SI pubkey-ul deriveaza expected_owner_addr.
-fn verifyDnsSignature(
+pub fn verifyDnsSignature(
     msg: []const u8,
     sig_hex: []const u8,
     pubkey_hex: []const u8,
@@ -11077,7 +9878,7 @@ fn dnsAuditPath(ctx: *ServerCtx, out: []u8) ?[]u8 {
 }
 
 /// Scrie o linie in jurnalul audit DNS (append-only JSONL).
-fn dnsAuditAppend(ctx: *ServerCtx, op: []const u8, fields: []const u8) void {
+pub fn dnsAuditAppend(ctx: *ServerCtx, op: []const u8, fields: []const u8) void {
     var path_buf: [256]u8 = undefined;
     const path = dnsAuditPath(ctx, &path_buf) orelse return;
     const f = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false }) catch |err| {
@@ -13348,7 +12149,7 @@ fn handleExchangeDepositReal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // `identity_search` — public; lists `public` identities whose nickname
 //                     starts with the prefix.
 
-fn buildIdentitySignMessage(
+pub fn buildIdentitySignMessage(
     out: []u8,
     address: []const u8,
     nickname: []const u8,
@@ -13361,245 +12162,16 @@ fn buildIdentitySignMessage(
         .{ address, nickname, ens, visibility, nonce });
 }
 
-fn handleIdentitySet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const store = ctx.identity_store orelse
-        return errorJson(-32601, "Identity store not initialized", id, alloc);
 
-    const address = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const nickname = extractStr(body, "nickname") orelse "";
-    const ens = extractStr(body, "ens") orelse extractStr(body, "ensPrimary") orelse "";
-    const visibility_str = extractStr(body, "visibility") orelse "public";
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey", id, alloc);
-    const nonce = extractArrayNumByKey(body, "nonce");
-    if (nonce == 0) return errorJson(-32602, "Missing or zero: nonce", id, alloc);
 
-    if (nickname.len > identity_mod.NICKNAME_MAX) {
-        return errorJson(-32602, "nickname too long (max 32)", id, alloc);
-    }
-    if (ens.len > identity_mod.ENS_MAX) {
-        return errorJson(-32602, "ens too long (max 64)", id, alloc);
-    }
-
-    // Build canonical message and verify signature.
-    var msg_buf: [256]u8 = undefined;
-    const msg = buildIdentitySignMessage(&msg_buf, address, nickname, ens, visibility_str, nonce) catch
-        return errorJson(-32603, "Failed to build sign message", id, alloc);
-    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-        return errorJson(-32000, "Signature verify failed", id, alloc);
-    }
-    var pk_bytes: [33]u8 = undefined;
-    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-        return errorJson(-32000, "Bad pubkey hex", id, alloc);
-    const derived = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-    defer alloc.free(derived);
-    if (!std.mem.eql(u8, derived, address)) {
-        return errorJson(-32000, "Public key does not match address", id, alloc);
-    }
-
-    ctx.identity_mutex.lock();
-    defer ctx.identity_mutex.unlock();
-
-    // Reuse exchange nonce table — they live in the same context. New
-    // nonce must be strictly greater than last seen for this address.
-    const last_nonce = nonceLookup(ctx, address);
-    if (last_nonce >= 0 and @as(u64, @intCast(last_nonce)) >= nonce) {
-        return errorJson(-32000, "Nonce already used", id, alloc);
-    }
-    nonceSet(ctx, address, nonce);
-
-    const visibility = identity_mod.Visibility.fromStr(visibility_str);
-    store.upsert(address, nickname, ens, visibility, std.time.milliTimestamp(), true) catch |err| {
-        return errorJson(-32000, switch (err) {
-            error.NicknameNotPrintable => "Nickname must be printable ASCII (no quotes/control/unicode)",
-            error.NicknameTooLong => "Nickname too long",
-            error.EnsTooLong => "ENS too long",
-            error.StoreFull => "Identity store full",
-            error.BadAddress => "Bad address",
-        }, id, alloc);
-    };
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\",\"updated\":true}}}}",
-        .{ id, address, nickname, ens, visibility.toStr() });
-}
-
-fn handleIdentityGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const store = ctx.identity_store orelse
-        return errorJson(-32601, "Identity store not initialized", id, alloc);
-    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    ctx.identity_mutex.lock();
-    defer ctx.identity_mutex.unlock();
-
-    // `respect_visibility=true` so private addresses return null.
-    const it = store.lookup(address, true) orelse {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}",
-            .{id});
-    };
-
-    // For ens_only visibility, blank the nickname so the UI doesn't even
-    // see it. Address is already public on chain anyway.
-    const nick: []const u8 = if (it.visibility == .ens_only) "" else it.getNickname();
-    const nick_safe = try jsonSanitize(alloc, nick);
-    defer alloc.free(nick_safe);
-    const ens_safe = try jsonSanitize(alloc, it.getEns());
-    defer alloc.free(ens_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\",\"updated\":{d}}}}}",
-        .{ id, it.getAddress(), nick_safe, ens_safe, it.visibility.toStr(), it.updated_ms });
-}
-
-fn handleIdentitySearch(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const store = ctx.identity_store orelse
-        return errorJson(-32601, "Identity store not initialized", id, alloc);
-    const prefix = extractStr(body, "prefix") orelse extractArrayStr(body, 0) orelse "";
-    const limit_raw = extractArrayNumByKey(body, "limit");
-    const limit: u32 = if (limit_raw == 0) 25 else @intCast(@min(limit_raw, @as(u64, 100)));
-
-    ctx.identity_mutex.lock();
-    defer ctx.identity_mutex.unlock();
-
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "{\"jsonrpc\":\"2.0\",\"id\":");
-    try std.fmt.format(out.writer(alloc), "{d}", .{id});
-    try out.appendSlice(alloc, ",\"result\":[");
-    var first = true;
-    var emitted: u32 = 0;
-    var i: u16 = 0;
-    while (i < store.count and emitted < limit) : (i += 1) {
-        const it = &store.items[i];
-        if (it.visibility == .private) continue;
-        const nick = it.getNickname();
-        if (prefix.len > 0) {
-            const nlower = nick;
-            if (nlower.len < prefix.len) continue;
-            if (!std.ascii.startsWithIgnoreCase(nlower, prefix)) continue;
-        }
-        if (!first) try out.appendSlice(alloc, ",");
-        first = false;
-        const visible_nick: []const u8 = if (it.visibility == .ens_only) "" else nick;
-        const vnick_safe = try jsonSanitize(alloc, visible_nick);
-        defer alloc.free(vnick_safe);
-        const vens_safe = try jsonSanitize(alloc, it.getEns());
-        defer alloc.free(vens_safe);
-        try std.fmt.format(out.writer(alloc),
-            "{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\"}}",
-            .{ it.getAddress(), vnick_safe, vens_safe, it.visibility.toStr() });
-        emitted += 1;
-    }
-    try out.appendSlice(alloc, "]}");
-    return alloc.dupe(u8, out.items);
-}
 
 // ── KYC (signed attestations) ─────────────────────────────────────────
 
-fn handleKycGetStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const store = ctx.kyc_store orelse
-        return errorJson(-32601, "KYC store not initialized", id, alloc);
-    const address = extractStr(body, "address") orelse extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    ctx.identity_mutex.lock();
-    defer ctx.identity_mutex.unlock();
-
-    const now_ms = std.time.milliTimestamp();
-    const att = store.highest(address, now_ms) orelse {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"level\":0,\"label\":\"none\"}}}}",
-            .{ id, address });
-    };
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"level\":{d},\"label\":\"{s}\",\"issuer\":\"{s}\",\"issued\":{d},\"expires\":{d}}}}}",
-        .{ id, address, att.level.toU8(), att.level.label(),
-           att.getIssuer(), att.issued_ms, att.expires_ms });
-}
 
 /// kyc_attest — only callable by the configured KYC issuer (registrar
 /// slot 4). The issuer signs the canonical message and submits it; we
 /// verify the signature derives to the configured issuer address.
-fn handleKycAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const store = ctx.kyc_store orelse
-        return errorJson(-32601, "KYC store not initialized", id, alloc);
-    if (ctx.kyc_issuer_addr_len == 0) {
-        return errorJson(-32601, "KYC issuance disabled on this node", id, alloc);
-    }
-    const expected_issuer = ctx.kyc_issuer_addr_buf[0..ctx.kyc_issuer_addr_len];
 
-    const target = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address (subject)", id, alloc);
-    const level_raw = extractArrayNumByKey(body, "level");
-    const level = kyc_mod.Level.fromU8(@intCast(@min(level_raw, @as(u64, 3))));
-    const issued_raw = extractArrayNumByKey(body, "issued");
-    const issued: i64 = if (issued_raw > 0) @intCast(issued_raw) else std.time.milliTimestamp();
-    // Default expiry: +1 year if caller didn't pass one.
-    const expires_raw = extractArrayNumByKey(body, "expires");
-    const default_expiry: i64 = issued + 365 * 24 * 60 * 60 * 1000;
-    const expires: i64 = if (expires_raw > 0) @intCast(expires_raw) else default_expiry;
-
-    const sig_hex = extractStr(body, "signature") orelse
-        return errorJson(-32602, "Missing param: signature", id, alloc);
-    const pubkey_hex = extractStr(body, "publicKey") orelse extractStr(body, "pubkey") orelse
-        return errorJson(-32602, "Missing param: publicKey (issuer)", id, alloc);
-
-    var msg_buf: [256]u8 = undefined;
-    const msg = kyc_mod.buildAttestMessage(&msg_buf, target, level, expected_issuer, issued, expires) catch
-        return errorJson(-32603, "Failed to build sign message", id, alloc);
-    if (!verifyOrderSig(msg, sig_hex, pubkey_hex)) {
-        return errorJson(-32000, "Signature verify failed", id, alloc);
-    }
-
-    // Verify pubkey -> address derivation matches the configured issuer.
-    var pk_bytes: [33]u8 = undefined;
-    _ = hex_utils.hexToBytes(pubkey_hex, &pk_bytes) catch
-        return errorJson(-32000, "Bad pubkey hex", id, alloc);
-    const derived = deriveOBAddressFromPubkey(pk_bytes, alloc) catch
-        return errorJson(-32000, "Cannot derive address from pubkey", id, alloc);
-    defer alloc.free(derived);
-    if (!std.mem.eql(u8, derived, expected_issuer)) {
-        return errorJson(-32000, "Caller is not the registered KYC issuer", id, alloc);
-    }
-
-    ctx.identity_mutex.lock();
-    defer ctx.identity_mutex.unlock();
-
-    store.append(target, level, expected_issuer, issued, expires, sig_hex, true) catch |err| {
-        return errorJson(-32000, switch (err) {
-            error.StoreFull => "KYC store full",
-            error.BadAddress => "Bad subject address",
-            error.BadIssuer => "Bad issuer address",
-            error.BadSignature => "Bad signature",
-        }, id, alloc);
-    };
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"level\":{d},\"label\":\"{s}\",\"issuer\":\"{s}\",\"issued\":{d},\"expires\":{d}}}}}",
-        .{ id, target, level.toU8(), level.label(), expected_issuer, issued, expires });
-}
-
-fn handleKycListIssuers(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    if (ctx.kyc_issuer_addr_len == 0) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}", .{id});
-    }
-    const issuer = ctx.kyc_issuer_addr_buf[0..ctx.kyc_issuer_addr_len];
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[{{\"address\":\"{s}\",\"role\":\"kyc.omnibus\",\"slot\":4}}]}}",
-        .{ id, issuer });
-}
 
 // ═════════════════════════════════════════════════════════════════════════════
 //  PQ Isolated Wallets v2 — 5-scheme RPC handlers
@@ -14157,155 +12729,7 @@ fn handleSendPqAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // { "address": "ob1q..." }
 // Returns a single JSON object with all identity facets for an address.
 
-fn handleGetIdentity(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr  = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
 
-    // ── 1. PQ identity (pq_attest) ────────────────────────────────────────
-    ctx.bc.mutex.lock();
-    const identity_opt = ctx.bc.pq_identity_map.get(addr);
-    const omni_balance = ctx.bc.balances.get(addr) orelse 0;
-    ctx.bc.mutex.unlock();
-
-    var pq_json: []const u8 = "null";
-    var pq_json_owned = false;
-    if (identity_opt) |idt| {
-        pq_json = try std.fmt.allocPrint(alloc,
-            "{{\"love\":\"{s}\",\"food\":\"{s}\",\"rent\":\"{s}\"," ++
-            "\"vacation\":\"{s}\",\"btc\":\"{s}\",\"eth\":\"{s}\"," ++
-            "\"attest_block\":{d}}}",
-            .{ idt.loveSlice(), idt.foodSlice(), idt.rentSlice(),
-               idt.vacationSlice(), idt.btcSlice(), idt.ethSlice(),
-               idt.attest_block });
-        pq_json_owned = true;
-    }
-    defer if (pq_json_owned) alloc.free(pq_json);
-
-    // ── 2. Labels ─────────────────────────────────────────────────────────
-    const label_verdict = ctx.bc.label_registry.report(addr).verdictStr();
-
-    // ── 3. Social graph ───────────────────────────────────────────────────
-    const followers_n  = ctx.bc.social_graph.followerCount(addr);
-    const following_n  = ctx.bc.social_graph.followingCount(addr);
-
-    // ── 4. POAP ───────────────────────────────────────────────────────────
-    const poap_n = ctx.bc.poap_registry.claimCountByHolder(addr);
-
-    // ── 5. Notarizations ──────────────────────────────────────────────────
-    var note_entries: [64]notarize_mod.NotarizeEntry = undefined;
-    const note_count = ctx.bc.notarize_registry.listByOwner(addr, &note_entries);
-
-    // ── 6. Escrow stats ───────────────────────────────────────────────────
-    var esc_from_buf: [64]escrow_mod.EscrowEntry = undefined;
-    var esc_to_buf:   [64]escrow_mod.EscrowEntry = undefined;
-    const esc_sent = ctx.bc.escrow_registry.listByFrom(addr, &esc_from_buf);
-    const esc_recv = ctx.bc.escrow_registry.listByTo(addr, &esc_to_buf);
-
-    // ── 7. Reputation ─────────────────────────────────────────────────────
-    var rep_json: []const u8 = "null";
-    var rep_json_owned = false;
-    if (main_mod.g_reputation) |*rep_ptr| {
-        if (rep_ptr.snapshot(addr)) |cups| {
-            const total = cups.computeRepTotal();
-            rep_json = try std.fmt.allocPrint(alloc,
-                "{{\"love\":{d},\"food\":{d},\"rent\":{d},\"vacation\":{d}," ++
-                "\"total\":{d},\"tier\":\"{s}\",\"satoshi_badge\":{}}}",
-                .{ cups.love_stored, cups.food_stored,
-                   cups.rent_stored, cups.vacation_stored,
-                   total, cups.tier().name(), cups.hasSatoshiBadge() });
-            rep_json_owned = true;
-        }
-    }
-    defer if (rep_json_owned) alloc.free(rep_json);
-
-    // ── 8. Active governance proposals / votes (counts only) ─────────────
-    const active_proposals = ctx.bc.gov_registry.activeProposalCount();
-    const votes_cast = ctx.bc.gov_registry.voteCountBy(addr);
-
-    // ── Assemble final JSON ───────────────────────────────────────────────
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"address\":\"{s}\"," ++
-        "\"balance_sat\":{d}," ++
-        "\"pq_identity\":{s}," ++
-        "\"label_verdict\":\"{s}\"," ++
-        "\"social\":{{\"followers\":{d},\"following\":{d}}}," ++
-        "\"poap_count\":{d}," ++
-        "\"notarization_count\":{d}," ++
-        "\"escrow\":{{\"sent\":{d},\"received\":{d}}}," ++
-        "\"reputation\":{s}," ++
-        "\"governance\":{{\"active_chain_proposals\":{d},\"votes_cast\":{d}}}" ++
-        "}}}}",
-        .{
-            id, addr,
-            omni_balance,
-            pq_json,
-            label_verdict,
-            followers_n, following_n,
-            poap_n,
-            note_count,
-            esc_sent, esc_recv,
-            rep_json,
-            active_proposals, votes_cast,
-        },
-    );
-}
-
-// ── escrow_create ─────────────────────────────────────────────────────────────
-// { "from":"ob1q...", "to":"ob1q...", "amount":5000000000, "condition_hash":"<sha256>",
-//   "timeout_blocks":144, "note":"proiect X", "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── escrow_release ────────────────────────────────────────────────────────────
-// { "from":"ob1q_to...", "escrow_id":1, "proof_hash":"<sha256>",
-//   "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── escrow_refund ─────────────────────────────────────────────────────────────
-// { "from":"ob1q_from...", "escrow_id":1, "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── escrow_dispute ────────────────────────────────────────────────────────────
-// { "from":"ob1q...", "escrow_id":1, "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── getescrow ─────────────────────────────────────────────────────────────────
-// { "escrow_id":1 }
-
-
-// ── getescrows ────────────────────────────────────────────────────────────────
-// { "address":"ob1q...", "role":"from"|"to" }
-
-
-// ── notarizedoc ───────────────────────────────────────────────────────────────
-// { "from":"ob1q...", "doc_hash":"<sha256_hex_64>", "doc_type":"audit",
-//   "expiry_blocks":0, "note":"Contract X", "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── verifynotarize ────────────────────────────────────────────────────────────
-// { "doc_hash":"<sha256_hex_64>" }  — verifica daca documentul e notarizat pe chain
-
-
-// ── revokenotarize ────────────────────────────────────────────────────────────
-// { "from":"ob1q...", "notarize_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── getnotarizations ──────────────────────────────────────────────────────────
-// { "address":"ob1q..." }  — lista notarizarilor unui owner (newest first)
-
-
-// ── sub_create ────────────────────────────────────────────────────────────────
-// { "from":"ob1q...", "to":"ob1q...", "amount":1000000, "interval":100,
-//   "max_payments":12, "note":"Netflix", "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── sub_cancel ────────────────────────────────────────────────────────────────
-// { "from":"ob1q...", "sub_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
-
-
-// ── getsubscriptions ──────────────────────────────────────────────────────────
-// { "address":"ob1q..." }  — returnează toate subscripțiile (emise și primite)
 
 
 // ── Profile / MiCA off-chain identity store ────────────────────────────────
@@ -14323,13 +12747,13 @@ fn handleGetIdentity(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // The economic facet additionally tracks MiCA-relevant attestations: KYC,
 // AML, sanctions, MiCA issuer flag, risk category.
 
-const FieldValue = struct {
+pub const FieldValue = struct {
     /// Owned by ProfileStore.allocator. UTF-8 or hex, whatever the caller sent.
     value: []u8,
     is_public: bool,
 };
 
-const FacetStore = struct {
+pub const FacetStore = struct {
     fields: std.StringHashMap(FieldValue),
 
     fn init(alloc: std.mem.Allocator) FacetStore {
@@ -14356,7 +12780,7 @@ const MicaAttestation = struct {
     timestamp_unix_s: u64,
 };
 
-const ProfileEntry = struct {
+pub const ProfileEntry = struct {
     h160: [20]u8,
     /// 4 facets in fixed order: 0=social, 1=professional, 2=cultural, 3=economic.
     facets: [4]FacetStore,
@@ -14377,7 +12801,7 @@ const ProfileEntry = struct {
     }
 };
 
-const ProfileStore = struct {
+pub const ProfileStore = struct {
     allocator: std.mem.Allocator,
     by_h160: std.AutoHashMap([20]u8, *ProfileEntry),
     mutex: std.Thread.Mutex = .{},
@@ -14392,7 +12816,7 @@ const ProfileStore = struct {
         };
     }
 
-    fn getOrCreate(self: *ProfileStore, h160: [20]u8) !*ProfileEntry {
+    pub fn getOrCreate(self: *ProfileStore, h160: [20]u8) !*ProfileEntry {
         if (self.by_h160.get(h160)) |e| return e;
         const e = try self.allocator.create(ProfileEntry);
         e.* = ProfileEntry.init(self.allocator, h160);
@@ -14400,20 +12824,19 @@ const ProfileStore = struct {
         return e;
     }
 
-    fn get(self: *ProfileStore, h160: [20]u8) ?*ProfileEntry {
+    pub fn get(self: *ProfileStore, h160: [20]u8) ?*ProfileEntry {
         return self.by_h160.get(h160);
     }
 };
 
 var g_profile_store: ?ProfileStore = null;
-
-fn getProfileStore(alloc: std.mem.Allocator) *ProfileStore {
+pub fn getProfileStore(alloc: std.mem.Allocator) *ProfileStore {
     if (g_profile_store == null) g_profile_store = ProfileStore.init(alloc);
     return &g_profile_store.?;
 }
 
 /// Decode bech32 OmniBus address → h160 bytes. Returns error if malformed.
-fn addrToH160(addr: []const u8, alloc: std.mem.Allocator) ![20]u8 {
+pub fn addrToH160(addr: []const u8, alloc: std.mem.Allocator) ![20]u8 {
     const decoded = try bech32_mod.decodeWitnessAddress(bech32_mod.OB_HRP, addr, alloc);
     defer alloc.free(decoded.program);
     if (decoded.program.len != 20) return error.InvalidAddress;
@@ -14422,7 +12845,7 @@ fn addrToH160(addr: []const u8, alloc: std.mem.Allocator) ![20]u8 {
     return h160;
 }
 
-fn hexEncode(alloc: std.mem.Allocator, bytes: []const u8) ![]u8 {
+pub fn hexEncode(alloc: std.mem.Allocator, bytes: []const u8) ![]u8 {
     var out = try alloc.alloc(u8, bytes.len * 2);
     const hex = "0123456789abcdef";
     for (bytes, 0..) |b, i| {
@@ -14432,7 +12855,7 @@ fn hexEncode(alloc: std.mem.Allocator, bytes: []const u8) ![]u8 {
     return out;
 }
 
-fn facetIndex(name: []const u8) ?usize {
+pub fn facetIndex(name: []const u8) ?usize {
     if (std.mem.eql(u8, name, "social")) return 0;
     if (std.mem.eql(u8, name, "professional")) return 1;
     if (std.mem.eql(u8, name, "cultural")) return 2;
@@ -14440,13 +12863,13 @@ fn facetIndex(name: []const u8) ?usize {
     return null;
 }
 
-const FACET_NAMES = [_][]const u8{ "social", "professional", "cultural", "economic" };
+pub const FACET_NAMES = [_][]const u8{ "social", "professional", "cultural", "economic" };
 
 /// Hash a facet's field bag into a 32-byte root. Order-independent: we sort
 /// field keys first. Tiny stand-in until the real facet modules expose a
 /// canonical root function (id_social / id_professional / id_cultural /
 /// id_economic each have their own; we hash a generic key|value bag here).
-fn computeFacetRoot(facet: *const FacetStore, alloc: std.mem.Allocator) ![32]u8 {
+pub fn computeFacetRoot(facet: *const FacetStore, alloc: std.mem.Allocator) ![32]u8 {
     const Sha256 = std.crypto.hash.sha2.Sha256;
     var hasher = Sha256.init(.{});
 
@@ -14583,7 +13006,7 @@ fn extractJsonStrInline(json: []const u8, key: []const u8) ?[]const u8 {
 
 /// Append one event to `data/<chain>/profiles.jsonl`. Best-effort —
 /// I/O errors are silently dropped so callers never fail on disk issues.
-fn appendProfileLog(ctx: *ServerCtx, line: []const u8) void {
+pub fn appendProfileLog(ctx: *ServerCtx, line: []const u8) void {
     if (ctx.profiles_path_len == 0) return;
     const path = ctx.profiles_path_buf[0..ctx.profiles_path_len];
     const file = std.fs.cwd().createFile(path, .{ .truncate = false }) catch return;
@@ -14596,119 +13019,9 @@ fn appendProfileLog(ctx: *ServerCtx, line: []const u8) void {
 /// RPC `profile_init <addr>` — idempotent. Generates the DID, returns an
 /// empty Manifest skeleton (all 10 leaves zero) and a fresh salt (returned
 /// only this once). Appends an `op=init` line to profiles.jsonl.
-fn handleProfileInit(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    const h160 = addrToH160(addr, alloc) catch
-        return errorJson(-32602, "Invalid bech32 address", id, alloc);
-
-    const did = try id_layer_mod.did.didFromHash160(h160, alloc);
-    defer alloc.free(did);
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-    _ = try store.getOrCreate(h160);
-
-    // Best-effort JSONL append — init event so replay can recreate the entry.
-    {
-        const ts = std.time.timestamp();
-        const init_line = std.fmt.allocPrint(alloc,
-            "{{\"op\":\"init\",\"addr\":\"{s}\",\"did\":\"{s}\",\"ts\":{d}}}",
-            .{ addr, did, ts }) catch null;
-        if (init_line) |l| {
-            defer alloc.free(l);
-            appendProfileLog(ctx, l);
-        }
-    }
-
-    // Empty manifest skeleton — all leaves zero. Use the same Manifest type
-    // so the root we report matches what an off-chain anchor would produce
-    // for an unpopulated holder.
-    const empty_manifest = id_layer_mod.manifest.Manifest{
-        .kyc_hash = [_]u8{0} ** 32,
-        .assets_root = [_]u8{0} ** 32,
-        .reputation = .{},
-        .pq_pubkeys_concat = "",
-        .obm = 0,
-        .timestamp_unix_s = 0,
-    };
-    const root = try id_layer_mod.manifest.computeRoot(empty_manifest, alloc);
-    const root_hex = try hexEncode(alloc, &root);
-    defer alloc.free(root_hex);
-
-    const salt_bytes = try store.salt_mgr.manager().getOrCreate();
-    const salt_hex = try hexEncode(alloc, &salt_bytes);
-    defer alloc.free(salt_hex);
-
-    const zero_hex = "0000000000000000000000000000000000000000000000000000000000000000";
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"did\":\"{s}\",\"address\":\"{s}\",\"manifest_root_empty\":\"{s}\",\"salt_hex\":\"{s}\",\"facets\":{{\"social\":\"{s}\",\"professional\":\"{s}\",\"cultural\":\"{s}\",\"economic\":\"{s}\"}}}}}}",
-        .{ id, did, addr, root_hex, salt_hex, zero_hex, zero_hex, zero_hex, zero_hex });
-}
 
 /// RPC `profile_update <addr> <facet> <field> <value> <is_public>` — update
 /// one field in one facet. Stored in-memory + JSONL log.
-fn handleProfileUpdate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const facet_name = extractArrayStr(body, 1) orelse extractStr(body, "facet") orelse
-        return errorJson(-32602, "Missing param: facet", id, alloc);
-    const field_name = extractArrayStr(body, 2) orelse extractStr(body, "field") orelse
-        return errorJson(-32602, "Missing param: field", id, alloc);
-    const value = extractArrayStr(body, 3) orelse extractStr(body, "value") orelse
-        return errorJson(-32602, "Missing param: value", id, alloc);
-    // is_public — accept "true"/"false" string OR bare JSON boolean true/false in
-    // array position 4, or the "is_public" named key. extractArrayToken handles both.
-    var is_public: bool = false;
-    if (extractArrayToken(body, 4)) |s| {
-        is_public = std.mem.eql(u8, s, "true");
-    } else if (extractStr(body, "is_public")) |s| {
-        is_public = std.mem.eql(u8, s, "true");
-    }
-
-    const fidx = facetIndex(facet_name) orelse
-        return errorJson(-32602, "Unknown facet (expected social|professional|cultural|economic)", id, alloc);
-
-    const h160 = addrToH160(addr, alloc) catch
-        return errorJson(-32602, "Invalid bech32 address", id, alloc);
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-
-    const entry = try store.getOrCreate(h160);
-    var facet = &entry.facets[fidx];
-
-    // Drop any prior value for this key (free its memory) before insert.
-    if (facet.fields.fetchRemove(field_name)) |old| {
-        store.allocator.free(old.key);
-        store.allocator.free(old.value.value);
-    }
-    const key_dup = try store.allocator.dupe(u8, field_name);
-    const val_dup = try store.allocator.dupe(u8, value);
-    try facet.fields.put(key_dup, .{ .value = val_dup, .is_public = is_public });
-
-    const new_root = try computeFacetRoot(facet, alloc);
-    const root_hex = try hexEncode(alloc, &new_root);
-    defer alloc.free(root_hex);
-
-    // Best-effort JSONL append — update event with all fields needed for replay.
-    const ts = std.time.timestamp();
-    const log_line = try std.fmt.allocPrint(alloc,
-        "{{\"op\":\"update\",\"addr\":\"{s}\",\"facet\":\"{s}\",\"field\":\"{s}\",\"value\":\"{s}\",\"is_public\":\"{}\",\"ts\":{d}}}",
-        .{ addr, facet_name, field_name, value, is_public, ts });
-    defer alloc.free(log_line);
-    appendProfileLog(ctx, log_line);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"facet\":\"{s}\",\"new_facet_root\":\"{s}\"}}}}",
-        .{ id, facet_name, root_hex });
-}
 
 /// Write a JSON-safe string: escapes `"` → `'`, `\` → `/`, strips ctrl chars.
 pub fn writeJsonSafeStr(w: anytype, s: []const u8) !void {
@@ -14721,7 +13034,7 @@ pub fn writeJsonSafeStr(w: anytype, s: []const u8) !void {
 }
 
 /// Emit a facet as a JSON object containing only fields with is_public=true.
-fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
+pub fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
     try w.writeByte('{');
     var first = true;
     var it = facet.fields.iterator();
@@ -14739,46 +13052,10 @@ fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
 }
 
 /// RPC `profile_get <addr>` — public view: only fields marked is_public.
-fn handleProfileGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    const h160 = addrToH160(addr, alloc) catch
-        return errorJson(-32602, "Invalid bech32 address", id, alloc);
-
-    const did = try id_layer_mod.did.didFromHash160(h160, alloc);
-    defer alloc.free(did);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"did\":\"{s}\",\"address\":\"{s}\",\"facets\":{{",
-        .{ id, did, addr });
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-    const maybe_entry = store.get(h160);
-
-    for (FACET_NAMES, 0..) |fname, i| {
-        if (i > 0) try w.writeByte(',');
-        try w.print("\"{s}\":", .{fname});
-        if (maybe_entry) |entry| {
-            try writeFacetPublicJson(w, &entry.facets[i]);
-        } else {
-            try w.writeAll("{}");
-        }
-    }
-    try w.writeAll("}}}");
-    return buf.toOwnedSlice();
-}
 
 /// Validate hex-shape only — no cryptographic verification. Empty allowed
 /// when the attestation is a self-attestation (issuer_did=="").
-fn isHexShape(s: []const u8) bool {
+pub fn isHexShape(s: []const u8) bool {
     if (s.len == 0) return true;
     if (s.len % 2 != 0) return false;
     for (s) |c| {
@@ -14788,303 +13065,8 @@ fn isHexShape(s: []const u8) bool {
     return true;
 }
 
-fn isAllZeros(s: []const u8) bool {
+pub fn isAllZeros(s: []const u8) bool {
     for (s) |c| if (c != '0') return false;
     return true;
-}
-
-/// RPC `mica_attest <addr> <kind> <issuer_did> <signature_hex>` — record a
-/// KYC / AML / sanctions attestation on the address's economic profile.
-fn handleMicaAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const kind = extractArrayStr(body, 1) orelse extractStr(body, "kind") orelse
-        return errorJson(-32602, "Missing param: kind", id, alloc);
-    const issuer = extractArrayStr(body, 2) orelse extractStr(body, "issuer_did") orelse "";
-    const sig_hex = extractArrayStr(body, 3) orelse extractStr(body, "signature_hex") orelse "";
-
-    if (!(std.mem.eql(u8, kind, "kyc") or std.mem.eql(u8, kind, "aml") or
-          std.mem.eql(u8, kind, "sanctions")))
-        return errorJson(-32602, "kind must be kyc|aml|sanctions", id, alloc);
-
-    if (!isHexShape(sig_hex))
-        return errorJson(-32602, "signature_hex must be hex (even length, [0-9a-f])", id, alloc);
-
-    // Self-attestation rule: empty issuer ⇒ signature must be zeros (or empty).
-    if (issuer.len == 0 and sig_hex.len > 0 and !isAllZeros(sig_hex))
-        return errorJson(-32602, "Self-attestation requires zero signature", id, alloc);
-
-    const h160 = addrToH160(addr, alloc) catch
-        return errorJson(-32602, "Invalid bech32 address", id, alloc);
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-    const entry = try store.getOrCreate(h160);
-
-    try entry.mica.append(.{
-        .kind = try store.allocator.dupe(u8, kind),
-        .issuer_did = try store.allocator.dupe(u8, issuer),
-        .signature_hex = try store.allocator.dupe(u8, sig_hex),
-        .timestamp_unix_s = @intCast(std.time.timestamp()),
-    });
-
-    // Mirror the latest-of-kind flag into the economic facet as a public
-    // field (e.g. kyc_verified=true). Cleartext sig stays in mica list.
-    var econ = &entry.facets[3];
-    const flag_key = try std.fmt.allocPrint(store.allocator, "{s}_verified", .{kind});
-    if (econ.fields.fetchRemove(flag_key)) |old| {
-        store.allocator.free(old.key);
-        store.allocator.free(old.value.value);
-    }
-    const flag_val = try store.allocator.dupe(u8, "true");
-    try econ.fields.put(flag_key, .{ .value = flag_val, .is_public = true });
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"ok\":true,\"attestation_kind\":\"{s}\",\"issuer\":\"{s}\"}}}}",
-        .{ id, kind, issuer });
-}
-
-/// RPC `mica_disclose <addr>` — return all MiCA-relevant attestations for
-/// the address (KYC, AML, sanctions) plus issuer flag and risk category
-/// pulled from the economic facet (best-effort).
-fn handleMicaDisclose(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    const h160 = addrToH160(addr, alloc) catch
-        return errorJson(-32602, "Invalid bech32 address", id, alloc);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"attestations\":[",
-        .{ id, addr });
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-    const maybe_entry = store.get(h160);
-
-    var is_mica_issuer: bool = false;
-    var risk_category: []const u8 = "unknown";
-
-    if (maybe_entry) |entry| {
-        for (entry.mica.items, 0..) |att, i| {
-            if (i > 0) try w.writeByte(',');
-            try w.print(
-                "{{\"kind\":\"{s}\",\"issuer_did\":\"{s}\",\"signature_hex\":\"{s}\",\"timestamp\":{d}}}",
-                .{ att.kind, att.issuer_did, att.signature_hex, att.timestamp_unix_s });
-        }
-        // Pull optional economic-facet flags (only if marked public).
-        const econ = &entry.facets[3];
-        if (econ.fields.get("is_mica_issuer")) |fv| {
-            if (fv.is_public) is_mica_issuer = std.mem.eql(u8, fv.value, "true");
-        }
-        if (econ.fields.get("risk_category")) |fv| {
-            if (fv.is_public) risk_category = fv.value;
-        }
-    }
-    try w.print("],\"is_mica_issuer\":{},\"risk_category\":\"{s}\"}}}}", .{ is_mica_issuer, risk_category });
-    return buf.toOwnedSlice();
-}
-
-/// RPC `disclose_post` — prove a specific social post from facet[0].
-/// Request:  {"method":"disclose_post","params":{"address":"ob1q...","post_index":0}}
-/// Response: {"post_hash":"hex...","timestamp":N,"is_public":true,"proof":["hex..."]}
-fn handleDisclosePost(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const post_idx = extractParamObjectU64(body, "post_index");
-
-    const h160 = addrToH160(address, alloc) catch
-        return errorJson(-32602, "Invalid address", id, alloc);
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-
-    const entry = store.get(h160) orelse
-        return errorJson(-32000, "Profile not found", id, alloc);
-
-    const facet = &entry.facets[0]; // social
-
-    // Build key names for this post index (max fits in 32 bytes).
-    var hash_key_buf: [32]u8 = undefined;
-    var ts_key_buf:   [32]u8 = undefined;
-    var pub_key_buf:  [32]u8 = undefined;
-
-    const hash_key = std.fmt.bufPrint(&hash_key_buf, "post_{d}_hash",   .{post_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const ts_key   = std.fmt.bufPrint(&ts_key_buf,   "post_{d}_ts",     .{post_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const pub_key  = std.fmt.bufPrint(&pub_key_buf,  "post_{d}_public", .{post_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-
-    const hash_val = (facet.fields.get(hash_key) orelse
-        return errorJson(-32000, "Post not found at index", id, alloc)).value;
-
-    const ts_val  = if (facet.fields.get(ts_key))  |fv| fv.value else "0";
-    const pub_val = if (facet.fields.get(pub_key)) |fv| fv.value else "false";
-    const is_pub  = std.mem.eql(u8, pub_val, "true");
-
-    // Proof = facet root (commits to all items in this facet).
-    const facet_root = try computeFacetRoot(facet, alloc);
-    const root_hex   = try hexEncode(alloc, &facet_root);
-    defer alloc.free(root_hex);
-
-    const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
-
-    const phash_safe = try jsonSanitize(alloc, hash_val);
-    defer alloc.free(phash_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"post_hash\":\"{s}\",\"timestamp\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
-        .{ id, phash_safe, ts_num, is_pub, root_hex });
-}
-
-/// RPC `disclose_cert` — prove a specific professional certification from facet[1].
-/// Request:  {"method":"disclose_cert","params":{"address":"ob1q...","cert_index":0}}
-/// Response: {"issuer_did":"did:...","credential_kind":"engineering","valid_from":N,"valid_until":N,"hash":"hex...","proof":["hex..."]}
-fn handleDiscloseCert(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const cert_idx = extractParamObjectU64(body, "cert_index");
-
-    const h160 = addrToH160(address, alloc) catch
-        return errorJson(-32602, "Invalid address", id, alloc);
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-
-    const entry = store.get(h160) orelse
-        return errorJson(-32000, "Profile not found", id, alloc);
-
-    const facet = &entry.facets[1]; // professional
-
-    var issuer_key_buf:  [32]u8 = undefined;
-    var kind_key_buf:    [32]u8 = undefined;
-    var from_key_buf:    [32]u8 = undefined;
-    var until_key_buf:   [32]u8 = undefined;
-    var hash_key_buf:    [32]u8 = undefined;
-
-    const issuer_key = std.fmt.bufPrint(&issuer_key_buf, "cert_{d}_issuer",      .{cert_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const kind_key   = std.fmt.bufPrint(&kind_key_buf,   "cert_{d}_kind",        .{cert_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const from_key   = std.fmt.bufPrint(&from_key_buf,   "cert_{d}_valid_from",  .{cert_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const until_key  = std.fmt.bufPrint(&until_key_buf,  "cert_{d}_valid_until", .{cert_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const hash_key   = std.fmt.bufPrint(&hash_key_buf,   "cert_{d}_hash",        .{cert_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-
-    // issuer or hash must exist — use issuer as the required sentinel.
-    const issuer_val = (facet.fields.get(issuer_key) orelse
-        return errorJson(-32000, "Cert not found at index", id, alloc)).value;
-
-    const kind_val  = if (facet.fields.get(kind_key))  |fv| fv.value else "";
-    const from_val  = if (facet.fields.get(from_key))  |fv| fv.value else "0";
-    const until_val = if (facet.fields.get(until_key)) |fv| fv.value else "0";
-    const hash_val  = if (facet.fields.get(hash_key))  |fv| fv.value else "";
-
-    const facet_root = try computeFacetRoot(facet, alloc);
-    const root_hex   = try hexEncode(alloc, &facet_root);
-    defer alloc.free(root_hex);
-
-    const from_num  = std.fmt.parseInt(u64, from_val,  10) catch 0;
-    const until_num = std.fmt.parseInt(u64, until_val, 10) catch 0;
-
-    const issuer_safe = try jsonSanitize(alloc, issuer_val);
-    defer alloc.free(issuer_safe);
-    const ckind_safe = try jsonSanitize(alloc, kind_val);
-    defer alloc.free(ckind_safe);
-    const chash_safe = try jsonSanitize(alloc, hash_val);
-    defer alloc.free(chash_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"issuer_did\":\"{s}\",\"credential_kind\":\"{s}\",\"valid_from\":{d},\"valid_until\":{d},\"hash\":\"{s}\",\"proof\":[\"{s}\"]}}}}",
-        .{ id, issuer_safe, ckind_safe, from_num, until_num, chash_safe, root_hex });
-}
-
-/// RPC `disclose_work` — prove a specific notarized work from facet[2] (cultural).
-/// Request:  {"method":"disclose_work","params":{"address":"ob1q...","work_index":0}}
-/// Response: {"content_hash":"hex...","work_kind":"code","notarized_at":N,"is_public":bool,"proof":["hex..."]}
-fn handleDiscloseWork(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const work_idx = extractParamObjectU64(body, "work_index");
-
-    const h160 = addrToH160(address, alloc) catch
-        return errorJson(-32602, "Invalid address", id, alloc);
-
-    const store = getProfileStore(alloc);
-    store.mutex.lock();
-    defer store.mutex.unlock();
-
-    const entry = store.get(h160) orelse
-        return errorJson(-32000, "Profile not found", id, alloc);
-
-    const facet = &entry.facets[2]; // cultural
-
-    var hash_key_buf: [32]u8 = undefined;
-    var kind_key_buf: [32]u8 = undefined;
-    var ts_key_buf:   [32]u8 = undefined;
-    var pub_key_buf:  [32]u8 = undefined;
-
-    const hash_key = std.fmt.bufPrint(&hash_key_buf, "work_{d}_hash",   .{work_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const kind_key = std.fmt.bufPrint(&kind_key_buf, "work_{d}_kind",   .{work_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const ts_key   = std.fmt.bufPrint(&ts_key_buf,   "work_{d}_ts",     .{work_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-    const pub_key  = std.fmt.bufPrint(&pub_key_buf,  "work_{d}_public", .{work_idx}) catch
-        return errorJson(-32000, "Index too large", id, alloc);
-
-    const hash_val = (facet.fields.get(hash_key) orelse
-        return errorJson(-32000, "Work not found at index", id, alloc)).value;
-
-    const kind_val = if (facet.fields.get(kind_key)) |fv| fv.value else "";
-    const ts_val   = if (facet.fields.get(ts_key))   |fv| fv.value else "0";
-    const pub_val  = if (facet.fields.get(pub_key))  |fv| fv.value else "false";
-    const is_pub   = std.mem.eql(u8, pub_val, "true");
-
-    const facet_root = try computeFacetRoot(facet, alloc);
-    const root_hex   = try hexEncode(alloc, &facet_root);
-    defer alloc.free(root_hex);
-
-    const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
-
-    const whash_safe = try jsonSanitize(alloc, hash_val);
-    defer alloc.free(whash_safe);
-    const wkind_safe = try jsonSanitize(alloc, kind_val);
-    defer alloc.free(wkind_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"content_hash\":\"{s}\",\"work_kind\":\"{s}\",\"notarized_at\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
-        .{ id, whash_safe, wkind_safe, ts_num, is_pub, root_hex });
-}
-
-// ── errorJson ────────────────────────────────────────────────────────────────
-
-test "errorJson — contine code si message" {
-    const result = try errorJson(-32600, "Invalid request", 1, testing.allocator);
-    defer testing.allocator.free(result);
-    try testing.expect(std.mem.indexOf(u8, result, "-32600") != null);
-    try testing.expect(std.mem.indexOf(u8, result, "Invalid request") != null);
-    try testing.expect(std.mem.indexOf(u8, result, "\"id\":1") != null);
-}
-
-test "errorJson — format JSON-RPC 2.0" {
-    const result = try errorJson(-32000, "Sign error", 7, testing.allocator);
-    defer testing.allocator.free(result);
-    try testing.expect(std.mem.indexOf(u8, result, "\"jsonrpc\":\"2.0\"") != null);
-    try testing.expect(std.mem.indexOf(u8, result, "\"error\"") != null);
-    try testing.expect(std.mem.indexOf(u8, result, "\"id\":7") != null);
 }
 
