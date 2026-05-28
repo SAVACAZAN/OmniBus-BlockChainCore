@@ -73,6 +73,8 @@ const rpc_mempool = @import("rpc/mempool.zig");
 const rpc_net = @import("rpc/net.zig");
 const rpc_mining = @import("rpc/mining.zig");
 const rpc_lightning = @import("rpc/lightning.zig");
+const rpc_governance = @import("rpc/governance.zig");
+const rpc_social = @import("rpc/social.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 // Process-global cross-chain oracle. Validators populate this via
@@ -4141,9 +4143,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "sendpqattest"))     return handleSendPqAttest(body, ctx, id);
 
     // ── On-chain labels (decentralized address tagging) ─────────────────
-    if (std.mem.eql(u8, method, "applylabel"))       return handleApplyLabel(body, ctx, id);
-    if (std.mem.eql(u8, method, "getlabels"))        return handleGetLabels(body, ctx, id);
-    if (std.mem.eql(u8, method, "removelabel"))      return handleRemoveLabel(body, ctx, id);
+    if (std.mem.eql(u8, method, "applylabel"))       return rpc_social.handleApplyLabel(body, ctx, id);
+    if (std.mem.eql(u8, method, "getlabels"))        return rpc_social.handleGetLabels(body, ctx, id);
+    if (std.mem.eql(u8, method, "removelabel"))      return rpc_social.handleRemoveLabel(body, ctx, id);
 
     // ── On-chain subscriptions (recurring payments) ──────────────────────
     if (std.mem.eql(u8, method, "sub_create"))       return handleSubCreate(body, ctx, id);
@@ -4165,24 +4167,24 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getescrows"))       return handleGetEscrows(body, ctx, id);
 
     // ── Social Graph ─────────────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "follow"))           return handleFollow(body, ctx, id);
-    if (std.mem.eql(u8, method, "unfollow"))         return handleUnfollow(body, ctx, id);
-    if (std.mem.eql(u8, method, "getfollowers"))     return handleGetFollowers(body, ctx, id);
-    if (std.mem.eql(u8, method, "getfollowing"))     return handleGetFollowing(body, ctx, id);
+    if (std.mem.eql(u8, method, "follow"))           return rpc_social.handleFollow(body, ctx, id);
+    if (std.mem.eql(u8, method, "unfollow"))         return rpc_social.handleUnfollow(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfollowers"))     return rpc_social.handleGetFollowers(body, ctx, id);
+    if (std.mem.eql(u8, method, "getfollowing"))     return rpc_social.handleGetFollowing(body, ctx, id);
 
     // ── POAP (Proof of Attendance) ────────────────────────────────────────
-    if (std.mem.eql(u8, method, "poap_createevent")) return handlePoapCreateEvent(body, ctx, id);
-    if (std.mem.eql(u8, method, "poap_claim"))       return handlePoapClaim(body, ctx, id);
-    if (std.mem.eql(u8, method, "poap_close"))       return handlePoapClose(body, ctx, id);
-    if (std.mem.eql(u8, method, "getpoaps"))         return handleGetPoaps(body, ctx, id);
-    if (std.mem.eql(u8, method, "getpoapevent"))     return handleGetPoapEvent(body, ctx, id);
+    if (std.mem.eql(u8, method, "poap_createevent")) return rpc_social.handlePoapCreateEvent(body, ctx, id);
+    if (std.mem.eql(u8, method, "poap_claim"))       return rpc_social.handlePoapClaim(body, ctx, id);
+    if (std.mem.eql(u8, method, "poap_close"))       return rpc_social.handlePoapClose(body, ctx, id);
+    if (std.mem.eql(u8, method, "getpoaps"))         return rpc_social.handleGetPoaps(body, ctx, id);
+    if (std.mem.eql(u8, method, "getpoapevent"))     return rpc_social.handleGetPoapEvent(body, ctx, id);
 
     // ── Governance ────────────────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "gov_propose"))      return handleGovPropose(body, ctx, id);
-    if (std.mem.eql(u8, method, "gov_vote"))         return handleGovVote(body, ctx, id);
-    if (std.mem.eql(u8, method, "gov_execute"))      return handleGovExecute(body, ctx, id);
-    if (std.mem.eql(u8, method, "getproposals"))     return handleGetProposals(body, ctx, id);
-    if (std.mem.eql(u8, method, "getproposal"))      return handleGetProposal(body, ctx, id);
+    if (std.mem.eql(u8, method, "gov_propose"))      return rpc_governance.handleGovPropose(body, ctx, id);
+    if (std.mem.eql(u8, method, "gov_vote"))         return rpc_governance.handleGovVote(body, ctx, id);
+    if (std.mem.eql(u8, method, "gov_execute"))      return rpc_governance.handleGovExecute(body, ctx, id);
+    if (std.mem.eql(u8, method, "getproposals"))     return rpc_governance.handleGetProposals(body, ctx, id);
+    if (std.mem.eql(u8, method, "getproposal"))      return rpc_governance.handleGetProposal(body, ctx, id);
 
     // ── Identity Hub ──────────────────────────────────────────────────────
     if (std.mem.eql(u8, method, "getidentity"))      return handleGetIdentity(body, ctx, id);
@@ -7388,7 +7390,7 @@ fn writeUnauthorized(stream: std.net.Stream) void {
 /// Replaces `"` → `'`, `\` → `/`, and strips control chars (< 0x20).
 /// Returns an allocated slice that must be freed by the caller.
 /// Used to safely include op_return / memo content in RPC JSON responses.
-fn jsonSanitize(alloc: std.mem.Allocator, s: []const u8) ![]u8 {
+pub fn jsonSanitize(alloc: std.mem.Allocator, s: []const u8) ![]u8 {
     var out = try alloc.alloc(u8, s.len);
     var j: usize = 0;
     for (s) |c| {
@@ -14657,641 +14659,67 @@ fn handleSendPqAttest(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 //   "note":"optional", "tier":"FOOD", "signature":"hex", "public_key":"hex", "nonce":N }
 // Fee: minimum 0.1 OMNI (LABEL_FEE_SAT). anti-spam.
 
-fn handleApplyLabel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const from    = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const target  = extractStr(body, "target")  orelse return errorJson(-32602, "Missing: target", id, alloc);
-    const tag_str = extractStr(body, "tag")     orelse return errorJson(-32602, "Missing: tag", id, alloc);
-    const note    = extractStr(body, "note")    orelse "";
-    const tier    = extractStr(body, "tier")    orelse "OMNI";
-    const sig     = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey  = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce   = extractParamObjectU64(body, "nonce");
-
-    const tag = label_mod.Tag.fromStr(tag_str) orelse
-        return errorJson(-32602, "Unknown tag", id, alloc);
-
-    // Build op_return
-    const op_return = try std.fmt.allocPrint(alloc, "label:{s}:{s}:{s}", .{ target, tag.toStr(), note });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = label_mod.LABEL_FEE_SAT,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    // Also apply immediately to the in-memory registry so getlabels reflects it
-    // before the block is mined (optimistic — removed if TX is dropped).
-    _ = ctx.bc.label_registry.apply(
-        target, from, tag, note, tier,
-        @intCast(ctx.bc.getBlockCount()),
-        canonical,
-    ) catch {};
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"tag\":\"{s}\",\"target\":\"{s}\"}}}}",
-        .{ id, canonical, tag.toStr(), target });
-}
 
 // ── getlabels ─────────────────────────────────────────────────────────────────
 // Returns address report + active labels: { "address":"ob1q..." }
 
-fn handleGetLabels(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing: address", id, alloc);
-
-    const rep = ctx.bc.label_registry.report(address);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"verdict\":\"{s}\"," ++
-        "\"positive_score\":{d}," ++
-        "\"negative_score\":{d}," ++
-        "\"label_count\":{d}," ++
-        "\"top_tag\":\"{s}\"," ++
-        "\"labels\":[",
-        .{
-            id,
-            rep.verdictStr(),
-            rep.positive_score,
-            rep.negative_score,
-            rep.label_count,
-            if (rep.top_tag) |t| t.toStr() else "none",
-        },
-    );
-
-    var entries: [label_mod.MAX_LABELS_PER_ADDRESS]label_mod.LabelEntry = undefined;
-    const n = ctx.bc.label_registry.listActive(address, &entries);
-    for (entries[0..n], 0..) |e, i| {
-        if (i > 0) try w.writeByte(',');
-        const label_note = try jsonSanitize(alloc, e.noteSlice());
-        defer alloc.free(label_note);
-        try w.print(
-            "{{\"id\":{d},\"reporter\":\"{s}\",\"tag\":\"{s}\",\"note\":\"{s}\"," ++
-            "\"weight\":{d},\"block\":{d}}}",
-            .{ e.id, e.reporterSlice(), e.tag.toStr(), label_note, e.weight, e.block_height },
-        );
-    }
-
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── removelabel ───────────────────────────────────────────────────────────────
 // Mark label as removed (only original reporter can remove):
 // { "from":"ob1q...", "label_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleRemoveLabel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc    = ctx.allocator;
-    const from     = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const label_id = extractParamObjectU64(body, "label_id");
-    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce    = extractParamObjectU64(body, "nonce");
-
-    // Build op_return
-    const op_return = try std.fmt.allocPrint(alloc, "label_remove:{d}", .{label_id});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = 1000,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    // Optimistic in-memory remove
-    const removed = ctx.bc.label_registry.remove(label_id, from);
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"removed\":{s}}}}}",
-        .{ id, canonical, if (removed) "true" else "false" });
-}
 
 // ── follow ────────────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "target":"ob1q...", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleFollow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc  = ctx.allocator;
-    const from   = extractStr(body, "from")   orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const target = extractStr(body, "target") orelse return errorJson(-32602, "Missing: target", id, alloc);
-    const sig    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce  = extractParamObjectU64(body, "nonce");
-
-    if (std.mem.eql(u8, from, target)) return errorJson(-32602, "Cannot follow yourself", id, alloc);
-
-    const op_return = try std.fmt.allocPrint(alloc, "follow:{s}", .{target});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = social_mod.FOLLOW_FEE_SAT,
-        .timestamp = ts, .nonce = nonce, .op_return = op_return,
-        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
-    tx.hash = canonical;
-
-    ctx.bc.social_graph.follow(from, target, @intCast(ctx.bc.getBlockCount())) catch {};
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"following\":\"{s}\"}}}}",
-        .{ id, canonical, target });
-}
 
 // ── unfollow ──────────────────────────────────────────────────────────────────
 
-fn handleUnfollow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc  = ctx.allocator;
-    const from   = extractStr(body, "from")   orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const target = extractStr(body, "target") orelse return errorJson(-32602, "Missing: target", id, alloc);
-    const sig    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce  = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "unfollow:{s}", .{target});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = social_mod.FOLLOW_FEE_SAT,
-        .timestamp = ts, .nonce = nonce, .op_return = op_return,
-        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
-    tx.hash = canonical;
-
-    ctx.bc.social_graph.unfollow(from, target);
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\"}}}}",
-        .{ id, canonical });
-}
 
 // ── getfollowers ──────────────────────────────────────────────────────────────
 // { "address":"ob1q..." }
 
-fn handleGetFollowers(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
-
-    var addrs: [social_mod.MAX_LIST][]const u8 = undefined;
-    const n     = ctx.bc.social_graph.getFollowers(address, &addrs);
-    const count = ctx.bc.social_graph.followerCount(address);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"followers\":[", .{ id, count });
-    for (addrs[0..n], 0..) |a, i| {
-        if (i > 0) try w.writeByte(',');
-        try w.print("\"{s}\"", .{a});
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── getfollowing ──────────────────────────────────────────────────────────────
 
-fn handleGetFollowing(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
-
-    var addrs: [social_mod.MAX_LIST][]const u8 = undefined;
-    const n     = ctx.bc.social_graph.getFollowing(address, &addrs);
-    const count = ctx.bc.social_graph.followingCount(address);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"following\":[", .{ id, count });
-    for (addrs[0..n], 0..) |a, i| {
-        if (i > 0) try w.writeByte(',');
-        try w.print("\"{s}\"", .{a});
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── poap_createevent ──────────────────────────────────────────────────────────
 // { "from":"ob1q...", "event_id":"conf2026", "name":"OmniBus Conf 2026",
 //   "max_claims":500, "note":"...", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handlePoapCreateEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc      = ctx.allocator;
-    const from       = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const event_id   = extractStr(body, "event_id")   orelse return errorJson(-32602, "Missing: event_id", id, alloc);
-    const name       = extractStr(body, "name")       orelse return errorJson(-32602, "Missing: name", id, alloc);
-    const max_claims = extractParamObjectU64(body, "max_claims");
-    const note       = extractStr(body, "note") orelse "";
-    const sig        = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey     = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce      = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "poap_event:{s}:{s}:{d}:{s}", .{ event_id, name, max_claims, note });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = poap_mod.POAP_EVENT_FEE_SAT,
-        .timestamp = ts, .nonce = nonce, .op_return = op_return,
-        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
-    tx.hash = canonical;
-
-    const parsed = poap_mod.parseEvent(op_return).?;
-    ctx.bc.poap_registry.createEvent(from, parsed, @intCast(ctx.bc.getBlockCount())) catch {};
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
-    ctx.bc.mutex.unlock();
-
-    const eid_safe = try jsonSanitize(alloc, event_id);
-    defer alloc.free(eid_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\",\"fee_sat\":{d}}}}}",
-        .{ id, canonical, eid_safe, poap_mod.POAP_EVENT_FEE_SAT });
-}
 
 // ── poap_claim ────────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "event_id":"conf2026", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handlePoapClaim(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc    = ctx.allocator;
-    const from     = extractStr(body, "from")     orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const event_id = extractStr(body, "event_id") orelse return errorJson(-32602, "Missing: event_id", id, alloc);
-    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce    = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "poap_claim:{s}", .{event_id});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = poap_mod.POAP_CLAIM_FEE_SAT,
-        .timestamp = ts, .nonce = nonce, .op_return = op_return,
-        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
-    tx.hash = canonical;
-
-    ctx.bc.poap_registry.claimPoap(from, event_id, @intCast(ctx.bc.getBlockCount()), canonical) catch |err| {
-        const msg = switch (err) {
-            error.EventNotFound  => "Event not found",
-            error.EventClosed    => "Event is closed or max claims reached",
-            error.AlreadyClaimed => "Already claimed this POAP",
-            else                 => "Claim failed",
-        };
-        return errorJson(-32001, msg, id, alloc);
-    };
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
-    ctx.bc.mutex.unlock();
-
-    const eid2_safe = try jsonSanitize(alloc, event_id);
-    defer alloc.free(eid2_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\"}}}}",
-        .{ id, canonical, eid2_safe });
-}
 
 // ── poap_close ────────────────────────────────────────────────────────────────
 
-fn handlePoapClose(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc    = ctx.allocator;
-    const from     = extractStr(body, "from")     orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const event_id = extractStr(body, "event_id") orelse return errorJson(-32602, "Missing: event_id", id, alloc);
-    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce    = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "poap_close:{s}", .{event_id});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = 1000,
-        .timestamp = ts, .nonce = nonce, .op_return = op_return,
-        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
-    tx.hash = canonical;
-
-    const closed = ctx.bc.poap_registry.closeEvent(event_id, from);
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"closed\":{s}}}}}",
-        .{ id, canonical, if (closed) "true" else "false" });
-}
 
 // ── getpoaps ──────────────────────────────────────────────────────────────────
 // { "address":"ob1q..." }  — lista POAP-urilor unui wallet
 
-fn handleGetPoaps(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
-
-    var claims: [64]poap_mod.PoapClaim = undefined;
-    const n = ctx.bc.poap_registry.listClaims(address, &claims);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"poaps\":[", .{id});
-    for (claims[0..n], 0..) |c, i| {
-        if (i > 0) try w.writeByte(',');
-        try w.writeAll("{\"event_id\":\"");
-        try writeJsonSafeStr(w, c.eventIdSlice());
-        try w.print("\",\"claim_block\":{d},\"tx_hash\":\"{s}\"}}", .{ c.claim_block, c.txHashSlice() });
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── getpoapevent ──────────────────────────────────────────────────────────────
 // { "event_id":"conf2026" }
 
-fn handleGetPoapEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc    = ctx.allocator;
-    const event_id = extractStr(body, "event_id") orelse return errorJson(-32602, "Missing: event_id", id, alloc);
-
-    const ev = ctx.bc.poap_registry.getEvent(event_id) orelse
-        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
-
-    const pev_id   = try jsonSanitize(alloc, ev.eventIdSlice());
-    defer alloc.free(pev_id);
-    const pev_name = try jsonSanitize(alloc, ev.nameSlice());
-    defer alloc.free(pev_name);
-    const pev_note = try jsonSanitize(alloc, ev.noteSlice());
-    defer alloc.free(pev_note);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"event_id\":\"{s}\",\"name\":\"{s}\"," ++
-        "\"organizer\":\"{s}\",\"max_claims\":{d}," ++
-        "\"claims_count\":{d},\"create_block\":{d}," ++
-        "\"closed\":{s},\"note\":\"{s}\"}}}}",
-        .{ id, pev_id, pev_name, ev.organizerSlice(),
-           ev.max_claims, ev.claims_count, ev.create_block,
-           if (ev.closed) "true" else "false", pev_note });
-}
 
 // ── gov_propose ───────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "title_hash":"<sha256>", "voting_blocks":1440,
 //   "quorum":200, "note":"...", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleGovPropose(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc         = ctx.allocator;
-    const from          = extractStr(body, "from")         orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const title_hash    = extractStr(body, "title_hash")   orelse return errorJson(-32602, "Missing: title_hash", id, alloc);
-    const voting_blocks = extractParamObjectU64(body, "voting_blocks");
-    const quorum        = @as(u32, @intCast(@min(extractParamObjectU64(body, "quorum"), 0xFFFFFFFF)));
-    const note          = extractStr(body, "note") orelse "";
-    const sig           = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey        = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce         = extractParamObjectU64(body, "nonce");
-
-    if (title_hash.len != gov_mod.TITLE_HASH_LEN)
-        return errorJson(-32602, "title_hash must be 64-char SHA-256 hex", id, alloc);
-    if (voting_blocks == 0) return errorJson(-32602, "voting_blocks must be > 0", id, alloc);
-
-    const op_return = try std.fmt.allocPrint(alloc, "gov_propose:{s}:{d}:{d}:{s}",
-        .{ title_hash, voting_blocks, quorum, note });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = gov_mod.GOV_PROPOSE_FEE_SAT,
-        .timestamp = ts, .nonce = nonce, .op_return = op_return,
-        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
-    tx.hash = canonical;
-
-    const parsed = gov_mod.parsePropose(op_return).?;
-    const prop_id = ctx.bc.gov_registry.propose(from, parsed, @intCast(ctx.bc.getBlockCount())) catch 0;
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"status\":\"queued\",\"txid\":\"{s}\"," ++
-        "\"proposal_id\":{d},\"voting_end_block\":{d}," ++
-        "\"quorum\":{d}}}}}",
-        .{ id, canonical, prop_id, ctx.bc.getBlockCount() + voting_blocks, quorum });
-}
 
 // ── gov_vote ──────────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "proposal_id":1, "vote":"yes"|"no",
 //   "tier":"FOOD", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleGovVote(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc       = ctx.allocator;
-    const from        = extractStr(body, "from")        orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const proposal_id = extractParamObjectU64(body, "proposal_id");
-    const vote_str    = extractStr(body, "vote")        orelse return errorJson(-32602, "Missing: vote (yes|no)", id, alloc);
-    const tier        = extractStr(body, "tier")        orelse "OMNI";
-    const sig         = extractStr(body, "signature")   orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey      = extractStr(body, "public_key")  orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce       = extractParamObjectU64(body, "nonce");
-
-    const yes = std.mem.eql(u8, vote_str, "yes");
-
-    const op_return = try std.fmt.allocPrint(alloc, "gov_vote:{d}:{s}", .{ proposal_id, vote_str });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = gov_mod.GOV_VOTE_FEE_SAT,
-        .timestamp = ts, .nonce = nonce, .op_return = op_return,
-        .signature = sig, .public_key = pubkey, .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(tx.calculateHash(), .lower)});
-    tx.hash = canonical;
-
-    ctx.bc.gov_registry.vote(proposal_id, from, yes, tier, @intCast(ctx.bc.getBlockCount())) catch |err| {
-        const msg = switch (err) {
-            error.ProposalNotFound => "Proposal not found",
-            error.VotingEnded      => "Voting period has ended",
-            error.AlreadyVoted     => "Already voted on this proposal",
-            else                   => "Vote failed",
-        };
-        return errorJson(-32001, msg, id, alloc);
-    };
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"vote\":\"{s}\"}}}}",
-        .{ id, canonical, vote_str });
-}
 
 // ── getproposals ──────────────────────────────────────────────────────────────
 // { "filter":"active"|"all" }
 
-fn handleGetProposals(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc  = ctx.allocator;
-    const filter = extractStr(body, "filter") orelse "active";
-
-    var props: [gov_mod.MAX_PROPOSALS]gov_mod.Proposal = undefined;
-    const n = if (std.mem.eql(u8, filter, "all"))
-        ctx.bc.gov_registry.listAll(&props)
-    else
-        ctx.bc.gov_registry.listActive(&props);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"proposals\":[", .{id});
-    for (props[0..n], 0..) |p, i| {
-        if (i > 0) try w.writeByte(',');
-        try w.print(
-            "{{\"id\":{d},\"proposer\":\"{s}\",\"title_hash\":\"{s}\"," ++
-            "\"status\":\"{s}\",\"yes_weight\":{d},\"no_weight\":{d}," ++
-            "\"quorum\":{d},\"voting_end_block\":{d},\"vote_count\":{d}}}",
-            .{ p.id, p.getProposer(), p.getTitleHash(), p.statusStr(),
-               p.yes_weight, p.no_weight, p.quorum_weight,
-               p.voting_end_block, p.vote_count });
-    }
-    // Close: array (]) + result object (}) + outer envelope (}). Three braces total.
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── getproposal ───────────────────────────────────────────────────────────────
 // { "proposal_id":1 }
 
-fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc       = ctx.allocator;
-    const proposal_id = extractParamObjectU64(body, "proposal_id");
-
-    const p = ctx.bc.gov_registry.getProposal(proposal_id) orelse
-        return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
-
-    const note_safe = try jsonSanitize(alloc, p.getNote());
-    defer alloc.free(note_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"id\":{d},\"proposer\":\"{s}\",\"title_hash\":\"{s}\"," ++
-        "\"note\":\"{s}\",\"status\":\"{s}\"," ++
-        "\"yes_weight\":{d},\"no_weight\":{d}," ++
-        "\"quorum\":{d},\"voting_end_block\":{d}," ++
-        "\"create_block\":{d},\"vote_count\":{d}," ++
-        "\"executed\":{},\"executed_block\":{d}," ++
-        "\"action_kind\":{d},\"action_u64\":{d},\"action_bool\":{}}}}}",
-        .{ id, p.id, p.getProposer(), p.getTitleHash(), note_safe,
-           p.statusStr(), p.yes_weight, p.no_weight,
-           p.quorum_weight, p.voting_end_block, p.create_block, p.vote_count,
-           p.executed, p.executed_block,
-           @intFromEnum(p.action.kind), p.action.u64_value, p.action.bool_value });
-}
 
 // ── gov_execute ───────────────────────────────────────────────────────────────
 // Manually trigger execution of a passed-but-unexecuted proposal. Auto-exec
@@ -15301,39 +14729,6 @@ fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 //
 // { "proposal_id": <u64> }
 // → result.success / result.applied / result.error
-fn handleGovExecute(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc       = ctx.allocator;
-    const proposal_id = extractParamObjectU64(body, "proposal_id");
-    if (proposal_id == 0) return errorJson(-32602, "Missing or invalid proposal_id", id, alloc);
-
-    const current_block = ctx.bc.getBlockCount();
-    ctx.bc.executeProposal(proposal_id, @intCast(current_block)) catch |err| {
-        const msg = switch (err) {
-            error.ProposalNotFound  => "Proposal not found",
-            error.ProposalNotPassed => "Proposal status is not 'passed' (still voting, rejected, expired, or already executed)",
-            error.AlreadyExecuted   => "Proposal already executed",
-        };
-        return errorJson(-32001, msg, id, alloc);
-    };
-
-    const p = ctx.bc.gov_registry.getProposal(proposal_id) orelse
-        return errorJson(-32603, "Proposal vanished mid-execute", id, alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"proposal_id\":{d},\"executed_block\":{d}," ++
-        "\"action_kind\":{d},\"action_u64\":{d},\"action_bool\":{}," ++
-        "\"status\":\"{s}\"}}}}",
-        .{
-            id,
-            p.id,
-            p.executed_block,
-            @intFromEnum(p.action.kind),
-            p.action.u64_value,
-            p.action.bool_value,
-            p.statusStr(),
-        });
-}
 
 // ── getidentity — Identity Hub aggregator ────────────────────────────────────
 // { "address": "ob1q..." }
@@ -16510,7 +15905,7 @@ fn handleProfileUpdate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// Write a JSON-safe string: escapes `"` → `'`, `\` → `/`, strips ctrl chars.
-fn writeJsonSafeStr(w: anytype, s: []const u8) !void {
+pub fn writeJsonSafeStr(w: anytype, s: []const u8) !void {
     for (s) |c| {
         if (c == '"')       { try w.writeByte('\''); }
         else if (c == '\\') { try w.writeByte('/');  }
