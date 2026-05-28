@@ -3284,7 +3284,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
 
     // ── OmniBus custom endpoints (exchange integration) ─────────────────
     if (std.mem.eql(u8, method, "getblockchaininfo"))    return rpc_chain.handleBlockchainInfo(ctx, id);
-    if (std.mem.eql(u8, method, "omnibus_getminers"))    return handleOmnibusMiners(ctx, id);
+    if (std.mem.eql(u8, method, "omnibus_getminers"))    return rpc_mining.handleOmnibusMiners(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getoracleprices")) return rpc_oracle.handleOmnibusPrices(ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getblockprices")) return rpc_oracle.handleOmnibusBlockPrices(body, ctx, id);
     if (std.mem.eql(u8, method, "omnibus_getpricerange")) return rpc_oracle.handleOmnibusPriceRange(body, ctx, id);
@@ -4770,36 +4770,6 @@ pub fn hexVal(c: u8) ?u4 {
 
 /// getblockchaininfo — comprehensive node status (matches Bitcoin RPC)
 
-/// omnibus_getminers — list registered miners with stats
-fn handleOmnibusMiners(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    // Use registered miners from server context
-    ctx.reg_mutex.lock();
-    defer ctx.reg_mutex.unlock();
-
-    const count = ctx.registered_miner_count;
-
-    // Build simple JSON array
-    var buf: [8192]u8 = undefined;
-    var pos: usize = 0;
-    const prefix = std.fmt.bufPrint(buf[pos..], "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[", .{id}) catch return errorJson(-32603, "buf overflow", id, alloc);
-    pos += prefix.len;
-
-    var i: u16 = 0;
-    while (i < count) : (i += 1) {
-        const m = ctx.registered_miners[i];
-        const addr = m.address[0..m.address_len];
-        const node = m.node_id[0..m.node_id_len];
-        if (i > 0) { buf[pos] = ','; pos += 1; }
-        const entry = std.fmt.bufPrint(buf[pos..], "{{\"address\":\"{s}\",\"node_id\":\"{s}\",\"status\":\"online\"}}", .{addr, node}) catch break;
-        pos += entry.len;
-    }
-
-    const suffix = std.fmt.bufPrint(buf[pos..], "]}}", .{}) catch return errorJson(-32603, "buf overflow", id, alloc);
-    pos += suffix.len;
-
-    return alloc.dupe(u8, buf[0..pos]);
-}
 
 /// omnibus_getoracleprices — current consensus prices from distributed oracle
 
