@@ -8,6 +8,20 @@ const scoring_mod    = @import("peer_scoring.zig");
 const bootstrap_mod  = @import("bootstrap.zig");
 const tor_mod        = @import("tor_proxy.zig");
 
+// Socket primitives moved to core/p2p/socket.zig
+const socket = @import("p2p/socket.zig");
+const enableTcpNoDelay = socket.enableTcpNoDelay;
+const p2pRecv = socket.p2pRecv;
+const p2pSend = socket.p2pSend;
+const readAllFromStream = socket.readAllFromStream;
+
+// Knock-knock UDP anti-Sybil moved to core/p2p/knock.zig
+const knock_mod = @import("p2p/knock.zig");
+pub const KnockResult = knock_mod.KnockResult;
+const ListenResult = knock_mod.ListenResult;
+const knockUDP = knock_mod.knockUDP;
+const listenKnockUDP = knock_mod.listenKnockUDP;
+
 // Windows: stream.read() = ReadFile care pica pe sockets acceptate. Folosim ws2_32.
 const is_windows = builtin.os.tag == .windows;
 const ws2 = if (is_windows) std.os.windows.ws2_32 else undefined;
@@ -21,55 +35,6 @@ const ws2 = if (is_windows) std.os.windows.ws2_32 else undefined;
 /// Best-effort: setsockopt errors are logged but do not fail the
 /// connection. On platforms without IPPROTO_TCP / TCP_NODELAY (rare)
 /// the call is a no-op.
-fn enableTcpNoDelay(stream: std.net.Stream) void {
-    const opt: i32 = 1;
-    // IPPROTO_TCP = 6, TCP_NODELAY = 1 — POSIX-portable values.
-    std.posix.setsockopt(
-        stream.handle,
-        6, // IPPROTO_TCP
-        1, // TCP_NODELAY
-        std.mem.asBytes(&opt),
-    ) catch |err| {
-        std.debug.print("[P2P] TCP_NODELAY setsockopt failed: {}\n", .{err});
-    };
-}
-
-fn p2pRecv(stream: std.net.Stream, buf: []u8) !usize {
-    if (comptime is_windows) {
-        const got = ws2.recv(stream.handle, buf.ptr, @intCast(buf.len), 0);
-        if (got <= 0) return error.ConnectionClosed;
-        return @intCast(got);
-    } else {
-        const n = try stream.read(buf);
-        if (n == 0) return error.ConnectionClosed;
-        return n;
-    }
-}
-
-fn p2pSend(stream: std.net.Stream, data: []const u8) !void {
-    if (comptime is_windows) {
-        var sent: usize = 0;
-        while (sent < data.len) {
-            const remaining: c_int = @intCast(data.len - sent);
-            const n = ws2.send(stream.handle, data[sent..].ptr, remaining, 0);
-            if (n <= 0) return error.ConnectionClosed;
-            sent += @intCast(n);
-        }
-    } else {
-        // Bypass std.net.Stream.writeAll() because it uses sendmsg() which
-        // panics on BADF (closed-fd race with a peer-disconnect thread).
-        // posix.write returns NotOpenForWriting instead of panicking, so
-        // heartbeat/gossip threads can survive a parallel close cleanly.
-        var sent: usize = 0;
-        while (sent < data.len) {
-            const n = std.posix.write(stream.handle, data[sent..]) catch {
-                return error.ConnectionClosed;
-            };
-            if (n == 0) return error.ConnectionClosed;
-            sent += n;
-        }
-    }
-}
 const array_list     = std.array_list;
 const blockchain_mod = @import("blockchain.zig");
 const block_mod      = @import("block.zig");
@@ -983,14 +948,6 @@ pub fn decodeBloomFilter(data: []const u8) ?light_client_mod.BloomFilter {
 // ─── P2P Node — server TCP + lista de conexiuni ───────────────────────────────
 
 /// Rezultatul verificarii knock-knock
-pub const KnockResult = enum {
-    /// Primul miner pe acest IP — poate mina
-    alone,
-    /// Alt miner detectat pe acelasi IP — sta IDLE
-    duplicate_ip,
-    /// Broadcast esuat (firewall, VPN, etc.) — continua cu avertizare
-    broadcast_failed,
-};
 
 pub const P2PNode = struct {
     local_id:    []const u8,
@@ -3545,130 +3502,7 @@ pub const P2PNode = struct {
 
 /// Citeste exact `buf.len` bytes dintr-un Stream TCP — echivalent readAll
 /// Returneaza numarul de bytes cititi (< buf.len daca stream inchis)
-fn readAllFromStream(stream: std.net.Stream, buf: []u8) !usize {
-    var total: usize = 0;
-    while (total < buf.len) {
-        const n = p2pRecv(stream, buf[total..]) catch break;
-        total += n;
-    }
-    return total;
-}
 
-/// Trimite un pachet UDP broadcast pe portul specificat (255.255.255.255)
-fn knockUDP(msg: []const u8, port: u16) !void {
-    const sock = try std.posix.socket(
-        std.posix.AF.INET,
-        std.posix.SOCK.DGRAM,
-        std.posix.IPPROTO.UDP,
-    );
-    defer std.posix.close(sock);
-
-    // SO_BROADCAST necesar pentru 255.255.255.255
-    const opt_val: i32 = 1;
-    try std.posix.setsockopt(
-        sock,
-        std.posix.SOL.SOCKET,
-        std.posix.SO.BROADCAST,
-        std.mem.asBytes(&opt_val),
-    );
-
-    // SO_REUSEADDR — permite multiple noduri sa asculte pe acelasi port
-    try std.posix.setsockopt(
-        sock,
-        std.posix.SOL.SOCKET,
-        std.posix.SO.REUSEADDR,
-        std.mem.asBytes(&opt_val),
-    );
-
-    const dest = std.net.Address.initIp4(.{ 255, 255, 255, 255 }, port);
-    _ = try std.posix.sendto(sock, msg, 0, &dest.any, dest.getOsSockLen());
-}
-
-/// Rezultat intern listen (cu IP sursa pentru duplicate_ip)
-const ListenResult = union(KnockResult) {
-    alone:            void,
-    duplicate_ip:     [4]u8,  // IP-ul care a trimis duplicat
-    broadcast_failed: void,
-};
-
-/// Asculta UDP pe `port` pentru `timeout_ms` milisecunde.
-/// Daca primeste "OMNI:we are here:<alt_node_id>:<h>" de pe acelasi IP → duplicate_ip
-/// Propria noastra reflectie (acelasi node_id) e ignorata.
-fn listenKnockUDP(
-    own_node_id: []const u8,
-    port:        u16,
-    timeout_ms:  u64,
-) ListenResult {
-    const sock = std.posix.socket(
-        std.posix.AF.INET,
-        std.posix.SOCK.DGRAM,
-        std.posix.IPPROTO.UDP,
-    ) catch return .{ .broadcast_failed = {} };
-    defer std.posix.close(sock);
-
-    // SO_REUSEADDR + SO_REUSEPORT ca mai multi mineri pe acelasi host sa poata asculta
-    const opt_val: i32 = 1;
-    std.posix.setsockopt(sock, std.posix.SOL.SOCKET, std.posix.SO.REUSEADDR,
-        std.mem.asBytes(&opt_val)) catch {};
-    // SO_REUSEPORT disponibil pe Linux/macOS, ignorat pe Windows
-    std.posix.setsockopt(sock, std.posix.SOL.SOCKET, 15, // SO_REUSEPORT = 15
-        std.mem.asBytes(&opt_val)) catch {};
-
-    // Bind pe 0.0.0.0:port
-    const bind_addr = std.net.Address.initIp4(.{ 0, 0, 0, 0 }, port);
-    std.posix.bind(sock, &bind_addr.any, bind_addr.getOsSockLen()) catch
-        return .{ .broadcast_failed = {} };
-
-    // SO_RCVTIMEO — timeout receive
-    // struct timeval: { tv_sec: i64, tv_usec: i64 } pe Linux
-    const tv_sec  = timeout_ms / 1000;
-    const tv_usec = (timeout_ms % 1000) * 1000;
-    var timeval_buf: [16]u8 = @splat(0);
-    std.mem.writeInt(i64, timeval_buf[0..8],  @intCast(tv_sec),  .little);
-    std.mem.writeInt(i64, timeval_buf[8..16], @intCast(tv_usec), .little);
-    std.posix.setsockopt(sock, std.posix.SOL.SOCKET, std.posix.SO.RCVTIMEO,
-        &timeval_buf) catch {};
-
-    // Asculta pana la timeout
-    const deadline = std.time.milliTimestamp() + @as(i64, @intCast(timeout_ms));
-    var recv_buf: [512]u8 = undefined;
-    var src_addr: std.posix.sockaddr = undefined;
-    var src_len: std.posix.socklen_t = @sizeOf(std.posix.sockaddr);
-
-    while (std.time.milliTimestamp() < deadline) {
-        const n = std.posix.recvfrom(
-            sock, &recv_buf, 0, &src_addr, &src_len,
-        ) catch break; // timeout sau eroare → iesim
-
-        if (n < 5) continue;
-        const pkt = recv_buf[0..n];
-
-        // Verifica prefix "OMNI:we are here:"
-        const prefix = "OMNI:we are here:";
-        if (!std.mem.startsWith(u8, pkt, prefix)) continue;
-
-        // Extrage node_id din mesaj (dupa prefix, pana la urmatorul ':')
-        const after_prefix = pkt[prefix.len..];
-        const colon_pos = std.mem.indexOfScalar(u8, after_prefix, ':') orelse continue;
-        const sender_node_id = after_prefix[0..colon_pos];
-
-        // Ignora propria reflectie (acelasi node_id)
-        const own_short = own_node_id[0..@min(own_node_id.len, sender_node_id.len)];
-        if (std.mem.eql(u8, sender_node_id, own_short)) continue;
-
-        // Alt nod detectat — extrage IP sursa
-        const sa_in: *const std.posix.sockaddr.in = @alignCast(@ptrCast(&src_addr));
-        const ip_raw = std.mem.toBytes(sa_in.addr); // network byte order (big-endian)
-        const ip = [4]u8{ ip_raw[0], ip_raw[1], ip_raw[2], ip_raw[3] };
-
-        std.debug.print("[KNOCK] << Raspuns de la {d}.{d}.{d}.{d} — node \"{s}\"\n",
-            .{ ip[0], ip[1], ip[2], ip[3], sender_node_id[0..@min(16, sender_node_id.len)] });
-
-        return .{ .duplicate_ip = ip };
-    }
-
-    return .{ .alone = {} };
-}
 
 // ─── Teste ────────────────────────────────────────────────────────────────────
 
