@@ -75,6 +75,11 @@ const rpc_mining = @import("rpc/mining.zig");
 const rpc_lightning = @import("rpc/lightning.zig");
 const rpc_governance = @import("rpc/governance.zig");
 const rpc_social = @import("rpc/social.zig");
+const rpc_consensus = @import("rpc/consensus.zig");
+const rpc_wallet_advanced = @import("rpc/wallet_advanced.zig");
+const rpc_escrow = @import("rpc/escrow.zig");
+const rpc_notarize = @import("rpc/notarize.zig");
+const rpc_subscription = @import("rpc/subscription.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 // Process-global cross-chain oracle. Validators populate this via
@@ -3549,322 +3554,13 @@ fn handleSpvEthVerifyEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // agent registration writes `agent:register:*`. Reputation is read-only —
 // it queries g_reputation directly.
 
-fn handleStake(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc      = ctx.allocator;
-    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const amount     = extractParamObjectU64(body, "amount_sat");
-    const lock_blocks = extractParamObjectU64(body, "lock_blocks");
-    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce      = extractParamObjectU64(body, "nonce");
 
-    if (amount < 10_000_000_000) return errorJson(-32000, "Min stake 10 OMNI", id, alloc);
 
-    // CRITICAL: Transaction stored in mempool MUST own all its string slices.
-    // `from_raw`/`sig_raw`/`pubkey_raw` point into the request body buffer,
-    // which is freed when this handler returns. If we keep those slices,
-    // applyOpReturnRoles reads garbage and the stake silently fails.
-    // Dupe everything that goes into tx; do NOT defer-free those copies.
-    const from   = try alloc.dupe(u8, from_raw);
-    const sig    = try alloc.dupe(u8, sig_raw);
-    const pubkey = try alloc.dupe(u8, pubkey_raw);
-    // Legacy stake op_return: just "stake:<lock_blocks>". Amount goes in
-    // tx.amount so applyOpReturnRoles picks it up via tx.amount accumulation.
-    const op_return = try std.fmt.allocPrint(alloc, "stake:{d}", .{lock_blocks});
 
-    const ts = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional); // replaced below by canonical hash
 
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = amount, .fee = 1000, .timestamp = ts, .nonce = nonce,
-        .op_return = op_return, .signature = sig, .public_key = pubkey,
-        .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
 
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        // Free all owned strings on rejection — they would otherwise leak.
-        alloc.free(from);
-        alloc.free(sig);
-        alloc.free(pubkey);
-        alloc.free(op_return);
-        alloc.free(canonical);
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"stake_id\":{d},\"amount_sat\":{d},\"lock_blocks\":{d}}}}}",
-        .{ id, canonical, tx_id, amount, lock_blocks });
-}
 
-fn handleUnstake(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc      = ctx.allocator;
-    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const stake_id   = extractParamObjectU64(body, "stake_id");
-    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce      = extractParamObjectU64(body, "nonce");
-
-    // Same UAF protection as handleStake — dupe all strings into the TX so
-    // they outlive the handler / request body buffer.
-    const from   = try alloc.dupe(u8, from_raw);
-    const sig    = try alloc.dupe(u8, sig_raw);
-    const pubkey = try alloc.dupe(u8, pubkey_raw);
-    const op_return = try std.fmt.allocPrint(alloc, "unstake:{d}", .{stake_id});
-
-    const ts = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = 1000, .timestamp = ts, .nonce = nonce,
-        .op_return = op_return, .signature = sig, .public_key = pubkey,
-        .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    ctx.bc.mutex.lock();
-    const current_block: u64 = @intCast(ctx.bc.chain.items.len);
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        alloc.free(from); alloc.free(sig); alloc.free(pubkey);
-        alloc.free(op_return); alloc.free(canonical);
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-    const unbond_until = current_block + 604_800;
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"unbonding_until_block\":{d}}}}}",
-        .{ id, canonical, unbond_until });
-}
-
-fn handleGetStake(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse return errorJson(-32602, "Missing: address", id, alloc);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"stakes\":[", .{id});
-
-    // Read from blockchain.stake_amounts — populated by applyOpReturnRoles.
-    // We MUST hold bc.mutex for the read because HashMap rehashes during
-    // concurrent inserts (mining loop applyBlock) corrupt the metadata
-    // pointer alignment → @panic("incorrect alignment").
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-    if (ctx.bc.stake_amounts.get(address)) |amt| {
-        if (amt > 0) {
-            // Look up real lock metadata. Legacy stakes loaded from older
-            // chain.dat may not have an entry — fall back to zeros so the
-            // UI can render them as "no lock period" instead of crashing.
-            var started_at: u64 = 0;
-            var lock_blk: u64 = 0;
-            if (ctx.bc.stake_meta.get(address)) |meta| {
-                started_at = meta.started_at_block;
-                lock_blk = meta.lock_blocks;
-            }
-            // days_locked: lock_blocks × 1s block time → seconds → days.
-            // Block time is 1s (CLAUDE.md: blockTimeMs=1000), so 86400
-            // blocks = 1 day.
-            const days_locked: u64 = lock_blk / 86_400;
-            try w.print(
-                "{{\"id\":0,\"amount_sat\":{d},\"lock_blocks\":{d},\"started_at_block\":{d},\"days_locked\":{d},\"rent_earned\":0,\"status\":\"active\"}}",
-                .{ amt, lock_blk, started_at, days_locked },
-            );
-        }
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
-
-fn handleGetStakers(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const limit_raw = extractParamObjectU64(body, "limit");
-    const limit: usize = if (limit_raw == 0) 50 else @min(@as(usize, @intCast(limit_raw)), 200);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"stakers\":[", .{id});
-
-    // Iterate stake_amounts under lock. Concurrent with apply_block insert,
-    // HashMap rehash invalidates iterator pointers → alignment crash. Lock
-    // is short — at most ~128 entries to write.
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-    var emitted: usize = 0;
-    var iter = ctx.bc.stake_amounts.iterator();
-    while (iter.next()) |entry| {
-        if (emitted >= limit) break;
-        const amt = entry.value_ptr.*;
-        if (amt == 0) continue;
-        if (emitted > 0) try w.writeAll(",");
-        emitted += 1;
-        var started_at: u64 = 0;
-        var lock_blk: u64 = 0;
-        if (ctx.bc.stake_meta.get(entry.key_ptr.*)) |meta| {
-            started_at = meta.started_at_block;
-            lock_blk = meta.lock_blocks;
-        }
-        const days_locked: u64 = lock_blk / 86_400;
-        try w.print(
-            "{{\"address\":\"{s}\",\"amount_sat\":{d},\"lock_blocks\":{d},\"started_at_block\":{d},\"days_locked\":{d},\"rent_earned\":0}}",
-            .{ entry.key_ptr.*, amt, lock_blk, started_at, days_locked },
-        );
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
-
-fn handleGetValidatorsV2(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    const alloc = ctx.allocator;
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    // Source of truth: bc.stake_amounts (HashMap<addr, stake_sat>) populated
-    // by applyOpReturnRoles when "stake:" op_returns are mined. Anyone with
-    // ≥100 OMNI stake = automatic validator (no separate registration needed).
-    // We also enrich with miner stats from the chain's last 100 blocks.
-    ctx.bc.mutex.lock();
-    defer ctx.bc.mutex.unlock();
-
-    const VALIDATOR_MIN_OMNI: u64 = 100;
-    const SAT_PER_OMNI: u64 = 1_000_000_000;
-
-    // First pass: count qualified validators
-    var total_qualified: usize = 0;
-    {
-        var iter = ctx.bc.stake_amounts.iterator();
-        while (iter.next()) |entry| {
-            const stake_omni = entry.value_ptr.* / SAT_PER_OMNI;
-            if (stake_omni >= VALIDATOR_MIN_OMNI) total_qualified += 1;
-        }
-    }
-
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"total_validators\":{d},\"active_count\":{d},\"slashed_count\":0,\"current_slot_leader\":\"\",\"validators\":[",
-        .{ id, total_qualified, total_qualified },
-    );
-
-    var first = true;
-    var iter2 = ctx.bc.stake_amounts.iterator();
-    while (iter2.next()) |entry| {
-        const stake_sat = entry.value_ptr.*;
-        const stake_omni = stake_sat / SAT_PER_OMNI;
-        if (stake_omni < VALIDATOR_MIN_OMNI) continue;
-        if (!first) try w.writeAll(",");
-        first = false;
-        const tier: []const u8 =
-            if (stake_omni >= 100_000) "Platinum"
-            else if (stake_omni >= 10_000) "Gold"
-            else if (stake_omni >= 1_000) "Silver"
-            else "Bronze";
-        const addr = entry.key_ptr.*;
-        // Count blocks mined by this address in the last 100 blocks (uptime proxy)
-        var blocks_signed: u32 = 0;
-        const tip = ctx.bc.chain.items.len;
-        const start = if (tip > 100) tip - 100 else 1;
-        var bi: usize = start;
-        while (bi < tip) : (bi += 1) {
-            const blk = ctx.bc.chain.items[bi];
-            if (std.mem.eql(u8, blk.miner_address, addr)) blocks_signed += 1;
-        }
-        const sample_size: u32 = @intCast(if (tip > 100) 100 else tip - 1);
-        const uptime_pct: u8 = if (sample_size == 0) 100
-            else @intCast((@as(u64, blocks_signed) * 100) / sample_size);
-        const blocks_missed: u32 = if (sample_size > blocks_signed) sample_size - blocks_signed else 0;
-        try w.print(
-            "{{\"address\":\"{s}\",\"tier\":\"{s}\",\"stake_omni\":{d},\"uptime_pct\":{d},\"blocks_signed\":{d},\"blocks_missed\":{d},\"last_heartbeat_block\":{d},\"slashed\":false,\"slash_count\":0,\"joined_at_block\":0}}",
-            .{ addr, tier, stake_omni, uptime_pct, blocks_signed, blocks_missed, tip },
-        );
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
-
-fn handleBecomeValidator(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc      = ctx.allocator;
-    const from_raw   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const sig_raw    = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey_raw = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce      = extractParamObjectU64(body, "nonce");
-
-    // Dupe all strings to outlive request body buffer (UAF protection — see handleStake).
-    const from   = try alloc.dupe(u8, from_raw);
-    const sig    = try alloc.dupe(u8, sig_raw);
-    const pubkey = try alloc.dupe(u8, pubkey_raw);
-    const op_return = try alloc.dupe(u8, "validator:promote");
-
-    const ts = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id = tx_id, .from_address = from, .to_address = from,
-        .amount = 0, .fee = 1000, .timestamp = ts, .nonce = nonce,
-        .op_return = op_return, .signature = sig, .public_key = pubkey,
-        .scheme = .omni_ecdsa, .hash = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        alloc.free(from); alloc.free(sig); alloc.free(pubkey);
-        alloc.free(op_return); alloc.free(canonical);
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"validator_tier\":\"Bronze\"}}}}",
-        .{ id, canonical });
-}
-
-fn handleValidatorHeartbeat(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc  = ctx.allocator;
-    const from   = extractStr(body, "from") orelse return errorJson(-32602, "Missing: from", id, alloc);
-    _ = extractStr(body, "signature") orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    _ = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-
-    // Heartbeat is in-memory only (no chain TX) — mark validator as alive.
-    if (main_mod.g_staking_engine.?.findValidatorIndex(from)) |idx| {
-        const v = &main_mod.g_staking_engine.?.validators[idx];
-        // Use blocks_produced as proxy for liveness ping; full impl would
-        // store last_heartbeat_block on a separate field.
-        _ = v;
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"ok\"}}}}", .{id});
-}
-
-fn handleGetSlashEvents(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    const alloc = ctx.allocator;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"events\":[]}}}}", .{id});
-}
 
 fn handleAgentRegister(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc      = ctx.allocator;
@@ -4044,11 +3740,11 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getblock"))         return rpc_chain.handleGetBlk(body, ctx, id);
     if (std.mem.eql(u8, method, "getblocks"))        return rpc_chain.handleGetBlks(body, ctx, id);
     if (std.mem.eql(u8, method, "getminerstats"))    return rpc_mining.handleMinerSt(ctx, id);
-    if (std.mem.eql(u8, method, "getvalidators"))    return handleGetValidators(ctx, id);
-    if (std.mem.eql(u8, method, "getslotleader"))    return handleGetSlotLeader(ctx, id);
-    if (std.mem.eql(u8, method, "getclockstatus"))   return handleGetClockStatus(ctx, id);
-    if (std.mem.eql(u8, method, "getslotcalendar")) return handleGetSlotCalendar(ctx, id);
-    if (std.mem.eql(u8, method, "getfuturepool"))    return handleGetFuturePool(ctx, id);
+    if (std.mem.eql(u8, method, "getvalidators"))    return rpc_consensus.handleGetValidators(ctx, id);
+    if (std.mem.eql(u8, method, "getslotleader"))    return rpc_consensus.handleGetSlotLeader(ctx, id);
+    if (std.mem.eql(u8, method, "getclockstatus"))   return rpc_consensus.handleGetClockStatus(ctx, id);
+    if (std.mem.eql(u8, method, "getslotcalendar")) return rpc_consensus.handleGetSlotCalendar(ctx, id);
+    if (std.mem.eql(u8, method, "getfuturepool"))    return rpc_consensus.handleGetFuturePool(ctx, id);
     if (std.mem.eql(u8, method, "getminerinfo"))     return rpc_mining.handleMinerInf(ctx, id);
     if (std.mem.eql(u8, method, "getnodelist"))      return rpc_net.handleNodeList(ctx, id);
     if (std.mem.eql(u8, method, "estimatefee"))       return rpc_mempool.handleEstimateFee(ctx, id);
@@ -4148,23 +3844,23 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "removelabel"))      return rpc_social.handleRemoveLabel(body, ctx, id);
 
     // ── On-chain subscriptions (recurring payments) ──────────────────────
-    if (std.mem.eql(u8, method, "sub_create"))       return handleSubCreate(body, ctx, id);
-    if (std.mem.eql(u8, method, "sub_cancel"))       return handleSubCancel(body, ctx, id);
-    if (std.mem.eql(u8, method, "getsubscriptions")) return handleGetSubscriptions(body, ctx, id);
+    if (std.mem.eql(u8, method, "sub_create"))       return rpc_subscription.handleSubCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "sub_cancel"))       return rpc_subscription.handleSubCancel(body, ctx, id);
+    if (std.mem.eql(u8, method, "getsubscriptions")) return rpc_subscription.handleGetSubscriptions(body, ctx, id);
 
     // ── Document notarization ────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "notarizedoc"))      return handleNotarizeDoc(body, ctx, id);
-    if (std.mem.eql(u8, method, "verifynotarize"))   return handleVerifyNotarize(body, ctx, id);
-    if (std.mem.eql(u8, method, "revokenotarize"))   return handleRevokeNotarize(body, ctx, id);
-    if (std.mem.eql(u8, method, "getnotarizations")) return handleGetNotarizations(body, ctx, id);
+    if (std.mem.eql(u8, method, "notarizedoc"))      return rpc_notarize.handleNotarizeDoc(body, ctx, id);
+    if (std.mem.eql(u8, method, "verifynotarize"))   return rpc_notarize.handleVerifyNotarize(body, ctx, id);
+    if (std.mem.eql(u8, method, "revokenotarize"))   return rpc_notarize.handleRevokeNotarize(body, ctx, id);
+    if (std.mem.eql(u8, method, "getnotarizations")) return rpc_notarize.handleGetNotarizations(body, ctx, id);
 
     // ── Programmable escrow ──────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "escrow_create"))    return handleEscrowCreate(body, ctx, id);
-    if (std.mem.eql(u8, method, "escrow_release"))   return handleEscrowRelease(body, ctx, id);
-    if (std.mem.eql(u8, method, "escrow_refund"))    return handleEscrowRefund(body, ctx, id);
-    if (std.mem.eql(u8, method, "escrow_dispute"))   return handleEscrowDispute(body, ctx, id);
-    if (std.mem.eql(u8, method, "getescrow"))        return handleGetEscrow(body, ctx, id);
-    if (std.mem.eql(u8, method, "getescrows"))       return handleGetEscrows(body, ctx, id);
+    if (std.mem.eql(u8, method, "escrow_create"))    return rpc_escrow.handleEscrowCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "escrow_release"))   return rpc_escrow.handleEscrowRelease(body, ctx, id);
+    if (std.mem.eql(u8, method, "escrow_refund"))    return rpc_escrow.handleEscrowRefund(body, ctx, id);
+    if (std.mem.eql(u8, method, "escrow_dispute"))   return rpc_escrow.handleEscrowDispute(body, ctx, id);
+    if (std.mem.eql(u8, method, "getescrow"))        return rpc_escrow.handleGetEscrow(body, ctx, id);
+    if (std.mem.eql(u8, method, "getescrows"))       return rpc_escrow.handleGetEscrows(body, ctx, id);
 
     // ── Social Graph ─────────────────────────────────────────────────────
     if (std.mem.eql(u8, method, "follow"))           return rpc_social.handleFollow(body, ctx, id);
@@ -4210,37 +3906,37 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getmerkleproof"))   return rpc_chain.handleGetMerkleProof(body, ctx, id);
 
     // Staking slashing endpoints
-    if (std.mem.eql(u8, method, "submitslashevidence")) return handleSubmitSlashEvidence(body, ctx, id);
-    if (std.mem.eql(u8, method, "getslashhistory"))     return handleGetSlashHistory(body, ctx, id);
-    if (std.mem.eql(u8, method, "getstakinginfo"))      return handleGetStakingInfo(body, ctx, id);
+    if (std.mem.eql(u8, method, "submitslashevidence")) return rpc_consensus.handleSubmitSlashEvidence(body, ctx, id);
+    if (std.mem.eql(u8, method, "getslashhistory"))     return rpc_consensus.handleGetSlashHistory(body, ctx, id);
+    if (std.mem.eql(u8, method, "getstakinginfo"))      return rpc_consensus.handleGetStakingInfo(body, ctx, id);
 
     // Multisig endpoints — real M-of-N implementation backed by core/multisig.zig
     if (std.mem.eql(u8, method, "createmultisig"))      return handleCreateMultisig(body, ctx, id);
     if (std.mem.eql(u8, method, "sendmultisig"))        return handleSendMultisig(body, ctx, id);
 
     // ── Cold Wallet (watch-only) ─────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "coldwallet_add"))     return handleColdWalletAdd(body, ctx, id);
-    if (std.mem.eql(u8, method, "coldwallet_list"))    return handleColdWalletList(body, ctx, id);
-    if (std.mem.eql(u8, method, "coldwallet_remove"))  return handleColdWalletRemove(body, ctx, id);
-    if (std.mem.eql(u8, method, "coldwallet_history")) return handleColdWalletHistory(body, ctx, id);
+    if (std.mem.eql(u8, method, "coldwallet_add"))     return rpc_wallet_advanced.handleColdWalletAdd(body, ctx, id);
+    if (std.mem.eql(u8, method, "coldwallet_list"))    return rpc_wallet_advanced.handleColdWalletList(body, ctx, id);
+    if (std.mem.eql(u8, method, "coldwallet_remove"))  return rpc_wallet_advanced.handleColdWalletRemove(body, ctx, id);
+    if (std.mem.eql(u8, method, "coldwallet_history")) return rpc_wallet_advanced.handleColdWalletHistory(body, ctx, id);
 
     // ── Timelock Vault (CLTV) ────────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "timelock_create"))    return handleTimelockCreate(body, ctx, id);
-    if (std.mem.eql(u8, method, "timelock_list"))      return handleTimelockList(body, ctx, id);
-    if (std.mem.eql(u8, method, "timelock_spend"))     return handleTimelockSpend(body, ctx, id);
-    if (std.mem.eql(u8, method, "timelock_status"))    return handleTimelockStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "timelock_create"))    return rpc_wallet_advanced.handleTimelockCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "timelock_list"))      return rpc_wallet_advanced.handleTimelockList(body, ctx, id);
+    if (std.mem.eql(u8, method, "timelock_spend"))     return rpc_wallet_advanced.handleTimelockSpend(body, ctx, id);
+    if (std.mem.eql(u8, method, "timelock_status"))    return rpc_wallet_advanced.handleTimelockStatus(body, ctx, id);
 
     // ── Covenant (destination whitelist) ─────────────────────────────────────
-    if (std.mem.eql(u8, method, "covenant_create"))    return handleCovenantCreate(body, ctx, id);
-    if (std.mem.eql(u8, method, "covenant_list"))      return handleCovenantList(body, ctx, id);
-    if (std.mem.eql(u8, method, "covenant_get"))       return handleCovenantGet(body, ctx, id);
-    if (std.mem.eql(u8, method, "covenant_remove"))    return handleCovenantRemove(body, ctx, id);
+    if (std.mem.eql(u8, method, "covenant_create"))    return rpc_wallet_advanced.handleCovenantCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "covenant_list"))      return rpc_wallet_advanced.handleCovenantList(body, ctx, id);
+    if (std.mem.eql(u8, method, "covenant_get"))       return rpc_wallet_advanced.handleCovenantGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "covenant_remove"))    return rpc_wallet_advanced.handleCovenantRemove(body, ctx, id);
 
     // ── Treasury auto-distribute ─────────────────────────────────────────────
-    if (std.mem.eql(u8, method, "treasury_create"))    return handleTreasuryCreate(body, ctx, id);
-    if (std.mem.eql(u8, method, "treasury_list"))      return handleTreasuryList(body, ctx, id);
-    if (std.mem.eql(u8, method, "treasury_distribute"))return handleTreasuryDistribute(body, ctx, id);
-    if (std.mem.eql(u8, method, "treasury_status"))    return handleTreasuryStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "treasury_create"))    return rpc_wallet_advanced.handleTreasuryCreate(body, ctx, id);
+    if (std.mem.eql(u8, method, "treasury_list"))      return rpc_wallet_advanced.handleTreasuryList(body, ctx, id);
+    if (std.mem.eql(u8, method, "treasury_distribute"))return rpc_wallet_advanced.handleTreasuryDistribute(body, ctx, id);
+    if (std.mem.eql(u8, method, "treasury_status"))    return rpc_wallet_advanced.handleTreasuryStatus(body, ctx, id);
 
     // Payment channel (L2) endpoints — Lightning-style bidirectional channels
     if (std.mem.eql(u8, method, "openchannel"))       return rpc_lightning.handleOpenChannel(body, ctx, id);
@@ -4343,14 +4039,14 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "intent_timeout"))    return handleIntentTimeout(body, ctx, id);
 
     // ── Stake / Validator / Agent / Reputation RPCs ─────────────────────────
-    if (std.mem.eql(u8, method, "stake"))             return handleStake(body, ctx, id);
-    if (std.mem.eql(u8, method, "unstake"))           return handleUnstake(body, ctx, id);
-    if (std.mem.eql(u8, method, "getstake"))          return handleGetStake(body, ctx, id);
-    if (std.mem.eql(u8, method, "getstakers"))        return handleGetStakers(body, ctx, id);
-    if (std.mem.eql(u8, method, "getvalidatorsv2"))   return handleGetValidatorsV2(body, ctx, id);
-    if (std.mem.eql(u8, method, "become_validator"))  return handleBecomeValidator(body, ctx, id);
-    if (std.mem.eql(u8, method, "validator_heartbeat")) return handleValidatorHeartbeat(body, ctx, id);
-    if (std.mem.eql(u8, method, "getslashevents"))    return handleGetSlashEvents(body, ctx, id);
+    if (std.mem.eql(u8, method, "stake"))             return rpc_consensus.handleStake(body, ctx, id);
+    if (std.mem.eql(u8, method, "unstake"))           return rpc_consensus.handleUnstake(body, ctx, id);
+    if (std.mem.eql(u8, method, "getstake"))          return rpc_consensus.handleGetStake(body, ctx, id);
+    if (std.mem.eql(u8, method, "getstakers"))        return rpc_consensus.handleGetStakers(body, ctx, id);
+    if (std.mem.eql(u8, method, "getvalidatorsv2"))   return rpc_consensus.handleGetValidatorsV2(body, ctx, id);
+    if (std.mem.eql(u8, method, "become_validator"))  return rpc_consensus.handleBecomeValidator(body, ctx, id);
+    if (std.mem.eql(u8, method, "validator_heartbeat")) return rpc_consensus.handleValidatorHeartbeat(body, ctx, id);
+    if (std.mem.eql(u8, method, "getslashevents"))    return rpc_consensus.handleGetSlashEvents(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_register"))    return handleAgentRegister(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_unregister"))  return handleAgentUnregister(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_edit"))        return handleAgentEdit(body, ctx, id);
@@ -6700,48 +6396,9 @@ fn handleAddrBal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 
 /// List active validators from the on-chain registry. Read-only.
-fn handleGetValidators(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    ctx.bc.mutex.lock();
-    const count = ctx.bc.validator_set.items.len;
-    var entries_json = std.array_list.Managed(u8).init(alloc);
-    defer entries_json.deinit();
-    for (ctx.bc.validator_set.items, 0..) |v, i| {
-        if (i > 0) try entries_json.appendSlice(",");
-        const e = try std.fmt.allocPrint(alloc,
-            "{{\"address\":\"{s}\",\"weight\":{d},\"since_height\":{d}}}",
-            .{ v.address, v.weight, v.since_height });
-        defer alloc.free(e);
-        try entries_json.appendSlice(e);
-    }
-    ctx.bc.mutex.unlock();
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"validators\":[{s}]}}}}",
-        .{ id, count, entries_json.items });
-}
 
 /// Show who is the slot leader for the next block (debug + UI). Pure
 /// computation — same answer on every node holding the same registry.
-fn handleGetSlotLeader(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    ctx.bc.mutex.lock();
-    const tip = ctx.bc.chain.items[ctx.bc.chain.items.len - 1];
-    const tip_hash = tip.hash;
-    // Slot-id for the NEXT block (height = chain.items.len). Same formula
-    // mining loop + peer validation use, so RPC reflects what the network
-    // expects.
-    const slot_id: u64 = @intCast(ctx.bc.chain.items.len);
-    const ldr = validator_mod.leaderForSlot(slot_id, tip_hash, ctx.bc.validator_set.items);
-    ctx.bc.mutex.unlock();
-    if (ldr) |l| {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"slot\":{d},\"leader\":\"{s}\",\"weight\":{d}}}}}",
-            .{ id, slot_id, l.address, l.weight });
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"slot\":{d},\"leader\":null,\"error\":\"empty validator set\"}}}}",
-        .{ id, slot_id });
-}
 
 /// `getclockstatus` — exposes the AtomicClock's current state for UI:
 ///   - now_ms                 — wall-clock from g_clock.nowMs()
@@ -6749,84 +6406,16 @@ fn handleGetSlotLeader(ctx: *ServerCtx, id: u64) ![]u8 {
 ///   - spectrum               — 64-char binary string of rdtsc bits, MSB first
 /// The spectrum lets a frontend chart show the bit pattern over time —
 /// stable high bits = healthy CPU clock, broken patterns = scheduler jitter.
-fn handleGetClockStatus(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const now_ms = main_mod.g_clock.nowMs();
-    const cycles = orchestrator_mod.nowCycles();
-    var spec_buf: [64]u8 = undefined;
-    orchestrator_mod.formatSpectrum(cycles, &spec_buf);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"now_ms\":{d},\"rdtsc\":{d},\"spectrum\":\"{s}\"}}}}",
-        .{ id, now_ms, cycles, spec_buf },
-    );
-}
 
 /// `getslotcalendar` — exposes the next 60 pre-computed slots for UI.
 /// Each entry: { slot_id, leader, expected_arrival_ms, state }.
 /// state values: "future" | "in_flight" | "finalized" | "missed".
-fn handleGetSlotCalendar(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    var out = std.array_list.Managed(u8).init(alloc);
-    defer out.deinit();
-    const w = out.writer();
-
-    try w.print(
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"head_slot\":{d},\"slot_interval_ms\":{d},\"entries\":[",
-        .{
-            id,
-            main_mod.g_slot_calendar.head_slot_id,
-            main_mod.g_slot_calendar.slot_interval_ms,
-        },
-    );
-
-    var i: usize = 0;
-    while (i < main_mod.g_slot_calendar.count) : (i += 1) {
-        if (i > 0) try w.writeAll(",");
-        const e = &main_mod.g_slot_calendar.entries[i];
-        const leader = e.leaderSlice();
-        const state_str: []const u8 = switch (e.state) {
-            .future => "future",
-            .in_flight => "in_flight",
-            .finalized => "finalized",
-            .missed => "missed",
-        };
-        try w.print(
-            "{{\"slot_id\":{d},\"leader\":\"{s}\",\"expected_arrival_ms\":{d},\"state\":\"{s}\"}}",
-            .{ e.slot_id, leader, e.expected_arrival_ms, state_str },
-        );
-    }
-    try w.writeAll("]}}");
-    return out.toOwnedSlice();
-}
 
 /// `getfuturepool` — count + range of TXs that are time-locked beyond
 /// the current chain tip (`locktime > height`). These are the future-
 /// block-pool entries: they will become mineable when the chain
 /// catches up to their target slot. Useful for the frontend to show
 /// a "scheduled trades" panel.
-fn handleGetFuturePool(ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    ctx.bc.mutex.lock();
-    const height = ctx.bc.getBlockCountUnlocked();
-    ctx.bc.mutex.unlock();
-    if (ctx.mempool) |mp| {
-        const stats = mp.futurePoolStats(height);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"current_height\":{d},\"locked_count\":{d}," ++
-            "\"earliest_target\":{d},\"latest_target\":{d}}}}}",
-            .{ id, height, stats.locked_count,
-               stats.earliest_target, stats.latest_target },
-        );
-    }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"current_height\":{d},\"locked_count\":0," ++
-        "\"earliest_target\":0,\"latest_target\":0}}}}",
-        .{ id, height },
-    );
-}
 
 // SEGFAULT-FIX [scan-2026-04-25]: snapshot peer count under p2p.peers_mutex,
 // snapshot bc fields under bc.mutex; format outside both locks. Same root cause
@@ -6868,178 +6457,12 @@ fn handleGetFuturePool(ctx: *ServerCtx, id: u64) ![]u8 {
 ///   - two distinct block hashes (different blocks at same height)
 ///   - two valid secp256k1 signatures from the validator over those hashes
 /// Anything else is rejected with -32602 BEFORE reaching the staking engine.
-fn handleSubmitSlashEvidence(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const staking = ctx.staking orelse
-        return errorJson(-32000, "Staking engine not available", id, alloc);
-
-    const validator_addr = extractArrayStr(body, 0) orelse
-        return errorJson(-32602, "Missing param: validator_address", id, alloc);
-    const reason_str = extractArrayStr(body, 1) orelse
-        return errorJson(-32602, "Missing param: reason (double_sign|invalid_block|downtime)", id, alloc);
-    const reporter_addr = extractArrayStr(body, 5) orelse
-        return errorJson(-32602, "Missing param: reporter_address", id, alloc);
-    const block_height = extractArrayNum(body, 4);
-
-    const reason: staking_mod.SlashReason = if (std.mem.eql(u8, reason_str, "double_sign"))
-        .double_sign
-    else if (std.mem.eql(u8, reason_str, "invalid_block"))
-        .invalid_block
-    else if (std.mem.eql(u8, reason_str, "downtime"))
-        .downtime
-    else
-        return errorJson(-32602, "Invalid reason: use double_sign, invalid_block, or downtime", id, alloc);
-
-    var hash_1: [32]u8 = @splat(0);
-    var hash_2: [32]u8 = @splat(0);
-    var sig_1: [64]u8 = @splat(0);
-    var sig_2: [64]u8 = @splat(0);
-
-    if (reason == .double_sign or reason == .invalid_block) {
-        // Cryptographic evidence required.
-        const h1_hex = extractArrayStr(body, 2) orelse
-            return errorJson(-32602, "Missing block_hash_1 (64-char hex) for crypto-evidence reason", id, alloc);
-        const h2_hex = extractArrayStr(body, 3) orelse
-            return errorJson(-32602, "Missing block_hash_2 (64-char hex) for crypto-evidence reason", id, alloc);
-        if (h1_hex.len != 64) return errorJson(-32602, "block_hash_1 must be 64-char hex", id, alloc);
-        if (h2_hex.len != 64) return errorJson(-32602, "block_hash_2 must be 64-char hex", id, alloc);
-        hash_1 = hexDecode32(h1_hex) orelse return errorJson(-32602, "Invalid block_hash_1 hex", id, alloc);
-        hash_2 = hexDecode32(h2_hex) orelse return errorJson(-32602, "Invalid block_hash_2 hex", id, alloc);
-
-        // Two different blocks at the same height is the whole point — if
-        // they match, the reporter is either confused or trying to spam.
-        if (std.mem.eql(u8, &hash_1, &hash_2)) {
-            return errorJson(-32602, "block_hash_1 and block_hash_2 must differ", id, alloc);
-        }
-
-        const s1_hex = extractArrayStr(body, 6) orelse
-            return errorJson(-32602, "Missing signature_1 (128-char hex) — must be validator's sig over block_hash_1", id, alloc);
-        const s2_hex = extractArrayStr(body, 7) orelse
-            return errorJson(-32602, "Missing signature_2 (128-char hex) — must be validator's sig over block_hash_2", id, alloc);
-        if (s1_hex.len != 128) return errorJson(-32602, "signature_1 must be 128-char hex", id, alloc);
-        if (s2_hex.len != 128) return errorJson(-32602, "signature_2 must be 128-char hex", id, alloc);
-        sig_1 = hexDecode64(s1_hex) orelse return errorJson(-32602, "Invalid signature_1 hex", id, alloc);
-        sig_2 = hexDecode64(s2_hex) orelse return errorJson(-32602, "Invalid signature_2 hex", id, alloc);
-
-        // Verify each sig against the validator's registered pubkey over its
-        // corresponding block hash. We look up the pubkey from bc.pubkey_registry —
-        // every validator must have registered a pubkey TX before they can be
-        // slashed (otherwise we'd accept evidence with no way to validate it).
-        const pk_slice = ctx.bc.pubkey_registry.get(validator_addr) orelse
-            return errorJson(-32000, "Validator pubkey not registered — cannot verify evidence", id, alloc);
-        if (pk_slice.len != 33) return errorJson(-32000, "Registered validator pubkey is not 33 bytes (compressed secp256k1 expected)", id, alloc);
-        var pk: [33]u8 = undefined;
-        @memcpy(&pk, pk_slice[0..33]);
-
-        if (!secp256k1_mod.Secp256k1Crypto.verify(pk, &hash_1, sig_1)) {
-            return errorJson(-32000, "signature_1 does not verify against validator's registered pubkey over block_hash_1", id, alloc);
-        }
-        if (!secp256k1_mod.Secp256k1Crypto.verify(pk, &hash_2, sig_2)) {
-            return errorJson(-32000, "signature_2 does not verify against validator's registered pubkey over block_hash_2", id, alloc);
-        }
-    }
-    // downtime path: no crypto evidence; staking engine just checks the
-    // height window against the validator's last-seen timestamp.
-
-    const evidence = staking_mod.SlashEvidence.init(
-        validator_addr,
-        reason,
-        hash_1,
-        hash_2,
-        block_height,
-        sig_1,
-        sig_2,
-        reporter_addr,
-        std.time.timestamp(),
-    );
-
-    const result = staking.submitSlashEvidence(evidence);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"valid\":{},\"slashed_amount\":{d},\"reporter_reward\":{d},\"new_stake\":{d},\"reason\":\"{s}\"}}}}",
-        .{ id, result.valid, result.slashed_amount, result.reporter_reward, result.new_stake, result.getReason() });
-}
 
 /// RPC "getslashhistory" — view slash history for a validator address.
 /// Usage: {"method":"getslashhistory","params":["validator_addr"],"id":1}
-fn handleGetSlashHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const staking = ctx.staking orelse
-        return errorJson(-32000, "Staking engine not available", id, alloc);
-
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    const history = staking.getSlashHistory(addr);
-
-    // Build JSON array of slash records
-    if (history.count == 0) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"total_slashes\":0,\"records\":[]}}}}",
-            .{ id, addr });
-    }
-
-    // Format up to 10 records for the response
-    var buf: [4096]u8 = undefined;
-    var pos: usize = 0;
-    const max_records = @min(history.count, 10);
-    for (history.records[0..max_records], 0..) |record, i| {
-        const reason_name = switch (record.reason) {
-            .double_sign => "double_sign",
-            .invalid_block => "invalid_block",
-            .downtime => "downtime",
-        };
-        const entry = std.fmt.bufPrint(buf[pos..], "{{\"reason\":\"{s}\",\"amount\":{d},\"height\":{d},\"reporter\":\"{s}\",\"reward\":{d}}}", .{
-            reason_name,
-            record.amount_slashed,
-            record.block_height,
-            record.getReporter(),
-            record.reporter_reward,
-        }) catch break;
-        pos += entry.len;
-        if (i + 1 < max_records) {
-            if (pos < buf.len) {
-                buf[pos] = ',';
-                pos += 1;
-            }
-        }
-    }
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"total_slashes\":{d},\"records\":[{s}]}}}}",
-        .{ id, addr, history.count, buf[0..pos] });
-}
 
 /// RPC "getstakinginfo" — returns validator info including slash status.
 /// Usage: {"method":"getstakinginfo","params":["validator_addr"],"id":1}
-fn handleGetStakingInfo(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const staking = ctx.staking orelse
-        return errorJson(-32000, "Staking engine not available", id, alloc);
-
-    const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-
-    const info = staking.getValidatorInfo(addr) orelse
-        return errorJson(-32000, "Validator not found", id, alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"status\":\"{s}\",\"total_stake\":{d},\"self_stake\":{d},\"delegated_stake\":{d},\"slash_count\":{d},\"slash_history_count\":{d},\"total_rewards\":{d},\"uptime_pct\":{d},\"blocks_produced\":{d},\"commission_pct\":{d}}}}}",
-        .{
-            id,
-            info.getAddress(),
-            info.statusString(),
-            info.total_stake,
-            info.self_stake,
-            info.delegated_stake,
-            info.slash_count,
-            info.slash_history_count,
-            info.total_rewards,
-            info.uptime_pct,
-            info.blocks_produced,
-            info.commission_pct,
-        });
-}
 
 // ─── Multisig RPC Handlers ────────────────────────────────────────────────────
 
@@ -14833,674 +14256,57 @@ fn handleGetIdentity(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 // { "from":"ob1q...", "to":"ob1q...", "amount":5000000000, "condition_hash":"<sha256>",
 //   "timeout_blocks":144, "note":"proiect X", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleEscrowCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc      = ctx.allocator;
-    const from       = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const to         = extractStr(body, "to")         orelse return errorJson(-32602, "Missing: to", id, alloc);
-    const amount     = extractParamObjectU64(body, "amount");
-    const cond_hash  = extractStr(body, "condition_hash") orelse return errorJson(-32602, "Missing: condition_hash", id, alloc);
-    const timeout_bl = extractParamObjectU64(body, "timeout_blocks");
-    const note       = extractStr(body, "note")       orelse "";
-    const sig        = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey     = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce      = extractParamObjectU64(body, "nonce");
-
-    if (amount == 0)    return errorJson(-32602, "amount must be > 0", id, alloc);
-    if (timeout_bl == 0) return errorJson(-32602, "timeout_blocks must be > 0", id, alloc);
-    if (cond_hash.len != escrow_mod.HASH_LEN)
-        return errorJson(-32602, "condition_hash must be 64-char SHA-256 hex", id, alloc);
-
-    const op_return = try std.fmt.allocPrint(alloc,
-        "escrow_create:{s}:{d}:{s}:{d}:{s}", .{ to, amount, cond_hash, timeout_bl, note });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = amount,  // fondurile sunt debitate din balanta
-        .fee          = escrow_mod.ESCROW_CREATE_FEE_SAT,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    const parsed = escrow_mod.parseCreate(op_return).?;
-    const esc_id = ctx.bc.escrow_registry.create(
-        from, parsed, @intCast(ctx.bc.getBlockCount()), canonical,
-    ) catch 0;
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"status\":\"queued\"," ++
-        "\"txid\":\"{s}\"," ++
-        "\"escrow_id\":{d}," ++
-        "\"amount_sat\":{d}," ++
-        "\"timeout_block\":{d}," ++
-        "\"condition_hash\":\"{s}\"" ++
-        "}}}}",
-        .{ id, canonical, esc_id, amount,
-           ctx.bc.getBlockCount() + timeout_bl, cond_hash });
-}
 
 // ── escrow_release ────────────────────────────────────────────────────────────
 // { "from":"ob1q_to...", "escrow_id":1, "proof_hash":"<sha256>",
 //   "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleEscrowRelease(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc      = ctx.allocator;
-    const from       = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const escrow_id  = extractParamObjectU64(body, "escrow_id");
-    const proof_hash = extractStr(body, "proof_hash") orelse return errorJson(-32602, "Missing: proof_hash", id, alloc);
-    const sig        = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey     = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce      = extractParamObjectU64(body, "nonce");
-
-    if (proof_hash.len != escrow_mod.HASH_LEN)
-        return errorJson(-32602, "proof_hash must be 64-char SHA-256 hex", id, alloc);
-
-    const op_return = try std.fmt.allocPrint(alloc,
-        "escrow_release:{d}:{s}", .{ escrow_id, proof_hash });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = 1000,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    // Optimistic in-memory release
-    const amount = ctx.bc.escrow_registry.tryRelease(
-        escrow_id, proof_hash, from, @intCast(ctx.bc.getBlockCount()),
-    );
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    if (amount == 0)
-        return errorJson(-32001, "Release failed: proof_hash mismatch, wrong caller, or escrow not pending", id, alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"released_sat\":{d}}}}}",
-        .{ id, canonical, amount });
-}
 
 // ── escrow_refund ─────────────────────────────────────────────────────────────
 // { "from":"ob1q_from...", "escrow_id":1, "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleEscrowRefund(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc     = ctx.allocator;
-    const from      = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const escrow_id = extractParamObjectU64(body, "escrow_id");
-    const sig       = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey    = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce     = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "escrow_refund:{d}", .{escrow_id});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = 1000,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    const amount = ctx.bc.escrow_registry.tryRefund(
-        escrow_id, from, @intCast(ctx.bc.getBlockCount()),
-    );
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    if (amount == 0)
-        return errorJson(-32001, "Refund failed: not timed out yet, wrong caller, or escrow not pending", id, alloc);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"refunded_sat\":{d}}}}}",
-        .{ id, canonical, amount });
-}
 
 // ── escrow_dispute ────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "escrow_id":1, "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleEscrowDispute(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc     = ctx.allocator;
-    const from      = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const escrow_id = extractParamObjectU64(body, "escrow_id");
-    const sig       = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey    = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce     = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "escrow_dispute:{d}", .{escrow_id});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = escrow_mod.ESCROW_DISPUTE_FEE_SAT,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    const opened = ctx.bc.escrow_registry.openDispute(escrow_id, from);
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"disputed\":{s}}}}}",
-        .{ id, canonical, if (opened) "true" else "false" });
-}
 
 // ── getescrow ─────────────────────────────────────────────────────────────────
 // { "escrow_id":1 }
 
-fn handleGetEscrow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc     = ctx.allocator;
-    const escrow_id = extractParamObjectU64(body, "escrow_id");
-
-    const e = ctx.bc.escrow_registry.get(escrow_id) orelse
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
-
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    const note_safe = try jsonSanitize(alloc, e.noteSlice());
-    defer alloc.free(note_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"id\":{d}," ++
-        "\"from\":\"{s}\"," ++
-        "\"to\":\"{s}\"," ++
-        "\"amount_sat\":{d}," ++
-        "\"condition_hash\":\"{s}\"," ++
-        "\"timeout_block\":{d}," ++
-        "\"create_block\":{d}," ++
-        "\"status\":\"{s}\"," ++
-        "\"timed_out\":{s}," ++
-        "\"note\":\"{s}\"" ++
-        "}}}}",
-        .{ id, e.id, e.fromSlice(), e.toSlice(),
-           e.amount_sat, e.conditionSlice(),
-           e.timeout_block, e.create_block, e.statusStr(),
-           if (e.isTimedOut(current_block)) "true" else "false",
-           note_safe });
-}
 
 // ── getescrows ────────────────────────────────────────────────────────────────
 // { "address":"ob1q...", "role":"from"|"to" }
 
-fn handleGetEscrows(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing: address", id, alloc);
-    const role    = extractStr(body, "role") orelse "from";
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-
-    var entries: [64]escrow_mod.EscrowEntry = undefined;
-    const n = if (std.mem.eql(u8, role, "to"))
-        ctx.bc.escrow_registry.listByTo(address, &entries)
-    else
-        ctx.bc.escrow_registry.listByFrom(address, &entries);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"escrows\":[", .{id});
-    for (entries[0..n], 0..) |e, i| {
-        if (i > 0) try w.writeByte(',');
-        try w.print(
-            "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
-            "\"amount_sat\":{d},\"status\":\"{s}\"," ++
-            "\"timeout_block\":{d},\"timed_out\":{s}," ++
-            "\"condition_hash\":\"{s}\",\"note\":\"",
-            .{ e.id, e.fromSlice(), e.toSlice(),
-               e.amount_sat, e.statusStr(),
-               e.timeout_block,
-               if (e.isTimedOut(current_block)) "true" else "false",
-               e.conditionSlice() },
-        );
-        try writeJsonSafeStr(w, e.noteSlice());
-        try w.writeAll("\"}");
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── notarizedoc ───────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "doc_hash":"<sha256_hex_64>", "doc_type":"audit",
 //   "expiry_blocks":0, "note":"Contract X", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleNotarizeDoc(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc       = ctx.allocator;
-    const from        = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const doc_hash    = extractStr(body, "doc_hash")   orelse return errorJson(-32602, "Missing: doc_hash", id, alloc);
-    const doc_type_s  = extractStr(body, "doc_type")   orelse "other";
-    const expiry      = extractParamObjectU64(body, "expiry_blocks");
-    const note        = extractStr(body, "note")       orelse "";
-    const sig         = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey      = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce       = extractParamObjectU64(body, "nonce");
-
-    if (doc_hash.len != notarize_mod.HASH_LEN)
-        return errorJson(-32602, "doc_hash must be 64-char SHA-256 hex", id, alloc);
-
-    const op_return = try std.fmt.allocPrint(alloc,
-        "notarize:{s}:{s}:{d}:{s}", .{ doc_hash, doc_type_s, expiry, note });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = notarize_mod.NOTARIZE_FEE_SAT,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    // Optimistic in-memory notarize
-    const parsed = notarize_mod.parsNotarize(op_return).?;
-    const note_id = ctx.bc.notarize_registry.notarize(
-        from, parsed, @intCast(ctx.bc.getBlockCount()), canonical,
-    ) catch 0;
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    const ndoc_type_safe = try jsonSanitize(alloc, doc_type_s);
-    defer alloc.free(ndoc_type_safe);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"status\":\"queued\"," ++
-        "\"txid\":\"{s}\"," ++
-        "\"notarize_id\":{d}," ++
-        "\"doc_hash\":\"{s}\"," ++
-        "\"doc_type\":\"{s}\"," ++
-        "\"fee_sat\":{d}" ++
-        "}}}}",
-        .{ id, canonical, note_id, doc_hash, ndoc_type_safe, notarize_mod.NOTARIZE_FEE_SAT });
-}
 
 // ── verifynotarize ────────────────────────────────────────────────────────────
 // { "doc_hash":"<sha256_hex_64>" }  — verifica daca documentul e notarizat pe chain
 
-fn handleVerifyNotarize(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc    = ctx.allocator;
-    const doc_hash = extractStr(body, "doc_hash") orelse
-        return errorJson(-32602, "Missing: doc_hash", id, alloc);
-
-    if (doc_hash.len != notarize_mod.HASH_LEN)
-        return errorJson(-32602, "doc_hash must be 64-char SHA-256 hex", id, alloc);
-
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    const result = ctx.bc.notarize_registry.verify(doc_hash, current_block);
-
-    if (result.entry == null) {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"{s}\",\"doc_hash\":\"{s}\"}}}}",
-            .{ id, result.statusStr(), doc_hash });
-    }
-
-    const e = result.entry.?;
-    {
-        const vnote_safe = try jsonSanitize(alloc, e.noteSlice());
-        defer alloc.free(vnote_safe);
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-            "\"status\":\"{s}\"," ++
-            "\"notarize_id\":{d}," ++
-            "\"doc_hash\":\"{s}\"," ++
-            "\"doc_type\":\"{s}\"," ++
-            "\"owner\":\"{s}\"," ++
-            "\"block_height\":{d}," ++
-            "\"tx_hash\":\"{s}\"," ++
-            "\"expiry_block\":{d}," ++
-            "\"note\":\"{s}\"" ++
-            "}}}}",
-            .{ id, result.statusStr(), e.id, e.docHashSlice(), e.doc_type.toStr(),
-               e.ownerSlice(), e.block_height, e.txHashSlice(), e.expiry_block, vnote_safe });
-    }
-}
 
 // ── revokenotarize ────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "notarize_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleRevokeNotarize(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc       = ctx.allocator;
-    const from        = extractStr(body, "from")       orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const notarize_id = extractParamObjectU64(body, "notarize_id");
-    const sig         = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey      = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce       = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "notarize_revoke:{d}", .{notarize_id});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = notarize_mod.NOTARIZE_REVOKE_FEE_SAT,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    const revoked = ctx.bc.notarize_registry.revoke(notarize_id, from);
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"revoked\":{s}}}}}",
-        .{ id, canonical, if (revoked) "true" else "false" });
-}
 
 // ── getnotarizations ──────────────────────────────────────────────────────────
 // { "address":"ob1q..." }  — lista notarizarilor unui owner (newest first)
 
-fn handleGetNotarizations(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing: address", id, alloc);
-
-    var entries: [64]notarize_mod.NotarizeEntry = undefined;
-    const n = ctx.bc.notarize_registry.listByOwner(address, &entries);
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"notarizations\":[", .{id});
-    for (entries[0..n], 0..) |e, i| {
-        if (i > 0) try w.writeByte(',');
-        const status = if (e.revoked) "revoked"
-            else if (e.expiry_block > 0 and current_block > e.expiry_block) "expired"
-            else "valid";
-        const note_safe = try jsonSanitize(alloc, e.noteSlice());
-        defer alloc.free(note_safe);
-        try w.print(
-            "{{\"id\":{d},\"doc_hash\":\"{s}\",\"doc_type\":\"{s}\"," ++
-            "\"block_height\":{d},\"tx_hash\":\"{s}\"," ++
-            "\"expiry_block\":{d},\"status\":\"{s}\",\"note\":\"{s}\"}}",
-            .{ e.id, e.docHashSlice(), e.doc_type.toStr(),
-               e.block_height, e.txHashSlice(),
-               e.expiry_block, status, note_safe },
-        );
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── sub_create ────────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "to":"ob1q...", "amount":1000000, "interval":100,
 //   "max_payments":12, "note":"Netflix", "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleSubCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc    = ctx.allocator;
-    const from     = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const to       = extractStr(body, "to")      orelse return errorJson(-32602, "Missing: to", id, alloc);
-    const amount   = extractParamObjectU64(body, "amount");
-    const interval = extractParamObjectU64(body, "interval");
-    const max_pay  = extractParamObjectU64(body, "max_payments");
-    const note     = extractStr(body, "note") orelse "";
-    const sig      = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey   = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce    = extractParamObjectU64(body, "nonce");
-
-    if (amount == 0)   return errorJson(-32602, "amount must be > 0", id, alloc);
-    if (interval == 0) return errorJson(-32602, "interval must be > 0", id, alloc);
-
-    // Build op_return
-    const op_return = try std.fmt.allocPrint(alloc,
-        "sub_create:{s}:{d}:{d}:{d}:{s}", .{ to, amount, interval, max_pay, note });
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = sub_mod.SUB_CREATE_FEE_SAT,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    // Optimistic in-memory create
-    const parsed = sub_mod.parseCreate(op_return).?;
-    const sub_id = ctx.bc.sub_registry.create(from, parsed, @intCast(ctx.bc.getBlockCount())) catch 0;
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"sub_id\":{d},\"next_block\":{d}}}}}",
-        .{ id, canonical, sub_id, ctx.bc.getBlockCount() + interval });
-}
 
 // ── sub_cancel ────────────────────────────────────────────────────────────────
 // { "from":"ob1q...", "sub_id":42, "signature":"hex", "public_key":"hex", "nonce":N }
 
-fn handleSubCancel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const from    = extractStr(body, "from")    orelse return errorJson(-32602, "Missing: from", id, alloc);
-    const sub_id  = extractParamObjectU64(body, "sub_id");
-    const sig     = extractStr(body, "signature")  orelse return errorJson(-32602, "Missing: signature", id, alloc);
-    const pubkey  = extractStr(body, "public_key") orelse return errorJson(-32602, "Missing: public_key", id, alloc);
-    const nonce   = extractParamObjectU64(body, "nonce");
-
-    const op_return = try std.fmt.allocPrint(alloc, "sub_cancel:{d}", .{sub_id});
-    defer alloc.free(op_return);
-
-    const ts    = std.time.timestamp();
-    const tx_id: u32 = @intCast(std.time.milliTimestamp() & 0xFFFFFFFF);
-    const provisional = try std.fmt.allocPrint(alloc, "{d}{s}{d}", .{ tx_id, from, ts });
-    defer alloc.free(provisional);
-
-    var tx = blockchain_mod.Transaction{
-        .id           = tx_id,
-        .from_address = from,
-        .to_address   = from,
-        .amount       = 0,
-        .fee          = 1000,
-        .timestamp    = ts,
-        .nonce        = nonce,
-        .op_return    = op_return,
-        .signature    = sig,
-        .public_key   = pubkey,
-        .scheme       = .omni_ecdsa,
-        .hash         = provisional,
-    };
-    const hash_bytes = tx.calculateHash();
-    const canonical  = try std.fmt.allocPrint(alloc, "{s}", .{std.fmt.bytesToHex(hash_bytes, .lower)});
-    tx.hash = canonical;
-
-    const cancelled = ctx.bc.sub_registry.cancel(sub_id, from);
-
-    ctx.bc.mutex.lock();
-    ctx.bc.mempool.append(tx) catch {
-        ctx.bc.mutex.unlock();
-        return errorJson(-32603, "Mempool full", id, alloc);
-    };
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"cancelled\":{s}}}}}",
-        .{ id, canonical, if (cancelled) "true" else "false" });
-}
 
 // ── getsubscriptions ──────────────────────────────────────────────────────────
 // { "address":"ob1q..." }  — returnează toate subscripțiile (emise și primite)
 
-fn handleGetSubscriptions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc   = ctx.allocator;
-    const address = extractStr(body, "address") orelse
-        return errorJson(-32602, "Missing: address", id, alloc);
-
-    var entries: [sub_mod.MAX_SUBS_PER_ADDRESS]sub_mod.Subscription = undefined;
-    const n = ctx.bc.sub_registry.listByFrom(address, &entries);
-
-    var buf = std.array_list.Managed(u8).init(alloc);
-    defer buf.deinit();
-    const w = buf.writer();
-
-    try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"subscriptions\":[", .{id});
-    for (entries[0..n], 0..) |sub, i| {
-        if (i > 0) try w.writeByte(',');
-        const status_str: []const u8 = switch (sub.status) {
-            .active    => "active",
-            .cancelled => "cancelled",
-            .completed => "completed",
-        };
-        const sub_note = try jsonSanitize(alloc, sub.noteSlice());
-        defer alloc.free(sub_note);
-        try w.print(
-            "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
-            "\"amount_sat\":{d},\"interval_blocks\":{d}," ++
-            "\"max_payments\":{d},\"payments_done\":{d}," ++
-            "\"next_block\":{d},\"status\":\"{s}\",\"note\":\"{s}\"}}",
-            .{ sub.id, sub.fromSlice(), sub.toSlice(),
-               sub.amount_sat, sub.interval_blocks,
-               sub.max_payments, sub.payments_done,
-               sub.next_block, status_str, sub_note },
-        );
-    }
-    try w.writeAll("]}}");
-    return buf.toOwnedSlice();
-}
 
 // ── Profile / MiCA off-chain identity store ────────────────────────────────
 //
@@ -16282,490 +15088,3 @@ test "errorJson — format JSON-RPC 2.0" {
     try testing.expect(std.mem.indexOf(u8, result, "\"id\":7") != null);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ── Cold Wallet (watch-only) handlers ─────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// coldwallet_add {"address":"ob1q...","label":"savings"}
-fn handleColdWalletAdd(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const label = extractParamObjectField(body, "label") orelse "";
-    if (address.len < 8)
-        return errorJson(-32602, "Invalid address", id, alloc);
-    const ok = ctx.bc.cold_wallet_store.add(address, label);
-    if (!ok)
-        return errorJson(-32000,
-            "Add failed: address already watched, store full, or label has forbidden chars (printable ASCII only, no quotes or backslashes)",
-            id, alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"label\":\"{s}\",\"status\":\"added\"}}}}",
-        .{ id, address, label });
-}
-
-/// coldwallet_list {} — lists all watch-only wallets with current balances
-fn handleColdWalletList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    const alloc = ctx.allocator;
-    const buf = try alloc.alloc(cold_wallet_mod.ColdWallet, cold_wallet_mod.MAX_ENTRIES);
-    defer alloc.free(buf);
-    const n = ctx.bc.cold_wallet_store.listAll(buf);
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "[");
-    for (buf[0..n], 0..) |w, i| {
-        if (i > 0) try out.appendSlice(alloc, ",");
-        const live_bal = ctx.bc.getAddressBalance(w.addressSlice());
-        const entry = try std.fmt.allocPrint(alloc,
-            "{{\"address\":\"{s}\",\"label\":\"{s}\",\"balance_sat\":{d},\"total_received_sat\":{d},\"created\":{d}}}",
-            .{ w.addressSlice(), w.labelSlice(), live_bal, w.total_received_sat, w.created_unix_s });
-        defer alloc.free(entry);
-        try out.appendSlice(alloc, entry);
-    }
-    try out.appendSlice(alloc, "]");
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
-        .{ id, out.items });
-}
-
-/// coldwallet_remove {"address":"ob1q..."}
-fn handleColdWalletRemove(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const ok = ctx.bc.cold_wallet_store.remove(address);
-    if (!ok)
-        return errorJson(-32000, "Address not found in watch list", id, alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"status\":\"removed\"}}}}",
-        .{ id, address });
-}
-
-/// coldwallet_history {"address":"ob1q...","limit":50}
-fn handleColdWalletHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const limit_raw = extractParamObjectU64(body, "limit");
-    const limit: usize = if (limit_raw > 0 and limit_raw <= 500) @intCast(limit_raw) else 50;
-    // Reuse address TX index
-    const tx_hashes = ctx.bc.address_tx_index.get(address) orelse {
-        return std.fmt.allocPrint(alloc,
-            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":[]}}",
-            .{id});
-    };
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "[");
-    const start: usize = if (tx_hashes.items.len > limit) tx_hashes.items.len - limit else 0;
-    var first = true;
-    for (tx_hashes.items[start..]) |tx_hash| {
-        // Find TX in chain (scan blocks — lightweight for watch-only auditing)
-        for (ctx.bc.chain.items) |*blk| {
-            for (blk.transactions.items) |tx| {
-                if (!std.mem.eql(u8, tx.hash, tx_hash)) continue;
-                if (!std.mem.eql(u8, tx.to_address, address)) continue; // only incoming
-                if (!first) try out.appendSlice(alloc, ",");
-                first = false;
-                const entry = try std.fmt.allocPrint(alloc,
-                    "{{\"tx_hash\":\"{s}\",\"from\":\"{s}\",\"amount_sat\":{d},\"block\":{d}}}",
-                    .{ tx.hash, tx.from_address, tx.amount,
-                       ctx.bc.tx_block_height.get(tx.hash) orelse 0 });
-                defer alloc.free(entry);
-                try out.appendSlice(alloc, entry);
-                break;
-            }
-        }
-    }
-    try out.appendSlice(alloc, "]");
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
-        .{ id, out.items });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ── Timelock Vault (CLTV) handlers ────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// timelock_create {"owner":"ob1q...","dest":"ob1q...","amount_sat":N,"unlock_block":B}
-fn handleTimelockCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const owner = extractParamObjectField(body, "owner") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const dest = extractParamObjectField(body, "dest") orelse
-        return errorJson(-32602, "Missing param: dest", id, alloc);
-    const amount_sat = extractParamObjectU64(body, "amount_sat");
-    if (amount_sat == 0) return errorJson(-32602, "Missing/zero param: amount_sat", id, alloc);
-    const unlock_block = extractParamObjectU64(body, "unlock_block");
-    if (unlock_block == 0) return errorJson(-32602, "Missing/zero param: unlock_block", id, alloc);
-
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    if (unlock_block <= current_block)
-        return errorJson(-32602, "unlock_block must be in the future", id, alloc);
-
-    const owner_bal = ctx.bc.getAddressBalance(owner);
-    if (owner_bal < amount_sat)
-        return errorJson(-32000, "Insufficient balance to lock", id, alloc);
-
-    // Debit owner balance (funds held in vault)
-    ctx.bc.mutex.lock();
-    const cur_bal = ctx.bc.balances.get(owner) orelse 0;
-    if (cur_bal >= amount_sat) {
-        ctx.bc.balances.put(owner, cur_bal - amount_sat) catch {};
-    }
-    ctx.bc.mutex.unlock();
-
-    const id_hex = ctx.bc.timelock_store.create(
-        owner, dest, amount_sat, unlock_block, current_block, "",
-    ) catch {
-        // Restore balance on failure
-        ctx.bc.mutex.lock();
-        const b2 = ctx.bc.balances.get(owner) orelse 0;
-        ctx.bc.balances.put(owner, b2 + amount_sat) catch {};
-        ctx.bc.mutex.unlock();
-        return errorJson(-32000, "Failed to create timelock vault", id, alloc);
-    };
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"vault_id\":\"{s}\",\"owner\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"unlock_block\":{d},\"state\":\"locked\"}}}}",
-        .{ id, id_hex, owner, dest, amount_sat, unlock_block });
-}
-
-/// timelock_list {"owner":"ob1q..."}
-fn handleTimelockList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const owner = extractParamObjectField(body, "owner") orelse
-        return errorJson(-32602, "Missing param: owner", id, alloc);
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    var vaults: [256]timelock_mod.TimelockVault = undefined;
-    const n = ctx.bc.timelock_store.listByOwner(owner, &vaults);
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "[");
-    for (vaults[0..n], 0..) |v, i| {
-        if (i > 0) try out.appendSlice(alloc, ",");
-        const remaining = v.blocksRemaining(current_block);
-        const entry = try std.fmt.allocPrint(alloc,
-            "{{\"vault_id\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"unlock_block\":{d},\"state\":\"{s}\",\"blocks_remaining\":{d}}}",
-            .{ v.idSlice(), v.destSlice(), v.amount_sat, v.unlock_block, v.state.str(), remaining });
-        defer alloc.free(entry);
-        try out.appendSlice(alloc, entry);
-    }
-    try out.appendSlice(alloc, "]");
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
-        .{ id, out.items });
-}
-
-/// timelock_spend {"vault_id":"hex..."}
-fn handleTimelockSpend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const vault_id = extractParamObjectField(body, "vault_id") orelse
-        return errorJson(-32602, "Missing param: vault_id", id, alloc);
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    const vault = ctx.bc.timelock_store.getById(vault_id) orelse
-        return errorJson(-32000, "Vault not found", id, alloc);
-    if (vault.state == .spent)
-        return errorJson(-32000, "Vault already spent", id, alloc);
-    if (current_block < vault.unlock_block)
-        return errorJson(-32000, "Vault still locked — too early", id, alloc);
-
-    // Mark spent and credit destination
-    const ok = ctx.bc.timelock_store.markSpent(vault_id, "manual_spend", current_block);
-    if (!ok) return errorJson(-32000, "Failed to mark vault spent", id, alloc);
-
-    ctx.bc.mutex.lock();
-    const dest_bal = ctx.bc.balances.get(vault.destSlice()) orelse 0;
-    ctx.bc.balances.put(vault.destSlice(), dest_bal + vault.amount_sat) catch {};
-    ctx.bc.mutex.unlock();
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"vault_id\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"state\":\"spent\"}}}}",
-        .{ id, vault_id, vault.destSlice(), vault.amount_sat });
-}
-
-/// timelock_status {"vault_id":"hex..."}
-fn handleTimelockStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const vault_id = extractParamObjectField(body, "vault_id") orelse
-        return errorJson(-32602, "Missing param: vault_id", id, alloc);
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    const vault = ctx.bc.timelock_store.getById(vault_id) orelse
-        return errorJson(-32000, "Vault not found", id, alloc);
-    const remaining = vault.blocksRemaining(current_block);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"vault_id\":\"{s}\",\"owner\":\"{s}\",\"dest\":\"{s}\",\"amount_sat\":{d},\"unlock_block\":{d},\"state\":\"{s}\",\"blocks_remaining\":{d},\"created_block\":{d}}}}}",
-        .{ id, vault.idSlice(), vault.ownerSlice(), vault.destSlice(),
-           vault.amount_sat, vault.unlock_block, vault.state.str(), remaining, vault.created_block });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ── Covenant (destination whitelist) handlers ─────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// covenant_create {"address":"ob1q...","whitelist":["ob1q..."],"max_per_tx_sat":0,"expires_block":0,"label":"..."}
-fn handleCovenantCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const max_per_tx = extractParamObjectU64(body, "max_per_tx_sat");
-    const expires_block = extractParamObjectU64(body, "expires_block");
-    const label = extractParamObjectField(body, "label") orelse "";
-
-    // Parse whitelist array from JSON: look for [...] after "whitelist"
-    const wl_needle = "\"whitelist\"";
-    const wl_pos = std.mem.indexOf(u8, body, wl_needle) orelse
-        return errorJson(-32602, "Missing param: whitelist", id, alloc);
-    const bracket = std.mem.indexOfScalarPos(u8, body, wl_pos, '[') orelse
-        return errorJson(-32602, "whitelist must be a JSON array", id, alloc);
-
-    var whitelist_strs: [covenant_mod.MAX_WHITELIST][]const u8 = undefined;
-    var wl_count: usize = 0;
-    var parse_pos: usize = bracket + 1;
-    while (parse_pos < body.len and wl_count < covenant_mod.MAX_WHITELIST) {
-        while (parse_pos < body.len and (body[parse_pos] == ' ' or body[parse_pos] == '\t' or body[parse_pos] == '\n')) parse_pos += 1;
-        if (parse_pos >= body.len or body[parse_pos] == ']') break;
-        if (body[parse_pos] == '"') {
-            parse_pos += 1;
-            const start = parse_pos;
-            while (parse_pos < body.len and body[parse_pos] != '"') parse_pos += 1;
-            whitelist_strs[wl_count] = body[start..parse_pos];
-            wl_count += 1;
-            if (parse_pos < body.len) parse_pos += 1;
-        } else {
-            while (parse_pos < body.len and body[parse_pos] != ',' and body[parse_pos] != ']') parse_pos += 1;
-        }
-        if (parse_pos < body.len and body[parse_pos] == ',') parse_pos += 1;
-    }
-
-    if (wl_count == 0)
-        return errorJson(-32602, "whitelist must contain at least one address", id, alloc);
-
-    ctx.bc.covenant_store.create(
-        address, whitelist_strs[0..wl_count], max_per_tx, expires_block, label,
-    ) catch {
-        return errorJson(-32000, "Failed to create covenant", id, alloc);
-    };
-
-    const cov_label = try jsonSanitize(alloc, label);
-    defer alloc.free(cov_label);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
-        .{ id, address, wl_count, max_per_tx, expires_block, cov_label });
-}
-
-/// covenant_list {} — lists all active covenants
-fn handleCovenantList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    const alloc = ctx.allocator;
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    const buf = try alloc.alloc(covenant_mod.Covenant, covenant_mod.MAX_COVENANTS);
-    defer alloc.free(buf);
-    const n = ctx.bc.covenant_store.listAll(current_block, buf);
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "[");
-    for (buf[0..n], 0..) |c, i| {
-        if (i > 0) try out.appendSlice(alloc, ",");
-        const cl_safe = try jsonSanitize(alloc, c.labelSlice());
-        defer alloc.free(cl_safe);
-        const entry = try std.fmt.allocPrint(alloc,
-            "{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}",
-            .{ c.addressSlice(), c.whitelist_count, c.max_amount_per_tx_sat, c.expires_block, cl_safe });
-        defer alloc.free(entry);
-        try out.appendSlice(alloc, entry);
-    }
-    try out.appendSlice(alloc, "]");
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
-        .{ id, out.items });
-}
-
-/// covenant_get {"address":"ob1q..."}
-fn handleCovenantGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    const cov = ctx.bc.covenant_store.getActive(address, current_block) orelse
-        return errorJson(-32000, "No active covenant for address", id, alloc);
-
-    var wl_json = std.ArrayList(u8){};
-    defer wl_json.deinit(alloc);
-    try wl_json.appendSlice(alloc, "[");
-    var wi: usize = 0;
-    while (wi < cov.whitelist_count) : (wi += 1) {
-        if (wi > 0) try wl_json.appendSlice(alloc, ",");
-        const wentry = try std.fmt.allocPrint(alloc, "\"{s}\"", .{cov.whitelistEntry(wi)});
-        defer alloc.free(wentry);
-        try wl_json.appendSlice(alloc, wentry);
-    }
-    try wl_json.appendSlice(alloc, "]");
-
-    const cget_label = try jsonSanitize(alloc, cov.labelSlice());
-    defer alloc.free(cget_label);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist\":{s},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}}}",
-        .{ id, cov.addressSlice(), wl_json.items, cov.max_amount_per_tx_sat, cov.expires_block, cget_label });
-}
-
-/// covenant_remove {"address":"ob1q..."}
-fn handleCovenantRemove(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const address = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const ok = ctx.bc.covenant_store.remove(address);
-    if (!ok) return errorJson(-32000, "No active covenant found for address", id, alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"status\":\"removed\"}}}}",
-        .{ id, address });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ── Treasury auto-distribute handlers ────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// treasury_create {"address":"ob1q...","destinations":[{"address":"ob1q...","share_bps":5000,"label":"x"}],"trigger_amount_sat":100000000,"label":"..."}
-fn handleTreasuryCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const treasury_addr = extractParamObjectField(body, "address") orelse
-        return errorJson(-32602, "Missing param: address", id, alloc);
-    const trigger = extractParamObjectU64(body, "trigger_amount_sat");
-    const label = extractParamObjectField(body, "label") orelse "";
-
-    // Parse destinations array
-    const dest_needle = "\"destinations\"";
-    const dest_pos = std.mem.indexOf(u8, body, dest_needle) orelse
-        return errorJson(-32602, "Missing param: destinations", id, alloc);
-    const bracket = std.mem.indexOfScalarPos(u8, body, dest_pos, '[') orelse
-        return errorJson(-32602, "destinations must be a JSON array", id, alloc);
-
-    var dests: [treasury_multi_mod.MAX_DESTS]treasury_multi_mod.TreasuryDest = undefined;
-    var dest_count: usize = 0;
-    var pp: usize = bracket + 1;
-    while (pp < body.len and dest_count < treasury_multi_mod.MAX_DESTS) {
-        while (pp < body.len and (body[pp] == ' ' or body[pp] == '\t' or body[pp] == '\n' or body[pp] == ',')) pp += 1;
-        if (pp >= body.len or body[pp] == ']') break;
-        if (body[pp] != '{') { pp += 1; continue; }
-        // Find end of object
-        var depth: i32 = 0;
-        const obj_start = pp;
-        var obj_end = pp;
-        while (pp < body.len) : (pp += 1) {
-            if (body[pp] == '{') depth += 1
-            else if (body[pp] == '}') {
-                depth -= 1;
-                if (depth == 0) { obj_end = pp + 1; pp += 1; break; }
-            }
-        }
-        const obj = body[obj_start..obj_end];
-        const d_addr = extractStr(obj, "address") orelse continue;
-        const d_bps_raw = extractParamObjectU64(obj, "share_bps");
-        const d_label = extractStr(obj, "label") orelse "";
-        var d = treasury_multi_mod.TreasuryDest{ .share_bps = @intCast(@min(d_bps_raw, 10000)) };
-        const ac = @min(d_addr.len, treasury_multi_mod.ADDR_MAX - 1);
-        @memcpy(d.address[0..ac], d_addr[0..ac]);
-        d.addr_len = @intCast(ac);
-        const lc = @min(d_label.len, treasury_multi_mod.LABEL_MAX - 1);
-        @memcpy(d.label[0..lc], d_label[0..lc]);
-        d.label_len = @intCast(lc);
-        dests[dest_count] = d;
-        dest_count += 1;
-    }
-
-    if (dest_count == 0)
-        return errorJson(-32602, "destinations must have at least one entry", id, alloc);
-
-    const id_hex = ctx.bc.treasury_multi_store.create(
-        treasury_addr, dests[0..dest_count], trigger, label,
-    ) catch {
-        return errorJson(-32000, "Failed to create treasury (check share_bps sum = 10000)", id, alloc);
-    };
-
-    const treas_label = try jsonSanitize(alloc, label);
-    defer alloc.free(treas_label);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"dest_count\":{d},\"trigger_amount_sat\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
-        .{ id, id_hex, treasury_addr, dest_count, trigger, treas_label });
-}
-
-/// treasury_list {} — list all active treasuries
-fn handleTreasuryList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    _ = body;
-    const alloc = ctx.allocator;
-    const buf = try alloc.alloc(treasury_multi_mod.Treasury, treasury_multi_mod.MAX_TREASURY);
-    defer alloc.free(buf);
-    const n = ctx.bc.treasury_multi_store.listAll(buf);
-    var out = std.ArrayList(u8){};
-    defer out.deinit(alloc);
-    try out.appendSlice(alloc, "[");
-    for (buf[0..n], 0..) |t, i| {
-        if (i > 0) try out.appendSlice(alloc, ",");
-        const live_bal = ctx.bc.getAddressBalance(t.treasurySlice());
-        const tl_safe = try jsonSanitize(alloc, t.labelSlice());
-        defer alloc.free(tl_safe);
-        const entry = try std.fmt.allocPrint(alloc,
-            "{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"dest_count\":{d},\"label\":\"{s}\"}}",
-            .{ t.idSlice(), t.treasurySlice(), live_bal, t.trigger_amount_sat,
-               t.last_distribute_block, t.total_distributed_sat, t.dest_count, tl_safe });
-        defer alloc.free(entry);
-        try out.appendSlice(alloc, entry);
-    }
-    try out.appendSlice(alloc, "]");
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{s}}}",
-        .{ id, out.items });
-}
-
-/// treasury_distribute {"treasury_id":"hex..."}
-fn handleTreasuryDistribute(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const treasury_id = extractParamObjectField(body, "treasury_id") orelse
-        return errorJson(-32602, "Missing param: treasury_id", id, alloc);
-    const treas = ctx.bc.treasury_multi_store.getById(treasury_id) orelse
-        return errorJson(-32000, "Treasury not found", id, alloc);
-    const current_block: u64 = @intCast(ctx.bc.getBlockCount());
-    const bal = ctx.bc.getAddressBalance(treas.treasurySlice());
-    if (bal == 0) return errorJson(-32000, "Treasury balance is zero", id, alloc);
-
-    var distributed: u64 = 0;
-    ctx.bc.mutex.lock();
-    var di: usize = 0;
-    while (di < treas.dest_count) : (di += 1) {
-        const dest_amt = treas.destAmount(di, bal);
-        if (dest_amt == 0) continue;
-        if (bal < distributed + dest_amt) break;
-        distributed += dest_amt;
-        const to_bal = ctx.bc.balances.get(treas.destinations[di].addressSlice()) orelse 0;
-        ctx.bc.balances.put(treas.destinations[di].addressSlice(), to_bal + dest_amt) catch {};
-    }
-    if (distributed > 0) {
-        const from_bal = ctx.bc.balances.get(treas.treasurySlice()) orelse 0;
-        ctx.bc.balances.put(treas.treasurySlice(), from_bal -| distributed) catch {};
-    }
-    ctx.bc.mutex.unlock();
-
-    ctx.bc.treasury_multi_store.recordDistribute(treasury_id, distributed, current_block);
-
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"distributed_sat\":{d},\"block\":{d}}}}}",
-        .{ id, treasury_id, distributed, current_block });
-}
-
-/// treasury_status {"treasury_id":"hex..."}
-fn handleTreasuryStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
-    const alloc = ctx.allocator;
-    const treasury_id = extractParamObjectField(body, "treasury_id") orelse
-        return errorJson(-32602, "Missing param: treasury_id", id, alloc);
-    const treas = ctx.bc.treasury_multi_store.getById(treasury_id) orelse
-        return errorJson(-32000, "Treasury not found", id, alloc);
-    const live_bal = ctx.bc.getAddressBalance(treas.treasurySlice());
-    const pending: u64 = if (live_bal >= treas.trigger_amount_sat and treas.trigger_amount_sat > 0) live_bal else 0;
-    const ts_label = try jsonSanitize(alloc, treas.labelSlice());
-    defer alloc.free(ts_label);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"pending_distribute_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"label\":\"{s}\"}}}}",
-        .{ id, treas.idSlice(), treas.treasurySlice(), live_bal, pending,
-           treas.trigger_amount_sat, treas.last_distribute_block, treas.total_distributed_sat, ts_label });
-}
