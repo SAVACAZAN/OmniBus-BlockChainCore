@@ -15,6 +15,9 @@ const p2pRecv = socket.p2pRecv;
 const p2pSend = socket.p2pSend;
 const readAllFromStream = socket.readAllFromStream;
 
+// Ban/reconnect management moved to core/p2p/banman.zig
+const banman = @import("p2p/banman.zig");
+
 // Knock-knock UDP anti-Sybil moved to core/p2p/knock.zig
 const knock_mod = @import("p2p/knock.zig");
 pub const KnockResult = knock_mod.KnockResult;
@@ -186,69 +189,10 @@ pub const MsgBlockAnnounce = wire.MsgBlockAnnounce;
 // ─── P2P Hardening Types ────────────────────────────────────────────────────
 
 /// Banned peer entry — tracks host:port + ban expiry
-pub const BannedPeer = struct {
-    host: [64]u8,
-    host_len: u8,
-    port: u16,
-    banned_until: i64, // Unix timestamp
-    reason: [64]u8,
-    reason_len: u8,
-    active: bool,
-
-    pub fn init(host: []const u8, port: u16, duration_sec: i64, reason: []const u8) BannedPeer {
-        var bp: BannedPeer = .{
-            .host = @splat(0),
-            .host_len = @intCast(@min(host.len, 64)),
-            .port = port,
-            .banned_until = std.time.timestamp() + duration_sec,
-            .reason = @splat(0),
-            .reason_len = @intCast(@min(reason.len, 64)),
-            .active = true,
-        };
-        @memcpy(bp.host[0..bp.host_len], host[0..bp.host_len]);
-        @memcpy(bp.reason[0..bp.reason_len], reason[0..bp.reason_len]);
-        return bp;
-    }
-
-    pub fn isExpired(self: *const BannedPeer) bool {
-        return std.time.timestamp() >= self.banned_until;
-    }
-
-    pub fn matchesHost(self: *const BannedPeer, host: []const u8, port: u16) bool {
-        if (!self.active) return false;
-        if (self.port != port) return false;
-        if (self.host_len != host.len) return false;
-        return std.mem.eql(u8, self.host[0..self.host_len], host);
-    }
-};
+pub const BannedPeer = banman.BannedPeer;
 
 /// Per-peer reconnect tracking
-pub const ReconnectInfo = struct {
-    host: [64]u8,
-    host_len: u8,
-    port: u16,
-    node_id: [64]u8,
-    node_id_len: u8,
-    attempts: u8,
-    last_disconnect: i64,
-    active: bool,
-
-    pub fn init(host: []const u8, port: u16, node_id: []const u8) ReconnectInfo {
-        var ri: ReconnectInfo = .{
-            .host = @splat(0),
-            .host_len = @intCast(@min(host.len, 64)),
-            .port = port,
-            .node_id = @splat(0),
-            .node_id_len = @intCast(@min(node_id.len, 64)),
-            .attempts = 0,
-            .last_disconnect = std.time.timestamp(),
-            .active = true,
-        };
-        @memcpy(ri.host[0..ri.host_len], host[0..ri.host_len]);
-        @memcpy(ri.node_id[0..ri.node_id_len], node_id[0..ri.node_id_len]);
-        return ri;
-    }
-};
+pub const ReconnectInfo = banman.ReconnectInfo;
 
 /// Per-peer rate limiting state
 pub const RateLimitState = struct {
@@ -481,116 +425,15 @@ pub const PeerConnection = struct {
 };
 
 // ─── Gossip Protocol — TX relay + block propagation (B6) ─────────────────────
+//
+// Implementation lives in p2p/gossip.zig. We re-export the types so existing
+// call sites (`p2p.SeenHashes`, `p2p.GossipTxPayload`, etc.) keep working.
 
-/// Maximum number of hashes tracked for deduplication
-const SEEN_HASHES_MAX: usize = 8192;
-/// Seen hash entries older than this are evicted (10 minutes in seconds)
-const SEEN_HASH_EXPIRY_S: i64 = 600;
+const gossip_mod = @import("p2p/gossip.zig");
 
-/// Tracks recently seen TX/block hashes to prevent infinite relay loops.
-/// Fixed-size ring buffer — no dynamic allocation after init.
-pub const SeenHashes = struct {
-    const Entry = struct {
-        hash: [64]u8,     // hex hash (64 chars)
-        hash_len: u8,
-        timestamp: i64,   // when first seen
-        active: bool,
-    };
-
-    entries: [SEEN_HASHES_MAX]Entry = undefined,
-    count: usize = 0,
-    next_slot: usize = 0,
-
-    pub fn init() SeenHashes {
-        @setEvalBranchQuota(100_000);
-        var sh = SeenHashes{};
-        for (&sh.entries) |*e| {
-            e.active = false;
-            e.hash_len = 0;
-            e.timestamp = 0;
-        }
-        return sh;
-    }
-
-    /// Returns true if the hash was already seen (still fresh).
-    pub fn contains(self: *const SeenHashes, hash: []const u8) bool {
-        const now = std.time.timestamp();
-        const hlen = @min(hash.len, 64);
-        for (&self.entries) |*e| {
-            if (!e.active) continue;
-            if (e.hash_len != hlen) continue;
-            if (now - e.timestamp > SEEN_HASH_EXPIRY_S) continue; // expired
-            if (std.mem.eql(u8, e.hash[0..e.hash_len], hash[0..hlen])) return true;
-        }
-        return false;
-    }
-
-    /// Inserts a hash. Returns false if it was already present (duplicate).
-    pub fn insert(self: *SeenHashes, hash: []const u8) bool {
-        if (self.contains(hash)) return false;
-
-        const hlen: u8 = @intCast(@min(hash.len, 64));
-        const slot = self.next_slot;
-        self.entries[slot] = .{
-            .hash = undefined,
-            .hash_len = hlen,
-            .timestamp = std.time.timestamp(),
-            .active = true,
-        };
-        @memcpy(self.entries[slot].hash[0..hlen], hash[0..hlen]);
-        if (hlen < 64) @memset(self.entries[slot].hash[hlen..], 0);
-
-        self.next_slot = (self.next_slot + 1) % SEEN_HASHES_MAX;
-        if (self.count < SEEN_HASHES_MAX) self.count += 1;
-        return true;
-    }
-
-    /// Evict entries older than SEEN_HASH_EXPIRY_S
-    pub fn evictExpired(self: *SeenHashes) void {
-        const now = std.time.timestamp();
-        for (&self.entries) |*e| {
-            if (e.active and (now - e.timestamp > SEEN_HASH_EXPIRY_S)) {
-                e.active = false;
-                if (self.count > 0) self.count -= 1;
-            }
-        }
-    }
-};
-
-/// Gossip TX payload: JSON-encoded transaction for simplicity.
-/// Wire format: [hash_len:1][hash:N][json_len:4LE][json:M]
-pub const GossipTxPayload = struct {
-    tx_hash: []const u8,   // hex hash of the TX
-    tx_json: []const u8,   // JSON-encoded TX
-
-    pub fn encode(self: GossipTxPayload, allocator: std.mem.Allocator) ![]u8 {
-        const hlen: u8 = @intCast(@min(self.tx_hash.len, 255));
-        const jlen: u32 = @intCast(self.tx_json.len);
-        const total = @as(usize, 1) + hlen + 4 + jlen;
-        var buf = try allocator.alloc(u8, total);
-        buf[0] = hlen;
-        @memcpy(buf[1 .. 1 + hlen], self.tx_hash[0..hlen]);
-        std.mem.writeInt(u32, buf[1 + hlen ..][0..4], jlen, .little);
-        @memcpy(buf[1 + hlen + 4 ..][0..jlen], self.tx_json[0..jlen]);
-        return buf;
-    }
-
-    pub fn decode(data: []const u8) ?GossipTxPayload {
-        if (data.len < 6) return null; // min: 1 + 1 + 4 = 6
-        const hlen: usize = data[0];
-        if (data.len < 1 + hlen + 4) return null;
-        const jlen = std.mem.readInt(u32, data[1 + hlen ..][0..4], .little);
-        if (data.len < 1 + hlen + 4 + jlen) return null;
-        return .{
-            .tx_hash = data[1 .. 1 + hlen],
-            .tx_json = data[1 + hlen + 4 ..][0..jlen],
-        };
-    }
-};
-
-/// Gossip Block payload: block announce + block hash for relay.
-/// Re-uses MsgBlockAnnounce format (80 bytes) — full block data via sync.
-pub const GossipBlockPayload = MsgBlockAnnounce;
+pub const SeenHashes         = gossip_mod.SeenHashes;
+pub const GossipTxPayload    = gossip_mod.GossipTxPayload;
+pub const GossipBlockPayload = gossip_mod.GossipBlockPayload;
 
 // ─── SPV Header Sync Protocol ───────────────────────────────────────────────
 //
@@ -1191,152 +1034,35 @@ pub const P2PNode = struct {
         }
     }
 
-    // ─── Gossip Protocol (B6) ────────────────────────────────────────────────
+    // ─── Gossip Protocol (B6) — thin delegates to p2p/gossip.zig ─────────────
 
-    /// Broadcast a TX to all connected peers via gossip.
-    /// Deduplicates: if we already saw this TX hash, skip.
-    /// tx_hash: hex hash of the transaction (64 chars)
-    /// tx_json: JSON-encoded transaction payload
     pub fn broadcastTx(self: *P2PNode, tx_hash: []const u8, tx_json: []const u8) void {
-        // Dedup: skip if already seen
-        if (!self.seen_tx_hashes.insert(tx_hash)) {
-            return; // already relayed
-        }
-        self.gossip_tx_count += 1;
-
-        // Encode gossip TX payload
-        const payload = (GossipTxPayload{
-            .tx_hash = tx_hash,
-            .tx_json = tx_json,
-        }).encode(self.allocator) catch |err| {
-            std.debug.print("[GOSSIP] TX encode failed: {}\n", .{err});
-            return;
-        };
-        defer self.allocator.free(payload);
-
-        var sent: usize = 0;
-        {
-            self.peers_mutex.lock();
-            defer self.peers_mutex.unlock();
-            for (self.peers.items) |*peer| {
-                if (!peer.connected) continue;
-                peer.send(@intFromEnum(MessageType.tx_gossip), payload) catch |err| {
-                    std.debug.print("[GOSSIP] TX send to {s} failed: {}\n",
-                        .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
-                    continue;
-                };
-                sent += 1;
-            }
-        }
-        if (sent > 0) {
-            std.debug.print("[GOSSIP] TX {s}.. relayed to {d} peers\n",
-                .{ tx_hash[0..@min(tx_hash.len, 12)], sent });
-        }
+        gossip_mod.broadcastTx(self, tx_hash, tx_json);
     }
 
-    /// Broadcast a newly mined/received block to all peers via gossip.
-    /// Deduplicates: if we already saw this block hash, skip.
-    /// Uses the block_gossip message type for gossip-aware relay.
     pub fn broadcastBlockGossip(
         self:       *P2PNode,
         height:     u64,
         hash_hex:   []const u8,
         reward_sat: u64,
     ) void {
-        // Dedup: skip if already seen
-        if (!self.seen_block_hashes.insert(hash_hex)) {
-            return; // already relayed
-        }
-        self.gossip_block_count += 1;
-        self.chain_height = height;
-
-        // Use MsgBlockAnnounce as gossip payload. block_hash = 32 raw
-        // bytes (V2 wire format), miner_id = up to 42 chars wallet addr.
-        const claimed = if (self.miner_address.len > 0) self.miner_address else self.local_id;
-        var bh: [32]u8 = @splat(0);
-        if (hash_hex.len >= 64) {
-            for (0..32) |i| {
-                const hi = std.fmt.charToDigit(hash_hex[i * 2], 16) catch break;
-                const lo = std.fmt.charToDigit(hash_hex[i * 2 + 1], 16) catch break;
-                bh[i] = (@as(u8, hi) << 4) | @as(u8, lo);
-            }
-        }
-        var mi: [42]u8 = @splat(0);
-        const mlen = @min(claimed.len, 42);
-        @memcpy(mi[0..mlen], claimed[0..mlen]);
-
-        const ann = MsgBlockAnnounce{
-            .block_height = height,
-            .block_hash   = bh,
-            .miner_id     = mi,
-            .reward_sat   = reward_sat,
-        };
-        const payload = ann.encode(self.allocator) catch |err| {
-            std.debug.print("[GOSSIP] Block encode failed: {}\n", .{err});
-            return;
-        };
-        defer self.allocator.free(payload);
-
-        var sent: usize = 0;
-        {
-            self.peers_mutex.lock();
-            defer self.peers_mutex.unlock();
-            for (self.peers.items) |*peer| {
-                if (!peer.connected) continue;
-                peer.send(@intFromEnum(MessageType.block_gossip), payload) catch |err| {
-                    std.debug.print("[GOSSIP] Block send to {s} failed: {} — marking disconnected\n",
-                        .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
-                    peer.connected = false;
-                    peer.close();
-                    self.addReconnect(peer.host, peer.port, peer.node_id[0..@min(peer.node_id.len, 32)]);
-                    continue;
-                };
-                sent += 1;
-            }
-        }
-        if (sent > 0) {
-            std.debug.print("[GOSSIP] Block #{d} relayed to {d} peers\n", .{ height, sent });
-        }
+        gossip_mod.broadcastBlockGossip(self, height, hash_hex, reward_sat);
     }
 
-    /// Relay a received TX to all peers except the sender.
-    /// Called from dispatchMessage when we receive a tx_gossip message.
     fn relayTxExcept(self: *P2PNode, except_peer: []const u8, payload: []const u8) void {
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        for (self.peers.items) |*peer| {
-            if (!peer.connected) continue;
-            // Don't relay back to sender
-            if (std.mem.eql(u8, peer.node_id, except_peer)) continue;
-            peer.send(@intFromEnum(MessageType.tx_gossip), payload) catch {};
-        }
+        gossip_mod.relayTxExcept(self, except_peer, payload);
     }
 
-    /// Relay a received block to all peers except the sender.
     fn relayBlockExcept(self: *P2PNode, except_peer: []const u8, payload: []const u8) void {
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        for (self.peers.items) |*peer| {
-            if (!peer.connected) continue;
-            if (std.mem.eql(u8, peer.node_id, except_peer)) continue;
-            peer.send(@intFromEnum(MessageType.block_gossip), payload) catch {};
-        }
+        gossip_mod.relayBlockExcept(self, except_peer, payload);
     }
 
-    /// Periodic maintenance: evict expired seen hashes
     pub fn gossipMaintenance(self: *P2PNode) void {
-        self.seen_tx_hashes.evictExpired();
-        self.seen_block_hashes.evictExpired();
+        gossip_mod.gossipMaintenance(self);
     }
 
-    /// Returns gossip statistics for logging
-    pub fn getGossipStats(self: *const P2PNode) struct { tx_relayed: u64, blocks_relayed: u64, seen_tx: usize, seen_blocks: usize } {
-        return .{
-            .tx_relayed = self.gossip_tx_count,
-            .blocks_relayed = self.gossip_block_count,
-            .seen_tx = self.seen_tx_hashes.count,
-            .seen_blocks = self.seen_block_hashes.count,
-        };
+    pub fn getGossipStats(self: *const P2PNode) gossip_mod.GossipStats {
+        return gossip_mod.getGossipStats(self);
     }
 
     // ─── PEX Protocol (B12) ────────────────────────────────────────────────
@@ -1516,74 +1242,22 @@ pub const P2PNode = struct {
 
     /// Check if a host:port is currently banned
     pub fn isBanned(self: *const P2PNode, host: []const u8, port: u16) bool {
-        for (&self.banned_peers) |*bp| {
-            if (!bp.active) continue;
-            if (bp.matchesHost(host, port)) {
-                return !bp.isExpired();
-            }
-        }
-        return false;
+        return banman.isBanned(self, host, port);
     }
 
     /// Ban a peer by host:port for the configured duration
     pub fn banPeer(self: *P2PNode, host: []const u8, port: u16, reason: []const u8) void {
-        // Check if already banned — update expiry
-        for (&self.banned_peers) |*bp| {
-            if (bp.active and bp.matchesHost(host, port)) {
-                bp.banned_until = std.time.timestamp() + scoring_mod.BAN_DURATION_SEC;
-                @memcpy(bp.reason[0..@min(reason.len, 64)], reason[0..@min(reason.len, 64)]);
-                bp.reason_len = @intCast(@min(reason.len, 64));
-                return;
-            }
-        }
-        // Find empty slot or oldest entry
-        var slot: usize = 0;
-        var found_empty = false;
-        var oldest_time: i64 = std.math.maxInt(i64);
-        for (&self.banned_peers, 0..) |*bp, i| {
-            if (!bp.active) {
-                slot = i;
-                found_empty = true;
-                break;
-            }
-            if (bp.banned_until < oldest_time) {
-                oldest_time = bp.banned_until;
-                slot = i;
-            }
-        }
-        self.banned_peers[slot] = BannedPeer.init(host, port, scoring_mod.BAN_DURATION_SEC, reason);
-        if (!found_empty) {
-            // Overwritten an existing entry
-        } else {
-            if (self.banned_count < MAX_BANNED_PEERS) self.banned_count += 1;
-        }
-        std.debug.print("[P2P] Banned {s}:{d} reason: {s}\n", .{ host, port, reason });
-
-        // Disconnect the peer if currently connected
-        self.disconnectPeerByHost(host, port);
+        banman.banPeer(self, host, port, reason);
     }
 
     /// Disconnect a peer by host:port
     fn disconnectPeerByHost(self: *P2PNode, host: []const u8, port: u16) void {
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        for (self.peers.items) |*peer| {
-            if (peer.connected and peer.port == port and std.mem.eql(u8, peer.host, host)) {
-                peer.connected = false;
-                peer.close();
-                return;
-            }
-        }
+        banman.disconnectPeerByHost(self, host, port);
     }
 
     /// Evict expired bans
     pub fn evictExpiredBans(self: *P2PNode) void {
-        for (&self.banned_peers) |*bp| {
-            if (bp.active and bp.isExpired()) {
-                bp.active = false;
-                if (self.banned_count > 0) self.banned_count -= 1;
-            }
-        }
+        banman.evictExpiredBans(self);
     }
 
     /// Score a peer event and auto-ban if threshold reached
@@ -1622,80 +1296,18 @@ pub const P2PNode = struct {
     // ─── Hardening: Reconnect Management ────────────────────────────────────
 
     /// Add a disconnected peer to the reconnect queue
-    fn addReconnect(self: *P2PNode, host: []const u8, port: u16, node_id: []const u8) void {
-        // Check if already in queue — increment attempts
-        for (&self.reconnect_queue) |*ri| {
-            if (!ri.active) continue;
-            if (ri.port == port and ri.host_len == host.len and
-                std.mem.eql(u8, ri.host[0..ri.host_len], host))
-            {
-                ri.attempts += 1;
-                ri.last_disconnect = std.time.timestamp();
-                if (ri.attempts >= MAX_RECONNECT_ATTEMPTS) {
-                    std.debug.print("[P2P] Reconnect limit reached for {s}:{d} — removing\n",
-                        .{ host, port });
-                    ri.active = false;
-                    if (self.reconnect_count > 0) self.reconnect_count -= 1;
-                }
-                return;
-            }
-        }
-        // Add new entry
-        if (self.reconnect_count >= MAX_PEERS) return;
-        for (&self.reconnect_queue) |*ri| {
-            if (!ri.active) {
-                ri.* = ReconnectInfo.init(host, port, node_id);
-                self.reconnect_count += 1;
-                return;
-            }
-        }
+    pub fn addReconnect(self: *P2PNode, host: []const u8, port: u16, node_id: []const u8) void {
+        banman.addReconnect(self, host, port, node_id);
     }
 
     /// Clear reconnect entry on successful connection
     fn clearReconnect(self: *P2PNode, host: []const u8, port: u16) void {
-        for (&self.reconnect_queue) |*ri| {
-            if (!ri.active) continue;
-            if (ri.port == port and ri.host_len == host.len and
-                std.mem.eql(u8, ri.host[0..ri.host_len], host))
-            {
-                ri.active = false;
-                if (self.reconnect_count > 0) self.reconnect_count -= 1;
-                return;
-            }
-        }
+        banman.clearReconnect(self, host, port);
     }
 
     /// Process reconnect queue — attempt reconnects for peers past the delay
     pub fn processReconnects(self: *P2PNode) void {
-        const now = std.time.timestamp();
-        for (&self.reconnect_queue) |*ri| {
-            if (!ri.active) continue;
-            if (ri.attempts >= MAX_RECONNECT_ATTEMPTS) {
-                ri.active = false;
-                if (self.reconnect_count > 0) self.reconnect_count -= 1;
-                continue;
-            }
-            if (now - ri.last_disconnect < RECONNECT_DELAY_SEC) continue;
-
-            // Attempt reconnect
-            const host = ri.host[0..ri.host_len];
-            const node_id = ri.node_id[0..ri.node_id_len];
-            std.debug.print("[P2P] Reconnect attempt {d}/{d} to {s}:{d}\n",
-                .{ ri.attempts + 1, MAX_RECONNECT_ATTEMPTS, host, ri.port });
-
-            self.connectToPeer(host, ri.port, node_id) catch {
-                ri.attempts += 1;
-                ri.last_disconnect = now;
-                if (ri.attempts >= MAX_RECONNECT_ATTEMPTS) {
-                    std.debug.print("[P2P] Reconnect failed permanently for {s}:{d}\n",
-                        .{ host, ri.port });
-                    ri.active = false;
-                    if (self.reconnect_count > 0) self.reconnect_count -= 1;
-                }
-                continue;
-            };
-            // Success — clearReconnect is called inside connectToPeer
-        }
+        banman.processReconnects(self);
     }
 
     // ─── Hardening: Subnet Diversity (Anti-Eclipse) ─────────────────────────
