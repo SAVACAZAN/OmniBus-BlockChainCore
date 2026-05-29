@@ -11,7 +11,7 @@
  * does NOT block on this; the user can retry from the Profile tab.
  */
 
-import { rpc } from "./rpc-client";
+import { rpc } from "../clients/rpc-client";
 
 
 const SALT_KEY_PREFIX = "omnibus_kyc_salt_";

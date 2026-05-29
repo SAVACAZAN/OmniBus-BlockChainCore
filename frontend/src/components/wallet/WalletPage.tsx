@@ -1,22 +1,22 @@
 import { useState, useEffect, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { rpc } from "../../api/rpc-client";
-import { useWallet } from "../../api/use-wallet";
-import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
-import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
-import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
-import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES, buildPqAttestPayload, nextNonce } from "../../api/wallet-keystore";
+import { rpc } from "../../api/clients/rpc-client";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { useGlobalBalance, formatOmni } from "../../api/hooks/use-global-balance";
+import { useAllSlotsBalance } from "../../api/hooks/use-all-slots-balance";
+import { useActiveSlot, setActiveSlot } from "../../api/hooks/use-active-slot";
+import { lockWallet, type PqOmniSlot, PQ_OMNI_SCHEMES, buildPqAttestPayload, nextNonce } from "../../api/wallet/wallet-keystore";
 import {
   useNamesOwnedBy,
   useNameForAddress,
   getPrimaryName,
   setPrimaryName,
   MAX_NAMES_PER_WALLET,
-} from "../../api/use-names";
+} from "../../api/hooks/use-names";
 import { AddressLabel } from "../common/AddressLabel";
 import { TxHashLink } from "../common/TxHashLink";
 import { NameManagePanel } from "../names/NameManagePanel";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { FeeEstimate, WsNewBlockEvent, WsNewTxEvent } from "../../types";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
@@ -364,7 +364,7 @@ export function WalletPage() {
         const fee = sendFee ? parseInt(sendFee, 10) : (feeEstimate?.medianFee ?? 1);
 
         const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } =
-          await import("../../api/pq-sign");
+          await import("../../api/sign/pq-sign");
         const pubKeyBytes: Uint8Array = hToB(slot.publicKey);
         // Scheme code: enum order from core/transaction.zig:
         //   pq_omni_ml_dsa=5, pq_omni_falcon=6, pq_omni_dilithium=7, pq_omni_slh_dsa=8
@@ -1665,7 +1665,7 @@ function RewardsBreakdownPanel({ cups }: { cups?: { love: string; food: string; 
 // One-click "Register Identity" — builds + signs pq_attest_v1 TX and sends
 // via sendpqattest RPC. First-claim wins on chain.
 
-function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet-keystore").Unlocked }) {
+function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet/wallet-keystore").Unlocked }) {
   const [status, setStatus] = useState<"idle"|"checking"|"sending"|"ok"|"err"|"already">("checking");
   const [msg, setMsg] = useState("");
   const [txid, setTxid] = useState("");
@@ -2430,7 +2430,7 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
   async function refreshBalance(chain: string, address: string) {
     setRefreshing(chain);
     try {
-      const { fetchChainBalance } = await import("../../api/multichain-balances");
+      const { fetchChainBalance } = await import("../../api/clients/multichain-balances");
       const bal = await fetchChainBalance(chain, address);
       setBalances(b => ({ ...b, [chain]: bal ? { native: bal.native, symbol: bal.symbol } : null }));
     } catch {
@@ -2444,7 +2444,7 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { fetchChainBalance } = await import("../../api/multichain-balances");
+      const { fetchChainBalance } = await import("../../api/clients/multichain-balances");
       for (const [group, items] of Object.entries(groups)) {
         if (!openGroups[group]) continue;
         for (const { chain, address } of items) {
@@ -2461,7 +2461,7 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
   }, [openGroups]);
 
   async function openSendLink(chain: string, address: string) {
-    const { getSendDeepLink } = await import("../../api/multichain-balances");
+    const { getSendDeepLink } = await import("../../api/clients/multichain-balances");
     const url = getSendDeepLink(chain, address);
     window.open(url, "_blank", "noopener,noreferrer");
   }
@@ -2647,7 +2647,7 @@ function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number
       // PQ_OMNI_SCHEME_NAMES key order matches that enum order, so +5 (not +9 = hybrid).
       const schemeCode = Object.keys(PQ_OMNI_SCHEME_NAMES).indexOf(slot.scheme) + 5;
 
-      const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } = await import("../../api/pq-sign");
+      const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } = await import("../../api/sign/pq-sign");
       const pubKeyBytes: Uint8Array = hToB(slot.publicKey);
 
       // 3. Build canonical TX hash — must match core/transaction.zig:calculateHash()

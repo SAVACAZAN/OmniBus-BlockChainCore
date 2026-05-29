@@ -26,10 +26,10 @@ import {
   downloadBlob,
   pickConfirmationIndices,
   passwordStrength,
-} from "../../api/wallet-generator";
-import { unlockFromMnemonic } from "../../api/wallet-keystore";
+} from "../../api/wallet/wallet-generator";
+import { unlockFromMnemonic } from "../../api/wallet/wallet-keystore";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { initProfileForAddress } from "../../api/profile-init";
+import { initProfileForAddress } from "../../api/wallet/profile-init";
 
 type StepId =
   | "welcome"

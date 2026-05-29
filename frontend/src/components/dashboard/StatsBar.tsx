@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { rpc } from "../../api/rpc-client";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc } from "../../api/clients/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
 import { SAT_PER_OMNI } from "../../utils/fmt";

@@ -22,12 +22,12 @@ import type { Eip1193Provider } from "ethers";
 declare global {
   interface Window { ethereum?: Eip1193Provider; }
 }
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import { getUnlocked, subscribeWallet } from "../../api/wallet/wallet-keystore";
 import {
   HTLC_CONTRACTS, lockEth, claimEth,
-} from "../../api/htlc-eth";
+} from "../../api/htlc/htlc-eth";
 
 
 // USDC contract on Sepolia

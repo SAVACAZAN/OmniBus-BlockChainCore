@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import { getUnlocked, subscribeWallet } from "../../api/wallet/wallet-keystore";
 import {
   fetchEvmBalance,
   fetchUsdcBalance,
@@ -10,7 +10,7 @@ import {
   fetchSolanaBalance,
   fetchSolanaUsdcBalance,
   fetchXrpBalance,
-} from "../../api/multichain-balances";
+} from "../../api/clients/multichain-balances";
 
 
 // IMPORTANT: this table no longer hardcodes "savacazan.omnibus / admin.omnibus

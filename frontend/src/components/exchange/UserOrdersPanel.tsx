@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { rpc, UserOrder } from "../../api/rpc-client";
-import { signCancelOrderPayload } from "../../api/exchange-sign";
-import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
+import { rpc, UserOrder } from "../../api/clients/rpc-client";
+import { signCancelOrderPayload } from "../../api/sign/exchange-sign";
+import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet/wallet-keystore";
 import { useTraderMode } from "./TraderModeToggle";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsOrderbookUpdateEvent } from "../../types";
 import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 

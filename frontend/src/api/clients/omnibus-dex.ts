@@ -23,7 +23,7 @@
  */
 
 import { Contract, JsonRpcProvider, Wallet, parseUnits, ZeroAddress, type Provider } from "ethers";
-import { CHAINS } from "./chains";
+import { CHAINS } from "../config/chains";
 
 /**
  * Minimal inline ABI mirroring core/evm/contracts/OmnibusDEX.sol. Keeping

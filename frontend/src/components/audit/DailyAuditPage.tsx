@@ -28,9 +28,9 @@ import {
   AlertTriangle,
   ArrowUpDown,
 } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, fmtOmni, fmtInt } from "../../utils/fmt";
-import { useWallet } from "../../api/use-wallet";
+import { useWallet } from "../../api/hooks/use-wallet";
 
 
 

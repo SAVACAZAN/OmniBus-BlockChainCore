@@ -17,8 +17,8 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc } from "./rpc-client";
-import { subscribe as wsSubscribe } from "./ws-bus";
+import { rpc } from "../clients/rpc-client";
+import { subscribe as wsSubscribe } from "../clients/ws-bus";
 
 
 const PRIMARY_LS_PREFIX = "omnibus:primary-name:";

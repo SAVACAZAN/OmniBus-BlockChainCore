@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc } from "../../api/clients/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsOraclePriceEvent, BlockPriceSnapshot as PriceEntry } from "../../types/index";
 import { fmtUsd } from "../../utils/fmt";
 

@@ -10,8 +10,8 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
+import { getUnlocked, subscribeWallet } from "../../api/wallet/wallet-keystore";
 import type { WsNewTxEvent, WsTxConfirmedEvent } from "../../types";
 import { satToOmni } from "../../utils/fmt";
 

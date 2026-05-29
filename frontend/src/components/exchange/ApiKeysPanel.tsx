@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { midTrunc } from "../../utils/fmt";
-import { rpc, type ApiKeyInfo } from "../../api/rpc-client";
+import { rpc, type ApiKeyInfo } from "../../api/clients/rpc-client";
 import {
   signCreateApiKeyPayload,
   signRevokeApiKeyPayload,
-} from "../../api/exchange-sign";
-import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
+} from "../../api/sign/exchange-sign";
+import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet/wallet-keystore";
 
 
 /**

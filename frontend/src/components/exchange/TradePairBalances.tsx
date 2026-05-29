@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { getUnlocked, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
-import { rpc, ExchangeBalance } from "../../api/rpc-client";
+import { getUnlocked, subscribeWallet, deriveSlotKey } from "../../api/wallet/wallet-keystore";
+import { rpc, ExchangeBalance } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
-import { fetchUsdcBalance, fetchEvmBalance } from "../../api/multichain-balances";
-import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
-import { useActiveSlot } from "../../api/use-active-slot";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { fetchUsdcBalance, fetchEvmBalance } from "../../api/clients/multichain-balances";
+import { useGlobalBalance, formatOmni } from "../../api/hooks/use-global-balance";
+import { useActiveSlot } from "../../api/hooks/use-active-slot";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsOrderbookUpdateEvent } from "../../types";
 
 

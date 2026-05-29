@@ -19,7 +19,7 @@ import {
   Unlocked,
   getUnlocked,
   subscribeWallet,
-} from "./wallet-keystore";
+} from "../wallet/wallet-keystore";
 
 /**
  * Returns the currently-unlocked wallet (or null when no session exists).

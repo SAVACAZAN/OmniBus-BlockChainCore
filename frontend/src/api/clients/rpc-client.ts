@@ -7,11 +7,11 @@
  * to the correct backend RPC port (8332/18332/28332).
  */
 
-import { SAT_PER_OMNI } from "../utils/fmt";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import type {
   BlockData, TransactionData, MempoolStats, PeerInfo, NetworkInfo,
   TransactionDetail, AddressHistoryEntry, FeeEstimate, MinerInfo,
-} from "../types";
+} from "../../types";
 
 export type ChainName = "mainnet" | "testnet" | "regtest";
 

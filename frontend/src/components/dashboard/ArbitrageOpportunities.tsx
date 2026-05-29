@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc } from "../../api/clients/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsOraclePriceEvent } from "../../types";
 import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
 // ── Types ─────────────────────────────────────────────────────────────────

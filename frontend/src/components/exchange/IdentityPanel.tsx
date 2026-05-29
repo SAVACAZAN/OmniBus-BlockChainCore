@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { signIdentitySetPayload } from "../../api/exchange-sign";
-import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
+import { rpc } from "../../api/clients/rpc-client";
+import { signIdentitySetPayload } from "../../api/sign/exchange-sign";
+import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet/wallet-keystore";
 
 
 type Visibility = "public" | "private" | "ens_only";

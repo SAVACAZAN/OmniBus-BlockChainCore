@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { TransactionSquare } from "./TransactionSquare";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsOrderbookUpdateEvent, WsNewTradeEvent, WsNewBlockEvent } from "../../types";
-import { rpc, type ExchangeBalance, type OrderbookLevel, type PairInfo, type TradeFill } from "../../api/rpc-client";
+import { rpc, type ExchangeBalance, type OrderbookLevel, type PairInfo, type TradeFill } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
-import { usePairs } from "../../api/use-pairs";
+import { usePairs } from "../../api/hooks/use-pairs";
 import { PlaceOrderForm } from "./PlaceOrderForm";
 import { DexBuyPanel } from "./DexBuyPanel";
 import { UserOrdersPanel } from "./UserOrdersPanel";
@@ -18,8 +18,8 @@ import { HtlcTradePanel, HtlcLookupPanel } from "./HtlcTradePanel";
 import { AmmOrderbookPanel } from "./AmmOrderbookPanel";
 import { OraclePricePanel } from "./OraclePricePanel";
 import { IntentSwapPanel } from "./IntentSwapPanel";
-import { useWallet } from "../../api/use-wallet";
-import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { useGlobalBalance, formatOmni } from "../../api/hooks/use-global-balance";
 
 
 

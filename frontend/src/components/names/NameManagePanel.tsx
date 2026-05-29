@@ -12,7 +12,7 @@
 // only stops one slot at a time.
 
 import { useEffect, useState } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 
 
 // Same canon as core/dns_registry.zig:Category.

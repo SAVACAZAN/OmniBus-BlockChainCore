@@ -7,7 +7,7 @@
  * tooltip always shows the full ob1q… so power users can copy-paste it.
  */
 
-import { useNameForAddress, useEntryForAddress, TLD_THEME } from "../../api/use-names";
+import { useNameForAddress, useEntryForAddress, TLD_THEME } from "../../api/hooks/use-names";
 import { midTrunc } from "../../utils/fmt";
 
 type Props = {

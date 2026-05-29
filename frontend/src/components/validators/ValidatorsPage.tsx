@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 import {
   Shield,
@@ -17,8 +17,8 @@ import {
   Layers,
   Gavel,
 } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
-import { useWallet } from "../../api/use-wallet";
+import { rpc } from "../../api/clients/rpc-client";
+import { useWallet } from "../../api/hooks/use-wallet";
 import { AddressLabel } from "../common/AddressLabel";
 import { midTrunc, fmtAge } from "../../utils/fmt";
 

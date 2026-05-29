@@ -17,7 +17,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { useBlockHeight } from "../../api/use-block-height";
+import { useBlockHeight } from "../../api/hooks/use-block-height";
 import {
   RefreshCw,
   ArrowLeftRight,
@@ -29,10 +29,10 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, midTrunc, fmtInt } from "../../utils/fmt";
-import { useWallet } from "../../api/use-wallet";
-import { signMessage } from "../../api/exchange-sign";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { signMessage } from "../../api/sign/exchange-sign";
 
 // exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 

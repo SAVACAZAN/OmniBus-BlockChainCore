@@ -4,9 +4,9 @@ import { MinerTable } from "./MinerTable";
 import { AddressLookup } from "../search/AddressLookup";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 

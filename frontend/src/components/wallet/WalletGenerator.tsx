@@ -21,8 +21,8 @@ import {
   mnemonicToFullWallet,
   encryptWallet,
   downloadBlob,
-} from "../../api/wallet-generator";
-import { unlockFromMnemonic, type Unlocked } from "../../api/wallet-keystore";
+} from "../../api/wallet/wallet-generator";
+import { unlockFromMnemonic, type Unlocked } from "../../api/wallet/wallet-keystore";
 
 export function WalletGenerator({ onUnlocked }: { onUnlocked?: () => void }) {
   const [open, setOpen] = useState(false);

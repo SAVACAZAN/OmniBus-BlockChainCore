@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc } from "./rpc-client";
+import { rpc } from "../clients/rpc-client";
 import { useWallet } from "./use-wallet";
 
 const POLL_MS = 12_000;

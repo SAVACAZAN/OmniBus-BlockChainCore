@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { fmtOmni } from "../../utils/fmt";
 

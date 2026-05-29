@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { parseEther, keccak256, toUtf8Bytes } from "ethers";
-import { rpc, ExchangeBalance } from "../../api/rpc-client";
-import { signPlaceOrderPayload } from "../../api/exchange-sign";
-import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
-import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
-import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
+import { rpc, ExchangeBalance } from "../../api/clients/rpc-client";
+import { signPlaceOrderPayload } from "../../api/sign/exchange-sign";
+import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../api/wallet/wallet-keystore";
+import { useActiveSlot, setActiveSlot } from "../../api/hooks/use-active-slot";
+import { useAllSlotsBalance } from "../../api/hooks/use-all-slots-balance";
 import { useTraderMode } from "./TraderModeToggle";
 import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { TradePairBalances } from "./TradePairBalances";
-import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
-import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance } from "../../api/omnibus-dex";
-import { USDC_CONTRACT } from "../../api/multichain-balances";
+import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/clients/multichain-balances";
+import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance } from "../../api/clients/omnibus-dex";
+import { USDC_CONTRACT } from "../../api/clients/multichain-balances";
 
 
 

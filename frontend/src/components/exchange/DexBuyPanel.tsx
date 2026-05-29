@@ -22,9 +22,9 @@ import {
   cancelOrderOnDex,
   dexContractFor,
   providerForChain,
-} from "../../api/omnibus-dex";
-import { getUnlocked, deriveSlotKey } from "../../api/wallet-keystore";
-import { useActiveSlot } from "../../api/use-active-slot";
+} from "../../api/clients/omnibus-dex";
+import { getUnlocked, deriveSlotKey } from "../../api/wallet/wallet-keystore";
+import { useActiveSlot } from "../../api/hooks/use-active-slot";
 
 // ── Pair config ───────────────────────────────────────────────────────────
 //

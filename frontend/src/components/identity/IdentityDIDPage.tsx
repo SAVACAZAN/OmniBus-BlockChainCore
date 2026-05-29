@@ -11,8 +11,8 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { rpc } from "../../api/rpc-client";
-import { useWallet } from "../../api/use-wallet";
+import { rpc } from "../../api/clients/rpc-client";
+import { useWallet } from "../../api/hooks/use-wallet";
 import { CopyButton } from "../common/CopyButton";
 
 

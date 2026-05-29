@@ -12,15 +12,15 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc, type ProfileFacet, type ProfileFull } from "../../api/rpc-client";
-import { useWallet } from "../../api/use-wallet";
-import { initProfileForAddress } from "../../api/profile-init";
+import { rpc, type ProfileFacet, type ProfileFull } from "../../api/clients/rpc-client";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { initProfileForAddress } from "../../api/wallet/profile-init";
 import {
   signProfileUpdatePayload,
   sha256dHex,
   stableStringify,
-} from "../../api/exchange-sign";
-import { nextNonce } from "../../api/wallet-keystore";
+} from "../../api/sign/exchange-sign";
+import { nextNonce } from "../../api/wallet/wallet-keystore";
 import { SocialTab } from "./SocialTab";
 import { ProfessionalTab } from "./ProfessionalTab";
 import { CulturalTab } from "./CulturalTab";

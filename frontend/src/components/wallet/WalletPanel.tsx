@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 
 

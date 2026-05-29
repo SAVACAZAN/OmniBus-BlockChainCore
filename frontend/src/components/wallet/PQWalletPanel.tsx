@@ -21,10 +21,10 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { rpc } from "../../api/rpc-client";
-import { useWallet } from "../../api/use-wallet";
-import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
-import type { PqOmniSlot } from "../../api/wallet-keystore";
+import { rpc } from "../../api/clients/rpc-client";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { PQ_OMNI_SCHEMES } from "../../api/wallet/wallet-keystore";
+import type { PqOmniSlot } from "../../api/wallet/wallet-keystore";
 import { midTrunc, satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
 
 
@@ -275,7 +275,7 @@ export function PQWalletPanel() {
       const fee = 1000; // 0.000001 OMNI default
 
       const { hexToBytes: hToB, bytesToHex: bToH, buildTxHash, pqSign } =
-        await import("../../api/pq-sign");
+        await import("../../api/sign/pq-sign");
 
       const pubKeyBytes = hToB(slot.publicKey);
       const schemeIdx = PQ_OMNI_SCHEMES.findIndex((s) => s.scheme === slot.scheme);

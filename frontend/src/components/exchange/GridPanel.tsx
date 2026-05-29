@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { rpc, GridConfig, GridStatus } from "../../api/rpc-client";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc, GridConfig, GridStatus } from "../../api/clients/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
 import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 

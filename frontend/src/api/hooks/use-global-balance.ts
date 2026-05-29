@@ -23,10 +23,10 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc } from "./rpc-client";
+import { rpc } from "../clients/rpc-client";
 import { useWallet } from "./use-wallet";
 import { useActiveSlot } from "./use-active-slot";
-import { SAT_PER_OMNI } from "../utils/fmt";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const POLL_MS = 8_000;
 

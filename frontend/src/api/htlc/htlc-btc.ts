@@ -17,7 +17,7 @@
  * No private keys touch this code. No broadcasting either — the user
  * always signs and broadcasts via their own wallet.
  */
-import { OmniBusRpcClient, rpc as defaultRpc } from "./rpc-client";
+import { OmniBusRpcClient, rpc as defaultRpc } from "../clients/rpc-client";
 
 export type BtcNetwork = "mainnet" | "testnet" | "regtest" | "signet";
 

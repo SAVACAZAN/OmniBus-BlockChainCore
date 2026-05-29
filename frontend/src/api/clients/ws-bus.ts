@@ -12,7 +12,7 @@
  *   and `WebSocketProvider` calls `publish(event)` from its single onmessage
  *   handler. This keeps connection count = 1 even with many listeners.
  */
-import type { WsEvent } from "../types";
+import type { WsEvent } from "../../types";
 
 export type WsEventName = WsEvent["event"];
 

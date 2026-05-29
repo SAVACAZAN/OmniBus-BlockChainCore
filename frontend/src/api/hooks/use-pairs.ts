@@ -10,8 +10,8 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc as _rpc, type OmniBusRpcClient } from "./rpc-client";
-import type { PairInfo } from "./rpc-client";
+import { rpc as _rpc, type OmniBusRpcClient } from "../clients/rpc-client";
+import type { PairInfo } from "../clients/rpc-client";
 
 export interface ChainPair {
   id: number;

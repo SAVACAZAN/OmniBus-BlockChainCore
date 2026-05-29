@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 

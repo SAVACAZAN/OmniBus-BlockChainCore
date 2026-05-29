@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
-import { getUnlocked } from "../../api/wallet-keystore";
-import { signMessage } from "../../api/exchange-sign";
-import { useWallet } from "../../api/use-wallet";
-import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
+import { getUnlocked } from "../../api/wallet/wallet-keystore";
+import { signMessage } from "../../api/sign/exchange-sign";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/hooks/use-names";
 import { TxHashLink } from "../common/TxHashLink";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNameRegisteredEvent, WsNameRenewedEvent, WsNewBlockEvent } from "../../types";
 import { SAT_PER_OMNI, satToOmni, MICRO_PER_USD } from "../../utils/fmt";
 

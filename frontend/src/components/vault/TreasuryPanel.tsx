@@ -14,9 +14,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Wallet, Plus, X, RefreshCw, Play, AlertTriangle } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, satToOmni, midTrunc } from "../../utils/fmt";
-import { useWallet } from "../../api/use-wallet";
+import { useWallet } from "../../api/hooks/use-wallet";
 
 
 

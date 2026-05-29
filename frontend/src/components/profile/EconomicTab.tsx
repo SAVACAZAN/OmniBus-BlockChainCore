@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
-import type { ProfileFull, ProfileEconomic } from "../../api/rpc-client";
+import type { ProfileFull, ProfileEconomic } from "../../api/clients/rpc-client";
 import { PublicToggle, PublicBadge, type FieldVisibility } from "./PublicToggle";
 import { MicaPanel } from "./MicaPanel";
 

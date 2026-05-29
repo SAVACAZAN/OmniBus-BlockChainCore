@@ -30,7 +30,7 @@ import {
   type Unlocked,
   type PqOmniSlot,
 } from "./wallet-keystore";
-import { deriveAddressFromPrivKey, hexToBytes, bytesToHex } from "./exchange-sign";
+import { deriveAddressFromPrivKey, hexToBytes, bytesToHex } from "../sign/exchange-sign";
 
 // ── Mnemonic generation / validation ────────────────────────────────────
 

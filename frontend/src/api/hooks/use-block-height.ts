@@ -8,9 +8,9 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc } from "./rpc-client";
-import { subscribe as wsSubscribe } from "./ws-bus";
-import type { WsNewBlockEvent } from "../types";
+import { rpc } from "../clients/rpc-client";
+import { subscribe as wsSubscribe } from "../clients/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 export function useBlockHeight(): number {
   const [height, setHeight] = useState(0);

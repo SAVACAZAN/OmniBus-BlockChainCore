@@ -14,10 +14,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Shield, Trash2, ChevronDown, ChevronRight, Plus, X, RefreshCw, AlertTriangle } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
-import { useWallet } from "../../api/use-wallet";
+import { useWallet } from "../../api/hooks/use-wallet";
 
 
 

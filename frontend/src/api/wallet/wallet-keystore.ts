@@ -20,7 +20,7 @@ import { sha256, sha512 } from "@noble/hashes/sha2";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { base58 } from "@scure/base";
-import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "./exchange-sign";
+import { deriveAddressFromPrivKey, bytesToHex, hexToBytes } from "../sign/exchange-sign";
 import * as secp from "@noble/secp256k1";
 // @noble/curves 2.x ships ed25519.js but doesn't declare it in package.json exports —
 // import via the JS file path which Vite resolves correctly.
@@ -34,7 +34,7 @@ import {
   pqKeypairFromSeed,
   pqAddressFromPublicKey as _pqAddressFromPublicKey,
   type PqScheme,
-} from "./pq-sign";
+} from "../sign/pq-sign";
 
 async function pqAddressFromPublicKeyAsync(scheme: PqScheme, publicKey: Uint8Array): Promise<string> {
   return _pqAddressFromPublicKey(scheme, publicKey);

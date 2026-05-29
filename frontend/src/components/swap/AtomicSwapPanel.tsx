@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
-import { buildBtcSpvProofObject, type BtcSpvProofObject } from "../../api/htlc-btc";
-import { buildEthSpvProofObject, type EthSpvProofObject } from "../../api/htlc-eth";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc } from "../../api/clients/rpc-client";
+import { getUnlocked, subscribeWallet } from "../../api/wallet/wallet-keystore";
+import { buildBtcSpvProofObject, type BtcSpvProofObject } from "../../api/htlc/htlc-btc";
+import { buildEthSpvProofObject, type EthSpvProofObject } from "../../api/htlc/htlc-eth";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 

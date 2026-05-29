@@ -1,5 +1,5 @@
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { getActiveChain } from "../../api/rpc-client";
+import { getActiveChain } from "../../api/clients/rpc-client";
 
 const CHAIN_BADGE_COLOR: Record<string, string> = {
   mainnet: "text-mempool-blue",

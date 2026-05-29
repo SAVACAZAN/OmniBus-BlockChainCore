@@ -19,9 +19,9 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
-import { useBlockHeight } from "../../api/use-block-height";
+import { useBlockHeight } from "../../api/hooks/use-block-height";
 import { fmtInt } from "../../utils/fmt";
 import {
   Scale,
@@ -36,10 +36,10 @@ import {
   Info,
 } from "lucide-react";
 import { sha256 } from "@noble/hashes/sha2";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
-import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, signMessage } from "../../api/exchange-sign";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { bytesToHex, signMessage } from "../../api/sign/exchange-sign";
 
 // exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 

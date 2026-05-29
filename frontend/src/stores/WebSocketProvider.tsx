@@ -4,8 +4,8 @@ import {
   blockchainReducer,
   initialState,
 } from "./useBlockchainStore";
-import { rpc, getActiveChain, wsUrlFor } from "../api/rpc-client";
-import { publish as wsBusPublish } from "../api/ws-bus";
+import { rpc, getActiveChain, wsUrlFor } from "../api/clients/rpc-client";
+import { publish as wsBusPublish } from "../api/clients/ws-bus";
 import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent, WsIbdProgressEvent, WsPeerConnectEvent, WsPeerDisconnectEvent } from "../types";
 
 // On HTTP: connects directly to ws://hostname:{8334|18334|28334}.

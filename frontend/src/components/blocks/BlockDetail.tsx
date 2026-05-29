@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import type { BlockData, BlockPriceSnapshot as PriceEntry } from "../../types";
 import { KIND_STYLE } from "../common/TxBadges";
 import { MICRO_PER_USD, SAT_PER_OMNI, midTrunc, fmtUsd } from "../../utils/fmt";

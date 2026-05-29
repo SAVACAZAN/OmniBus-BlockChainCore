@@ -10,7 +10,7 @@ import {
   unlockFromMnemonic,
   unlockFromPrivKey,
   unlockFromVault,
-} from "../../api/wallet-keystore";
+} from "../../api/wallet/wallet-keystore";
 
 type Mode = "vault" | "mnemonic" | "privkey";
 

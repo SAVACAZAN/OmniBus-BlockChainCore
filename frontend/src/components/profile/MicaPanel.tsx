@@ -10,11 +10,11 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc, type MicaAttestation, type MicaDisclosure } from "../../api/rpc-client";
+import { rpc, type MicaAttestation, type MicaDisclosure } from "../../api/clients/rpc-client";
 import {
   signMicaAttestPayload,
-} from "../../api/exchange-sign";
-import { nextNonce } from "../../api/wallet-keystore";
+} from "../../api/sign/exchange-sign";
+import { nextNonce } from "../../api/wallet/wallet-keystore";
 
 
 function fmtDate(ts?: number): string {

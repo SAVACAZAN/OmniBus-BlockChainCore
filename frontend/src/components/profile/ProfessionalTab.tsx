@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
-import type { ProfileFull, ProfileProfessional } from "../../api/rpc-client";
+import type { ProfileFull, ProfileProfessional } from "../../api/clients/rpc-client";
 import { PublicToggle, PublicBadge, type FieldVisibility } from "./PublicToggle";
 
 const FIELDS = ["certifications", "work_history", "skills"] as const;

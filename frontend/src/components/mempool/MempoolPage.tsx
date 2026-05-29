@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { rpc } from "../../api/rpc-client";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc } from "../../api/clients/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewTxEvent } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { KindBadge, SchemeTag } from "../common/TxBadges";

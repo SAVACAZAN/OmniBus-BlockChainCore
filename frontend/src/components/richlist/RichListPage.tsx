@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 

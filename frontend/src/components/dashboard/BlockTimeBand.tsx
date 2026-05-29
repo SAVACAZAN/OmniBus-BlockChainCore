@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 
 
 function Sparkline({ values, width = 200, height = 32 }: {

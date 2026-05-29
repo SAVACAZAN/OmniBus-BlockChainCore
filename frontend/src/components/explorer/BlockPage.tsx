@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PROFILE_INIT_TOAST_EVENT, type ProfileInitToastDetail } from "../../api/profile-init";
+import { PROFILE_INIT_TOAST_EVENT, type ProfileInitToastDetail } from "../../api/wallet/profile-init";
 
 /**
  * Listens for the `omnibus:profile-init-toast` window event and shows a

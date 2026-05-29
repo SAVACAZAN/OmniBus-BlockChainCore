@@ -26,13 +26,13 @@ import {
   AlertTriangle,
   RefreshCw,
 } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, midTrunc, fmtOmni, fmtInt } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
-import { useWallet } from "../../api/use-wallet";
-import { signMessage } from "../../api/exchange-sign";
-import { useGlobalBalance, refreshGlobalBalance } from "../../api/use-global-balance";
-import { useBlockHeight } from "../../api/use-block-height";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { signMessage } from "../../api/sign/exchange-sign";
+import { useGlobalBalance, refreshGlobalBalance } from "../../api/hooks/use-global-balance";
+import { useBlockHeight } from "../../api/hooks/use-block-height";
 
 
 // ── Constants ─────────────────────────────────────────────────────────────

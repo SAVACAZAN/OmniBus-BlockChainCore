@@ -15,10 +15,10 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { useWallet } from "../../api/use-wallet";
-import { rpc } from "../../api/rpc-client";
-import { useGlobalBalance } from "../../api/use-global-balance";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { rpc } from "../../api/clients/rpc-client";
+import { useGlobalBalance } from "../../api/hooks/use-global-balance";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { FeeEstimate, WsTxConfirmedEvent } from "../../types";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 

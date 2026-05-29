@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { KIND_STYLE } from "../common/TxBadges";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewTxEvent, WsNewBlockEvent } from "../../types";
 import { satToOmni, midTrunc } from "../../utils/fmt";
 

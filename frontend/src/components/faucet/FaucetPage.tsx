@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { useWallet } from "../../api/use-wallet";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc } from "../../api/clients/rpc-client";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 import { satToOmni } from "../../utils/fmt";
 

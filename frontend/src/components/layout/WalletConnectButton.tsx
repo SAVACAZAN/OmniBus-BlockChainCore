@@ -14,8 +14,8 @@
 
 import { useEffect, useState } from "react";
 import { midTrunc } from "../../utils/fmt";
-import { useWallet } from "../../api/use-wallet";
-import { useNameForAddress, useEntryForAddress, useExpiringNames, TLD_THEME } from "../../api/use-names";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { useNameForAddress, useEntryForAddress, useExpiringNames, TLD_THEME } from "../../api/hooks/use-names";
 
 // Inline SVG icons (lucide-react isn't installed in this frontend; matches the
 // inline-SVG style used everywhere else in Header.tsx).
@@ -61,7 +61,7 @@ import {
   unlockFromMnemonic,
   unlockFromPrivKey,
   unlockFromVault,
-} from "../../api/wallet-keystore";
+} from "../../api/wallet/wallet-keystore";
 
 type Mode = "vault" | "mnemonic" | "privkey";
 

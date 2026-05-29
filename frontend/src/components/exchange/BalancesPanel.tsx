@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { rpc, ExchangeBalance } from "../../api/rpc-client";
+import { rpc, ExchangeBalance } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
-import { fetchChainBalance, fetchUsdcBalance, fetchEurcBalance, type ChainBalance } from "../../api/multichain-balances";
+import { getUnlocked, subscribeWallet } from "../../api/wallet/wallet-keystore";
+import { fetchChainBalance, fetchUsdcBalance, fetchEurcBalance, type ChainBalance } from "../../api/clients/multichain-balances";
 import { MultiWalletBalances } from "./MultiWalletBalances";
-import { useGlobalBalance } from "../../api/use-global-balance";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { useGlobalBalance } from "../../api/hooks/use-global-balance";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 
@@ -170,7 +170,7 @@ export function BalancesPanel() {
               const csvRows = [
                 ["chain", "token", "label", "address", "free", "in_orders", "total", "role"].join(","),
                 ...rows.map((row) => {
-                  const bal = row.balance as import("../../api/multichain-balances").ChainBalance | null;
+                  const bal = row.balance as import("../../api/clients/multichain-balances").ChainBalance | null;
                   const onChain = bal ? Number(bal.native) : 0;
                   const eb = row.exchToken ? exchBalances.find(b => b.token === row.exchToken) : null;
                   const div = row.exchToken === "OMNI" ? SAT_PER_OMNI : row.exchToken === "ETH" ? 1e18 : MICRO_PER_USD;

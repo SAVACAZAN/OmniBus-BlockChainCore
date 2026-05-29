@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 import { satToOmni, midTrunc } from "../../utils/fmt";
 import {
@@ -16,9 +16,9 @@ import {
   RefreshCcw,
   Activity,
 } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
-import { useWallet } from "../../api/use-wallet";
+import { useWallet } from "../../api/hooks/use-wallet";
 
 
 // ─── Types: existing system-level agents (agent_manager.zig) ────────────────

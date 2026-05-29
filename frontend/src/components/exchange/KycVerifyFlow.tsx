@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { signKycAttestation } from "../../api/exchange-sign";
-import { useWallet } from "../../api/use-wallet";
+import { rpc } from "../../api/clients/rpc-client";
+import { signKycAttestation } from "../../api/sign/exchange-sign";
+import { useWallet } from "../../api/hooks/use-wallet";
 
 
 interface Props {

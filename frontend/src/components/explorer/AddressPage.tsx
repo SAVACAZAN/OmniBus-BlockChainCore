@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
-import { useNameForAddress } from "../../api/use-names";
+import { useNameForAddress } from "../../api/hooks/use-names";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
 import { fmtSat, midTrunc, fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
 import {

@@ -2,17 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
 import { SAT_PER_OMNI } from "../../utils/fmt";
-import { getActiveChain, setActiveChain, type ChainName, rpc as _searchRpc } from "../../api/rpc-client";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { getActiveChain, setActiveChain, type ChainName, rpc as _searchRpc } from "../../api/clients/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import { PlasmaLogo } from "../effects/PlasmaLogo";
 import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
 import { ElectricOrganism } from "../effects/ElectricOrganism";
 import { MatrixRain } from "../effects/MatrixRain";
 import { WalletConnectButton } from "./WalletConnectButton";
 import { GlobalBalancePill } from "./GlobalBalancePill";
-import { useActiveSlot, setActiveSlot, SLOT_COUNT } from "../../api/use-active-slot";
-import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
-import { useWallet } from "../../api/use-wallet";
+import { useActiveSlot, setActiveSlot, SLOT_COUNT } from "../../api/hooks/use-active-slot";
+import { useAllSlotsBalance } from "../../api/hooks/use-all-slots-balance";
+import { useWallet } from "../../api/hooks/use-wallet";
 
 declare global {
   interface Window { __openTx?: (txid: string) => void }

@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { useWallet } from "../../api/use-wallet";
+import { useWallet } from "../../api/hooks/use-wallet";
 
 export function ReceiveDialog({ onClose }: { onClose: () => void }) {
   const wallet = useWallet();

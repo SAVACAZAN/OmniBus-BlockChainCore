@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
-import type { ProfileFull, ProfileCultural } from "../../api/rpc-client";
+import type { ProfileFull, ProfileCultural } from "../../api/clients/rpc-client";
 import { PublicToggle, PublicBadge, type FieldVisibility } from "./PublicToggle";
 
 const FIELDS = ["poaps", "notarized_works", "languages", "badges"] as const;

@@ -17,7 +17,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useBlockHeight } from "../../api/use-block-height";
+import { useBlockHeight } from "../../api/hooks/use-block-height";
 import {
   FileText,
   Shield,
@@ -26,12 +26,12 @@ import {
   AlertTriangle,
   Lock,
 } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { SAT_PER_OMNI, midTrunc, fmtOmni, fmtInt } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
-import { useWallet } from "../../api/use-wallet";
-import { signMessage } from "../../api/exchange-sign";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { signMessage } from "../../api/sign/exchange-sign";
 
 
 // ── Constants ─────────────────────────────────────────────────────────────

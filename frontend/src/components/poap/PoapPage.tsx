@@ -32,10 +32,10 @@ import {
   XCircle,
   Lock,
 } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
-import { useWallet } from "../../api/use-wallet";
-import { signMessage } from "../../api/exchange-sign";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { signMessage } from "../../api/sign/exchange-sign";
 import { midTrunc, fmtInt } from "../../utils/fmt";
 
 

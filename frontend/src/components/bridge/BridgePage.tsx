@@ -15,9 +15,9 @@
  */
 
 import { useEffect, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { CHAINS, chainCounts, type ChainFamily } from "../../api/chains";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { rpc } from "../../api/clients/rpc-client";
+import { CHAINS, chainCounts, type ChainFamily } from "../../api/config/chains";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 import { SAT_PER_OMNI } from "../../utils/fmt";
 

@@ -14,10 +14,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Lock, RefreshCw, AlertTriangle } from "lucide-react";
-import { rpc } from "../../api/rpc-client";
+import { rpc } from "../../api/clients/rpc-client";
 import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
-import { useWallet } from "../../api/use-wallet";
-import { useBlockHeight } from "../../api/use-block-height";
+import { useWallet } from "../../api/hooks/use-wallet";
+import { useBlockHeight } from "../../api/hooks/use-block-height";
 
 
 

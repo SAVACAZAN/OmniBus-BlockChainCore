@@ -6,7 +6,7 @@
  * slightly different answer ("stake page says 100, exchange says 0").
  */
 
-import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
+import { useGlobalBalance, formatOmni } from "../../api/hooks/use-global-balance";
 
 export function GlobalBalancePill() {
   const b = useGlobalBalance();

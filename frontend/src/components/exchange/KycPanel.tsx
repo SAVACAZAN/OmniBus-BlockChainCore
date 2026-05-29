@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { rpc } from "../../api/rpc-client";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import { rpc } from "../../api/clients/rpc-client";
+import { getUnlocked, subscribeWallet } from "../../api/wallet/wallet-keystore";
 import { KycVerifyFlow } from "./KycVerifyFlow";
-import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import { subscribe as wsSubscribe } from "../../api/clients/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 
 

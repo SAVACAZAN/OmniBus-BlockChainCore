@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
-import type { ProfileFull, ProfileSocial } from "../../api/rpc-client";
+import type { ProfileFull, ProfileSocial } from "../../api/clients/rpc-client";
 import { PublicToggle, PublicBadge, type FieldVisibility } from "./PublicToggle";
 
 export interface SocialTabProps {
