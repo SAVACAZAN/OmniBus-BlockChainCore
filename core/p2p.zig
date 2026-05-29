@@ -430,6 +430,8 @@ pub const PeerConnection = struct {
 // call sites (`p2p.SeenHashes`, `p2p.GossipTxPayload`, etc.) keep working.
 
 const gossip_mod = @import("p2p/gossip.zig");
+const discovery_mod = @import("p2p/discovery.zig");
+const sync_coord_mod = @import("p2p/sync_coord.zig");
 
 pub const SeenHashes         = gossip_mod.SeenHashes;
 pub const GossipTxPayload    = gossip_mod.GossipTxPayload;
@@ -698,43 +700,7 @@ pub const P2PNode = struct {
     /// locally and ask peers for sync. Returns true if recovery was
     /// triggered. Idempotent — safe to call from maintenance every tick.
     pub fn tryForkRecovery(self: *P2PNode) bool {
-        const fails = self.consecutive_bcast_fails.load(.acquire);
-        if (fails < FORK_RECOVERY_THRESHOLD) return false;
-        const bc = self.blockchain orelse return false;
-        bc.mutex.lock();
-        const local_h: u64 = bc.chain.items.len;
-        bc.mutex.unlock();
-        if (local_h <= 2) return false; // need at least genesis + a couple
-        const trunc_to: u64 = local_h - @min(FORK_RECOVERY_MAX_TRUNC, local_h - 1);
-        std.debug.print(
-            "[FORK-RECOVERY] {d} consecutive broadcast fails — trunchating local chain {d} -> {d} (drop {d}) and re-syncing\n",
-            .{ fails, local_h, trunc_to, local_h - trunc_to },
-        );
-        bc.mutex.lock();
-        // Drop blocks above trunc_to. Keep balances/nonces consistent
-        // by replaying — same path the reorg detector uses.
-        while (bc.chain.items.len > trunc_to) {
-            var b = bc.chain.pop() orelse break;
-            // Free heap-owned strings on the popped block (same pattern
-            // as truncateChainTo elsewhere).
-            self.allocator.free(b.hash);
-            if (b.miner_heap and b.miner_address.len > 0) {
-                self.allocator.free(b.miner_address);
-            }
-            b.transactions.deinit();
-        }
-        bc.recalculateFromHeight(@intCast(trunc_to)) catch |err| {
-            std.debug.print("[FORK-RECOVERY] recalculateFromHeight failed: {}\n", .{err});
-        };
-        bc.mutex.unlock();
-        // Reset counter so we don't spam recovery every tick.
-        self.consecutive_bcast_fails.store(0, .release);
-        // Request fresh sync from any live peer.
-        if (self.sync_mgr) |sm| sm.state.status = .downloading;
-        // Also clear is_syncing so IBD path can re-trigger; the next
-        // WELCOME from a peer with higher height will re-set it.
-        self.is_syncing.store(false, .release);
-        return true;
+        return sync_coord_mod.tryForkRecovery(self);
     }
 
     /// Enable Tor proxy for all outbound P2P connections
@@ -753,29 +719,7 @@ pub const P2PNode = struct {
     /// SPV: Send getheaders_p2p to all connected peers.
     /// Requests headers starting from our current header chain height.
     pub fn syncHeaders(self: *P2PNode) void {
-        const lc = self.light_client orelse return;
-        const start_height = lc.getHeight();
-        const count: u32 = @intCast(@min(SPV_MAX_HEADERS_PER_MSG, 500));
-
-        var payload: [8]u8 = undefined;
-        encodeGetHeaders(start_height, count, &payload);
-
-        var sent: usize = 0;
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        for (self.peers.items) |*peer| {
-            if (!peer.connected) continue;
-            peer.send(@intFromEnum(MessageType.getheaders_p2p), &payload) catch |err| {
-                std.debug.print("[SPV] getheaders_p2p send to {s} failed: {}\n",
-                    .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
-                continue;
-            };
-            sent += 1;
-        }
-        if (sent > 0) {
-            std.debug.print("[SPV] getheaders_p2p sent to {d} peers (from height {d}, max {d})\n",
-                .{ sent, start_height, count });
-        }
+        sync_coord_mod.syncHeaders(self);
     }
 
     /// SPV: Request a Merkle proof for a specific TX hash in a specific block.
@@ -1068,47 +1012,19 @@ pub const P2PNode = struct {
     // ─── PEX Protocol (B12) ────────────────────────────────────────────────
 
     /// Send a get_peers request to a specific peer
-    pub fn sendGetPeers(_: *P2PNode, peer: *PeerConnection) void {
-        peer.send(@intFromEnum(MessageType.get_peers), &.{}) catch |err| {
-            std.debug.print("[PEX] get_peers send failed to {s}: {}\n",
-                .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
-        };
+    pub fn sendGetPeers(self: *P2PNode, peer: *PeerConnection) void {
+        discovery_mod.sendGetPeers(self, peer);
     }
 
     /// Send get_peers to all connected peers
     pub fn requestPeersFromAll(self: *P2PNode) void {
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        for (self.peers.items) |*peer| {
-            if (!peer.connected) continue;
-            self.sendGetPeers(peer);
-        }
+        discovery_mod.requestPeersFromAll(self);
     }
 
     /// Build a peer_list payload from our known connected peers
     /// Returns encoded bytes; caller must free with allocator.
     pub fn buildPeerListPayload(self: *P2PNode) ![]u8 {
-        // Collect connected peers as PeerAddr entries
-        var addrs: [PEX_MAX_PEERS]MsgPeerList.PeerAddr = undefined;
-        var count: usize = 0;
-        {
-            self.peers_mutex.lock();
-            defer self.peers_mutex.unlock();
-            for (self.peers.items) |p| {
-                if (!p.connected) continue;
-                if (count >= PEX_MAX_PEERS) break;
-                // Parse host IP string to 4 bytes
-                const addr = std.net.Address.parseIp4(p.host, p.port) catch continue;
-                const ip_bytes = addr.in.sa.addr;
-                const ip_raw = std.mem.toBytes(ip_bytes);
-                addrs[count] = .{
-                    .ip = .{ ip_raw[0], ip_raw[1], ip_raw[2], ip_raw[3] },
-                    .port = p.port,
-                };
-                count += 1;
-            }
-        }
-        return encodePeerList(addrs[0..count], self.allocator);
+        return discovery_mod.buildPeerListPayload(self);
     }
 
     /// Shim pentru network.zig broadcast_fn — evita import circular
@@ -1315,86 +1231,34 @@ pub const P2PNode = struct {
     /// Check if adding a peer with this IP would violate subnet diversity rules.
     /// Returns true if the peer is allowed, false if too many from same /16 subnet.
     pub fn checkSubnetDiversity(self: *P2PNode, ip: [4]u8) bool {
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        var same_subnet: usize = 0;
-        for (self.peers.items) |p| {
-            if (!p.connected) continue;
-            if (p.ip_bytes[0] == ip[0] and p.ip_bytes[1] == ip[1]) {
-                same_subnet += 1;
-            }
-        }
-        return same_subnet < MAX_PEERS_PER_SUBNET;
+        return discovery_mod.checkSubnetDiversity(self, ip);
     }
 
     /// Inbound-only subnet diversity check (anti-eclipse on accept path).
-    /// Counts only peers with `direction == .inbound` matching the same /16
-    /// subnet, and rejects when the count would exceed MAX_INBOUND_PER_SUBNET.
-    /// Loopback (127.x.x.x) is exempt to keep local dev / multi-node-on-one-host
-    /// workflows working.
     pub fn checkInboundSubnetDiversity(self: *P2PNode, ip: [4]u8) bool {
-        if (ip[0] == 127) return true; // loopback exempt
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        var same_inbound: usize = 0;
-        for (self.peers.items) |p| {
-            if (!p.connected) continue;
-            if (p.direction != .inbound) continue;
-            if (p.ip_bytes[0] == ip[0] and p.ip_bytes[1] == ip[1]) {
-                same_inbound += 1;
-            }
-        }
-        return same_inbound < MAX_INBOUND_PER_SUBNET;
+        return discovery_mod.checkInboundSubnetDiversity(self, ip);
     }
 
     /// Count the number of distinct /16 subnets among connected peers
     pub fn subnetCount(self: *P2PNode) usize {
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        // Fixed-size tracking (max MAX_PEERS subnets possible)
-        var subnets: [MAX_PEERS][2]u8 = undefined;
-        var count: usize = 0;
-        for (self.peers.items) |p| {
-            if (!p.connected) continue;
-            const sn = [2]u8{ p.ip_bytes[0], p.ip_bytes[1] };
-            var found = false;
-            for (subnets[0..count]) |existing| {
-                if (existing[0] == sn[0] and existing[1] == sn[1]) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found and count < MAX_PEERS) {
-                subnets[count] = sn;
-                count += 1;
-            }
-        }
-        return count;
+        return discovery_mod.subnetCount(self);
     }
 
     /// Check if we have enough subnet diversity (at least MIN_SUBNET_DIVERSITY)
     pub fn hasMinSubnetDiversity(self: *P2PNode) bool {
-        // If fewer peers than minimum, don't enforce yet
-        if (self.peerCount() < MIN_SUBNET_DIVERSITY) return true;
-        return self.subnetCount() >= MIN_SUBNET_DIVERSITY;
+        return discovery_mod.hasMinSubnetDiversity(self);
     }
 
     // ─── Hardening: Connection Limits ───────────────────────────────────────
 
     /// Check if we can accept an inbound connection
     pub fn canAcceptInbound(self: *P2PNode) bool {
-        const in_now = self.inbound_count.load(.acquire);
-        if (in_now >= MAX_INBOUND) return false;
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        return self.peers.items.len < MAX_PEERS;
+        return discovery_mod.canAcceptInbound(self);
     }
 
     /// Periodic hardening maintenance
     pub fn hardeningMaintenance(self: *P2PNode) void {
-        self.evictExpiredBans();
-        self.processReconnects();
-        self.gossipMaintenance();
+        discovery_mod.hardeningMaintenance(self);
     }
 
     pub fn printStatus(self: *P2PNode) void {
@@ -2756,7 +2620,7 @@ pub const P2PNode = struct {
     /// Wrapper care nu forteaza request pe peer cu height <= from_height
     /// (cazul normal de catch-up).
     pub fn requestSync(self: *P2PNode, from_height: u64) void {
-        self.requestSyncEx(from_height, false);
+        sync_coord_mod.requestSync(self, from_height);
     }
 
     /// Forteaza sync request indiferent de peer.height — folosit pentru
@@ -2764,30 +2628,11 @@ pub const P2PNode = struct {
     /// alta ramura, si avem nevoie de header-ele lui pentru comparatia
     /// heaviest-chain.
     pub fn requestSyncForced(self: *P2PNode, from_height: u64) void {
-        self.requestSyncEx(from_height, true);
+        sync_coord_mod.requestSyncForced(self, from_height);
     }
 
     fn requestSyncEx(self: *P2PNode, from_height: u64, force_on_lower_peer: bool) void {
-        const req = sync_mod.MsgGetHeaders{
-            .from_height = from_height,
-            .max_count   = sync_mod.SyncManager.MAX_HEADERS_PER_REQ,
-        };
-        const payload = req.encode(); // returns [10]u8
-
-        self.peers_mutex.lock();
-        defer self.peers_mutex.unlock();
-        for (self.peers.items) |*peer| {
-            if (!peer.connected) continue;
-            if (!force_on_lower_peer and peer.height <= from_height) continue;
-            peer.send(@intFromEnum(MessageType.sync_request), &payload) catch |err| {
-                std.debug.print("[P2P] Sync request la {s} failed: {}\n",
-                    .{ peer.node_id[0..@min(peer.node_id.len, 16)], err });
-            };
-            std.debug.print("[P2P] SYNC_REQUEST trimis la {s} (from height={d}, max={d}, forced={})\n",
-                .{ peer.node_id[0..@min(peer.node_id.len, 16)], from_height,
-                   sync_mod.SyncManager.MAX_HEADERS_PER_REQ, force_on_lower_peer });
-            return; // trimitem la primul peer disponibil
-        }
+        sync_coord_mod.requestSyncEx(self, from_height, force_on_lower_peer);
     }
 };
 
