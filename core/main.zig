@@ -1213,172 +1213,18 @@ pub fn main() !void {
         }
     }
 
-    // ── EVM escrow watcher — verify on-chain escrow before accepting BIDs ──
-    //
-    // Polls OmnibusDEX OrderPlaced events on each bound EVM chain and
-    // maintains an `evm_escrows` map. exchange_placeOrder for OMNI/<EVM>
-    // BUY checks this map and refuses BIDs not backed by an on-chain
-    // escrow (Hyperliquid-style — no atomic swap, just verified escrow).
-    //
-    // Add more chains (Base, Optimism, Liberty) by extending watcher_bindings.
-    var evm_watcher_handle: ?*evm_escrow_mod.Watcher = null;
-    {
-        const bindings = allocator.alloc(evm_escrow_mod.Binding, 6) catch null;
-        if (bindings) |bs| {
-            bs[0] = .{
-                .chain_id = 11155111,
-                .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com",
-                .contract = "0xC21fD92e5f568a7981d16b9008E3C190842818aE",
-            };
-            bs[1] = .{
-                .chain_id = 84532,
-                .rpc_url = "https://sepolia.base.org",
-                .contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
-            };
-            bs[2] = .{
-                .chain_id = 421614,
-                .rpc_url = "https://sepolia-rollup.arbitrum.io/rpc",
-                .contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
-            };
-            bs[3] = .{
-                .chain_id = 11155420,
-                .rpc_url = "https://sepolia.optimism.io",
-                .contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
-            };
-            bs[4] = .{
-                .chain_id = 1946,
-                .rpc_url = "https://rpc.minato.soneium.org",
-                .contract = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB",
-            };
-            bs[5] = .{
-                .chain_id = 76847801,
-                .rpc_url = "https://testnet-rpc.lcx.com",
-                .contract = "0xE4a3965C4B5205D28259D1CC82fD54060B0bCd19",
-            };
-            const w = allocator.create(evm_escrow_mod.Watcher) catch null;
-            if (w) |watcher_ptr| {
-                watcher_ptr.* = evm_escrow_mod.Watcher.init(
-                    allocator,
-                    .{
-                        .bindings = bs,
-                        .poll_ms = 5_000,
-                        .cursor_path = "data/evm_escrow_cursor.bin",
-                    },
-                );
-                watcher_ptr.start() catch {};
-                evm_watcher_handle = watcher_ptr;
-                std.debug.print("[EVM_ESCROW] ON — watching {d} chain(s) for OrderPlaced events\n",
-                    .{bs.len});
-            }
-        }
-    }
-
-    // ── DEX settler — auto-submit settle() to EVM at fill time ────────────
-    //
-    // Spawns ONE background thread that watches the matching engine fills
-    // for OMNI/<EVM-token> pairs and submits OmnibusDEX.settle(orderId,
-    // sellerEvm) on the appropriate EVM chain. Skips fills with no EVM
-    // counterparty (pure OmniBus settle handled by the matching engine).
-    //
-    // Operator key = slot 2 (exchange.omnibus) derived at runtime from the
-    // founder mnemonic at m/44'/60'/0'/0/2 — never written to disk.
-    //
-    // Bindings are read from `evm/deployed_addresses.json` indirectly: we
-    // hardcode the Sepolia binding here (the only live deployment as of
-    // 2026-05-15). When OmnibusDEX is deployed on more chains, add entries
-    // to the `dex_bindings` slice below.
-    var dex_settler_handle: ?*dex_settler_mod.Settler = null;
-    if (bc.exchange_engine) |engine| blk_dex: {
-        var bip32_dex = bip32_wallet_mod.BIP32Wallet.initFromMnemonic(mnemonic, allocator) catch |e| {
-            std.debug.print("[DEX_SETTLER] cannot derive operator key: {s} — settler not spawned\n", .{@errorName(e)});
-            break :blk_dex;
-        };
-        const op_priv = bip32_dex.deriveChildKeyForPath(44, 60, 2) catch |e| {
-            std.debug.print("[DEX_SETTLER] derive(44,60,2) failed: {s}\n", .{@errorName(e)});
-            break :blk_dex;
-        };
-        // Derive operator EVM address from the privkey so the settler can
-        // log it / cross-check against the contract's `operator` storage.
-        const Ecdsa = std.crypto.sign.ecdsa.EcdsaSecp256k1Sha256;
-        const sk = Ecdsa.SecretKey.fromBytes(op_priv) catch break :blk_dex;
-        const kp = Ecdsa.KeyPair.fromSecretKey(sk) catch break :blk_dex;
-        const pub_unc = kp.public_key.toUncompressedSec1();
-        var keccak_buf: [32]u8 = undefined;
-        std.crypto.hash.sha3.Keccak256.hash(pub_unc[1..65], &keccak_buf, .{});
-        var op_addr20: [20]u8 = undefined;
-        @memcpy(&op_addr20, keccak_buf[12..32]);
-
-        const operator_key = evm_signer_mod.SigningKey{
-            .private_key = op_priv,
-            .address = op_addr20,
-        };
-
-        // Multi-chain bindings. Same logical pair_id settles on the chain
-        // whose escrow the watcher saw — settler picks via findBindingForChain.
-        // CREATE deterministic = same deployer + nonce 0 → same DEX address
-        // across EVM chains: 0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB.
-        // Exception: Sepolia (deployed before the multi-chain reset) uses
-        // 0xC21fD92e5f568a7981d16b9008E3C190842818aE.
-        const dex_sepolia      = "0xC21fD92e5f568a7981d16b9008E3C190842818aE";
-        const dex_create2_addr = "0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB";
-        // Pair_id × chain_id grid. EURC (pair 1) only where Circle has it
-        // deployed (Sepolia + Base Sepolia). USDC + native everywhere else.
-        // pair_id 5 (OMNI/LCX) reserved for Liberty when RPC comes back.
-        const bindings = allocator.alloc(dex_settler_mod.PairBinding, 16) catch break :blk_dex;
-        // Sepolia
-        bindings[0] = .{ .pair_id = 0, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
-        bindings[1] = .{ .pair_id = 6, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
-        bindings[2] = .{ .pair_id = 1, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
-        // Base Sepolia
-        bindings[3] = .{ .pair_id = 0, .chain_id = 84532, .rpc_url = "https://sepolia.base.org", .dex_contract = dex_create2_addr };
-        bindings[4] = .{ .pair_id = 6, .chain_id = 84532, .rpc_url = "https://sepolia.base.org", .dex_contract = dex_create2_addr };
-        bindings[5] = .{ .pair_id = 1, .chain_id = 84532, .rpc_url = "https://sepolia.base.org", .dex_contract = dex_create2_addr };
-        // Arbitrum Sepolia (deployed 2026-05-16)
-        bindings[6] = .{ .pair_id = 0, .chain_id = 421614, .rpc_url = "https://sepolia-rollup.arbitrum.io/rpc", .dex_contract = dex_create2_addr };
-        bindings[7] = .{ .pair_id = 6, .chain_id = 421614, .rpc_url = "https://sepolia-rollup.arbitrum.io/rpc", .dex_contract = dex_create2_addr };
-        // OP Sepolia (deployed 2026-05-16)
-        bindings[8] = .{ .pair_id = 0, .chain_id = 11155420, .rpc_url = "https://sepolia.optimism.io", .dex_contract = dex_create2_addr };
-        bindings[9] = .{ .pair_id = 6, .chain_id = 11155420, .rpc_url = "https://sepolia.optimism.io", .dex_contract = dex_create2_addr };
-        // Soneium Minato (deployed 2026-05-16 via Sepolia bridge)
-        // No USDC oficial Circle on Minato yet; only native ETH pair_id=6.
-        bindings[10] = .{ .pair_id = 6, .chain_id = 1946, .rpc_url = "https://rpc.minato.soneium.org", .dex_contract = dex_create2_addr };
-        // LCX Liberty Chain testnet (OP Stack L2 on Sepolia, ETH gas).
-        // Different deploy address because slot 6 had prior nonce on Liberty.
-        bindings[11] = .{ .pair_id = 6, .chain_id = 76847801, .rpc_url = "https://testnet-rpc.lcx.com", .dex_contract = "0xE4a3965C4B5205D28259D1CC82fD54060B0bCd19" };
-        // pair_id 7 (OMNI/LINK) on chains where DEX deployed and LINK confirmed.
-        bindings[12] = .{ .pair_id = 7, .chain_id = 11155111, .rpc_url = "https://ethereum-sepolia-rpc.publicnode.com", .dex_contract = dex_sepolia };
-        bindings[13] = .{ .pair_id = 7, .chain_id = 84532, .rpc_url = "https://sepolia.base.org", .dex_contract = dex_create2_addr };
-        bindings[14] = .{ .pair_id = 7, .chain_id = 421614, .rpc_url = "https://sepolia-rollup.arbitrum.io/rpc", .dex_contract = dex_create2_addr };
-        bindings[15] = .{ .pair_id = 7, .chain_id = 11155420, .rpc_url = "https://sepolia.optimism.io", .dex_contract = dex_create2_addr };
-
-        const settler = allocator.create(dex_settler_mod.Settler) catch break :blk_dex;
-        settler.* = dex_settler_mod.Settler.init(
-            allocator,
-            .{
-                .operator_key = operator_key,
-                .bindings = bindings,
-                .poll_ms = 2_000,
-                .cursor_path = "data/dex_settler_cursor.bin",
-                .fills_log = fills_log_handle,
-                .escrow_watcher = evm_watcher_handle,
-            },
-            engine,
-        );
-        settler.start() catch |e| {
-            std.debug.print("[DEX_SETTLER] start failed: {s}\n", .{@errorName(e)});
-            break :blk_dex;
-        };
-        dex_settler_handle = settler;
-
-        // Print the operator address using same hex format as on the contract.
-        std.debug.print("[DEX_SETTLER] ON — operator 0x", .{});
-        for (op_addr20) |b| std.debug.print("{x:0>2}", .{b});
-        std.debug.print(" watches engine, sepolia binding active\n", .{});
+    // EVM escrow watcher + DEX settler — extracted helpers in node/exchange_init.zig.
+    // Behavior unchanged (same chain IDs, RPC URLs, poll intervals, log lines).
+    const exchange_init = @import("node/exchange_init.zig");
+    const evm_watcher_handle = exchange_init.initEvmEscrowWatcher(allocator);
+    // dex_settler handle intentionally kept alive for the lifetime of the
+    // process; shutdown signal handling is best-effort in mainnet, so we
+    // simply discard the pointer once the thread has been started.
+    if (bc.exchange_engine) |engine| {
+        _ = exchange_init.initDexSettler(allocator, mnemonic, engine, fills_log_handle, evm_watcher_handle);
     } else {
         std.debug.print("[DEX_SETTLER] exchange_engine not enabled — settler skipped\n", .{});
     }
-    // dex_settler_handle is intentionally kept alive for the lifetime of
-    // the process; shutdown signal handling is best-effort in mainnet.
 
     const t = try std.Thread.spawn(.{}, rpcThread, .{RPCThreadArgs{
         .bc       = &bc,
