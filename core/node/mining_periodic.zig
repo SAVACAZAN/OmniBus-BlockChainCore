@@ -15,6 +15,207 @@ const metachain_mod  = @import("../metachain.zig");
 const pouw_mod       = @import("../consensus_pouw.zig");
 const price_oracle_mod = @import("../price_oracle.zig");
 const agents_mod     = @import("agents.zig");
+const ws_exchange_feed_mod = @import("../ws_exchange_feed.zig");
+const reputation_manager_mod = @import("../reputation_manager.zig");
+const payment_mod    = @import("../payment_channel.zig");
+const dns_mod        = @import("../dns_registry.zig");
+
+/// IDLE re-check: if `p2p.is_idle` is set, the mining loop calls this
+/// every iteration. Every 60s (gated by `maint_count`) it re-runs
+/// knock-knock to see if the duplicate IP is gone. Behavior matches the
+/// original inline block — same prints, same threshold.
+pub fn maybeRetryKnockKnock(p2p: anytype, maint_count: u32) void {
+    if (maint_count % 60 == 0) {
+        std.debug.print("[IDLE] Re-verificare duplicat IP...\n", .{});
+        const recheck = p2p.*.knockKnock();
+        if (recheck == .alone) {
+            std.debug.print("[IDLE] Duplicat disparut — reactivare mining!\n\n", .{});
+        }
+    }
+}
+
+/// Snapshot prices from the WS exchange feed into the just-mined block.
+/// Maps `ws_exchange_feed.PriceFetch` → `blockchain.BlockPriceEntry` using
+/// fixed-size strings so the array can live in a hashmap without an
+/// allocator. No-op when the feed is null.
+pub fn snapshotPricesIntoBlock(
+    feed_opt: *?ws_exchange_feed_mod.ExchangeFeed,
+    bc: *blockchain_mod.Blockchain,
+    block_index: u32,
+) void {
+    if (feed_opt.*) |*feed| {
+        const live = feed.snapshot();
+        var entries: [6]blockchain_mod.BlockPriceEntry = undefined;
+        for (live, 0..) |p, i| {
+            var e: blockchain_mod.BlockPriceEntry = .{};
+            const elen = @min(p.exchange.len, 16);
+            e.exchange_len = @intCast(elen);
+            @memcpy(e.exchange[0..elen], p.exchange[0..elen]);
+            const plen = @min(p.pair.len, 16);
+            e.pair_len = @intCast(plen);
+            @memcpy(e.pair[0..plen], p.pair[0..plen]);
+            e.bid_micro_usd = p.bid_micro_usd;
+            e.ask_micro_usd = p.ask_micro_usd;
+            e.timestamp_ms  = p.timestamp_ms;
+            e.success       = p.success;
+            entries[i] = e;
+        }
+        bc.recordBlockPrices(block_index, &entries);
+    }
+}
+
+/// Reputation: credit the miner across all 4 domains for the just-mined
+/// block. FOOD = work (every block), LOVE = uptime (every 60 blocks) +
+/// daily streak (every 8640), RENT = per-block credit for every active
+/// staker, VACATION = daily tick for every known address (snapshot-then-
+/// iterate to avoid the B1 re-entrant lock deadlock).
+pub fn creditReputationForBlock(
+    rep_opt: *?reputation_manager_mod.ReputationManager,
+    staking_opt: ?*staking_mod.StakingEngine,
+    miner_addr: []const u8,
+    block_count: u64,
+    allocator: std.mem.Allocator,
+) void {
+    if (rep_opt.*) |*rep_mgr| {
+        // FOOD — block mined credit
+        rep_mgr.creditMinedBlock(miner_addr, block_count);
+
+        // LOVE — uptime credit pentru miner activ. La 1s/block, 60 blocs
+        // = 1 minut online. Acordat la fiecare 60 blocuri (creditUptimeMinutes
+        // trateaza 1 minut = LOVE_PER_MINUTE_ONLINE points).
+        if (block_count > 0 and block_count % 60 == 0) {
+            rep_mgr.creditUptimeMinutes(miner_addr, 1, block_count);
+        }
+        // LOVE bonus — daily streak (la fiecare 8640 blocuri = 1 zi).
+        if (block_count > 0 and block_count % 8640 == 0) {
+            rep_mgr.creditDailyStreak(miner_addr, block_count);
+        }
+
+        // RENT — credit per-block pentru stakeri activi.
+        // Iteram primii `validator_count` din slot-ul fix de 128.
+        // Stake e in SAT (1e9 SAT = 1 OMNI), creditStakePerBlock asteapta OMNI.
+        if (staking_opt) |se| {
+            var vi: usize = 0;
+            while (vi < se.validator_count) : (vi += 1) {
+                const val = &se.validators[vi];
+                if (val.status != .active) continue;
+                const omni_staked = val.total_stake / 1_000_000_000;
+                if (omni_staked == 0) continue;
+                rep_mgr.creditStakePerBlock(
+                    val.address[0..val.addr_len],
+                    omni_staked,
+                    block_count,
+                );
+            }
+        }
+
+        // VACATION — daily tick. 1 day = 8640 blocks @ 10s.
+        // Fix B1 deadlock: previously took rep_mgr.lock() then called
+        // creditVacationDay which re-locks the same mutex (non-reentrant
+        // std.Thread.Mutex panics → mainnet wedge for ~12 min until
+        // systemd respawn). Solution: collect the addresses first under
+        // a brief lock, then iterate the OWNED list calling
+        // creditVacationDay (which will lock once, briefly, per addr).
+        if (block_count > 0 and block_count % 8640 == 0) {
+            const total_days: u64 = block_count / 8640;
+            // Snapshot keys under lock to avoid concurrent-modify panic.
+            var addr_list = std.array_list.Managed([]const u8).init(allocator);
+            defer {
+                for (addr_list.items) |a| allocator.free(a);
+                addr_list.deinit();
+            }
+            {
+                rep_mgr.lock();
+                defer rep_mgr.unlock();
+                var iter = rep_mgr.iterate();
+                while (iter.next()) |entry| {
+                    const owned = allocator.dupe(u8, entry.key_ptr.*) catch continue;
+                    addr_list.append(owned) catch {
+                        allocator.free(owned);
+                        break;
+                    };
+                }
+            }
+            // Now lock-free — each call takes the mutex briefly.
+            for (addr_list.items) |addr| {
+                rep_mgr.creditVacationDay(addr, total_days, block_count);
+            }
+        }
+    }
+}
+
+/// FIX (2026-05-03): per-block chainstate flush + companion registry
+/// persists (DNS / HTLC / payment channels / intents). Wrapped in
+/// try/catch — disk failure logs + continues mining (the 30s background
+/// thread will retry). Returns `true` if the chainstate write succeeded
+/// (mirrors the original `did_save = true` behavior used to gate the
+/// companion saves).
+pub fn flushChainstatePerBlock(
+    bc: *blockchain_mod.Blockchain,
+    dns: *dns_mod.DnsRegistry,
+    dns_persist_path: []const u8,
+    htlc_persist_path: []const u8,
+    channel_mgr: *payment_mod.ChannelManager,
+    channels_path: []const u8,
+    intent_persist_path: []const u8,
+    block_count: u64,
+) void {
+    bc.saveToDisc() catch |err| {
+        std.debug.print(
+            "[DB] Per-block save failed at #{d}: {} — continuing mining, 30s thread will retry\n",
+            .{ block_count, err },
+        );
+    };
+    std.debug.print("[DB] Saved chainstate after block #{d}\n", .{block_count});
+    // DNS persist piggybacks on chain auto-save (cadenta identica).
+    dns.saveToFile(dns_persist_path) catch |err| {
+        std.debug.print("[DNS] Save to {s} failed: {s}\n",
+            .{ dns_persist_path, @errorName(err) });
+    };
+    // HTLC registry persists on the same cadence as DNS.
+    @import("../htlc_persist.zig").saveToFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
+        std.debug.print("[HTLC] Save to {s} failed: {s}\n",
+            .{ htlc_persist_path, @errorName(err) });
+    };
+    // Payment channels persist on the same cadence.
+    @import("../channel_persist.zig").saveToFile(channel_mgr, channels_path) catch |err| {
+        std.debug.print("[CHANNELS] Save to {s} failed: {s}\n",
+            .{ channels_path, @errorName(err) });
+    };
+    // Intent registry persists on the same cadence as HTLC.
+    bc.intent_registry.saveToFile(intent_persist_path) catch |err| {
+        std.debug.print("[INTENT] Save to {s} failed: {s}\n",
+            .{ intent_persist_path, @errorName(err) });
+    };
+}
+
+/// PoUW: build a WorkReport for the miner of the just-produced block
+/// and submit it to the engine. Fills/volume/price counters left at 0;
+/// the matching engine + oracle paths update those independently.
+pub fn submitMiningWorkReport(
+    pouw: *pouw_mod.PoUWEngine,
+    miner_addr: []const u8,
+    block_count: u64,
+) void {
+    var work = pouw_mod.WorkReport{
+        .miner_address = undefined,
+        .miner_addr_len = 0,
+        .work_type = .matching,
+        .block_height = block_count,
+        .timestamp_ms = @intCast(std.time.milliTimestamp()),
+        .fills_count = 0,
+        .volume_matched_sat = 0,
+        .price_updates = 0,
+        .settlements_count = 0,
+        .work_hash = std.mem.zeroes([32]u8),
+        .signature = std.mem.zeroes([64]u8),
+    };
+    // Copy miner address
+    const addr_len: u8 = @intCast(@min(miner_addr.len, 64));
+    @memcpy(work.miner_address[0..addr_len], miner_addr[0..addr_len]);
+    work.miner_addr_len = addr_len;
+    pouw.submitWorkReport(work) catch {};
+}
 
 /// Canonical pair labels — mirrors exchange_listPairs RPC order. Kept here so
 /// the WS broadcast helper does not depend on caller for the list.

@@ -894,14 +894,7 @@ pub fn main() !void {
         // ── IDLE check — duplicat detectat pe acelasi IP, nu minaza ─────────
         if (p2p.is_idle) {
             // Nodul e IDLE: primeste blocuri, sincronizeaza, dar NU minaza
-            // Re-verifica la fiecare 60s daca duplicatul a disparut
-            if (maint_count % 60 == 0) {
-                std.debug.print("[IDLE] Re-verificare duplicat IP...\n", .{});
-                const recheck = p2p.knockKnock();
-                if (recheck == .alone) {
-                    std.debug.print("[IDLE] Duplicat disparut — reactivare mining!\n\n", .{});
-                }
-            }
+            mining_periodic.maybeRetryKnockKnock(&p2p, maint_count);
             std.Thread.sleep(1 * std.time.ns_per_s);
             maint_count += 1;
             continue;
@@ -1185,27 +1178,7 @@ pub fn main() !void {
             const mine_time_ns = mine_end_ns - mine_start_ns;
 
             // ── Snapshot prices from WS feed into the mined block ────────
-            // Mapeaza ws_exchange_feed.PriceFetch → blockchain.BlockPriceEntry
-            // (fixed-size strings ca sa traiasca in hashmap fara allocator).
-            if (g_ws_feed) |*feed| {
-                const live = feed.snapshot();
-                var entries: [6]blockchain_mod.BlockPriceEntry = undefined;
-                for (live, 0..) |p, i| {
-                    var e: blockchain_mod.BlockPriceEntry = .{};
-                    const elen = @min(p.exchange.len, 16);
-                    e.exchange_len = @intCast(elen);
-                    @memcpy(e.exchange[0..elen], p.exchange[0..elen]);
-                    const plen = @min(p.pair.len, 16);
-                    e.pair_len = @intCast(plen);
-                    @memcpy(e.pair[0..plen], p.pair[0..plen]);
-                    e.bid_micro_usd = p.bid_micro_usd;
-                    e.ask_micro_usd = p.ask_micro_usd;
-                    e.timestamp_ms  = p.timestamp_ms;
-                    e.success       = p.success;
-                    entries[i] = e;
-                }
-                bc.recordBlockPrices(new_block.index, &entries);
-            }
+            mining_periodic.snapshotPricesIntoBlock(&g_ws_feed, &bc, new_block.index);
 
             // Update metrics: hashrate from nonces tried
             g_metrics.updateHashrate(new_block.nonce, mine_time_ns);
@@ -1281,142 +1254,22 @@ pub fn main() !void {
             }
 
             // ── Reputation: credit pentru toate cele 4 domenii ─────────────────
-            //
-            // FOOD = work (mining + oracle push + agent decisions)
-            // RENT = capital (stake + hold per-block)
-            // VACATION = longevity (per-day tick at 8640 blocks)
-            // LOVE = uptime (per-block heartbeat for active miners)
-            //
-            // Hooks for oracle push + agent decisions are wired separately at
-            // their call sites (oracle bridge tick, submitNativeTx success).
-            if (g_reputation) |*rep_mgr| {
-                // FOOD — block mined credit
-                rep_mgr.creditMinedBlock(miner_addr, @as(u64, block_count));
-
-                // LOVE — uptime credit pentru miner activ. La 1s/block, 60 blocs
-                // = 1 minut online. Acordat la fiecare 60 blocuri (creditUptimeMinutes
-                // trateaza 1 minut = LOVE_PER_MINUTE_ONLINE points).
-                if (block_count > 0 and block_count % 60 == 0) {
-                    rep_mgr.creditUptimeMinutes(miner_addr, 1, @as(u64, block_count));
-                }
-                // LOVE bonus — daily streak (la fiecare 8640 blocuri = 1 zi).
-                if (block_count > 0 and block_count % 8640 == 0) {
-                    rep_mgr.creditDailyStreak(miner_addr, @as(u64, block_count));
-                }
-
-                // RENT — credit per-block pentru stakeri activi.
-                // Iteram primii `validator_count` din slot-ul fix de 128.
-                // Stake e in SAT (1e9 SAT = 1 OMNI), creditStakePerBlock asteapta OMNI.
-                if (g_staking_engine) |se| {
-                    var vi: usize = 0;
-                    while (vi < se.validator_count) : (vi += 1) {
-                        const val = &se.validators[vi];
-                        if (val.status != .active) continue;
-                        const omni_staked = val.total_stake / 1_000_000_000;
-                        if (omni_staked == 0) continue;
-                        rep_mgr.creditStakePerBlock(
-                            val.address[0..val.addr_len],
-                            omni_staked,
-                            @as(u64, block_count),
-                        );
-                    }
-                }
-
-                // VACATION — daily tick. 1 day = 8640 blocks @ 10s.
-                // Fix B1 deadlock: previously took rep_mgr.lock() then called
-                // creditVacationDay which re-locks the same mutex (non-reentrant
-                // std.Thread.Mutex panics → mainnet wedge for ~12 min until
-                // systemd respawn). Solution: collect the addresses first under
-                // a brief lock, then iterate the OWNED list calling
-                // creditVacationDay (which will lock once, briefly, per addr).
-                if (block_count > 0 and block_count % 8640 == 0) {
-                    const total_days: u64 = @as(u64, block_count) / 8640;
-                    // Snapshot keys under lock to avoid concurrent-modify panic.
-                    var addr_list = std.array_list.Managed([]const u8).init(allocator);
-                    defer {
-                        for (addr_list.items) |a| allocator.free(a);
-                        addr_list.deinit();
-                    }
-                    {
-                        rep_mgr.lock();
-                        defer rep_mgr.unlock();
-                        var iter = rep_mgr.iterate();
-                        while (iter.next()) |entry| {
-                            const owned = allocator.dupe(u8, entry.key_ptr.*) catch continue;
-                            addr_list.append(owned) catch {
-                                allocator.free(owned);
-                                break;
-                            };
-                        }
-                    }
-                    // Now lock-free — each call takes the mutex briefly.
-                    for (addr_list.items) |addr| {
-                        rep_mgr.creditVacationDay(
-                            addr,
-                            total_days,
-                            @as(u64, block_count),
-                        );
-                    }
-                }
-            }
+            mining_periodic.creditReputationForBlock(
+                &g_reputation, g_staking_engine, miner_addr,
+                @as(u64, block_count), allocator,
+            );
 
             // Auto-save: track blocks and TXs since last save
             bc.blocks_since_save += 1;
             bc.txs_since_save += @intCast(pending_txs.len);
-            // Detectam daca checkAutoSave a flush-uit prin reset-ul contorului.
-            const before_save = bc.blocks_since_save;
             bc.checkAutoSave();
-            var did_save = bc.blocks_since_save < before_save;
 
-            // ── FIX (2026-05-03): per-block chainstate flush ──────────────────
-            //
-            // Inainte: checkAutoSave era no-op si saveToDisc ruleaza doar din
-            // thread-ul de fundal (interval 30s). Orice stake/agent register/
-            // op_return memo din ultimele 30s inainte de SEGV / restart binar /
-            // systemctl restart era pierdut — restart-ul citea chainstate
-            // vechi, iar pubkey_registry/balances populate de TX-urile recente
-            // disparuser. Validatorii pierdeau rolul, agentii dispareau, sent
-            // values pe pool addresses se reseta la 0.
-            //
-            // Acum: dupa fiecare bloc reusit forteaza un flush. Wrapped in
-            // try/catch — daca disk-ul e plin sau lent, log + continua mining
-            // (thread-ul de 30s va reincerca). NU oprim mining-ul pe save fail.
-            //
-            // TBD (Fix #2): saveBlockchain face full-file rewrite (monolitic).
-            // La 50k+ blocuri devine ~hundreds of ms per save. Plan refactor
-            // → blocks/blkNNNNN.dat append + chainstate/ KV (Bitcoin-style),
-            // tracked in arch/leveldb-storage. Pana atunci, costul e acceptabil
-            // pentru garantia ca state survives restart.
-            bc.saveToDisc() catch |err| {
-                std.debug.print(
-                    "[DB] Per-block save failed at #{d}: {} — continuing mining, 30s thread will retry\n",
-                    .{ block_count, err },
-                );
-            };
-            std.debug.print("[DB] Saved chainstate after block #{d}\n", .{block_count});
-            did_save = true;
-            // DNS persist piggybacks on chain auto-save (cadenta identica).
-            if (did_save) {
-                dns.saveToFile(dns_persist_path) catch |err| {
-                    std.debug.print("[DNS] Save to {s} failed: {s}\n",
-                        .{ dns_persist_path, @errorName(err) });
-                };
-                // HTLC registry persists on the same cadence as DNS.
-                @import("htlc_persist.zig").saveToFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
-                    std.debug.print("[HTLC] Save to {s} failed: {s}\n",
-                        .{ htlc_persist_path, @errorName(err) });
-                };
-                // Payment channels persist on the same cadence.
-                @import("channel_persist.zig").saveToFile(&g_channel_mgr, channels_path) catch |err| {
-                    std.debug.print("[CHANNELS] Save to {s} failed: {s}\n",
-                        .{ channels_path, @errorName(err) });
-                };
-                // Intent registry persists on the same cadence as HTLC.
-                bc.intent_registry.saveToFile(intent_persist_path) catch |err| {
-                    std.debug.print("[INTENT] Save to {s} failed: {s}\n",
-                        .{ intent_persist_path, @errorName(err) });
-                };
-            }
+            // ── FIX (2026-05-03): per-block chainstate flush + companion persists ──
+            mining_periodic.flushChainstatePerBlock(
+                &bc, &dns, dns_persist_path,
+                htlc_persist_path, &g_channel_mgr, channels_path,
+                intent_persist_path, block_count,
+            );
 
             // Record metrics
             g_metrics.recordBlock();
@@ -1425,27 +1278,7 @@ pub fn main() !void {
             }
 
             // ── PoUW: Track mining work for reward distribution ─────────
-            {
-                var work = pouw_mod.WorkReport{
-                    .miner_address = undefined,
-                    .miner_addr_len = 0,
-                    .work_type = .matching,
-                    .block_height = block_count,
-                    .timestamp_ms = @intCast(std.time.milliTimestamp()),
-                    .fills_count = 0,
-                    .volume_matched_sat = 0,
-                    .price_updates = 0,
-                    .settlements_count = 0,
-                    .work_hash = std.mem.zeroes([32]u8),
-                    .signature = std.mem.zeroes([64]u8),
-                };
-                // Copy miner address
-                const addr_bytes = miner_addr;
-                const addr_len: u8 = @intCast(@min(addr_bytes.len, 64));
-                @memcpy(work.miner_address[0..addr_len], addr_bytes[0..addr_len]);
-                work.miner_addr_len = addr_len;
-                g_pouw_engine.submitWorkReport(work) catch {};
-            }
+            mining_periodic.submitMiningWorkReport(&g_pouw_engine, miner_addr, block_count);
 
             // Anunta blocul la peerii P2P (legacy announce + gossip relay)
             p2p.chain_height = block_count;
