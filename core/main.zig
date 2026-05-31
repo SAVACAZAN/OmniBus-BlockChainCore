@@ -749,31 +749,31 @@ pub fn main() !void {
     const ws_port  = if (is_seed) net_cfg.ws_port  else net_cfg.ws_port  + 1;
     const rpc_port = if (is_seed) net_cfg.rpc_port else net_cfg.rpc_port + 1;
 
-    var ws_srv = WsServer.init(ws_port, allocator);
-    defer ws_srv.deinit();
-    ws_srv.attachBlockchain(&bc);
-    ws_srv.start() catch |err| {
-        std.debug.print("[WS] Server start failed on port {d}: {} — continuam fara WS\n", .{ ws_port, err });
-    };
-    p2p.attachWsServer(&ws_srv);
+    // ── WebSocket + RPC config + DEX journal paths ─ moved to node/ws_rpc_init.zig ─
+    const ws_rpc_init = @import("node/ws_rpc_init.zig");
+    const ws_rpc_chain_subdir: []const u8 = if (config.testnet) "testnet"
+        else if (config.regtest) "regtest" else "mainnet";
+    var ws_cfg = try ws_rpc_init.initWsAndRpcConfig(allocator, &bc, ws_port, ws_rpc_chain_subdir);
+    defer ws_cfg.ws_srv.deinit();
+    defer allocator.free(ws_cfg.rpc_bind);
+    defer if (ws_cfg.rpc_token) |t| allocator.free(t);
+    defer if (ws_cfg.users_path) |p| allocator.free(p);
+    defer if (ws_cfg.identities_path) |p| allocator.free(p);
+    defer if (ws_cfg.kyc_path) |p| allocator.free(p);
+    defer if (ws_cfg.profiles_path) |p| allocator.free(p);
+
+    p2p.attachWsServer(&ws_cfg.ws_srv);
     // Publish to global so non-main modules (blockchain, dns_registry hooks)
     // can emit events without holding a direct WsServer pointer.
-    g_ws_srv = &ws_srv;
+    g_ws_srv = &ws_cfg.ws_srv;
     // Tell P2P which wallet address mines on this node, so block
     // announcements carry the WALLET address as `miner_id` (which is
     // what peers validate against the slot leader). Without this, peers
     // saw `local_id` ("vps-testnet" etc.) and rejected every block.
     p2p.attachMinerAddress(effective_miner_addr);
 
-    // RPC bind + auth — read from env vars OMNIBUS_RPC_BIND / OMNIBUS_RPC_TOKEN.
-    // Default bind = "127.0.0.1" so a fresh node is NOT exposed to the public
-    // internet by accident. Public nodes (VPS) must explicitly opt in via
-    // OMNIBUS_RPC_BIND=0.0.0.0 + OMNIBUS_RPC_TOKEN=<long-random-string>.
-    // ServerCtx now copies the auth token into its own static buffer so we
-    // are free to drop the env-allocated string after startHTTPEx returns.
-    const rpc_bind = std.process.getEnvVarOwned(allocator, "OMNIBUS_RPC_BIND") catch
-        try allocator.dupe(u8, "127.0.0.1");
-    const rpc_token: ?[]const u8 = std.process.getEnvVarOwned(allocator, "OMNIBUS_RPC_TOKEN") catch null;
+    const rpc_bind = ws_cfg.rpc_bind;
+    const rpc_token = ws_cfg.rpc_token;
 
     // ── Native DEX matching engine ─ moved to node/matching_engine_init.zig ─
     const exchange_disabled = std.process.hasEnvVar(allocator, "OMNIBUS_EXCHANGE_OFF") catch false;
@@ -796,28 +796,13 @@ pub fn main() !void {
     // for the canonical map. Each slot is a native smart contract: on-chain
     // address, no private key, chain enforces the rules.
 
-    // Exchange-users journal (api keys + internal balances). Always
-    // present (even when matching engine is off) because login + balance
-    // queries are useful by themselves.
-    var users_path_owned: ?[]u8 = null;
-    var identities_path_owned: ?[]u8 = null;
-    var kyc_path_owned: ?[]u8 = null;
-    var profiles_path_owned: ?[]u8 = null;
-    {
-        const chain_subdir: []const u8 = if (config.testnet) "testnet"
-            else if (config.regtest) "regtest" else "mainnet";
-        users_path_owned = std.fmt.allocPrint(allocator, "data/{s}/exchange-users.jsonl", .{chain_subdir}) catch null;
-        if (users_path_owned) |p| {
-            std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
-            std.debug.print("[EXCHANGE] users journal: {s}\n", .{p});
-        }
-        identities_path_owned = std.fmt.allocPrint(allocator, "data/{s}/identities.jsonl", .{chain_subdir}) catch null;
-        kyc_path_owned = std.fmt.allocPrint(allocator, "data/{s}/kyc-attestations.jsonl", .{chain_subdir}) catch null;
-        profiles_path_owned = std.fmt.allocPrint(allocator, "data/{s}/profiles.jsonl", .{chain_subdir}) catch null;
-        if (identities_path_owned) |p| std.debug.print("[IDENTITY] journal: {s}\n", .{p});
-        if (kyc_path_owned) |p| std.debug.print("[KYC] journal: {s}\n", .{p});
-        // profiles journal — makePath done inside startHTTPEx via replayProfilesJournal
-    }
+    // Exchange-users / identities / KYC / profiles journal paths moved into
+    // node/ws_rpc_init.zig (see ws_cfg above). Aliased here so RPCThreadArgs
+    // construction below stays unchanged.
+    const users_path_owned = ws_cfg.users_path;
+    const identities_path_owned = ws_cfg.identities_path;
+    const kyc_path_owned = ws_cfg.kyc_path;
+    const profiles_path_owned = ws_cfg.profiles_path;
 
     // Trade fills log, KYC issuer, bridge state, grid registry —
     // all four heap-init blocks were extracted into core/node/exchange_engines.zig.
@@ -1801,7 +1786,7 @@ pub fn main() !void {
             p2p.broadcastBlockGossip(block_count, new_block.hash, reward_sat);
 
             // Push real-time catre frontend React prin WebSocket
-            ws_srv.broadcastBlock(
+            ws_cfg.ws_srv.broadcastBlock(
                 block_count,
                 new_block.hash,
                 reward_sat,
@@ -1815,7 +1800,7 @@ pub fn main() !void {
             for (new_block.transactions.items, 0..) |tx, idx| {
                 if (idx == 0) continue;
                 if (tx.hash.len == 0) continue;
-                ws_srv.broadcastTxConfirmed(tx.hash, block_count, new_block.hash);
+                ws_cfg.ws_srv.broadcastTxConfirmed(tx.hash, block_count, new_block.hash);
             }
 
             // ── WS: broadcast fills (trades) + orderbook snapshots ──────
@@ -1830,7 +1815,7 @@ pub fn main() !void {
                     for (fills) |fill| {
                         const label = if (fill.pair_id < PAIR_LABELS.len)
                             PAIR_LABELS[fill.pair_id] else "OMNI/USDC";
-                        ws_srv.broadcastTrade(
+                        ws_cfg.ws_srv.broadcastTrade(
                             fill.pair_id, label,
                             fill.price_micro_usd, fill.amount_sat,
                             "buy", block_count,
@@ -1846,7 +1831,7 @@ pub fn main() !void {
                         const oc = eng.orderCountForPair(pair_id);
                         if (bb > 0 or ba > 0 or oc > 0) {
                             const sp = if (ba > bb) ba - bb else 0;
-                            ws_srv.broadcastOrderbook(pair_id, label, bb, ba, sp, oc, block_count);
+                            ws_cfg.ws_srv.broadcastOrderbook(pair_id, label, bb, ba, sp, oc, block_count);
                         }
                     }
                 }
@@ -1883,14 +1868,14 @@ pub fn main() !void {
                     if (fetcher.getMedianPrice()) |median| {
                         std.debug.print("[ORACLE-FETCHER] BTC/USD median: ${d}.{d:0>2} ({d}/3 exchanges)\n",
                             .{ median / 1_000_000, (median % 1_000_000) / 10_000, btc_ok });
-                        ws_srv.broadcastOraclePrice("BTC/USD", median, btc_ok);
+                        ws_cfg.ws_srv.broadcastOraclePrice("BTC/USD", median, btc_ok);
                     } else {
                         std.debug.print("[ORACLE-FETCHER] BTC: no prices available\n", .{});
                     }
                     if (fetcher.getMedianLcxPrice()) |median| {
                         std.debug.print("[ORACLE-FETCHER] LCX/USD median: ${d}.{d:0>4} ({d}/3 exchanges)\n",
                             .{ median / 1_000_000, (median % 1_000_000) / 100, lcx_ok });
-                        ws_srv.broadcastOraclePrice("LCX/USD", median, lcx_ok);
+                        ws_cfg.ws_srv.broadcastOraclePrice("LCX/USD", median, lcx_ok);
                     } else {
                         std.debug.print("[ORACLE-FETCHER] LCX: no prices available\n", .{});
                     }
