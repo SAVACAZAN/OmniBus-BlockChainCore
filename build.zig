@@ -97,6 +97,12 @@ pub fn build(b: *std.Build) void {
     // build hosts (VPS, CI) don't have the Rust toolchain. Opt in with `-Devm=true`
     // after building the crate: `cd evm && cargo build --release`.
     const use_evm  = b.option(bool, "evm", "Link omnibus-evm (revm) Rust static lib") orelse false;
+    // Deterministic PQ signing in wallet.signWithAllPQDomains. Default false
+    // (mainnet backward-compat — flipping mid-flight is a HARD FORK). Testnet
+    // and regtest builds typically set `-Dpq_deterministic=true`. See
+    // core/chain_config.zig PQ_DETERMINISTIC_SIGNING for the full impact.
+    const use_pq_det = b.option(bool, "pq_deterministic",
+        "Wallet PQ signing derives keys from mnemonic (HKDF→liboqs). Default false (mainnet).") orelse false;
 
     // build_options module — exposes feature flags to Zig code so we can
     // compile-out FFI declarations and stub handlers when a dependency is
@@ -105,6 +111,7 @@ pub fn build(b: *std.Build) void {
     const build_options = b.addOptions();
     build_options.addOption(bool, "evm_enabled", use_evm);
     build_options.addOption(bool, "oqs_enabled", use_oqs);
+    build_options.addOption(bool, "pq_deterministic_signing", use_pq_det);
 
     // ── Executabile ───────────────────────────────────────────────────────────
 
@@ -276,6 +283,7 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "governance",  "core/governance.zig",  target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "transaction", "core/transaction.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "blockchain",  "core/blockchain.zig",  target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "blockchain-tests", "core/blockchain_tests.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "genesis",     "core/genesis.zig",     target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "mempool",     "core/mempool.zig",     target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "consensus",   "core/consensus.zig",   target, optimize, build_options).step);
@@ -437,6 +445,24 @@ pub fn build(b: *std.Build) void {
     addOqs(test_sign_det, use_oqs);
     test_sign_det.root_module.link_libc = true;
     test_wallet_step.dependOn(&b.addRunArtifact(test_sign_det).step);
+
+    // Cross-language PQ vector printer — prints hex to compare against the
+    // Rust binary `pq_cross_lang_vectors` in omnibus-crypto-core/rust.
+    // Step name: `test-cross-lang-pq` (separate from `test-wallet` because it
+    // prints to stdout rather than asserting — vectors get locked once both
+    // sides match.)
+    const test_xlang = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("core/pq_cross_lang_vectors_test.zig"),
+            .target = target, .optimize = optimize,
+        }),
+    });
+    test_xlang.root_module.addOptions("build_options", build_options);
+    addOqs(test_xlang, use_oqs);
+    test_xlang.root_module.link_libc = true;
+    const xlang_step = b.step("test-cross-lang-pq",
+        "Print canonical PQ vectors to compare against Rust output (needs -Doqs=true)");
+    xlang_step.dependOn(&b.addRunArtifact(test_xlang).step);
 
     // ── test (toate fara PQ) ──────────────────────────────────────────────────
     const test_all_step = b.step("test", "Run all tests (fara liboqs)");
