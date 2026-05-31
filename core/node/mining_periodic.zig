@@ -20,6 +20,47 @@ const reputation_manager_mod = @import("../reputation_manager.zig");
 const payment_mod    = @import("../payment_channel.zig");
 const dns_mod        = @import("../dns_registry.zig");
 const sync_mod       = @import("../sync.zig");
+const node_launcher  = @import("../node_launcher.zig");
+
+/// Gate at the top of the mining loop: if the launcher is not yet ready
+/// for mining (not enough peers), print a status line every 6 maintenance
+/// ticks, sleep 10s and tell the caller to `continue`. Once ready, start
+/// mining (idempotent via `mining_started_ptr`) and return `false` so the
+/// caller proceeds with the rest of the loop body.
+///
+/// Returns `true` if the caller should `continue` the outer loop, `false`
+/// to proceed with the mining body.
+pub fn handleWaitForPeers(
+    launcher: anytype,
+    p2p: anytype,
+    mining_started_ptr: *bool,
+    maint_count_ptr: *u32,
+    block_count: u64,
+) !bool {
+    if (!launcher.readyForMining() and !mining_started_ptr.*) {
+        maint_count_ptr.* += 1;
+        if (maint_count_ptr.* % 6 == 0) {
+            const peer_count: usize = p2p.peers.items.len;
+            const needed = node_launcher.NodeLauncher.MIN_PEERS_FOR_MINING;
+            std.debug.print("[NETWORK] Waiting for miners... {d}/{d} connected (need {d} to start mining)\n",
+                .{ peer_count, needed, needed });
+            if (launcher.getBootstrapStatus()) |bstats| {
+                std.debug.print("  bootstrap status: {}  peers: {d}\n",
+                    .{ bstats.status, bstats.peer_count });
+            }
+        }
+        std.Thread.sleep(10 * std.time.ns_per_s);
+        return true;
+    }
+
+    if (!mining_started_ptr.* and launcher.readyForMining()) {
+        try launcher.startMining();
+        mining_started_ptr.* = true;
+        std.debug.print("[MINING] Network ready — {d} peers connected, mining started (height {d})\n\n",
+            .{ p2p.peers.items.len, block_count });
+    }
+    return false;
+}
 
 /// IDLE re-check: if `p2p.is_idle` is set, the mining loop calls this
 /// every iteration. Every 60s (gated by `maint_count`) it re-runs

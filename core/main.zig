@@ -869,28 +869,7 @@ pub fn main() !void {
     var stabilizer_timeout_mult: f64 = stab.stabilizer_timeout_mult;
 
     while (launcher.is_running and !g_shutdown.load(.monotonic)) {
-        if (!launcher.readyForMining() and !mining_started) {
-            maint_count += 1;
-            if (maint_count % 6 == 0) {
-                const peer_count: usize = p2p.peers.items.len;
-                const needed = node_launcher.NodeLauncher.MIN_PEERS_FOR_MINING;
-                std.debug.print("[NETWORK] Waiting for miners... {d}/{d} connected (need {d} to start mining)\n",
-                    .{ peer_count, needed, needed });
-                if (launcher.getBootstrapStatus()) |bstats| {
-                    std.debug.print("  bootstrap status: {}  peers: {d}\n",
-                        .{ bstats.status, bstats.peer_count });
-                }
-            }
-            std.Thread.sleep(10 * std.time.ns_per_s);
-            continue;
-        }
-
-        if (!mining_started and launcher.readyForMining()) {
-            try launcher.startMining();
-            mining_started = true;
-            std.debug.print("[MINING] Network ready — {d} peers connected, mining started (height {d})\n\n",
-                .{ p2p.peers.items.len, block_count });
-        }
+        if (try mining_periodic.handleWaitForPeers(&launcher, p2p, &mining_started, &maint_count, block_count)) continue;
 
         // ── IDLE check — duplicat detectat pe acelasi IP, nu minaza ─────────
         if (p2p.is_idle) {
