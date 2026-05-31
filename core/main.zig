@@ -311,6 +311,7 @@ const rpcThread     = rpc_thread_mod.rpcThread;
 // Extracted 2026-05-29 to core/node/faucet_thread.zig; re-exported here.
 // faucet_thread.zig accesses `g_miner_pool` via @import("root").
 const faucet_thread_mod = @import("node/faucet_thread.zig");
+const runtime_init      = @import("node/runtime_init.zig");
 const autoTxBetweenMiners       = faucet_thread_mod.autoTxBetweenMiners;
 const FaucetRefillArgs          = faucet_thread_mod.FaucetRefillArgs;
 const faucetRefillLoop          = faucet_thread_mod.faucetRefillLoop;
@@ -827,48 +828,18 @@ pub fn main() !void {
     });
 
     // ── Faucet auto-refill thread (Faza 5) ─────────────────────────────────
-    // When --faucet-mode is on AND the miner's primary wallet (savacazan)
-    // has been mining and accumulating rewards, periodically top up the
-    // faucet from the miner wallet so claims keep working without manual
-    // intervention. Threshold + amount tunable via config.faucet_grant_sat.
-    if (config.faucet_mode and faucet_wallet_opt != null) {
-        const refill_args = allocator.create(FaucetRefillArgs) catch null;
-        if (refill_args) |ra| {
-            ra.* = .{
-                .bc = &bc,
-                .miner_wallet = &wallet,
-                .faucet_wallet = &faucet_wallet_opt.?,
-                .grant_sat = config.faucet_grant_sat,
-                .alloc = allocator,
-            };
-            const rt = std.Thread.spawn(.{}, faucetRefillLoop, .{ra}) catch |err| blk: {
-                std.debug.print("[FAUCET-REFILL] thread spawn failed: {}\n", .{err});
-                break :blk null;
-            };
-            if (rt) |th| {
-                th.detach();
-                std.debug.print("[FAUCET-REFILL] auto-refill thread started (threshold {d} SAT, top-up {d} SAT)\n",
-                    .{ FAUCET_REFILL_THRESHOLD_SAT, FAUCET_REFILL_AMOUNT_SAT });
-            }
-        }
-    }
+    _ = runtime_init.spawnFaucetRefillThread(
+        allocator,
+        config.faucet_mode,
+        config.faucet_grant_sat,
+        &bc,
+        &wallet,
+        if (faucet_wallet_opt) |*fw| fw else null,
+    );
 
     // ── Node launcher ─────────────────────────────────────────────────────────
-    var launcher = node_launcher.NodeLauncher.init(config);
+    var launcher = try runtime_init.buildAndStartNodeLauncher(config, p2p);
     defer launcher.deinit();
-
-    // Ataseaza P2PNode real la launcher — broadcast() va folosi TCP in loc de print-only
-    launcher.attachP2PNode(p2p);
-
-    if (config.mode == node_launcher.NodeMode.seed) {
-        try launcher.startSeedNode();
-    } else if (config.mode == node_launcher.NodeMode.light) {
-        // Light mode: no mining, just header sync
-        std.debug.print("[LIGHT] Node started in SPV mode — no mining, headers only\n", .{});
-        try launcher.startSeedNode(); // reuse seed init (listener + bootstrap)
-    } else {
-        try launcher.startMinerNode();
-    }
 
     std.debug.print("[STATUS] Node running | Blocks: {d} | Mempool: {d}\n\n",
         .{ bc.chain.items.len, mempool.size() });
@@ -886,40 +857,13 @@ pub fn main() !void {
     std.debug.print("[ORACLE] Distributed price oracle initialized\n", .{});
 
     // ── Oracle Fetcher: real prices from LCX, Kraken, Coinbase ────────────────
-    //
-    // Spawns a dedicated worker thread that owns all blocking HTTPS work
-    // (6 sequential GETs to LCX, Kraken, Coinbase × BTC, LCX). The mining
-    // loop only reads the latest snapshot under a tiny mutex — never
-    // blocks on the network. This removed the periodic 8–9 s block-time
-    // spikes the operator observed (every 10th block sat in fetchAll()
-    // for the worst-case sum of 6 HTTPS timeouts).
-    g_oracle_fetcher = oracle_fetcher_mod.OracleFetcher.init(allocator);
-    if (g_oracle_fetcher) |*f| {
-        f.startWorker() catch |err| {
-            std.debug.print("[ORACLE-FETCHER] worker spawn failed: {} — fetcher disabled\n",
-                .{err});
-        };
-    }
-    std.debug.print("[ORACLE-FETCHER] Real price fetcher initialized + worker thread started\n", .{});
+    g_oracle_fetcher = runtime_init.initOracleFetcher(allocator);
 
     // ── Performance Metrics init ───────────────────────────────────────────────
-    g_metrics = benchmark_mod.Metrics.init();
-    g_metrics.start(); // set start_time at runtime (can't call timestamp() at comptime)
-    std.debug.print("[METRICS] Performance tracking initialized\n\n", .{});
+    g_metrics = runtime_init.initMetrics();
 
     // ── Pair registry (optional — extends WS subscriptions to all common pairs) ──
-    if (parsed.pair_registry_path) |reg_path| {
-        if (pair_registry_mod.loadFile(allocator, reg_path)) |reg| {
-            g_pair_registry = reg;
-            std.debug.print(
-                "[PAIR-REGISTRY] Loaded {s}: lcx={d}, kraken={d}, coinbase={d} (total {d})\n",
-                .{ reg_path, reg.lcx.len, reg.kraken.len, reg.coinbase.len, reg.totalRoutes() },
-            );
-        } else |err| {
-            std.debug.print("[PAIR-REGISTRY] Load failed for {s}: {s} (continuing with IMPORTANT_PAIRS only)\n",
-                .{ reg_path, @errorName(err) });
-        }
-    }
+    g_pair_registry = runtime_init.loadPairRegistry(allocator, parsed.pair_registry_path);
 
     // ── WS Exchange Feed: live bid/ask from Coinbase, Kraken, LCX ──
     //
