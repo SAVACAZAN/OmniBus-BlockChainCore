@@ -11,6 +11,7 @@ pub const build_options_evm_enabled: bool = @import("build_options").evm_enabled
 const platform_lock = @import("node/platform_lock.zig");
 const acquireSingleInstanceLock = platform_lock.acquireSingleInstanceLock;
 const wallet_setup = @import("node/wallet_setup.zig");
+const mempool_init = @import("node/mempool_init.zig");
 const db_setup     = @import("node/db_setup.zig");
 const subsystems_init = @import("node/subsystems_init.zig");
 const p2p_init     = @import("node/p2p_init.zig");
@@ -512,15 +513,8 @@ pub fn main() !void {
         .{ bc.difficulty, bc.chain.items.len, bc.chain.items.len - 1 });
 
     // ── Init wallet ───────────────────────────────────────────────────────────
-    var wallet = try Wallet.fromMnemonic(mnemonic, "", allocator);
+    var wallet = try wallet_setup.initLocalWallet(mnemonic, config.wallet_index, allocator);
     defer wallet.deinit();
-
-    std.debug.print("[WALLET] Address: {s}\n", .{wallet.address});
-    if (config.wallet_index > 0) {
-        std.debug.print("[WALLET] Derivation index: {d} (BIP-44 m/44'/777'/{d}'/0/0)\n", .{ config.wallet_index, config.wallet_index });
-    }
-    std.debug.print("[WALLET] Balance: {d} SAT ({d:.4} OMNI)\n\n",
-        .{ wallet.balance, @as(f64, @floatFromInt(wallet.balance)) / 1e9 });
 
     // ── Faucet wallet (optional) ────────────────────────────────────────
     // SECURITY: faucet wallet is loaded from a RAW PRIVATE KEY (env var
@@ -543,16 +537,7 @@ pub fn main() !void {
     }
 
     // ── Effective miner address ─────────────────────────────────────────
-    // Production setup: pass --miner-address to redirect block rewards to
-    // a wallet whose mnemonic stays OFFLINE (Liberty Suite, hardware
-    // wallet, paper). The local wallet derived above signs nothing at
-    // mining time and can be ephemeral. Legacy: if --miner-address is
-    // not set, we fall back to wallet.address (mnemonic-on-miner).
-    const effective_miner_addr: []const u8 = if (config.miner_address) |a| a else wallet.address;
-    if (config.miner_address != null) {
-        std.debug.print("[MINER] Reward address (from --miner-address): {s}\n", .{effective_miner_addr});
-        std.debug.print("[MINER] (mnemonic-derived wallet {s} stays unused for rewards)\n\n", .{wallet.address});
-    }
+    const effective_miner_addr = wallet_setup.pickEffectiveMinerAddress(config.miner_address, wallet.address);
     // Expose miner address to background threads (oracle bridge → FOOD credit).
     g_local_miner_address = effective_miner_addr;
 
@@ -561,41 +546,15 @@ pub fn main() !void {
     wallet_setup.registerSeedMiner(&g_miner_pool, effective_miner_addr, wallet.address, mnemonic, allocator);
 
     // ── AI Agents: load --agent-config <file> if provided ─────────────────────
-    // Pass nodul mnemonic ca să derivăm wallet propriu per-agent (BIP-44
-    // m/44'/777'/0'/0/wallet_index). Fiecare agent are adresă, balance, P&L
-    // separate. Fallback la miner address daca derivation eșuează.
-    //
-    // Opt-out via env var OMNIBUS_EXTERNAL_AGENTS=1. When set, the chain
-    // process does NOT load agents into its own AgentManager — a separate
-    // omnibus-agents process is expected to be running, watching the chain
-    // via RPC and submitting TXs through sendrawtransaction. This frees
-    // the mining loop from running agentTickAll on every block.
-    const external_agents = std.process.getEnvVarOwned(
-        allocator, "OMNIBUS_EXTERNAL_AGENTS",
-    ) catch null;
-    defer if (external_agents) |s| allocator.free(s);
-    const agents_use_external = external_agents != null and
-        std.mem.eql(u8, external_agents.?, "1");
-    if (agents_use_external) {
-        std.debug.print(
-            "[AGENT] external agents enabled (OMNIBUS_EXTERNAL_AGENTS=1) " ++
-            "— in-process agent manager disabled. Expect omnibus-agents on :28200\n", .{});
-    } else if (parsed.agent_config_path) |agent_path| {
-        loadAgentConfig(agent_path, mnemonic, effective_miner_addr, allocator);
+    if (agents_mod.checkAgentsActive(allocator)) {
+        if (parsed.agent_config_path) |agent_path| {
+            loadAgentConfig(agent_path, mnemonic, effective_miner_addr, allocator);
+        }
     }
 
     // ── Init Mempool FIFO ─────────────────────────────────────────────────────
-    var mempool = Mempool.init(allocator);
+    var mempool = try mempool_init.initMempool(allocator, &bc, mempoolVerifierFn);
     defer mempool.deinit();
-    // HIGH-05 enforcement: wire the signature verifier so RBF + initial
-    // submit both check signatures. Verifier dispatches per scheme — see
-    // mempoolVerifierFn above. Without this, the gate stays inactive
-    // (verifier defaults to null) and an attacker can replace a victim's
-    // pending TX without producing a valid signature.
-    mempool.verifier_ctx = &bc;
-    mempool.verifier = mempoolVerifierFn;
-    std.debug.print("[MEMPOOL] FIFO init | Max: {d} TX / {d} KB | Expiry: 14 days | sig_verifier=ON\n\n",
-        .{ mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES / 1024 });
 
     // ── Init 6 core subsystems (Consensus / Metachain / StateTrie / Finality /
     //    Staking / Governance) — see core/node/subsystems_init.zig for prints.

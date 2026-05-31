@@ -99,6 +99,37 @@ pub fn setupFaucetLedger(allocator: std.mem.Allocator, testnet: bool, regtest: b
 /// a RANDOM secp256k1 keypair under the address; F8 then published that bogus
 /// pubkey and signature verification failed on every TX. See main.zig comment
 /// block (now removed) for full history.
+// ── Local wallet init ────────────────────────────────────────────────────────
+/// Constructs the local Wallet from mnemonic and prints address/derivation/balance.
+/// Caller owns the returned Wallet (.deinit() in defer).
+pub fn initLocalWallet(
+    mnemonic: []const u8,
+    wallet_index: u32,
+    allocator: std.mem.Allocator,
+) !Wallet {
+    const wallet = try Wallet.fromMnemonic(mnemonic, "", allocator);
+    std.debug.print("[WALLET] Address: {s}\n", .{wallet.address});
+    if (wallet_index > 0) {
+        std.debug.print("[WALLET] Derivation index: {d} (BIP-44 m/44'/777'/{d}'/0/0)\n", .{ wallet_index, wallet_index });
+    }
+    std.debug.print("[WALLET] Balance: {d} SAT ({d:.4} OMNI)\n\n",
+        .{ wallet.balance, @as(f64, @floatFromInt(wallet.balance)) / 1e9 });
+    return wallet;
+}
+
+// ── Effective miner address picker ───────────────────────────────────────────
+/// Picks the effective miner reward address: prefers `cli_addr` (--miner-address,
+/// mnemonic-offline mode) and falls back to the local `wallet_addr` (legacy
+/// mnemonic-on-miner). Prints the override notice when applicable.
+pub fn pickEffectiveMinerAddress(cli_addr: ?[]const u8, wallet_addr: []const u8) []const u8 {
+    const effective: []const u8 = if (cli_addr) |a| a else wallet_addr;
+    if (cli_addr != null) {
+        std.debug.print("[MINER] Reward address (from --miner-address): {s}\n", .{effective});
+        std.debug.print("[MINER] (mnemonic-derived wallet {s} stays unused for rewards)\n\n", .{wallet_addr});
+    }
+    return effective;
+}
+
 pub fn registerSeedMiner(
     pool: *miner_wallet.MinerWalletPool,
     effective_miner_addr: []const u8,

@@ -29,6 +29,26 @@ const reputation_manager_mod = @import("../reputation_manager.zig");
 
 const Blockchain = blockchain_mod.Blockchain;
 
+/// Checks the OMNIBUS_EXTERNAL_AGENTS env var. Prints the appropriate banner.
+/// Returns true when the in-process AgentManager should load agents from
+/// --agent-config (i.e., external agents NOT enabled). Caller then invokes
+/// `loadAgentConfig` if `parsed.agent_config_path` is set.
+pub fn checkAgentsActive(allocator: std.mem.Allocator) bool {
+    const external_agents = std.process.getEnvVarOwned(
+        allocator, "OMNIBUS_EXTERNAL_AGENTS",
+    ) catch null;
+    defer if (external_agents) |s| allocator.free(s);
+    const agents_use_external = external_agents != null and
+        std.mem.eql(u8, external_agents.?, "1");
+    if (agents_use_external) {
+        std.debug.print(
+            "[AGENT] external agents enabled (OMNIBUS_EXTERNAL_AGENTS=1) " ++
+            "— in-process agent manager disabled. Expect omnibus-agents on :28200\n", .{});
+        return false;
+    }
+    return true;
+}
+
 pub fn loadAgentConfig(
     path: []const u8,
     mnemonic: []const u8,
