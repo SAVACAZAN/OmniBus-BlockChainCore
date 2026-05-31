@@ -10,6 +10,7 @@ pub const build_options_evm_enabled: bool = @import("build_options").evm_enabled
 // Vezi core/node/platform_lock.zig pentru implementare (Windows + POSIX).
 const platform_lock = @import("node/platform_lock.zig");
 const acquireSingleInstanceLock = platform_lock.acquireSingleInstanceLock;
+const wallet_setup = @import("node/wallet_setup.zig");
 
 const pq_crypto_mod   = @import("pq_crypto.zig");
 const blockchain_mod  = @import("blockchain.zig");
@@ -630,46 +631,15 @@ pub fn main() !void {
     // attacker who steals the file gets only the faucet's small balance
     // (≤ a few OMNI) and cannot touch the rest of the user's wallet
     // family. Same model Bitcoin uses for hot wallets (HSM-style isolation).
-    var faucet_wallet_opt: ?Wallet = null;
-    if (config.faucet_mode) {
-        const fpk_hex_owned = std.process.getEnvVarOwned(allocator, "OMNIBUS_FAUCET_PRIVKEY") catch null;
-        defer if (fpk_hex_owned) |s| allocator.free(s);
-        if (fpk_hex_owned) |fpk_hex| {
-            const trimmed = std.mem.trim(u8, fpk_hex, " \t\n\r");
-            if (Wallet.parsePrivateKeyHex(trimmed)) |fpk| {
-                if (Wallet.fromPrivateKey(fpk, allocator)) |fw| {
-                    faucet_wallet_opt = fw;
-                    std.debug.print("[FAUCET] Faucet wallet loaded from OMNIBUS_FAUCET_PRIVKEY (no mnemonic exposure)\n", .{});
-                    std.debug.print("[FAUCET] Faucet address: {s}\n", .{fw.address});
-                    std.debug.print("[FAUCET] Per-claim grant: {d} SAT ({d:.4} OMNI)\n\n",
-                        .{ config.faucet_grant_sat, @as(f64, @floatFromInt(config.faucet_grant_sat)) / 1e9 });
-                } else |err| {
-                    std.debug.print("[FAUCET] fromPrivateKey failed: {} — faucet disabled\n", .{err});
-                }
-            } else |err| {
-                std.debug.print("[FAUCET] OMNIBUS_FAUCET_PRIVKEY parse failed: {} (expected 64 hex chars) — faucet disabled\n", .{err});
-            }
-        } else {
-            std.debug.print("[FAUCET] --faucet-mode set but OMNIBUS_FAUCET_PRIVKEY env var missing — faucet disabled\n", .{});
-        }
-    }
+    var faucet_wallet_opt: ?Wallet = if (config.faucet_mode)
+        wallet_setup.loadFaucetWallet(allocator, config.faucet_grant_sat)
+    else
+        null;
     defer if (faucet_wallet_opt) |*fw| fw.deinit();
     _ = config.faucet_wallet_index; // retained on NodeConfig for future BIP-32 path; not used by privkey loader
 
-    // Configure on-disk persistence for faucet claim ledger. Same dir as
-    // chain.dat so testnet/regtest/mainnet ledgers stay separated. Without
-    // this call, claim counter is in-memory only and resets on every node
-    // restart — letting attackers re-claim repeatedly.
     if (faucet_wallet_opt != null) {
-        const chain_subdir: []const u8 = if (config.testnet) "testnet" else if (config.regtest) "regtest" else "mainnet";
-        const ledger_path = std.fmt.allocPrint(allocator, "data/{s}/faucet-claims.json", .{chain_subdir}) catch null;
-        if (ledger_path) |p| {
-            // Ensure data/<chain> exists (chain.dat path mirrors this).
-            std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
-            rpc_mod.faucetSetPersistPath(p);
-            std.debug.print("[FAUCET] claim ledger: {s}\n", .{p});
-            allocator.free(p);
-        }
+        wallet_setup.setupFaucetLedger(allocator, config.testnet, config.regtest);
     }
 
     // ── Effective miner address ─────────────────────────────────────────
@@ -687,32 +657,8 @@ pub fn main() !void {
     g_local_miner_address = effective_miner_addr;
 
     // Inregistreaza adresa minerului efectiv ca primul miner in pool.
-    //
-    // BUG FIX (2026-04-27): the legacy `register(addr)` path created a
-    // RANDOM secp256k1 keypair under the address. Then F8 (mining loop)
-    // every block called `bc.registerPubkey(maddr, random_pubkey_hex)`,
-    // which polluted `pubkey_registry` with a pubkey that DID NOT match
-    // the real wallet. When user then called `sendtransaction`, the TX
-    // got signed with the REAL private key but verified against the
-    // random pubkey → "[VALIDATE] FAIL: ECDSA signature verification".
-    //
-    // Fix: when `effective_miner_addr` matches the local wallet derived
-    // from the same mnemonic, register with the actual mnemonic so the
-    // pool's pubkey_hex matches the real key. Otherwise — when miner_addr
-    // is an external --miner-address — fall back to address-only registry
-    // and skip the mining-loop pubkey publishing so we don't poison the
-    // registry with a key that can't sign anything anyway.
-    if (std.mem.eql(u8, effective_miner_addr, wallet.address)) {
-        // Local mnemonic IS the miner — use it so pool pubkey is real.
-        _ = g_miner_pool.registerWithMnemonic(effective_miner_addr, mnemonic, allocator) catch
-            g_miner_pool.register(effective_miner_addr);
-    } else {
-        // External miner address (operator's offline wallet). Register the
-        // address only; the pool can't sign on its behalf anyway, and the
-        // F8 pubkey-publish path is now skipped for entries whose pubkey
-        // we don't actually own (see g_miner_pool.wallets[pi].is_real).
-        g_miner_pool.register(effective_miner_addr);
-    }
+    // See wallet_setup.registerSeedMiner for the bug-fix history (2026-04-27).
+    wallet_setup.registerSeedMiner(&g_miner_pool, effective_miner_addr, wallet.address, mnemonic, allocator);
 
     // ── AI Agents: load --agent-config <file> if provided ─────────────────────
     // Pass nodul mnemonic ca să derivăm wallet propriu per-agent (BIP-44
@@ -874,13 +820,7 @@ pub fn main() !void {
         "data/{s}/oracle_quorum.json",
         .{@tagName(parsed.chain_mode)},
     ) catch "data/oracle_quorum.json";
-    const loaded_pubkeys = loadOracleQuorumPubkeys(quorum_path);
-    if (loaded_pubkeys > 0) {
-        std.debug.print("[ORACLE] Quorum: {d} pubkeys loaded, min={d}-of-{d}\n",
-            .{ loaded_pubkeys, rpc_mod.ORACLE_QUORUM_MIN, loaded_pubkeys });
-    } else {
-        std.debug.print("[ORACLE] Quorum: 0 pubkeys loaded — oracle_recordHeader will reject all writes (or fall back to legacy dev-mode if quorum_ok=true)\n", .{});
-    }
+    _ = wallet_setup.loadOracleQuorum(quorum_path);
 
     // ── Init Guardian System ─────────────────────────────────────────────────
     var guardian = swap_persistence.initGuardian();
@@ -923,15 +863,7 @@ pub fn main() !void {
     };
 
     // ── Knock Knock — anunta reteaua + verifica duplicat pe acelasi IP ────────
-    const knock_result = p2p.knockKnock();
-    switch (knock_result) {
-        .alone => std.debug.print("[KNOCK] Miner activ — singur pe acest IP\n\n", .{}),
-        .duplicate_ip => std.debug.print(
-            "[KNOCK] IDLE — alt miner detectat pe acelasi IP\n" ++
-            "        Acest nod monitorizeaza reteaua dar NU minaza\n\n", .{}),
-        .broadcast_failed => std.debug.print(
-            "[KNOCK] Broadcast indisponibil (VPN/firewall?) — continuam\n\n", .{}),
-    }
+    wallet_setup.logKnockResult(p2p.knockKnock());
 
     // ── SubBlock Engine — 10 × 0.1s → 1 Key-Block ────────────────────────────
     var sb_engine = SubBlockEngine.init(config.node_id, 0, allocator);
