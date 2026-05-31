@@ -243,6 +243,11 @@ pub const STATE_SAVE_INTERVAL_SEC = state_save_mod.STATE_SAVE_INTERVAL_SEC;
 pub const startStateSaveThread = state_save_mod.startStateSaveThread;
 pub const stopStateSaveThread = state_save_mod.stopStateSaveThread;
 
+// Graceful shutdown sequence — extracted to core/node/graceful_shutdown.zig
+// (2026-05-31). Keeps the entry point readable; the call site below is a
+// single `node_shutdown.runGracefulShutdown(.{ ... })` invocation.
+const node_shutdown = @import("node/graceful_shutdown.zig");
+
 // ── Global Slot Calendar — pre-computed next 60 slots (PoH-style) ─────────
 // Rebuilt after each block from the validator set + tip hash. Read-only
 // from frontend (RPC endpoint `getslotcalendar`) and from the mining
@@ -1977,48 +1982,19 @@ pub fn main() !void {
     }
 
     // ── Graceful shutdown — save state before defers run ────────────────────
-    std.debug.print("\n[SHUTDOWN] Saving chain to disc...\n", .{});
-
-    // Stop the background state-save thread first so it doesn't race with
-    // the final shutdown save. join() blocks until the worker finishes its
-    // current iteration; in the worst case we wait one save-interval.
-    stopStateSaveThread();
-
-    pbc.saveBlockchain(&bc, db_path) catch |err| {
-        std.debug.print("[SHUTDOWN] Save failed: {} — data may be lost!\n", .{err});
-    };
-    // PHASE-C.4: final chainstate checkpoint + close. The checkpoint
-    // dumps the memtable to .snap and truncates the WAL, so the next
-    // startup loads in O(1) instead of replaying every WAL record.
-    if (g_chainstate) |*cs| {
-        cs.checkpoint() catch |err| {
-            std.debug.print("[SHUTDOWN] chainstate checkpoint failed: {}\n", .{err});
-        };
-        cs.close();
-        std.debug.print("[SHUTDOWN] chainstate checkpointed and closed\n", .{});
-    }
-    // Save DNS registry too — names registered after last auto-save would be lost otherwise.
-    dns.saveToFile(dns_persist_path) catch |err| {
-        std.debug.print("[SHUTDOWN] DNS save failed: {s}\n", .{@errorName(err)});
-    };
-    // Save HTLC registry — same reasoning: pending/claimed states must survive.
-    @import("htlc_persist.zig").saveToFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
-        std.debug.print("[SHUTDOWN] HTLC save failed: {s}\n", .{@errorName(err)});
-    };
-    // Save payment channels — open channels would otherwise leak locked funds.
-    @import("channel_persist.zig").saveToFile(&g_channel_mgr, channels_path) catch |err| {
-        std.debug.print("[SHUTDOWN] Channels save failed: {s}\n", .{@errorName(err)});
-    };
-    // Save intent registry — bonds locked at intent_post / fill_commit
-    // must survive restart so they can still be settled / refunded.
-    bc.intent_registry.saveToFile(intent_persist_path) catch |err| {
-        std.debug.print("[SHUTDOWN] Intent registry save failed: {s}\n", .{@errorName(err)});
-    };
-    // Save peer ban list so bans survive the restart.
-    peer_persist_mod.saveToFile(&peer_scoring, peer_bans_path) catch |err| {
-        std.debug.print("[SHUTDOWN] Peer ban save failed: {s}\n", .{@errorName(err)});
-    };
-    std.debug.print("[SHUTDOWN] Saved {d} blocks, {d} addresses, {d} names\n", .{ bc.chain.items.len, bc.balances.count(), dns.entry_count });
-    std.debug.print("[SHUTDOWN] Cleaning up (P2P, WS, wallet via defer)... Goodbye!\n", .{});
+    node_shutdown.runGracefulShutdown(.{
+        .pbc = &pbc,
+        .bc = &bc,
+        .db_path = db_path,
+        .chainstate = &g_chainstate,
+        .dns = &dns,
+        .dns_persist_path = dns_persist_path,
+        .htlc_persist_path = htlc_persist_path,
+        .channel_mgr = &g_channel_mgr,
+        .channels_path = channels_path,
+        .intent_persist_path = intent_persist_path,
+        .peer_scoring = &peer_scoring,
+        .peer_bans_path = peer_bans_path,
+    });
     // p2p.deinit(), ws_srv.deinit(), bc.deinit(), pbc.deinit() etc. run via defer
 }
