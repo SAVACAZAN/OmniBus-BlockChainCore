@@ -849,63 +849,18 @@ pub fn main() !void {
     // dns_registry.claimByPayment + blockchain.applyBlock for the full flow.
     bc.dns_registry = &dns;
 
-    // ── Init HTLC registry persistence (Phase 2F.2) ─────────────────────────
-    // bc.htlc_registry is already default-initialised inside Blockchain.init.
-    // Load prior state from disk so pending/claimed/refunded HTLCs survive
-    // restarts. Save piggybacks on chain auto-save below + final shutdown.
+    // ── Init swap-stack persistence (HTLC + Payment Channels + Intents) ────
+    // All three follow the same data/<chain>/<file> layout; helpers in
+    // node/swap_persistence.zig handle bufPrint + load + log lines and
+    // return the resolved path so periodic-save / shutdown call sites
+    // below can reuse it without re-formatting.
+    const swap_persistence = @import("node/swap_persistence.zig");
     var htlc_persist_path_buf: [256]u8 = undefined;
-    const htlc_persist_path = std.fmt.bufPrint(
-        &htlc_persist_path_buf,
-        "data/{s}/htlc_registry.bin",
-        .{@tagName(parsed.chain_mode)},
-    ) catch "data/htlc_registry.bin";
-    @import("htlc_persist.zig").loadFromFile(&bc.htlc_registry, htlc_persist_path) catch |err| {
-        std.debug.print("[HTLC] Load from {s} failed: {s} (starting empty)\n",
-            .{ htlc_persist_path, @errorName(err) });
-    };
-    if (bc.htlc_registry.entry_count > 0) {
-        std.debug.print("[HTLC] Loaded {d} entries ({d} active) from {s}\n",
-            .{ bc.htlc_registry.entry_count, bc.htlc_registry.activeCount(), htlc_persist_path });
-    }
-
-    // ── Init Payment Channel persistence (Phase 2G.x) ───────────────────────
-    // g_channel_mgr is process-global; load any prior state so open channels
-    // and pending closes survive node restart.
+    const htlc_persist_path = swap_persistence.loadHtlcRegistry(&bc.htlc_registry, @tagName(parsed.chain_mode), &htlc_persist_path_buf);
     var channels_path_buf: [256]u8 = undefined;
-    const channels_path = std.fmt.bufPrint(
-        &channels_path_buf,
-        "data/{s}/channels.dat",
-        .{@tagName(parsed.chain_mode)},
-    ) catch "data/channels.dat";
-    @import("channel_persist.zig").loadFromFile(&g_channel_mgr, channels_path) catch |err| {
-        std.debug.print("[CHANNELS] Load from {s} failed: {s} (starting empty)\n",
-            .{ channels_path, @errorName(err) });
-    };
-    if (g_channel_mgr.channel_count > 0) {
-        std.debug.print("[CHANNELS] Loaded {d} channels from {s}\n",
-            .{ g_channel_mgr.channel_count, channels_path });
-    }
-
-    // ── Init Intent Registry persistence (Phase 2F.7) ───────────────────────
-    // bc.intent_registry tracks bond accounting for cross-chain intents:
-    // maker bond locked at intent_post, taker bond locked at fill_commit,
-    // both refunded on settle, taker slashed → maker on timeout. Loaded
-    // here so pending intents survive a node restart; saved alongside the
-    // other registries on chain auto-save and shutdown.
+    const channels_path = swap_persistence.loadPaymentChannels(&g_channel_mgr, @tagName(parsed.chain_mode), &channels_path_buf);
     var intent_persist_path_buf: [256]u8 = undefined;
-    const intent_persist_path = std.fmt.bufPrint(
-        &intent_persist_path_buf,
-        "data/{s}/intent_registry.bin",
-        .{@tagName(parsed.chain_mode)},
-    ) catch "data/intent_registry.bin";
-    bc.intent_registry.loadFromFile(intent_persist_path) catch |err| {
-        std.debug.print("[INTENT] Load from {s} failed: {s} (starting empty)\n",
-            .{ intent_persist_path, @errorName(err) });
-    };
-    if (bc.intent_registry.count > 0) {
-        std.debug.print("[INTENT] Loaded {d} entries from {s}\n",
-            .{ bc.intent_registry.count, intent_persist_path });
-    }
+    const intent_persist_path = swap_persistence.loadIntentRegistry(&bc.intent_registry, @tagName(parsed.chain_mode), &intent_persist_path_buf);
 
     // ── Init cross-chain oracle quorum pubkey set ───────────────────────────
     // `oracle_recordHeader` requires ≥ ORACLE_QUORUM_MIN distinct valid
@@ -928,7 +883,7 @@ pub fn main() !void {
     }
 
     // ── Init Guardian System ─────────────────────────────────────────────────
-    var guardian = guardian_mod.GuardianEngine.init();
+    var guardian = swap_persistence.initGuardian();
 
     std.debug.print("[SUBSYSTEMS] StateTrie + Finality + Staking + Governance + PeerScoring + DNS + Guardian\n\n", .{});
 
