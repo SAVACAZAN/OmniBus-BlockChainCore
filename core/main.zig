@@ -14,6 +14,8 @@ const wallet_setup = @import("node/wallet_setup.zig");
 const db_setup     = @import("node/db_setup.zig");
 const subsystems_init = @import("node/subsystems_init.zig");
 const p2p_init     = @import("node/p2p_init.zig");
+const config_setup = @import("node/config_setup.zig");
+const matching_engine_init = @import("node/matching_engine_init.zig");
 
 const pq_crypto_mod   = @import("pq_crypto.zig");
 const blockchain_mod  = @import("blockchain.zig");
@@ -382,31 +384,15 @@ pub fn main() !void {
     // Alias for back-compat with all existing `config.X` references below.
     const config = parsed.node;
 
-    // ── Chain config — unified ChainConfig via parsed.chain_mode ────────────
-    // ChainMode enum only exposes mainnet/testnet/regtest — devnet not yet
-    // wired through CLI (see cli.zig comment). Use ChainConfig.devnet() directly
-    // if/when ChainMode.devnet is added.
-    const net_cfg: ChainConfig = switch (parsed.chain_mode) {
-        .mainnet => ChainConfig.mainnet(),
-        .testnet => ChainConfig.testnet(),
-        .regtest => ChainConfig.regtest(),
-    };
-
-    // ── Oracle policy — per-chain defaults overridden by CLI flags ──────────
-    // Defaults: mainnet strict (5% reject), testnet relaxed (10%), regtest off.
-    // CLI: --price-deviation-{warn,reject,fillgap} <f64>, --no-price-validation
-    {
-        var pol = oracle_policy_mod.defaultsFor(net_cfg.chain_id);
-        if (parsed.price_warn_pct) |v| pol.warn_pct = v;
-        if (parsed.price_reject_pct) |v| pol.reject_pct = v;
-        if (parsed.price_fillgap_pct) |v| pol.fillgap_pct = v;
-        if (parsed.price_validation_disabled) pol.enabled = false;
-        g_oracle_policy = pol;
-        std.debug.print(
-            "[ORACLE-POLICY] warn={d:.1}% reject={d:.1}% fillgap={d:.1}% enabled={s}\n",
-            .{ pol.warn_pct, pol.reject_pct, pol.fillgap_pct, if (pol.enabled) "true" else "false" },
-        );
-    }
+    // ── Chain config + Oracle policy ─ moved to node/config_setup.zig ───────
+    const net_cfg: ChainConfig = config_setup.resolveChainConfig(parsed.chain_mode).net_cfg;
+    g_oracle_policy = config_setup.buildOraclePolicy(
+        net_cfg.chain_id,
+        parsed.price_warn_pct,
+        parsed.price_reject_pct,
+        parsed.price_fillgap_pct,
+        parsed.price_validation_disabled,
+    );
 
     std.debug.print(
         \\
@@ -451,15 +437,8 @@ pub fn main() !void {
         std.debug.print("[TESTNET] Single-miner mode — mining without peers\n", .{});
     }
 
-    // ── Mnemonic — CLI flag → SuperVault Named Pipe → env var → dev default ──
-    const mnemonic = if (config.mnemonic) |m|
-        try allocator.dupe(u8, m)
-    else
-        try vault_reader.readMnemonic(allocator);
-
-    if (config.mnemonic != null) {
-        std.debug.print("[WALLET] Using mnemonic from --mnemonic CLI flag\n", .{});
-    }
+    // ── Mnemonic ─ moved to node/config_setup.zig ───────────────────────────
+    const mnemonic = try config_setup.resolveMnemonic(config.mnemonic, allocator);
 
     // ── DB path selection + Init database ─ moved to node/db_setup.zig ──────
     const chain_name = net_cfg.name; // e.g. "omnibus-mainnet" / "omnibus-testnet"
@@ -796,62 +775,20 @@ pub fn main() !void {
         try allocator.dupe(u8, "127.0.0.1");
     const rpc_token: ?[]const u8 = std.process.getEnvVarOwned(allocator, "OMNIBUS_RPC_TOKEN") catch null;
 
-    // ── Native DEX matching engine ─────────────────────────────────────────
-    // The MatchingEngine is ~3MB (10K orders × 2 sides + 1K fills). Allocate
-    // on the heap once at startup and share across RPC threads; mutex lives
-    // inside ServerCtx. orders.jsonl is per-chain so testnet/regtest don't
-    // pollute each other's books. Disabled on light nodes via env var.
+    // ── Native DEX matching engine ─ moved to node/matching_engine_init.zig ─
     const exchange_disabled = std.process.hasEnvVar(allocator, "OMNIBUS_EXCHANGE_OFF") catch false;
-    var exchange_engine: ?*matching_mod.MatchingEngine = null;
-    var orders_path_owned: ?[]u8 = null;
-    if (!exchange_disabled) {
-        // Use page_allocator for the 3MB MatchingEngine — it's a single
-        // long-lived object and the gpa's small-bin path doesn't help. Goes
-        // straight to mmap() on Linux which is what we want for big blocks.
-        const page_alloc = std.heap.page_allocator;
-        exchange_engine = page_alloc.create(matching_mod.MatchingEngine) catch null;
-        if (exchange_engine) |e| {
-            // Zero the whole struct in place, then set the scalar fields.
-            // `e.* = .init()` would materialize a 3MB temporary on the stack
-            // and segfault. `@memset` is byte-wise so it can't blow the stack.
-            const bytes = std.mem.asBytes(e);
-            @memset(bytes, 0);
-            e.next_order_id = 1;
-            e.next_fill_id = 1;
-            const chain_subdir: []const u8 = if (config.testnet) "testnet"
-                else if (config.regtest) "regtest" else "mainnet";
-            orders_path_owned = std.fmt.allocPrint(allocator, "data/{s}/orders.jsonl", .{chain_subdir}) catch null;
-            if (orders_path_owned) |p| {
-                std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
-                std.debug.print("[EXCHANGE] DEX matching engine ON — orders.jsonl: {s}\n", .{p});
-            } else {
-                std.debug.print("[EXCHANGE] DEX matching engine ON (in-memory only)\n", .{});
-            }
-            // PHASE 2B: attach engine to blockchain for consensus matching.
-            // applyBlock will route TxType.order_place / .order_cancel into
-            // this engine deterministically after sorting by (pair, price, hash).
-            bc.exchange_engine = e;
-        }
-    } else {
-        std.debug.print("[EXCHANGE] disabled by OMNIBUS_EXCHANGE_OFF\n", .{});
-    }
-
-    // Paper-trading matching engine — same shape as real, isolated state.
-    // Lets users practice strategies with OMNI_DEMO without touching real
-    // funds. Disabled with OMNIBUS_PAPER_OFF (rare — most nodes want it).
     const paper_disabled = std.process.hasEnvVar(allocator, "OMNIBUS_PAPER_OFF") catch false;
-    var exchange_paper_engine: ?*matching_mod.MatchingEngine = null;
-    if (!exchange_disabled and !paper_disabled) {
-        const page_alloc = std.heap.page_allocator;
-        exchange_paper_engine = page_alloc.create(matching_mod.MatchingEngine) catch null;
-        if (exchange_paper_engine) |e| {
-            const bytes = std.mem.asBytes(e);
-            @memset(bytes, 0);
-            e.next_order_id = 1;
-            e.next_fill_id = 1;
-            std.debug.print("[EXCHANGE] paper-trading engine ON\n", .{});
-        }
-    }
+    const me_chain_subdir: []const u8 = if (config.testnet) "testnet"
+        else if (config.regtest) "regtest" else "mainnet";
+    const real_engine_res = matching_engine_init.initRealEngine(allocator, me_chain_subdir, exchange_disabled);
+    const exchange_engine: ?*matching_mod.MatchingEngine = real_engine_res.engine;
+    const orders_path_owned: ?[]u8 = real_engine_res.orders_path;
+    // PHASE 2B: attach engine to blockchain for consensus matching.
+    // applyBlock will route TxType.order_place / .order_cancel into this engine
+    // deterministically after sorting by (pair, price, hash).
+    if (exchange_engine) |e| bc.exchange_engine = e;
+    const exchange_paper_engine: ?*matching_mod.MatchingEngine =
+        matching_engine_init.initPaperEngine(exchange_disabled, paper_disabled);
 
     // Registrar slots are hardcoded in registrar_addresses.zig — no run-time
     // loop here (Linux + Zig 0.15 segfault on the const-array iteration; see
