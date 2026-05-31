@@ -12,6 +12,8 @@ const platform_lock = @import("node/platform_lock.zig");
 const acquireSingleInstanceLock = platform_lock.acquireSingleInstanceLock;
 const wallet_setup = @import("node/wallet_setup.zig");
 const db_setup     = @import("node/db_setup.zig");
+const subsystems_init = @import("node/subsystems_init.zig");
+const p2p_init     = @import("node/p2p_init.zig");
 
 const pq_crypto_mod   = @import("pq_crypto.zig");
 const blockchain_mod  = @import("blockchain.zig");
@@ -616,40 +618,14 @@ pub fn main() !void {
     std.debug.print("[MEMPOOL] FIFO init | Max: {d} TX / {d} KB | Expiry: 14 days | sig_verifier=ON\n\n",
         .{ mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES / 1024 });
 
-    // ── Init Consensus Engine ─────────────────────────────────────────────────
-    const consensus_cfg = ConsensusConfig.init(.ProofOfWork, 1);
-    const consensus = ConsensusEngine.init(consensus_cfg, allocator);
-    consensus_cfg.print();
-
-    // ── Init Metachain + ShardCoordinator (Sprint 1) ──────────────────────────
-    var metachain = try metachain_mod.Metachain.init(allocator, NUM_SHARDS);
-    defer metachain.deinit();
-    std.debug.print("[METACHAIN] Init | {d} shards | genesis MetaBlock height 0\n\n", .{NUM_SHARDS});
-
-    // ── Init State Trie (account state compression) ──────────────────────────
-    var state_trie = state_trie_mod.StateTrie.init(allocator);
-    defer state_trie.deinit();
-
-    // ── Init Finality Engine (Casper FFG checkpoints) ────────────────────────
-    var finality = finality_mod.FinalityEngine.init(1000); // initial voting power
-    // Register this node's miner wallet as validator 0 so its self-attestations
-    // can be cryptographically verified (secp256k1) instead of trusted by id.
-    // Power 1000 == total init voting power → a solo miner still finalises.
-    const finality_pubkey = secp256k1_mod.Secp256k1Crypto.privateKeyToPublicKey(wallet.private_key_bytes) catch [_]u8{0} ** 33;
-    finality.registerValidator(0, finality_pubkey, 1000) catch {};
-    std.debug.print("[FINALITY] Casper FFG init | checkpoint every {d} blocks | soft finality: {d} confirms\n",
-        .{ finality_mod.CHECKPOINT_INTERVAL, finality_mod.SOFT_FINALITY_CONFIRMS });
-
-    // ── Init Staking Engine ──────────────────────────────────────────────────
-    var staking = staking_mod.StakingEngine.init();
-    g_staking_engine = &staking;
-    std.debug.print("[STAKING] Engine init | min stake: {d} SAT | unbonding: {d} blocks\n",
-        .{ staking_mod.VALIDATOR_MIN_STAKE, staking_mod.UNBONDING_PERIOD });
-
-    // ── Init Governance ──────────────────────────────────────────────────────
-    const governance = governance_mod.GovernanceEngine.init(governance_mod.GovernanceParams{});
-    std.debug.print("[GOVERNANCE] Init | quorum: {d}% | threshold: {d}% | veto: {d}%\n",
-        .{ governance.params.quorum_pct, governance.params.threshold_pct, governance.params.veto_pct });
+    // ── Init 6 core subsystems (Consensus / Metachain / StateTrie / Finality /
+    //    Staking / Governance) — see core/node/subsystems_init.zig for prints.
+    var subs = try subsystems_init.initSubsystems(allocator, NUM_SHARDS, wallet.private_key_bytes);
+    defer subs.metachain.deinit();
+    defer subs.state_trie.deinit();
+    g_staking_engine = &subs.staking;
+    const consensus = subs.consensus;
+    const governance = subs.governance;
 
     // ── Init Peer Scoring ────────────────────────────────────────────────────
     var peer_scoring = peer_scoring_mod.PeerScoringEngine.init();
@@ -746,64 +722,34 @@ pub fn main() !void {
 
     std.debug.print("[SUBSYSTEMS] StateTrie + Finality + Staking + Governance + PeerScoring + DNS + Guardian\n\n", .{});
 
-    // ── Init P2P Node ─────────────────────────────────────────────────────────
-    // P2PNode is ~1.5 MB. We allocate on the heap AND populate in-place via
-    // initInPlace() — never via `heap.* = init(...)` because that intermediate
-    // value still lives on the stack inside init() and overruns the Linux
-    // guard page (silent SEGV right after [SUBSYSTEMS] log).
-    const p2p_heap = try allocator.create(P2PNode);
-    p2p_heap.initInPlace(config.node_id, config.host, config.port, allocator);
-    p2p_heap.setChainMagic(chain_config_mod.NetworkMagic.forChain(net_cfg.chain_id).bytes);
+    // ── Init P2P stack (P2P node + listener + heartbeat + sub-block engine +
+    //    sync manager + light client). See core/node/p2p_init.zig.
+    var p2p_stack = try p2p_init.initP2PStack(
+        allocator,
+        config.node_id,
+        config.host,
+        config.port,
+        net_cfg.chain_id,
+        config.seed_host,
+        config.seed_port,
+        @intCast(bc.chain.items.len),
+    );
     defer {
-        p2p_heap.deinit();
-        allocator.destroy(p2p_heap);
+        p2p_stack.p2p_heap.deinit();
+        allocator.destroy(p2p_stack.p2p_heap);
     }
-    const p2p = p2p_heap;
-    // Conecteaza la seed node daca e miner (best-effort, nu blocheaza)
-    if (config.seed_host) |sh| {
-        if (config.seed_port) |sp| {
-            p2p.connectToPeer(sh, sp, "seed-primary") catch |err| {
-                std.debug.print("[P2P] Seed connect failed (va incerca mai tarziu): {}\n", .{err});
-            };
-        }
-    }
-    p2p.printStatus();
-
-    // ── TCP Listener inbound — accepta conexiuni de la alti mineri ────────────
-    p2p.startListener() catch |err| {
-        std.debug.print("[P2P] Listener failed (port ocupat?): {} — fara inbound\n", .{err});
-    };
-
-    // ── Heartbeat — PING periodic catre peers cu inaltimea curenta. Fara asta
-    // peer.height ramane stale dupa handshake si IBD se opreste cand consumam
-    // toate blocurile vazute la HELLO, chiar daca peer-ul a urcat intre timp.
-    p2p.startHeartbeat() catch |err| {
-        std.debug.print("[P2P] Heartbeat failed: {} — peer heights vor fi stale\n", .{err});
-    };
+    defer p2p_stack.light_client.deinit();
+    const p2p = p2p_stack.p2p_heap;
 
     // ── Knock Knock — anunta reteaua + verifica duplicat pe acelasi IP ────────
     wallet_setup.logKnockResult(p2p.knockKnock());
 
-    // ── SubBlock Engine — 10 × 0.1s → 1 Key-Block ────────────────────────────
-    var sb_engine = SubBlockEngine.init(config.node_id, 0, allocator);
-    std.debug.print("[SUB-BLOCK] Engine init | {d} sub-blocks × {d}ms = 1s bloc\n\n", .{
-        sub_block_mod.SUB_BLOCKS_PER_BLOCK,
-        sub_block_mod.SUB_BLOCK_INTERVAL_MS,
-    });
-
-    // ── Sync Manager — sincronizare blockchain cu peerii ──────────────────────
-    var sync_mgr = SyncManager.init(@intCast(bc.chain.items.len), allocator);
-    std.debug.print("[SYNC] Manager init | local height: {d}\n\n", .{bc.chain.items.len});
-
     // Ataseaza blockchain + sync_mgr la nodul P2P — necesar pentru sync real
-    p2p.attachBlockchain(&bc, &sync_mgr);
+    p2p.attachBlockchain(&bc, &p2p_stack.sync_mgr);
 
-    // ── Light Client (SPV) — only for --mode light ──────────────────────────
-    var light_client = light_client_mod.LightClient.init(allocator);
-    defer light_client.deinit();
     const is_light = (config.mode == node_launcher.NodeMode.light);
     if (is_light) {
-        p2p.attachLightClient(&light_client);
+        p2p.attachLightClient(&p2p_stack.light_client);
         std.debug.print("[LIGHT] SPV light client mode — headers only, no full blocks\n\n", .{});
     }
 
@@ -966,10 +912,10 @@ pub fn main() !void {
         .alloc    = allocator,
         .mempool  = &mempool,
         .p2p      = p2p,
-        .sync_mgr = &sync_mgr,
+        .sync_mgr = &p2p_stack.sync_mgr,
         .metrics  = &g_metrics,
         .channel_mgr = &g_channel_mgr,
-        .staking  = &staking,
+        .staking  = &subs.staking,
         .chain_id = @intFromEnum(net_cfg.chain_id),
         .rpc_port = rpc_port,
         .rpc_bind = rpc_bind,
@@ -1048,7 +994,7 @@ pub fn main() !void {
 
     // ── Light client SPV sync loop ─────────────────────────────────────────
     if (is_light) {
-        @import("node/light_loop.zig").runLightLoop(p2p, &light_client);
+        @import("node/light_loop.zig").runLightLoop(p2p, &p2p_stack.light_client);
         return;
     }
 
@@ -1504,7 +1450,7 @@ pub fn main() !void {
         // multi-component project, not just a sleep call.
         for (0..sub_block_mod.SUB_BLOCKS_PER_BLOCK) |sub_i| {
             _ = sub_i;
-            key_block_opt = try sb_engine.tick(@constCast(pending_txs), reward_sat);
+            key_block_opt = try p2p_stack.sb_engine.tick(@constCast(pending_txs), reward_sat);
         }
 
         // Key-Block complet → mineaza blocul principal in blockchain
@@ -2015,8 +1961,8 @@ pub fn main() !void {
             }
 
             // ── Metachain: inregistreaza shard header pentru acest bloc ───────
-            const shard_id = metachain.coordinator.getShardForAddress(wallet.address);
-            const meta_block = try metachain.beginMetaBlock();
+            const shard_id = subs.metachain.coordinator.getShardForAddress(wallet.address);
+            const meta_block = try subs.metachain.beginMetaBlock();
             var block_hash_fixed: [32]u8 = std.mem.zeroes([32]u8);
             const hash_copy_len = @min(new_block.hash.len, 32);
             @memcpy(block_hash_fixed[0..hash_copy_len], new_block.hash[0..hash_copy_len]);
@@ -2029,18 +1975,18 @@ pub fn main() !void {
                 .miner        = wallet.address,
                 .reward_sat   = reward_sat,
             });
-            try metachain.finalizeMetaBlock();
+            try subs.metachain.finalizeMetaBlock();
 
             if (block_count % 10 == 0) {
                 std.debug.print("[METACHAIN] height={d} shard={d} active_shards={d}\n", .{
-                    metachain.getHeight(),
+                    subs.metachain.getHeight(),
                     shard_id,
-                    metachain.coordinator.num_shards,
+                    subs.metachain.coordinator.num_shards,
                 });
             }
 
             // Notifica SyncManager — bloc aplicat local
-            sync_mgr.onBlockApplied(block_count);
+            p2p_stack.sync_mgr.onBlockApplied(block_count);
 
             // Sincronizeaza balanta
             wallet.updateBalance(bc.getAddressBalance(wallet.address));
@@ -2096,13 +2042,13 @@ pub fn main() !void {
                 var addr_buf: [20]u8 = std.mem.zeroes([20]u8);
                 const alen = @min(wallet.address.len, 20);
                 @memcpy(addr_buf[0..alen], wallet.address[0..alen]);
-                try state_trie.updateBalance(addr_buf, wallet.balance, block_count);
-                state_trie.block_height = block_count;
+                try subs.state_trie.updateBalance(addr_buf, wallet.balance, block_count);
+                subs.state_trie.block_height = block_count;
             }
 
             // ── Finality: propose checkpoint every 64 blocks ────────────
             if (block_count % finality_mod.CHECKPOINT_INTERVAL == 0 and block_count > 0) {
-                _ = finality.proposeCheckpoint(block_count, block_hash_fixed) catch {};
+                _ = subs.finality.proposeCheckpoint(block_count, block_hash_fixed) catch {};
                 // Self-attest (solo miner attests own checkpoint). The
                 // attestation is signed with the miner's secp256k1 key and
                 // verified against the validator registered above; the engine
@@ -2110,23 +2056,23 @@ pub fn main() !void {
                 var self_att = finality_mod.Attestation{
                     .validator_id = 0,
                     .target_epoch = block_count / finality_mod.CHECKPOINT_INTERVAL,
-                    .source_epoch = finality.last_justified_epoch,
+                    .source_epoch = subs.finality.last_justified_epoch,
                     .voting_power = 1000,
                     .block_hash = block_hash_fixed,
                     .timestamp = std.time.timestamp(),
                 };
                 self_att.sign(wallet.private_key_bytes) catch {};
-                finality.attest(self_att) catch {};
+                subs.finality.attest(self_att) catch {};
                 std.debug.print("[FINALITY] Checkpoint epoch {d} | justified={d} finalized={d}\n",
                     .{ block_count / finality_mod.CHECKPOINT_INTERVAL,
-                       finality.last_justified_epoch, finality.last_finalized_epoch });
+                       subs.finality.last_justified_epoch, subs.finality.last_finalized_epoch });
             }
 
             // ── Staking: distribute rewards (every 100 blocks) ──────────
-            if (block_count % staking_mod.REWARD_EPOCH_BLOCKS == 0 and staking.activeCount() > 0) {
-                staking.distributeRewards(reward_sat);
+            if (block_count % staking_mod.REWARD_EPOCH_BLOCKS == 0 and subs.staking.activeCount() > 0) {
+                subs.staking.distributeRewards(reward_sat);
                 std.debug.print("[STAKING] Epoch {d} | validators={d} | total_staked={d}\n",
-                    .{ staking.current_epoch, staking.activeCount(), staking.total_staked });
+                    .{ subs.staking.current_epoch, subs.staking.activeCount(), subs.staking.total_staked });
             }
 
             // ── Peer Scoring: score peers on block relay ─────────────────
@@ -2226,20 +2172,20 @@ pub fn main() !void {
             }
 
             // Verifica daca sync-ul e blocat
-            if (sync_mgr.isStalled()) {
+            if (p2p_stack.sync_mgr.isStalled()) {
                 std.debug.print("[SYNC] STALLED >60s — resetare sync\n", .{});
-                sync_mgr = SyncManager.init(@intCast(bc.chain.items.len), allocator);
+                p2p_stack.sync_mgr = SyncManager.init(@intCast(bc.chain.items.len), allocator);
             }
 
             // Log status sync periodic
-            if (!sync_mgr.isSynced()) {
-                sync_mgr.state.print();
+            if (!p2p_stack.sync_mgr.isSynced()) {
+                p2p_stack.sync_mgr.state.print();
             }
         }
 
         // Notifica SyncManager cand un peer P2P anunta un bloc mai inalt
         if (p2p.chain_height > @as(u32, @intCast(bc.chain.items.len))) {
-            if (sync_mgr.onPeerHeight(p2p.chain_height)) |_| {
+            if (p2p_stack.sync_mgr.onPeerHeight(p2p.chain_height)) |_| {
                 // Cere blocuri lipsa de la primul peer care are height mai mare
                 p2p.requestSync(@intCast(bc.chain.items.len));
                 std.debug.print("[SYNC] requestSync trimis (local={d} peer={d})\n",
