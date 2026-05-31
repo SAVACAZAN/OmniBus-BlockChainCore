@@ -1215,50 +1215,11 @@ pub fn main() !void {
 
         maint_count += 1;
         if (maint_count % 30 == 0) {
-            launcher.maintenance();
-
-            // ── P2P maintenance: reconnect dead peers + evict expired bans + fork recovery ──
-            mining_periodic.p2pMaintenance(p2p);
-
-            // ── Governance + DNS + Guardian periodic logs ───────────────
-            mining_periodic.maybeLogPeriodic(block_count, &governance, &dns, &guardian);
-            if (launcher.getNetworkStatus()) |s| {
-                std.debug.print("[NETWORK] peers: {d}  miners: {d}  synced: {}\n",
-                    .{ s.total_peers, s.total_miners, s.is_synced });
-            }
-            p2p.cleanDeadPeers();
-            p2p.gossipMaintenance();
-
-            // Log gossip stats
-            {
-                const gs2 = p2p.getGossipStats();
-                if (gs2.tx_relayed > 0 or gs2.blocks_relayed > 0) {
-                    std.debug.print("[GOSSIP] TX relayed: {d} | Blocks relayed: {d} | Seen TX: {d} | Seen blocks: {d}\n",
-                        .{ gs2.tx_relayed, gs2.blocks_relayed, gs2.seen_tx, gs2.seen_blocks });
-                }
-            }
-
-            // Verifica daca sync-ul e blocat
-            if (p2p_stack.sync_mgr.isStalled()) {
-                std.debug.print("[SYNC] STALLED >60s — resetare sync\n", .{});
-                p2p_stack.sync_mgr = SyncManager.init(@intCast(bc.chain.items.len), allocator);
-            }
-
-            // Log status sync periodic
-            if (!p2p_stack.sync_mgr.isSynced()) {
-                p2p_stack.sync_mgr.state.print();
-            }
+            mining_periodic.periodicMaintenance30(&launcher, p2p, block_count, &governance, &dns, &guardian, &p2p_stack.sync_mgr, @intCast(bc.chain.items.len), allocator);
         }
 
         // Notifica SyncManager cand un peer P2P anunta un bloc mai inalt
-        if (p2p.chain_height > @as(u32, @intCast(bc.chain.items.len))) {
-            if (p2p_stack.sync_mgr.onPeerHeight(p2p.chain_height)) |_| {
-                // Cere blocuri lipsa de la primul peer care are height mai mare
-                p2p.requestSync(@intCast(bc.chain.items.len));
-                std.debug.print("[SYNC] requestSync trimis (local={d} peer={d})\n",
-                    .{ bc.chain.items.len, p2p.chain_height });
-            }
-        }
+        mining_periodic.maybeRequestPeerSync(p2p, &p2p_stack.sync_mgr, @intCast(bc.chain.items.len));
     }
 
     // ── Graceful shutdown — save state before defers run ────────────────────

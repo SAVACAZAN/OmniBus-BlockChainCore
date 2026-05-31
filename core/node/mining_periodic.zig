@@ -19,6 +19,7 @@ const ws_exchange_feed_mod = @import("../ws_exchange_feed.zig");
 const reputation_manager_mod = @import("../reputation_manager.zig");
 const payment_mod    = @import("../payment_channel.zig");
 const dns_mod        = @import("../dns_registry.zig");
+const sync_mod       = @import("../sync.zig");
 
 /// IDLE re-check: if `p2p.is_idle` is set, the mining loop calls this
 /// every iteration. Every 60s (gated by `maint_count`) it re-runs
@@ -377,6 +378,76 @@ pub fn p2pMaintenance(p2p: anytype) void {
     p2p.processReconnects();
     p2p.evictExpiredBans();
     _ = p2p.tryForkRecovery();
+}
+
+/// Maintenance cadence (every 30 maint ticks): launcher housekeeping,
+/// P2P reconnects/evictions/fork-recovery, governance/DNS/guardian periodic
+/// logs, network status print, gossip stats, sync-stalled recovery, sync
+/// status print. Behavior preserved verbatim from the original inline block.
+///
+/// `sync_mgr` is passed as a pointer so we can re-init it in place when
+/// `isStalled()` fires (SyncManager has no `reset()` method).
+pub fn periodicMaintenance30(
+    launcher: anytype,
+    p2p: anytype,
+    block_count: u64,
+    governance: anytype,
+    dns: anytype,
+    guardian: anytype,
+    sync_mgr: *sync_mod.SyncManager,
+    local_height: u64,
+    allocator: std.mem.Allocator,
+) void {
+    launcher.maintenance();
+
+    // ── P2P maintenance: reconnect dead peers + evict expired bans + fork recovery ──
+    p2pMaintenance(p2p);
+
+    // ── Governance + DNS + Guardian periodic logs ───────────────
+    maybeLogPeriodic(block_count, governance, dns, guardian);
+    if (launcher.getNetworkStatus()) |s| {
+        std.debug.print("[NETWORK] peers: {d}  miners: {d}  synced: {}\n",
+            .{ s.total_peers, s.total_miners, s.is_synced });
+    }
+    p2p.cleanDeadPeers();
+    p2p.gossipMaintenance();
+
+    // Log gossip stats
+    {
+        const gs2 = p2p.getGossipStats();
+        if (gs2.tx_relayed > 0 or gs2.blocks_relayed > 0) {
+            std.debug.print("[GOSSIP] TX relayed: {d} | Blocks relayed: {d} | Seen TX: {d} | Seen blocks: {d}\n",
+                .{ gs2.tx_relayed, gs2.blocks_relayed, gs2.seen_tx, gs2.seen_blocks });
+        }
+    }
+
+    // Verifica daca sync-ul e blocat
+    if (sync_mgr.isStalled()) {
+        std.debug.print("[SYNC] STALLED >60s — resetare sync\n", .{});
+        sync_mgr.* = sync_mod.SyncManager.init(local_height, allocator);
+    }
+
+    // Log status sync periodic
+    if (!sync_mgr.isSynced()) {
+        sync_mgr.state.print();
+    }
+}
+
+/// Notify SyncManager when a P2P peer announces a higher chain height,
+/// and request missing blocks. Mirrors the original inline block verbatim.
+pub fn maybeRequestPeerSync(
+    p2p: anytype,
+    sync_mgr: *sync_mod.SyncManager,
+    local_height: u64,
+) void {
+    if (p2p.chain_height > @as(u32, @intCast(local_height))) {
+        if (sync_mgr.onPeerHeight(p2p.chain_height)) |_| {
+            // Cere blocuri lipsa de la primul peer care are height mai mare
+            p2p.requestSync(@intCast(local_height));
+            std.debug.print("[SYNC] requestSync trimis (local={d} peer={d})\n",
+                .{ local_height, p2p.chain_height });
+        }
+    }
 }
 
 /// State Trie: update account state for the current wallet at block_count.
