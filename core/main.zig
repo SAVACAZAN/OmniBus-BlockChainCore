@@ -829,51 +829,15 @@ pub fn main() !void {
     g_pair_registry = runtime_init.loadPairRegistry(allocator, parsed.pair_registry_path);
 
     // ── WS Exchange Feed: live bid/ask from Coinbase, Kraken, LCX ──
-    //
-    // Opt-out via env var OMNIBUS_EXTERNAL_ORACLE=1. When set, the chain
-    // process skips spawning the 3 WebSocket worker threads (Coinbase,
-    // Kraken, LCX) and the price hashmap; a separate `omnibus-oracle`
-    // process is expected to be running on localhost:28100 and the
-    // chain queries it via JSON-RPC when prices are needed.
-    //
-    // BTC pattern: chain-only daemon, oracle is a separate service.
-    // Frees ~3 threads + 1 MB resident from the chain process and
-    // removes mutex contention between mining and WS workers.
-    const external_oracle = std.process.getEnvVarOwned(
-        allocator, "OMNIBUS_EXTERNAL_ORACLE",
-    ) catch null;
-    defer if (external_oracle) |s| allocator.free(s);
-    const use_external = external_oracle != null and
-        std.mem.eql(u8, external_oracle.?, "1");
-    if (use_external) {
-        std.debug.print(
-            "[WS-FEED] external oracle enabled (OMNIBUS_EXTERNAL_ORACLE=1) " ++
-            "— in-process WS feed disabled. Bridging from omnibus-oracle on :28100\n", .{});
-        // Initialize an EMPTY feed (no WS workers) — the poll thread fills it
-        // via upsertPriceExternal from the standalone oracle's snapshot. All
-        // downstream RPCs (omnibus_getallprices / getexchangefeed / getarbitrage)
-        // and ArbitrageEngine read from g_ws_feed exactly as if WS were live.
-        g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
-        if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
-        g_ws_feed.?.setClock(&g_clock);
-        // Spawn the bridge poll thread. Idempotent — joins on shutdown via
-        // g_oracle_bridge_run atomic flag.
-        startOracleBridge(allocator) catch |err| {
-            std.debug.print("[ORACLE-BRIDGE] spawn failed: {} — feed will stay empty\n", .{err});
-        };
-    } else {
-        g_ws_feed = ws_exchange_feed_mod.ExchangeFeed.init(allocator);
-        if (g_pair_registry) |*reg| g_ws_feed.?.setPairRegistry(reg);
-        // Wire the shared clock BEFORE start() — every PriceFetch.timestamp_ms
-        // and circuit-breaker rate-limit timer flows through g_clock.nowMs(),
-        // putting feed events on the same timeline as mining and matching.
-        g_ws_feed.?.setClock(&g_clock);
-        g_ws_feed.?.start() catch |err| std.debug.print("[WS-FEED] start failed: {}\n", .{err});
-    }
+    g_ws_feed = runtime_init.initWsExchangeFeed(
+        allocator,
+        if (g_pair_registry) |*reg| reg else null,
+        &g_clock,
+        startOracleBridge,
+    );
 
     // ── Reputation Manager + retro backfill din chain history ──
-    g_reputation = reputation_manager_mod.ReputationManager.init(allocator);
-    g_reputation.?.started_at_block = @intCast(bc.chain.items.len - 1);
+    g_reputation = runtime_init.initReputationManager(allocator, bc.chain.items.len - 1);
     backfillReputationFromChain(&bc, &g_reputation.?);
 
     // Porneste block_count de la inaltimea curenta a lantului (continua, nu de la 0)
@@ -881,71 +845,26 @@ pub fn main() !void {
     var maint_count: u32 = 0;
     var mining_started: bool = false;
 
-    // ── Single source of time ──────────────────────────────────────────
-    // All slot/sub-block/stabilizer/ws timing reads from this clock.
-    // On baremetal we'll swap the backend to TSC-based; nothing else
-    // in the loop changes. Uses the global g_clock so subsystems
-    // started earlier (WS feed, RPC) share the same timeline.
-    var orch = orchestrator_mod.TimeOrchestrator.init(&g_clock);
-    // Stabilizer timer wired up immediately. Slot + sub-block timers
-    // remain driven by the existing logic for now (see Step 2 plan) —
-    // we cut over incrementally to keep regressions contained.
-    orch.configure(.stabilizer, 60_000);
-
-    // Tip arrival tracker (millisecond resolution, in-memory only).
-    // The on-chain `tip.timestamp` is in seconds — too coarse for sub-second
-    // slot-failover. This captures the wall-clock ms when we observed the
-    // current tip height, refreshed each iteration if the tip changed.
-    var last_tip_height: usize = bc.chain.items.len;
-    var tip_arrival_ms: i64 = g_clock.nowMs();
+    // ── Single source of time + tip-arrival tracker ────────────────────
+    const time_state = runtime_init.initTimeState(&g_clock, bc.chain.items.len);
+    var orch = time_state.orch;
+    var last_tip_height: usize = time_state.last_tip_height;
+    var tip_arrival_ms: i64 = time_state.tip_arrival_ms;
 
     // ── Burst smoothing ──────────────────────────────────────────────────
-    // Minimum interval between two consecutive blocks WE produce. Without
-    // this, a VPS scheduler pause of 9s creates a "thundering herd" of
-    // ~7 blocks back-to-back in the same wall-clock second when the
-    // process resumes — visible as a 9s gap then a clump in the block
-    // explorer. The smoothing limit doesn't reduce average throughput
-    // (recovered gaps are still recovered) but distributes blocks
-    // uniformly so the chain looks healthy in the UI.
-    //
-    // 800 ms gap = 60 blocks/min wall-clock (whitepaper spec).
-    //
-    // Math: a measured block produces ~190 ms of unavoidable overhead
-    // (10 sub-block ticks + state apply + p2p broadcast + ws_server
-    // event + reputation credit + meta-block header). At 1000 ms gap
-    // that overhead ate into every slot, dropping us to ~50/min.
-    // Setting the gap to 800 ms compensates: 800 ms sleep + ~200 ms
-    // of in-loop work = ~1.0 s wall-clock per block, locked to the
-    // 60/min target and the whitepaper halving / total-supply schedule.
-    //
-    // The hardware ceiling is ~180/min on this VPS (measured uncapped),
-    // so we have ~3× headroom. That margin absorbs scheduler pauses
-    // and catches up after them without falling behind wall-clock.
-    const MIN_BLOCK_GAP_MS: i64 = 800;
-    var last_block_produced_ms: i64 = 0;
+    const MIN_BLOCK_GAP_MS: i64 = runtime_init.BurstSmoothing.MIN_BLOCK_GAP_MS;
+    const burst = runtime_init.BurstSmoothing.init();
+    var last_block_produced_ms: i64 = burst.last_block_produced_ms;
 
     // ── Block-rate stabilizer ────────────────────────────────────────────
-    // Target: 60 blocks/min (1 block/sec, like Solana slot time).
-    //
-    // Ring buffer of the last N block-arrival timestamps. Used to:
-    //   1) report rolling rates (1-min and 60-min windows) to the operator
-    //   2) feed an adaptive SLOT_TIMEOUT_MS multiplier — when we're under
-    //      target we shrink the timeout (faster failover); when over, we
-    //      relax it (less wasted CPU on tight polling).
-    //
-    // Why a ring of 3600: at 1 block/s that's 60 minutes of history,
-    // exactly enough for the "blocks in last 60min" stat the user asked
-    // for. At 8 bytes per i64 ms timestamp it's a fixed 28.8 KB — no
-    // allocator pressure, no GC tail.
-    const RATE_RING_SIZE: usize = 3600;
-    const TARGET_BLOCKS_PER_MIN: f64 = 60.0;
-    var rate_ring: [RATE_RING_SIZE]i64 = std.mem.zeroes([RATE_RING_SIZE]i64);
-    var rate_ring_head: usize = 0;
-    var rate_ring_count: usize = 0;
-    var stabilizer_last_report_ms: i64 = g_clock.nowMs();
-    // Adaptive multiplier for SLOT_TIMEOUT_MS, clamped to [0.2, 2.0]. Updated
-    // once per stabilizer report based on observed-vs-target ratio.
-    var stabilizer_timeout_mult: f64 = 1.0;
+    const RATE_RING_SIZE: usize = runtime_init.StabilizerState.RATE_RING_SIZE;
+    const TARGET_BLOCKS_PER_MIN: f64 = runtime_init.StabilizerState.TARGET_BLOCKS_PER_MIN;
+    const stab = runtime_init.StabilizerState.init(&g_clock);
+    var rate_ring: [RATE_RING_SIZE]i64 = stab.rate_ring;
+    var rate_ring_head: usize = stab.rate_ring_head;
+    var rate_ring_count: usize = stab.rate_ring_count;
+    var stabilizer_last_report_ms: i64 = stab.stabilizer_last_report_ms;
+    var stabilizer_timeout_mult: f64 = stab.stabilizer_timeout_mult;
 
     while (launcher.is_running and !g_shutdown.load(.monotonic)) {
         if (!launcher.readyForMining() and !mining_started) {
