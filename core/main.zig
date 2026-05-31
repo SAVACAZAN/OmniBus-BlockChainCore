@@ -339,6 +339,7 @@ const backfillReputationFromChain = agents_mod.backfillReputationFromChain;
 
 // Oracle bridge moved to core/node/oracle_bridge.zig
 const oracle_bridge_mod = @import("node/oracle_bridge.zig");
+const mining_periodic = @import("node/mining_periodic.zig");
 const loadOracleQuorumPubkeys = oracle_bridge_mod.loadOracleQuorumPubkeys;
 const startOracleBridge = oracle_bridge_mod.startOracleBridge;
 const stopOracleBridge = oracle_bridge_mod.stopOracleBridge;
@@ -1825,77 +1826,20 @@ pub fn main() !void {
             // via checkAutoSave's 10-min safety net.
 
             // ── State Trie: update account state ───────────────────────
-            {
-                var addr_buf: [20]u8 = std.mem.zeroes([20]u8);
-                const alen = @min(wallet.address.len, 20);
-                @memcpy(addr_buf[0..alen], wallet.address[0..alen]);
-                try subs.state_trie.updateBalance(addr_buf, wallet.balance, block_count);
-                subs.state_trie.block_height = block_count;
-            }
+            try mining_periodic.updateStateTrie(&subs.state_trie, wallet.address, wallet.balance, block_count);
 
             // ── Finality: propose checkpoint every 64 blocks ────────────
-            if (block_count % finality_mod.CHECKPOINT_INTERVAL == 0 and block_count > 0) {
-                _ = subs.finality.proposeCheckpoint(block_count, block_hash_fixed) catch {};
-                // Self-attest (solo miner attests own checkpoint). The
-                // attestation is signed with the miner's secp256k1 key and
-                // verified against the validator registered above; the engine
-                // ignores the advisory voting_power and uses the registry's.
-                var self_att = finality_mod.Attestation{
-                    .validator_id = 0,
-                    .target_epoch = block_count / finality_mod.CHECKPOINT_INTERVAL,
-                    .source_epoch = subs.finality.last_justified_epoch,
-                    .voting_power = 1000,
-                    .block_hash = block_hash_fixed,
-                    .timestamp = std.time.timestamp(),
-                };
-                self_att.sign(wallet.private_key_bytes) catch {};
-                subs.finality.attest(self_att) catch {};
-                std.debug.print("[FINALITY] Checkpoint epoch {d} | justified={d} finalized={d}\n",
-                    .{ block_count / finality_mod.CHECKPOINT_INTERVAL,
-                       subs.finality.last_justified_epoch, subs.finality.last_finalized_epoch });
-            }
+            mining_periodic.maybeProposeCheckpoint(&subs.finality, block_count, block_hash_fixed, wallet.private_key_bytes);
 
             // ── Staking: distribute rewards (every 100 blocks) ──────────
-            if (block_count % staking_mod.REWARD_EPOCH_BLOCKS == 0 and subs.staking.activeCount() > 0) {
-                subs.staking.distributeRewards(reward_sat);
-                std.debug.print("[STAKING] Epoch {d} | validators={d} | total_staked={d}\n",
-                    .{ subs.staking.current_epoch, subs.staking.activeCount(), subs.staking.total_staked });
-            }
+            mining_periodic.maybeDistributeStakingRewards(&subs.staking, block_count, reward_sat);
 
             // ── Peer Scoring: score peers on block relay ─────────────────
             // In solo mode no peers, but ready for multi-node
             _ = &peer_scoring;
 
             // ── F8: Update miner balance caches ────────────────────────────
-            //
-            // BUG FIX (2026-04-27): we previously also republished each
-            // pool entry's `public_key_hex` into `bc.pubkey_registry`. When
-            // the entry was created via `registerWithRandomKey` (the legacy
-            // `register(addr)` path), that pubkey was a random key unrelated
-            // to the real address — registering it would poison the registry
-            // and cause ECDSA verification to fail for any transaction
-            // actually signed with the wallet's mnemonic. The `sendtransaction`
-            // RPC handler now is the only authoritative writer; it registers
-            // the *real* pubkey from `ctx.wallet.addresses[0].public_key_hex`
-            // before validation. Pool entries with random keys are still
-            // useful for `getMinerForBlock` rotation, just not for signing.
-            {
-                g_miner_pool.mutex.lock();
-                const pool_count = g_miner_pool.count;
-                var addrs_buf: [MinerWalletPool.MAX][64]u8 = undefined;
-                var lens_buf: [MinerWalletPool.MAX]u8 = undefined;
-                for (0..pool_count) |pi| {
-                    addrs_buf[pi] = g_miner_pool.wallets[pi].address;
-                    lens_buf[pi] = g_miner_pool.wallets[pi].address_len;
-                }
-                g_miner_pool.mutex.unlock();
-
-                for (0..pool_count) |pi| {
-                    const maddr = addrs_buf[pi][0..lens_buf[pi]];
-                    const mbal = bc.getAddressBalance(maddr);
-                    g_miner_pool.updateBalance(maddr, mbal);
-                }
-            }
+            mining_periodic.updateMinerPoolBalances(&bc, &g_miner_pool);
 
             // ── F8: Auto-TX between miners (every 5 blocks) ─────────────
             if (block_count % 5 == 0 and g_miner_pool.count >= 2) {
