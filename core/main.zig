@@ -11,6 +11,7 @@ pub const build_options_evm_enabled: bool = @import("build_options").evm_enabled
 const platform_lock = @import("node/platform_lock.zig");
 const acquireSingleInstanceLock = platform_lock.acquireSingleInstanceLock;
 const wallet_setup = @import("node/wallet_setup.zig");
+const db_setup     = @import("node/db_setup.zig");
 
 const pq_crypto_mod   = @import("pq_crypto.zig");
 const blockchain_mod  = @import("blockchain.zig");
@@ -458,52 +459,17 @@ pub fn main() !void {
         std.debug.print("[WALLET] Using mnemonic from --mnemonic CLI flag\n", .{});
     }
 
-    // ── DB path selection per chain ──────────────────────────────────────────
+    // ── DB path selection + Init database ─ moved to node/db_setup.zig ──────
     const chain_name = net_cfg.name; // e.g. "omnibus-mainnet" / "omnibus-testnet"
-    const short_name = blk: {
-        // strip "omnibus-" prefix → "mainnet" / "testnet" / "regtest"
-        const prefix = "omnibus-";
-        if (std.mem.startsWith(u8, chain_name, prefix)) {
-            break :blk chain_name[prefix.len..];
-        } else {
-            break :blk chain_name;
-        }
-    };
+    const short_name = db_setup.shortChainName(chain_name);
 
-    // OMNIBUS_DATA_DIR lets a second process (e.g. a miner co-hosted with a
-    // seed) use a separate directory so they don't fight over the same file.
-    // Example: OMNIBUS_DATA_DIR=/root/omnibus-blockchain/data/miner-testnet
-    const env_data_dir = std.process.getEnvVarOwned(allocator, "OMNIBUS_DATA_DIR") catch null;
-    defer if (env_data_dir) |d| allocator.free(d);
+    const db_path_res = try db_setup.resolveDbPath(allocator, short_name);
+    defer allocator.free(db_path_res.db_path);
+    defer if (db_path_res.env_data_dir) |d| allocator.free(d);
+    const db_path: []u8 = db_path_res.db_path;
 
-    // Mainnet only: prefer legacy file if it exists (back-compat).
-    // Testnet/regtest/devnet: ALWAYS use data/{chain}/chain.dat — never legacy.
-    const db_path: []u8 = blk: {
-        if (env_data_dir) |dir| {
-            std.fs.cwd().makePath(dir) catch {};
-            const p = try std.fmt.allocPrint(allocator, "{s}/chain.dat", .{dir});
-            std.debug.print("[DB] Using chain DB at {s} (OMNIBUS_DATA_DIR)\n", .{p});
-            break :blk p;
-        }
-        if (std.mem.eql(u8, short_name, "mainnet")) {
-            const legacy_exists = std.fs.cwd().access(LEGACY_DB_PATH, .{}) catch null;
-            if (legacy_exists != null) {
-                std.debug.print("[DB] Using legacy mainnet DB at {s}\n", .{LEGACY_DB_PATH});
-                break :blk try allocator.dupe(u8, LEGACY_DB_PATH);
-            }
-        }
-        const new_path = try database_mod.dbPathForChain(allocator, short_name);
-        std.debug.print("[DB] Using chain DB at {s}\n", .{new_path});
-        break :blk new_path;
-    };
-    defer allocator.free(db_path);
-
-    // ── Init database (persistent storage) ───────────────────────────────────
-    var pbc = try PersistentBlockchain.loadFromDisk(allocator, db_path);
+    var pbc = try db_setup.loadPersistentDb(allocator, db_path);
     defer pbc.deinit();
-    const loaded_stats = pbc.getStats();
-    std.debug.print("[DB] Loaded: {d} blocks, {d} addresses from {s}\n",
-        .{ loaded_stats.total_blocks, loaded_stats.total_addresses, db_path });
 
     // ── Init blockchain cu Genesis oficial ───────────────────────────────────
     // A4 added GenesisState.fromChainConfig — accepts ChainConfig directly.
@@ -545,56 +511,9 @@ pub fn main() !void {
     // and miner auto-refill (see FAUCET_REFILL_THRESHOLD_SAT in faucetRefillLoop).
     // No genesis-allocated supply: every OMNI in the faucet was mined by someone first.
 
-    // ── pq_identity_map persistence ──────────────────────────────────────────
-    // The chain's pq_attest registry survives node restarts via a JSONL sidecar.
-    // Without this, every restart wipes all registered identities until each
-    // user re-attests — bad UX and breaks first-claim semantics.
-    {
-        const pq_path = std.fmt.allocPrint(allocator, "data/{s}/pq_identities.jsonl", .{short_name}) catch null;
-        if (pq_path) |p| {
-            defer allocator.free(p);
-            blockchain_mod.loadPqIdentitiesFromDisk(&bc, p) catch |err| {
-                std.debug.print("[PQ-IDENT] load failed: {} (starting fresh)\n", .{err});
-                blockchain_mod.pqPersistSetPath(p);
-            };
-        }
-    }
-
-    // ── PHASE C.4 — open the Bitcoin-style chainstate KV ──────────────
-    //
-    // Persistent WAL+snapshot store under data/<chain>/chainstate.{wal,snap}.
-    // The chain's RAM cache (bc.balances, bc.nonces) keeps running
-    // unchanged; chainstate is a *parallel* writer for now. Once an audit
-    // soak shows zero divergence between RAM and chainstate, the RAM
-    // mirrors will be deleted and chainstate becomes the only source.
-    const cs_base = std.fmt.allocPrint(allocator, "data/{s}/chainstate", .{short_name}) catch null;
-    if (cs_base) |path| {
-        defer allocator.free(path);
-        if (chainstate_mod.ChainState.open(allocator, path)) |cs| {
-            g_chainstate = cs;
-            std.debug.print(
-                "[CHAINSTATE] opened at data/{s}/chainstate ({d} balance entries loaded)\n",
-                .{ short_name, g_chainstate.?.balanceCount() },
-            );
-        } else |err| {
-            std.debug.print("[CHAINSTATE] open failed: {} — running without persistent KV\n", .{err});
-        }
-    }
-    // Sync chainstate from the freshly-recalculated bc.balances. This
-    // handles two cases: (a) first run, chainstate is empty; (b) restart,
-    // chainstate may already have state but bc.balances was just rebuilt
-    // from chain replay so it's the authoritative source for now.
-    if (g_chainstate) |*cs| {
-        var it = bc.balances.iterator();
-        var synced: usize = 0;
-        while (it.next()) |kv| {
-            cs.putBalance(kv.key_ptr.*, kv.value_ptr.*) catch |err| {
-                std.debug.print("[CHAINSTATE] initial putBalance failed: {}\n", .{err});
-            };
-            synced += 1;
-        }
-        std.debug.print("[CHAINSTATE] initial sync: {d} balances written from RAM\n", .{synced});
-    }
+    // ── pq_identity_map persistence + chainstate KV ─ moved to node/db_setup.zig ──
+    db_setup.loadPqIdentities(&bc, short_name, allocator);
+    g_chainstate = db_setup.openChainstateKV(&bc, short_name, allocator);
 
     // Start the background state-save thread. This is the band-aid fix
     // for the post-b363095 data-loss bug: balances that weren't on-chain
