@@ -788,43 +788,18 @@ pub fn main() !void {
 
     // ── Init Peer Scoring ────────────────────────────────────────────────────
     var peer_scoring = peer_scoring_mod.PeerScoringEngine.init();
-    // Ban-list persistence: per-chain file alongside the chain DB. Bans
-    // outlive node restarts (and crashes) so a banned peer can't dodge by
-    // waiting for the operator to bounce the process. Format documented in
-    // core/peer_persist.zig (magic+version+payload+CRC32).
+    const peer_persistence = @import("node/peer_persistence.zig");
     var peer_bans_path_buf: [256]u8 = undefined;
-    const peer_bans_path = std.fmt.bufPrint(
-        &peer_bans_path_buf,
-        "data/{s}/peer-bans.dat",
-        .{@tagName(parsed.chain_mode)},
-    ) catch "data/peer-bans.dat";
-    peer_persist_mod.loadFromFile(&peer_scoring, peer_bans_path) catch |err| {
-        std.debug.print("[PEER-BANS] Load from {s} failed: {s} (starting empty)\n",
-            .{ peer_bans_path, @errorName(err) });
-    };
-    if (peer_scoring.persistentBanCount() > 0) {
-        std.debug.print("[PEER-BANS] Loaded {d} persistent bans from {s}\n",
-            .{ peer_scoring.persistentBanCount(), peer_bans_path });
-    }
+    const peer_bans_path = peer_persistence.loadPeerBans(&peer_scoring, @tagName(parsed.chain_mode), &peer_bans_path_buf);
     // Periodic save cadence (mining loop checks elapsed time).
     var peer_bans_last_save: i64 = std.time.timestamp();
     const PEER_BANS_SAVE_INTERVAL_S: i64 = 60;
 
     // ── Init DNS Registry + persist file (per-chain) ────────────────────────
     var dns = dns_mod.DnsRegistry.init();
-    // Persist file per chain: data/<chain>/dns_registry.bin
     var dns_persist_path_buf: [256]u8 = undefined;
-    const dns_persist_path = std.fmt.bufPrint(
-        &dns_persist_path_buf,
-        "data/{s}/dns_registry.bin",
-        .{@tagName(parsed.chain_mode)},
-    ) catch "data/dns_registry.bin";
-    dns.loadFromFile(dns_persist_path) catch |err| {
-        std.debug.print("[DNS] Load from {s} failed: {s} (starting empty)\n",
-            .{ dns_persist_path, @errorName(err) });
-    };
+    const dns_persist_path = peer_persistence.loadDnsRegistry(&dns, @tagName(parsed.chain_mode), &dns_persist_path_buf);
     if (dns.entry_count > 0) {
-        std.debug.print("[DNS] Loaded {d} names from {s}\n", .{ dns.entry_count, dns_persist_path });
         // Phase 2 auto-migration — backfill category from TLD + years from default
         // for legacy entries (no behavior change for entries already migrated).
         const migrated = dns.migrateLegacyEntries();
@@ -1155,63 +1130,16 @@ pub fn main() !void {
         // profiles journal — makePath done inside startHTTPEx via replayProfilesJournal
     }
 
-    // Trade fills log — append-only binary journal of every executed fill.
-    // Lives alongside the other per-chain data so a node restart preserves
-    // the user's trade history. Heap-allocated so the RPC thread can keep
-    // a stable pointer for the process lifetime.
-    var fills_log_handle: ?*fills_log_mod.FillsLog = null;
-    blk_fills: {
-        const chain_subdir: []const u8 = if (config.testnet) "testnet"
-            else if (config.regtest) "regtest" else "mainnet";
-        const dir = std.fmt.allocPrint(allocator, "data/{s}", .{chain_subdir}) catch break :blk_fills;
-        defer allocator.free(dir);
-        const log_ptr = allocator.create(fills_log_mod.FillsLog) catch break :blk_fills;
-        const inited = fills_log_mod.FillsLog.init(allocator, dir) catch {
-            allocator.destroy(log_ptr);
-            break :blk_fills;
-        };
-        log_ptr.* = inited;
-        fills_log_handle = log_ptr;
-        std.debug.print("[FILLS-LOG] persistent log at {s}/fills_log.bin\n", .{dir});
-    }
-
-    // KYC issuer address: the wallet at registrar slot 4 (`kyc.omnibus`).
-    // We re-derive from the same mnemonic the local wallet was built from.
-    // On testnet that's enough; mainnet would also cross-check against the
-    // hardcoded constant in `registrar_addresses.zig:REGISTRAR_ADDRESSES`.
-    const bip32_wallet_mod = @import("bip32_wallet.zig");
-    var kyc_issuer_owned: ?[]u8 = null;
-    {
-        var bip32 = bip32_wallet_mod.BIP32Wallet.initFromMnemonic(mnemonic, allocator) catch null;
-        if (bip32) |*w| {
-            kyc_issuer_owned = w.deriveAddressForDomain(777, 4, "ob", allocator) catch null;
-            if (kyc_issuer_owned) |addr| {
-                std.debug.print("[KYC] issuer (slot 4 / kyc.omnibus): {s}\n", .{addr});
-            }
-        }
-    }
-
-    // Bridge state — heap-allocated so the pointer stays valid across the
-    // RPC thread lifetime. BridgeState.init() needs an allocator.
-    const bridge_state_ptr = allocator.create(bridge_mod.BridgeState) catch null;
-    if (bridge_state_ptr) |bs| {
-        bs.* = bridge_mod.BridgeState.init(allocator);
-        std.debug.print("[BRIDGE] Native cross-chain bridge initialized\n", .{});
-    }
-
-    // Grid trading registry — heap-allocated, persisted in data/<chain>/grid_registry.bin.
-    const chain_subdir_grid: []const u8 = if (config.testnet) "testnet"
-        else if (config.regtest) "regtest" else "mainnet";
-    const grid_registry_ptr = allocator.create(grid_mod.GridRegistry) catch null;
-    const grid_path_owned = std.fmt.allocPrint(allocator, "data/{s}/grid_registry.bin", .{chain_subdir_grid}) catch null;
-    if (grid_registry_ptr) |gr| {
-        gr.* = grid_mod.GridRegistry.init();
-        if (grid_path_owned) |p| {
-            std.fs.cwd().makePath(std.fs.path.dirname(p) orelse ".") catch {};
-            gr.loadFromFile(p) catch {};
-            std.debug.print("[GRID] Grid engine ON — registry: {s} ({d} grids loaded)\n", .{ p, gr.count });
-        }
-    }
+    // Trade fills log, KYC issuer, bridge state, grid registry —
+    // all four heap-init blocks were extracted into core/node/exchange_engines.zig.
+    const exchange_engines = @import("node/exchange_engines.zig");
+    const ee_chain_subdir = exchange_engines.chainSubdir(config.testnet, config.regtest);
+    const fills_log_handle = exchange_engines.initFillsLog(allocator, ee_chain_subdir);
+    const kyc_issuer_owned = exchange_engines.deriveKycIssuer(mnemonic, allocator);
+    const bridge_state_ptr = exchange_engines.initBridgeState(allocator);
+    const grid_init = exchange_engines.initGridRegistry(allocator, ee_chain_subdir);
+    const grid_registry_ptr = grid_init.registry;
+    const grid_path_owned = grid_init.path;
 
     // EVM escrow watcher + DEX settler — extracted helpers in node/exchange_init.zig.
     // Behavior unchanged (same chain IDs, RPC URLs, poll intervals, log lines).
