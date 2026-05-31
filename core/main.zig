@@ -1471,108 +1471,20 @@ pub fn main() !void {
             }
 
             // ── WS: broadcast fills (trades) + orderbook snapshots ──────
-            {
-                // Canonical pair labels — mirrors exchange_listPairs RPC order
-                const PAIR_LABELS = [7][]const u8{
-                    "OMNI/USDC", "BTC/USDC", "LCX/USDC",
-                    "ETH/USDC",  "OMNI/BTC", "OMNI/LCX", "OMNI/ETH",
-                };
+            mining_periodic.broadcastFillsAndOrderbook(&bc, &ws_cfg.ws_srv, new_block, block_count);
 
-                if (bc.fills_history.get(@intCast(new_block.index))) |fills| {
-                    for (fills) |fill| {
-                        const label = if (fill.pair_id < PAIR_LABELS.len)
-                            PAIR_LABELS[fill.pair_id] else "OMNI/USDC";
-                        ws_cfg.ws_srv.broadcastTrade(
-                            fill.pair_id, label,
-                            fill.price_micro_usd, fill.amount_sat,
-                            "buy", block_count,
-                        );
-                    }
-                }
-
-                if (bc.exchange_engine) |eng| {
-                    for (PAIR_LABELS, 0..) |label, pid| {
-                        const pair_id: u16 = @intCast(pid);
-                        const bb = eng.bestBid(pair_id) orelse 0;
-                        const ba = eng.bestAsk(pair_id) orelse 0;
-                        const oc = eng.orderCountForPair(pair_id);
-                        if (bb > 0 or ba > 0 or oc > 0) {
-                            const sp = if (ba > bb) ba - bb else 0;
-                            ws_cfg.ws_srv.broadcastOrderbook(pair_id, label, bb, ba, sp, oc, block_count);
-                        }
-                    }
-                }
-            }
-
-            // ── PoUW: Calculate and log rewards for this block ──────────
-            g_pouw_engine.calculateRewards(block_count);
-            g_pouw_engine.resetBlock();
-
-            // ── AI Agents: tick all loaded agents on this block ─────────
-            agentTickAll(&bc, block_count);
-
-            // ── Price Oracle: Reset submissions for next round ──────────
-            g_price_oracle.resetRound();
-
-            // ── Oracle Fetcher: log latest snapshot every 10 blocks ─────────
-            //
-            // The actual fetching happens on a dedicated worker thread (see
-            // OracleFetcher.startWorker in main()). Here we only read the
-            // latest snapshot under the mutex — constant-time, never blocks
-            // mining. Previously this branch called fetcher.fetchAll()
-            // directly, which did 6 sequential blocking HTTPS calls and
-            // could pause the mining thread for 8–9 seconds when any
-            // exchange was slow. That was the cause of the periodic
-            // 9000ms block-latency spikes the operator observed in
-            // testnet logs (1 slow block at every 10th, like clockwork).
-            if (block_count % 10 == 0) {
-                if (g_oracle_fetcher) |*fetcher| {
-                    const snap = fetcher.snapshot();
-                    var btc_ok: u8 = 0;
-                    var lcx_ok: u8 = 0;
-                    for (snap[0..3]) |p| { if (p.success) btc_ok += 1; }
-                    for (snap[3..6]) |p| { if (p.success) lcx_ok += 1; }
-                    if (fetcher.getMedianPrice()) |median| {
-                        std.debug.print("[ORACLE-FETCHER] BTC/USD median: ${d}.{d:0>2} ({d}/3 exchanges)\n",
-                            .{ median / 1_000_000, (median % 1_000_000) / 10_000, btc_ok });
-                        ws_cfg.ws_srv.broadcastOraclePrice("BTC/USD", median, btc_ok);
-                    } else {
-                        std.debug.print("[ORACLE-FETCHER] BTC: no prices available\n", .{});
-                    }
-                    if (fetcher.getMedianLcxPrice()) |median| {
-                        std.debug.print("[ORACLE-FETCHER] LCX/USD median: ${d}.{d:0>4} ({d}/3 exchanges)\n",
-                            .{ median / 1_000_000, (median % 1_000_000) / 100, lcx_ok });
-                        ws_cfg.ws_srv.broadcastOraclePrice("LCX/USD", median, lcx_ok);
-                    } else {
-                        std.debug.print("[ORACLE-FETCHER] LCX: no prices available\n", .{});
-                    }
-                }
-            }
+            // ── PoUW + AI Agents + Price Oracle + Oracle Fetcher logs ───
+            mining_periodic.tickRoundEngines(&g_pouw_engine, &bc, &g_price_oracle, &g_oracle_fetcher, &ws_cfg.ws_srv, block_count);
 
             // ── Metachain: inregistreaza shard header pentru acest bloc ───────
-            const shard_id = subs.metachain.coordinator.getShardForAddress(wallet.address);
-            const meta_block = try subs.metachain.beginMetaBlock();
-            var block_hash_fixed: [32]u8 = std.mem.zeroes([32]u8);
-            const hash_copy_len = @min(new_block.hash.len, 32);
-            @memcpy(block_hash_fixed[0..hash_copy_len], new_block.hash[0..hash_copy_len]);
-            try meta_block.addShardHeader(.{
-                .shard_id     = shard_id,
-                .block_height = block_count,
-                .block_hash   = block_hash_fixed,
-                .tx_count     = @intCast(pending_txs.len),
-                .timestamp    = std.time.timestamp(),
-                .miner        = wallet.address,
-                .reward_sat   = reward_sat,
-            });
-            try subs.metachain.finalizeMetaBlock();
-
-            if (block_count % 10 == 0) {
-                std.debug.print("[METACHAIN] height={d} shard={d} active_shards={d}\n", .{
-                    subs.metachain.getHeight(),
-                    shard_id,
-                    subs.metachain.coordinator.num_shards,
-                });
-            }
+            const block_hash_fixed = try mining_periodic.registerMetaShard(
+                &subs.metachain,
+                wallet.address,
+                block_count,
+                new_block.hash,
+                @intCast(pending_txs.len),
+                reward_sat,
+            );
 
             // Notifica SyncManager — bloc aplicat local
             p2p_stack.sync_mgr.onBlockApplied(block_count);
@@ -1657,36 +1569,11 @@ pub fn main() !void {
         if (maint_count % 30 == 0) {
             launcher.maintenance();
 
-            // ── P2P maintenance: reconnect dead peers + evict expired bans ──
-            // Without this, peers that drop mid-broadcast (TCP reset) stay
-            // marked dead forever and the node mines on a private fork.
-            // Observed live 2026-04-26: PC at 49875, VPS at 49625, 250
-            // blocks of divergence because gossip kept failing with
-            // ConnectionClosed and nothing reconnected.
-            p2p.processReconnects();
-            p2p.evictExpiredBans();
-            // Fork recovery: if we've been broadcasting blocks that peers
-            // keep rejecting (TCP closed mid-send), we're on a fork. Drop
-            // the last 1-2 blocks and re-sync. Returns true if recovery
-            // was triggered (logs a [FORK-RECOVERY] line).
-            _ = p2p.tryForkRecovery();
+            // ── P2P maintenance: reconnect dead peers + evict expired bans + fork recovery ──
+            mining_periodic.p2pMaintenance(p2p);
 
-            // ── Governance: log active proposals ────────────────────────
-            if (governance.proposal_count > 0) {
-                std.debug.print("[GOVERNANCE] Active proposals: {d}\n", .{governance.proposal_count});
-            }
-
-            // ── DNS: log registry stats ─────────────────────────────────
-            const dns_active = dns.activeCount(block_count);
-            if (dns_active > 0) {
-                std.debug.print("[DNS] Registered names: {d}\n", .{dns_active});
-            }
-
-            // ── Guardian: log guarded accounts ──────────────────────────
-            const guarded = guardian.guardedCount(block_count);
-            if (guarded > 0) {
-                std.debug.print("[GUARDIAN] Guarded accounts: {d}\n", .{guarded});
-            }
+            // ── Governance + DNS + Guardian periodic logs ───────────────
+            mining_periodic.maybeLogPeriodic(block_count, &governance, &dns, &guardian);
             if (launcher.getNetworkStatus()) |s| {
                 std.debug.print("[NETWORK] peers: {d}  miners: {d}  synced: {}\n",
                     .{ s.total_peers, s.total_miners, s.is_synced });
