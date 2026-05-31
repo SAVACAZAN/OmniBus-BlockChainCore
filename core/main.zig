@@ -579,49 +579,9 @@ pub fn main() !void {
     var dns = dns_mod.DnsRegistry.init();
     var dns_persist_path_buf: [256]u8 = undefined;
     const dns_persist_path = peer_persistence.loadDnsRegistry(&dns, @tagName(parsed.chain_mode), &dns_persist_path_buf);
-    if (dns.entry_count > 0) {
-        // Phase 2 auto-migration — backfill category from TLD + years from default
-        // for legacy entries (no behavior change for entries already migrated).
-        const migrated = dns.migrateLegacyEntries();
-        if (migrated > 0) {
-            std.debug.print("[DNS] Auto-migrated {d} legacy entries to Phase 2 (category from TLD)\n", .{migrated});
-        }
-        // Phase 2 lifecycle — drop entries whose grace period has fully
-        // elapsed. One-shot at startup; steady-state cleanup is hooked into
-        // the mining loop below (every 1000 blocks).
-        const startup_block: u64 = @intCast(bc.chain.items.len);
-        const pruned = dns.pruneExpiredNames(startup_block);
-        if (pruned > 0) {
-            std.debug.print("[DNS] Pruned {d} expired (past-grace) names at startup\n", .{pruned});
-        }
-    }
-
-    // Set treasury = ens.omnibus address from the canonical registrar table.
-    //
-    // The 10 registrar slots act as native "smart contracts" — they have
-    // an on-chain address but NO private key. The chain itself enforces
-    // their rules deterministically (pay-to-claim for ens, drip for faucet,
-    // grid orders for exchange treasury, etc.). We never derive these from
-    // a node-local mnemonic — every node reads the same hardcoded strings
-    // and produces the same consensus. Same model Hyperliquid uses for its
-    // protocol-owned addresses.
-    const ens_treasury_addr = registrar_mod.addressOf(.ens) orelse {
-        std.debug.print("[DNS] FATAL: ens slot empty in registrar_addresses.zig\n", .{});
-        return error.MissingRegistrarSlot;
-    };
-    dns.setTreasury(ens_treasury_addr);
-    // Pe testnet & regtest: fee_enforcement OFF (compat cu Kimi scripts).
-    // Pe mainnet: fee_enforcement ON.
-    dns.enableFee(parsed.chain_mode == .mainnet);
-    std.debug.print("[DNS] Treasury: {s} | fee_enforcement: {}\n",
-        .{ ens_treasury_addr, dns.fee_enforcement });
-    // Phase 1 hardening: signed_required defaults true in DnsRegistry.init().
-    // Log it explicitly so operators can verify auth is on at every launch.
-    std.debug.print("[DNS] signed_required = {}\n", .{dns.signed_required});
-    if (parsed.chain_mode == .mainnet and !dns.signed_required) {
-        std.debug.print("[DNS] FATAL: signed_required must be true on mainnet\n", .{});
-        return error.DnsSignedRequiredDisabled;
-    }
+    // DNS finalize: Phase 2 migration + prune + treasury wiring + fee/sign
+    // enforcement config. See core/node/peer_persistence.zig.
+    try peer_persistence.finalizeDns(&dns, @intCast(bc.chain.items.len), parsed.chain_mode);
 
     // Attach the registry to the blockchain so applyBlock can run pay-to-claim:
     // every TX with op_return `ns_claim:<name>.<tld>` paying ens.omnibus the
@@ -693,11 +653,8 @@ pub fn main() !void {
     }
 
     // ── EVM Engine (revm) — initialize before RPC so eth_* methods work ──────
-    evm_executor_mod.init() catch |err| {
-        std.debug.print("[EVM] init failed: {} — eth_* RPC methods will return errors\n", .{err});
-    };
-    defer evm_executor_mod.shutdown();
-    std.debug.print("[EVM] Engine initialized (revm)\n", .{});
+    subsystems_init.initEvm();
+    defer subsystems_init.shutdownEvm();
 
     // ── WebSocket + RPC — pornite pe TOATE nodurile ─────────────────────────────
     // Minerii AU NEVOIE de RPC/WS pentru ca UI (Liberty Suite) sa poata afisa

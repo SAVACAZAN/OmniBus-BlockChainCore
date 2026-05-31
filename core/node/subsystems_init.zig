@@ -18,6 +18,7 @@ const finality_mod    = @import("../finality.zig");
 const staking_mod     = @import("../staking.zig");
 const governance_mod  = @import("../governance.zig");
 const secp256k1_mod   = @import("../secp256k1.zig");
+const evm_executor_mod = @import("../evm_executor.zig");
 
 pub const Subsystems = struct {
     consensus_cfg: consensus_mod.ConsensusConfig,
@@ -78,4 +79,20 @@ pub fn initSubsystems(
         .staking       = staking,
         .governance    = governance,
     };
+}
+
+/// Initialize the EVM (revm) engine. Called separately after the P2P stack
+/// and before the RPC server starts, so eth_* JSON-RPC methods can dispatch
+/// into a live executor. Failure is non-fatal — eth_* methods just return
+/// errors until the operator restarts. Caller must pair with `shutdownEvm()`
+/// via `defer` so revm resources are released on clean shutdown.
+pub fn initEvm() void {
+    evm_executor_mod.init() catch |err| {
+        std.debug.print("[EVM] init failed: {} — eth_* RPC methods will return errors\n", .{err});
+    };
+    std.debug.print("[EVM] Engine initialized (revm)\n", .{});
+}
+
+pub fn shutdownEvm() void {
+    evm_executor_mod.shutdown();
 }
