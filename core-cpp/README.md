@@ -1,0 +1,11 @@
+<!-- OEP-1 2/33 | path=README.md | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1 -->
+# OmniBus Node (C++20)
+
+Third sibling implementation of the OmniBus blockchain, wire‑compatible and chain‑compatible with the Zig (`core/`) and Rust (`core-rust/`) nodes.
+
+## Building
+
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
