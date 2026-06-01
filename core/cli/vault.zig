@@ -1,0 +1,23 @@
+//! Coldwallet / timelock / covenant / treasury subcommands — re-exports.
+const c = @import("common.zig");
+pub const cmdColdwalletAdd = c.cmdColdwalletAdd;
+pub const cmdColdwalletList = c.cmdColdwalletList;
+pub const cmdColdwalletRemove = c.cmdColdwalletRemove;
+pub const cmdColdwalletHistory = c.cmdColdwalletHistory;
+pub const cmdColdwalletBalance = c.cmdColdwalletBalance;
+pub const cmdColdwallet = c.cmdColdwallet;
+pub const cmdTimelockCreate = c.cmdTimelockCreate;
+pub const cmdTimelockList = c.cmdTimelockList;
+pub const cmdTimelockSpend = c.cmdTimelockSpend;
+pub const cmdTimelockStatus = c.cmdTimelockStatus;
+pub const cmdTimelock = c.cmdTimelock;
+pub const cmdCovenantCreate = c.cmdCovenantCreate;
+pub const cmdCovenantList = c.cmdCovenantList;
+pub const cmdCovenantGet = c.cmdCovenantGet;
+pub const cmdCovenantRemove = c.cmdCovenantRemove;
+pub const cmdCovenant = c.cmdCovenant;
+pub const cmdTreasuryCreate = c.cmdTreasuryCreate;
+pub const cmdTreasuryList = c.cmdTreasuryList;
+pub const cmdTreasuryDistribute = c.cmdTreasuryDistribute;
+pub const cmdTreasuryStatus = c.cmdTreasuryStatus;
+pub const cmdTreasury = c.cmdTreasury;
