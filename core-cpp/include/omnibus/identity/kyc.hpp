@@ -1,8 +1,9 @@
 #pragma once
 #include "../types.hpp"
 #include "manifest.hpp"
-#include <string>
+#include <map>
 #include <optional>
+#include <string>
 
 namespace omnibus::identity {
 

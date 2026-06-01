@@ -20,7 +20,7 @@ bool MiningPool::submit_share(const MiningShare& share) {
         share_history_.erase(share_history_.begin());
     }
     
-    spdlog::debug("Share submitted by miner {}", share.omnibus::to_hex(miner));
+    spdlog::debug("Share submitted by miner {}", omnibus::to_hex(share.miner));
     return true;
 }
 

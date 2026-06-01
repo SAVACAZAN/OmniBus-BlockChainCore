@@ -1,5 +1,6 @@
 #pragma once
 #include "../types.hpp"
+#include "server.hpp"
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -48,6 +49,6 @@ json mining_getmininginfo(const json& params);
 json mining_submitblock(const json& params);
 
 // Register all native methods
-void register_native_methods(class RPCServer& server);
+void register_native_methods(omnibus::rpc::RPCServer& server);
 
 } // namespace omnibus::rpc::native

@@ -1,5 +1,6 @@
 #include "../../include/omnibus/crypto/pq.hpp"
 #include "../../include/omnibus/crypto/sha256.hpp"
+#include "../../include/omnibus/codec.hpp"
 #include <cstring>
 #include <stdexcept>
 
@@ -9,7 +10,7 @@ static const char* scheme_to_name(PqScheme scheme) {
     switch (scheme) {
         case PqScheme::ML_DSA_87: return OQS_SIG_alg_ml_dsa_87;
         case PqScheme::Falcon_512: return OQS_SIG_alg_falcon_512;
-        case PqScheme::SLH_DSA_256s: return OQS_SIG_alg_slh_dsa_256s;
+        case PqScheme::SLH_DSA_256s: return OQS_SIG_alg_slh_dsa_pure_sha2_256s;
         case PqScheme::ML_KEM_768: return OQS_KEM_alg_ml_kem_768;
         default: return nullptr;
     }
@@ -67,7 +68,7 @@ std::vector<u8> pq_sign(const std::vector<u8>& secret_key, const std::vector<u8>
     size_t sig_len;
     
     if (OQS_SIG_sign(sig, signature.data(), &sig_len, message.data(), message.size(),
-                     secret_key.data(), secret_key.size()) != OQS_SUCCESS) {
+                     secret_key.data()) != OQS_SUCCESS) {
         OQS_SIG_free(sig);
         throw std::runtime_error("Signing failed");
     }
@@ -84,7 +85,7 @@ bool pq_verify(const std::vector<u8>& public_key, const std::vector<u8>& message
     
     int result = OQS_SIG_verify(sig, message.data(), message.size(),
                                 signature.data(), signature.size(),
-                                public_key.data(), public_key.size());
+                                public_key.data());
     OQS_SIG_free(sig);
     return result == OQS_SUCCESS;
 }
@@ -111,8 +112,8 @@ std::vector<u8> pq_kem_decaps(const std::vector<u8>& secret_key, const std::vect
     
     std::vector<u8> shared_secret(kem->length_shared_secret);
     
-    if (OQS_KEM_decaps(kem, shared_secret.data(), ciphertext.data(), ciphertext.size(),
-                       secret_key.data(), secret_key.size()) != OQS_SUCCESS) {
+    if (OQS_KEM_decaps(kem, shared_secret.data(), ciphertext.data(),
+                       secret_key.data()) != OQS_SUCCESS) {
         OQS_KEM_free(kem);
         throw std::runtime_error("Decapsulation failed");
     }

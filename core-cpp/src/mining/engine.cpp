@@ -1,8 +1,10 @@
 #include "../../include/omnibus/mining/engine.hpp"
 #include "../../include/omnibus/consensus/pow.hpp"
 #include "../../include/omnibus/consensus/genesis.hpp"
+#include "../../include/omnibus/consensus/block.hpp"
 #include <spdlog/spdlog.h>
 #include <chrono>
+#include <ctime>
 #include <thread>
 
 namespace omnibus::mining {

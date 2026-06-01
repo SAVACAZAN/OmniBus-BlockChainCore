@@ -14,6 +14,7 @@ class P2PNode {
     Network net_;
 public:
     P2PNode(Network net, u16 port);
+    boost::asio::io_context& io_context() { return io_; }
     void start();
     void add_seed(const std::string& host, u16 port);
     void run();

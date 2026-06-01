@@ -1,5 +1,7 @@
 #pragma once
 #include "../types.hpp"
+#include "../crypto/sha256.hpp"
+#include "../codec.hpp"
 #include "coordinator.hpp"
 #include <vector>
 
@@ -13,6 +15,15 @@ struct MetaBlock {
     std::vector<Hash256> cross_shard_txs;
     u32 timestamp;
     std::vector<u8> validator_signature;
+
+    Hash256 hash() const {
+        std::vector<u8> buf;
+        codec::write_le(version, buf);
+        codec::write_le(height, buf);
+        buf.insert(buf.end(), prev_hash.begin(), prev_hash.end());
+        codec::write_le(timestamp, buf);
+        return crypto::sha256d(buf);
+    }
 };
 
 class Metachain {

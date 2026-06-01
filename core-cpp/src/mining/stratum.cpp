@@ -1,6 +1,6 @@
 #include "../../include/omnibus/mining/stratum.hpp"
 #include <spdlog/spdlog.h>
-#include <boost/algorithm/string.hpp>
+#include <algorithm>
 #include <sstream>
 
 namespace omnibus::mining {
@@ -43,7 +43,8 @@ void StratumServer::handle_client(std::shared_ptr<boost::asio::ip::tcp::socket> 
                 std::istream is(buf.get());
                 std::string line;
                 std::getline(is, line);
-                boost::trim(line);
+                line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](unsigned char c){ return !std::isspace(c); }));
+                line.erase(std::find_if(line.rbegin(), line.rend(), [](unsigned char c){ return !std::isspace(c); }).base(), line.end());
                 process_request(line, socket);
                 handle_client(socket);
             } else {
@@ -123,8 +124,8 @@ void StratumServer::broadcast_new_job(const StratumJob& job) {
     notification["method"] = "mining.notify";
     notification["params"] = json::array();
     notification["params"].push_back(job.job_id);
-    notification["params"].push_back(job.prev_hash.data());
-    notification["params"].push_back(job.merkle_root.data());
+    notification["params"].push_back(omnibus::to_hex(job.prev_hash));
+    notification["params"].push_back(omnibus::to_hex(job.merkle_root));
     notification["params"].push_back(std::to_string(job.timestamp));
     notification["params"].push_back(std::to_string(job.bits));
     notification["params"].push_back(job.clean_jobs);

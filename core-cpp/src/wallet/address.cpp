@@ -3,7 +3,9 @@
 #include "../../include/omnibus/crypto/keccak.hpp"
 #include <algorithm>
 #include <cctype>
+#include <iomanip>
 #include <regex>
+#include <sstream>
 
 namespace omnibus::wallet {
 

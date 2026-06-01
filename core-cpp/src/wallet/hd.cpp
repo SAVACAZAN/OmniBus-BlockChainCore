@@ -1,5 +1,8 @@
 #include "../../include/omnibus/wallet/hd.hpp"
 #include "../../include/omnibus/crypto/bech32.hpp"
+#include "../../include/omnibus/crypto/secp256k1.hpp"
+#include "../../include/omnibus/crypto/keccak.hpp"
+#include "../../include/omnibus/crypto/pq.hpp"
 #include "../../include/omnibus/wallet/address.hpp"
 #include <sstream>
 #include <iomanip>
@@ -40,7 +43,7 @@ std::string evm_address(const ExtendedKey& master, u32 account, u32 change, u32 
     return to_checksum_address(ss.str());
 }
 
-std::string pq_address(const ExtendedKey& master, PqScheme scheme, u32 index, bool soulbound) {
+std::string pq_address(const ExtendedKey& master, crypto::PqScheme scheme, u32 index, bool soulbound) {
     // Derive seed from master
     std::string path = "m/777'/" + std::to_string(index);
     auto key = crypto::derive_path(master, path);
@@ -49,13 +52,13 @@ std::string pq_address(const ExtendedKey& master, PqScheme scheme, u32 index, bo
     
     const char* prefix;
     switch (scheme) {
-        case PqScheme::ML_DSA_87:
+        case crypto::PqScheme::ML_DSA_87:
             prefix = soulbound ? "ob_k1_" : "obk1_";
             break;
-        case PqScheme::Falcon_512:
+        case crypto::PqScheme::Falcon_512:
             prefix = soulbound ? "ob_f5_" : "obf5_";
             break;
-        case PqScheme::SLH_DSA_256s:
+        case crypto::PqScheme::SLH_DSA_256s:
             prefix = soulbound ? "ob_s3_" : "obs3_";
             break;
         default:

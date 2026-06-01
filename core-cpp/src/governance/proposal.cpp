@@ -14,10 +14,14 @@ void Proposal::compute_tally() {
 }
 
 bool Proposal::can_pass() const {
-    u64 total_votes = tally[VoteChoice::YES] + tally[VoteChoice::NO];
+    auto get = [&](VoteChoice c) -> u64 {
+        auto it = tally.find(c);
+        return it != tally.end() ? it->second : 0;
+    };
+    u64 total_votes = get(VoteChoice::YES) + get(VoteChoice::NO);
     if (total_votes < quorum) return false;
-    
-    u64 yes_percentage = (tally[VoteChoice::YES] * 10000) / total_votes;
+
+    u64 yes_percentage = (get(VoteChoice::YES) * 10000) / total_votes;
     return yes_percentage >= threshold;
 }
 

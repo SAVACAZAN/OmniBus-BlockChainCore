@@ -1,5 +1,6 @@
 #pragma once
 #include "consensus/block.hpp"
+#include "consensus/params.hpp"
 #include "types.hpp"
 #include <map>
 

@@ -1,5 +1,8 @@
 #include "../../include/omnibus/dex/matching.hpp"
 #include "../../include/omnibus/dex/pair.hpp"
+#include "../../include/omnibus/crypto/sha256.hpp"
+#include "../../include/omnibus/codec.hpp"
+#include "../../include/omnibus/consensus/block.hpp"
 #include <algorithm>
 #include <spdlog/spdlog.h>
 

@@ -58,10 +58,14 @@ void Peer::do_read() {
     boost::asio::async_read(socket_, boost::asio::buffer(read_buffer_, 9), // header
         [this, self](boost::system::error_code ec, size_t len) {
             if (ec) return;
-            
-            u32 magic = codec::read_le<u32>(read_buffer_.data(), len);
+
+            const u8* ptr0 = read_buffer_.data();
+            size_t rem0 = len;
+            u32 magic = codec::read_le<u32>(ptr0, rem0);
             u8 cmd = read_buffer_[4];
-            u32 payload_len = codec::read_le<u32>(read_buffer_.data() + 5, len);
+            const u8* ptr5 = read_buffer_.data() + 5;
+            size_t rem5 = (len > 5) ? (len - 5) : 0;
+            u32 payload_len = codec::read_le<u32>(ptr5, rem5);
             
             if (payload_len > 0) {
                 boost::asio::async_read(socket_, boost::asio::buffer(read_buffer_, payload_len),

@@ -1,5 +1,6 @@
 #pragma once
 #include "../types.hpp"
+#include "pool.hpp"
 #include <boost/asio.hpp>
 #include <nlohmann/json.hpp>
 #include <map>

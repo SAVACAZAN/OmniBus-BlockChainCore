@@ -1,5 +1,6 @@
 #pragma once
 #include "../crypto/bip32.hpp"
+#include "../crypto/pq.hpp"
 #include "../types.hpp"
 #include <string>
 
@@ -16,6 +17,6 @@ std::string omni_address(const ExtendedKey& master, u32 account = 0, u32 change 
 // Derive EVM address (EIP-55)
 std::string evm_address(const ExtendedKey& master, u32 account = 0, u32 change = 0, u32 index = 0);
 // Derive PQ address (soulbound vs transferable) with prefixes
-std::string pq_address(const ExtendedKey& master, PqScheme scheme, u32 index, bool soulbound = true);
+std::string pq_address(const ExtendedKey& master, crypto::PqScheme scheme, u32 index, bool soulbound = true);
 
 } // namespace omnibus::wallet

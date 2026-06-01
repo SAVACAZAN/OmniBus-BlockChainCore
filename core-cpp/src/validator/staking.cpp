@@ -12,7 +12,7 @@ bool StakingManager::stake(const Stake& stake) {
     validator_total_stake_[stake.validator] += stake.amount;
     
     update_tiers();
-    spdlog::info("Stake added: {} -> {} amount={}", stake.omnibus::to_hex(staker), stake.omnibus::to_hex(validator), stake.amount);
+    spdlog::info("Stake added: {} -> {} amount={}", omnibus::to_hex(stake.staker), omnibus::to_hex(stake.validator), stake.amount);
     return true;
 }
 

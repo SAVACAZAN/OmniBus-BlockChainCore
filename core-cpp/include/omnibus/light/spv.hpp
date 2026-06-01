@@ -8,6 +8,7 @@ namespace omnibus::light {
 // Simplified SPV block header (124 bytes)
 struct SpvBlockHeader {
     u32 version;
+    u32 height;
     Hash256 prev_block;
     Hash256 merkle_root;
     u32 timestamp;

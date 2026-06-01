@@ -10,7 +10,7 @@ bool ValidatorSet::register_validator(const ValidatorInfo& info) {
     }
     
     validators_[info.address] = info;
-    spdlog::info("Validator registered: {}", info.omnibus::to_hex(address));
+    spdlog::info("Validator registered: {}", omnibus::to_hex(info.address));
     update_active_set();
     return true;
 }

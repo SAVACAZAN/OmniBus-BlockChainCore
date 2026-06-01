@@ -184,6 +184,9 @@ if(USE_OPENSSL)
     target_link_libraries(omnibus_node_lib PUBLIC OpenSSL::Crypto)
     target_compile_definitions(omnibus_node_lib PUBLIC USE_OPENSSL OMNIBUS_SODIUM_VIA_OPENSSL)
 endif()
+if(WIN32)
+    target_link_libraries(omnibus_node_lib PUBLIC ws2_32 mswsock)
+endif()
 target_compile_options(omnibus_node_lib PRIVATE
     $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wno-unused-parameter>
     $<$<CXX_COMPILER_ID:MSVC>:/W3>

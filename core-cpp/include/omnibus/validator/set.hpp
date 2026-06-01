@@ -1,8 +1,10 @@
 #pragma once
 #include "../types.hpp"
 #include "tier.hpp"
-#include <vector>
+#include <map>
+#include <optional>
 #include <set>
+#include <vector>
 
 namespace omnibus::validator {
 

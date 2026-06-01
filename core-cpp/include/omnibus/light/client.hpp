@@ -11,7 +11,7 @@ class LightClient {
     std::shared_ptr<p2p::Peer> peer_;
     SPVClient spv_;
     BloomFilter filter_;
-    std::vector<Hash256> watched_addresses_;
+    std::vector<Hash160> watched_addresses_;
     
 public:
     explicit LightClient(std::shared_ptr<p2p::Peer> peer);

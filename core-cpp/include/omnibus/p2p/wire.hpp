@@ -23,7 +23,7 @@ struct Hello {
     std::vector<u8> user_agent; // length-prefixed
     Network network;
     u32 height;
-    static constexpr size_t FIXED_SIZE = 4+8+8+1+4 = 25 + var user_agent;
+    static constexpr size_t FIXED_SIZE = 25; // 4+8+8+1+4, variable user_agent follows
     std::vector<u8> serialize() const;
     static Hello deserialize(const u8* data, size_t len);
 };
@@ -36,6 +36,8 @@ struct Welcome {
     Network network;
     u32 height;
     // same as Hello but different command
+    std::vector<u8> serialize() const;
+    static Welcome deserialize(const u8* data, size_t len);
 };
 
 struct Stable {

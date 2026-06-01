@@ -28,4 +28,28 @@ Hello Hello::deserialize(const u8* data, size_t len) {
     return hello;
 }
 
+std::vector<u8> Welcome::serialize() const {
+    std::vector<u8> out;
+    codec::write_le(version, out);
+    codec::write_le(timestamp, out);
+    codec::write_le(nonce, out);
+    codec::write_lp(user_agent, out);
+    out.push_back(static_cast<u8>(network));
+    codec::write_le(height, out);
+    return out;
+}
+
+Welcome Welcome::deserialize(const u8* data, size_t len) {
+    Welcome welcome;
+    const u8* ptr = data;
+    size_t remaining = len;
+    welcome.version = codec::read_le<u32>(ptr, remaining);
+    welcome.timestamp = codec::read_le<u64>(ptr, remaining);
+    welcome.nonce = codec::read_le<u64>(ptr, remaining);
+    welcome.user_agent = codec::read_lp(ptr, remaining);
+    welcome.network = static_cast<Network>(*ptr++); remaining--;
+    welcome.height = codec::read_le<u32>(ptr, remaining);
+    return welcome;
+}
+
 } // namespace omnibus::p2p

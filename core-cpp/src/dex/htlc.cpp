@@ -1,4 +1,5 @@
 #include "../../include/omnibus/dex/htlc.hpp"
+#include "../../include/omnibus/crypto/sha256.hpp"
 #include <spdlog/spdlog.h>
 
 namespace omnibus::dex {
@@ -8,7 +9,7 @@ bool SwapRegistry::create_swap(const HTLC& swap) {
         return false;
     }
     swaps_[swap.swap_id] = swap;
-    spdlog::debug("Created HTLC swap: {}", swap.omnibus::to_hex(swap_id));
+    spdlog::debug("Created HTLC swap: {}", omnibus::to_hex(swap.swap_id));
     return true;
 }
 

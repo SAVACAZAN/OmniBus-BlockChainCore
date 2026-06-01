@@ -1,5 +1,6 @@
 #include "../../include/omnibus/light/client.hpp"
 #include "../../include/omnibus/crypto/sha256.hpp"
+#include <ctime>
 #include <spdlog/spdlog.h>
 
 namespace omnibus::light {

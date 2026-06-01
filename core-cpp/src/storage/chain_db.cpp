@@ -1,5 +1,6 @@
 #include "../../include/omnibus/storage/chain_db.hpp"
 #include "../../include/omnibus/codec.hpp"
+#include "../../include/omnibus/consensus/params.hpp"
 #include <zlib.h> // for CRC32
 #include <filesystem>
 #include <stdexcept>
@@ -14,7 +15,7 @@ u32 ChainDB::crc32(const u8* data, size_t len) {
     return crc32_ieee(data, len);
 }
 
-ChainDB::ChainDB(const std::string& db_path) : path(db_path), version(DB_VERSION) {}
+ChainDB::ChainDB(const std::string& db_path) : path(db_path), version(consensus::DB_VERSION) {}
 
 ChainDB::~ChainDB() { close(); }
 

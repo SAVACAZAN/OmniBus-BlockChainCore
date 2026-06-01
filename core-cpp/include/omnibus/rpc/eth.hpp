@@ -1,5 +1,6 @@
 #pragma once
 #include "../types.hpp"
+#include "server.hpp"
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -25,6 +26,6 @@ json net_version(const json& params);
 json net_peerCount(const json& params);
 
 // Register all ETH methods with the RPC server
-void register_eth_methods(class RPCServer& server);
+void register_eth_methods(omnibus::rpc::RPCServer& server);
 
 } // namespace omnibus::rpc::eth

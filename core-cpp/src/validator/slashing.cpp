@@ -16,7 +16,7 @@ bool SlashingManager::report_slashing(const Hash160& reporter, const SlashingEve
     slash_history_[event.validator].push_back(recorded);
     
     spdlog::warn("Slashing reported for validator {}: reason={}, amount={}", 
-                 event.omnibus::to_hex(validator), event.reason, slash_amount);
+                 omnibus::to_hex(event.validator), event.reason, slash_amount);
     return true;
 }
 
