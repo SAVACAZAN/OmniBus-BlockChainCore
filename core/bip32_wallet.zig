@@ -683,9 +683,9 @@ pub const PQDomainDerivation = struct {
 // (coin_type, scheme_id, index) so each PQ domain / sub-address gets its own
 // independent material while remaining 100% reproducible from the mnemonic.
 //
-// salt = "OMNIBUS-PQ-v1" (fixed, versioned for future migration)
+// salt = "OmniBus-PQ-v1" (fixed, versioned for future migration)
 // ikm  = mnemonic_seed (64 bytes, output of BIP-39 PBKDF2)
-// info = coin_type (4 bytes LE) || scheme_id (1 byte) || index (4 bytes LE)
+// info = "OmniBus-PQ-v1" || coin_type_be(4) || scheme_id(1) || index_be(4) (22 bytes total)
 //
 // scheme_id canonical mapping (also encoded by isolated_wallet.Scheme):
 //   0x01 ML-DSA-87       (LOVE, VACATION soulbound)
@@ -696,11 +696,21 @@ pub const PQDomainDerivation = struct {
 //   0x07 Quantum obd5_   (Dilithium-5 transferable — d for Dilithium)
 //   0x08 Quantum obs3_   (SLH-DSA-256s transferable — s for SLH/SPHINCS+)
 
-pub const PQ_HKDF_SALT: []const u8 = "OMNIBUS-PQ-v1";
+/// Canonical OmniBus PQ HKDF salt. Mirrored byte-for-byte across all five
+/// language implementations (Rust / Zig / Go / Python / C++). Changing this
+/// invalidates every PQ-derived key in the ecosystem.
+pub const PQ_HKDF_SALT: []const u8 = "OmniBus-PQ-v1";
 
 /// Derives a deterministic 64-byte seed for PQ keypair generation.
 /// Same (mnemonic_seed, coin_type, scheme_id, index) tuple ALWAYS yields the
 /// same 64 bytes — restore-from-mnemonic recovers PQ keys byte-identical.
+///
+/// CANONICAL FORMAT (must match Rust `derive::derive_pq_seed` exactly):
+///   salt = "OmniBus-PQ-v1"
+///   info = "OmniBus-PQ-v1" || coin_type_be(4) || scheme_id(1) || index_be(4)
+///        = 22 bytes total
+///   PRK  = HKDF-Extract(salt, mnemonic_seed)
+///   OKM  = HKDF-Expand(PRK, info, 64)
 pub fn derivePQSeed(
     mnemonic_seed: [64]u8,
     coin_type: u32,
@@ -708,16 +718,14 @@ pub fn derivePQSeed(
     index: u32,
 ) [64]u8 {
     const HkdfSha512 = std.crypto.kdf.hkdf.HkdfSha512;
-    // info = coin_type (LE 4) || scheme_id (1) || index (LE 4) = 9 bytes
-    var info: [9]u8 = undefined;
-    std.mem.writeInt(u32, info[0..4], coin_type, .little);
-    info[4] = scheme_id;
-    std.mem.writeInt(u32, info[5..9], index, .little);
+    // info = salt-string || coin_type_be(4) || scheme_id(1) || index_be(4)
+    var info: [22]u8 = undefined;
+    @memcpy(info[0..13], PQ_HKDF_SALT);
+    std.mem.writeInt(u32, info[13..17], coin_type, .big);
+    info[17] = scheme_id;
+    std.mem.writeInt(u32, info[18..22], index, .big);
 
-    // HKDF-Extract → PRK (64 bytes)
     const prk = HkdfSha512.extract(PQ_HKDF_SALT, &mnemonic_seed);
-
-    // HKDF-Expand → 64 bytes OKM
     var okm: [64]u8 = undefined;
     HkdfSha512.expand(&okm, &info, prk);
     return okm;

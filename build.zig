@@ -264,9 +264,11 @@ pub fn build(b: *std.Build) void {
     test_crypto_step.dependOn(&addTest(b, "peer-score", "core/peer_scoring.zig", target, optimize, build_options).step);
     test_crypto_step.dependOn(&addTest(b, "chain-cfg",  "core/chain_config.zig", target, optimize, build_options).step);
     test_crypto_step.dependOn(&addTest(b, "bls",        "core/bls_signatures.zig", target, optimize, build_options).step);
-    test_crypto_step.dependOn(&addTest(b, "staking",    "core/staking.zig",      target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "staking",       "core/staking.zig",       target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "staking-tests", "core/staking_tests.zig", target, optimize, build_options).step);
     test_crypto_step.dependOn(&addTest(b, "tx-receipt", "core/tx_receipt.zig",   target, optimize, build_options).step);
     test_crypto_step.dependOn(&addTest(b, "dns",        "core/dns_registry.zig", target, optimize, build_options).step);
+    test_crypto_step.dependOn(&addTest(b, "dns-tests",  "core/dns_registry_tests.zig", target, optimize, build_options).step);
     test_crypto_step.dependOn(&addTest(b, "guardian",   "core/guardian.zig",     target, optimize, build_options).step);
     test_crypto_step.dependOn(&addTest(b, "compact-blk","core/compact_blocks.zig", target, optimize, build_options).step);
     test_crypto_step.dependOn(&addTest(b, "kademlia",   "core/kademlia_dht.zig", target, optimize, build_options).step);
@@ -286,13 +288,15 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "blockchain-tests", "core/blockchain_tests.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "genesis",     "core/genesis.zig",     target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "mempool",     "core/mempool.zig",     target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "mempool-tests","core/mempool_tests.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "consensus",   "core/consensus.zig",   target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "database",    "core/database.zig",    target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "miner-genesis", "core/miner_genesis.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "e2e-mining",   "core/e2e_mining.zig",   target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "script",       "core/script.zig",       target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "miner-wallet", "core/miner_wallet.zig", target, optimize, build_options).step);
-    test_chain_step.dependOn(&addTest(b, "payment-ch",  "core/payment_channel.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "payment-ch",       "core/payment_channel.zig",       target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "payment-ch-tests", "core/payment_channel_tests.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "metachain",   "core/metachain.zig",      target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "shard-coord", "core/shard_coordinator.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "oracle",      "core/oracle.zig",         target, optimize, build_options).step);
@@ -304,6 +308,7 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "lightning",   "core/lightning.zig",       target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "block-filter","core/block_filter.zig",    target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "matching",   "core/matching_engine.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "matching-engine-tests", "core/matching_engine_tests.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "price-oracle","core/price_oracle.zig",   target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "pouw",       "core/consensus_pouw.zig",  target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "oracle-fetcher", "core/oracle_fetcher.zig", target, optimize, build_options).step);
@@ -316,6 +321,7 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",     target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "ws-feed-tests", "core/ws_exchange_feed_tests.zig", target, optimize, build_options).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");
@@ -475,6 +481,7 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "transaction",  "core/transaction.zig",  target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "genesis",      "core/genesis.zig",      target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "mempool",      "core/mempool.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "mempool-tests", "core/mempool_tests.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "consensus",    "core/consensus.zig",    target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "database",     "core/database.zig",     target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "e2e-mining",   "core/e2e_mining.zig",   target, optimize, build_options).step);
@@ -513,6 +520,8 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "staking",      "core/staking.zig",      target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "tx-receipt",   "core/tx_receipt.zig",   target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "dns",          "core/dns_registry.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "dns-tests",    "core/dns_registry_tests.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "ws-feed-tests","core/ws_exchange_feed_tests.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "guardian",     "core/guardian.zig",     target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "compact-blk", "core/compact_blocks.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "kademlia",    "core/kademlia_dht.zig", target, optimize, build_options).step);
@@ -535,6 +544,7 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "vault-engine",  "core/vault_engine.zig",     target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "ws-server",     "core/ws_server.zig",        target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "matching",      "core/matching_engine.zig",  target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "matching-engine-tests", "core/matching_engine_tests.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig",  target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",      target, optimize, build_options).step);

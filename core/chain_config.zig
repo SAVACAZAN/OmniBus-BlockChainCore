@@ -93,8 +93,15 @@ pub const BRIDGE_DAILY_WINDOW_BLOCKS: u64 = 86_400;
 // `pq_migrate_v1` consensus TX type that binds old_pubkey → new_pubkey with
 // a self-signed proof-of-ownership. See `PQ_MIGRATION_PLAN.md` at repo root.
 //
-// Test/regtest builds typically override this to `true` via comptime injection.
-pub const PQ_DETERMINISTIC_SIGNING: bool = false;
+// Test/regtest builds set `zig build -Dpq_deterministic=true` to enable.
+// The `build_options.pq_deterministic_signing` value overrides this default at
+// compile time; if the build_options field is missing (e.g. when building a
+// test binary without the options module) we fall back to `false`.
+const build_options = @import("build_options");
+pub const PQ_DETERMINISTIC_SIGNING: bool = if (@hasDecl(build_options, "pq_deterministic_signing"))
+    build_options.pq_deterministic_signing
+else
+    false;
 
 /// Minimum signatures required to unlock from the bridge vault.
 /// Default: 3 of N. Lecția Kelp DAO (1/1 DVN forjat = $292M): never trust
