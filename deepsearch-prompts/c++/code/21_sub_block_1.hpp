@@ -1,0 +1,20 @@
+// OEP-1 17/33 | path=include/omnibus/consensus/genesis.hpp | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1
+#pragma once
+#include "block.hpp"
+#include "../types.hpp"
+
+namespace omnibus::consensus {
+
+// Genesis hash per network (from Zig core/genesis.zig)
+constexpr Hash256 MAINNET_GENESIS_HASH = {
+    0x82, 0xec, 0x46, 0xe8, 0x3a, 0xf3, 0x7b, 0x1e,
+    0xa0, 0xe6, 0xb3, 0xfe, 0x66, 0xa8, 0xf0, 0x47,
+    0x95, 0xa8, 0xe8, 0xaa, 0xe7, 0xdb, 0x41, 0x4d,
+    0x45, 0x1e, 0xff, 0x11, 0x54, 0x24, 0x59, 0x82
+};
+constexpr u32 GENESIS_TIMESTAMP = 1743000000; // 2026-03-26 UTC
+
+Block build_genesis_block(Network net);
+bool verify_genesis_block(const Block& block, Network net);
+
+} // namespace omnibus::consensus

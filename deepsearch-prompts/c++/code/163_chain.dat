@@ -1,0 +1,1 @@
+diff <(xxd zig_node/chain.dat) <(xxd cpp_node/chain.dat)

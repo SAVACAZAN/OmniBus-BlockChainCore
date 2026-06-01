@@ -1,0 +1,1 @@
+./omnibus-node --mode seed --port 9000 --network mainnet

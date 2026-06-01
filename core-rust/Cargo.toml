@@ -1,0 +1,58 @@
+[package]
+name = "omnibus-node-rust"
+version = "0.0.1"
+edition = "2021"
+description = "OmniBus full node — Rust implementation, sibling to the Zig core/. Same chain protocol, peers with the Zig node via P2P. Includes native PQ chain + EVM execution (revm). Phased port from core/ Zig: P2P, consensus, storage, RPC, wallet."
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+axum = "0.7"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hex = "0.4"
+sha3 = "0.10"
+k256 = { version = "0.13", features = ["ecdsa"] }
+sha2 = "0.10"
+ripemd = "0.1"
+hmac = "0.12"
+pbkdf2 = "0.12"
+hkdf = "0.12"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+sled = "0.34"
+anyhow = "1"
+thiserror = "1"
+rlp = "0.5"
+serde-big-array = "0.5"
+bytes = "1"
+byteorder = "1"
+rand = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# WebSocket server (port 8334) — push events to React frontend.
+tokio-tungstenite = "0.21"
+futures-util = "0.3"
+
+# EVM execution — same library as the FFI staticlib evm/ uses.
+revm = { version = "14", default-features = false, features = ["std"] }
+alloy-primitives = "0.8"
+
+# Canonical OmniBus crypto primitives — BIP-32/39/44, secp256k1, Ed25519,
+# bech32, key_metadata, PQ (ML-DSA-87 / Falcon-512 / SLH-DSA / ML-KEM-768) via
+# raw FFI to liboqs.a. Same library is consumed by aweb3, 58_OmniWallet,
+# pqc-wallet, and the Connect SDK — so the Rust port automatically shares
+# byte-identical key derivation with the rest of the ecosystem.
+# Windows: requires the GNU Rust toolchain (liboqs.a is MinGW-built).
+omnibus-crypto-core = { path = "../../../omnibus-crypto-core/rust", features = ["pq-oqs"] }
+
+[[bin]]
+name = "omnibus-node-rust"
+path = "src/main.rs"
+
+# Integration tests live under `tests/`. Each .rs file is its own test bin.
+# Cross-impl tests spawn a fresh `omnibus-node-rust` subprocess via
+# `assert_cmd` and `tokio::net::TcpStream`; HTTP RPC tests use `reqwest`.
+[dev-dependencies]
+assert_cmd = "2"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tempfile = "3"

@@ -1,0 +1,33 @@
+// OEP-1 148/150 | path=.gitignore | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1
+# OEP-1 148/150 | path=.gitignore | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1
+# Build directories
+build/
+cmake-build-*/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data directories
+data/
+*.dat
+*.db
+*.log
+
+# Vault files
+*.vault
+*.salt.bin
+bans.txt
+
+# OS files
+.DS_Store
+Thumbs.db

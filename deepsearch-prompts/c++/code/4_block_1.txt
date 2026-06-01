@@ -1,0 +1,1 @@
+./omnibus-node.exe --mode miner --seed-host 127.0.0.1 --seed-port 9000

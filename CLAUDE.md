@@ -2,7 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build & Run
+## Multi-implementation node
+
+BlockChainCore has TWO sibling node implementations of the same protocol (like reth ↔ geth for Ethereum):
+
+| Impl | Path | Lang | Native RPC | EVM RPC | Status |
+|---|---|---|---|---|---|
+| **Zig (primary)** | `core/` | Zig 0.15.2 | port 8332 | — (FFI staticlib `evm/` deprecated 2026-06-01) | Live |
+| **Rust (sibling)** | `core-rust/` | Rust 2021 | extends 8332 | port 8333 | Skeleton — ported 2026-06-01, integration in progress |
+
+Both speak the **same wire protocol** and produce the **same chain hashes** so they can peer with each other. EVM execution is built-into `core-rust/` natively (revm + omnibus-crypto-core for PQ), no separate sidecar.
+
+See `core-rust/README.md` for build instructions.
+
+## Build & Run (Zig — primary)
 
 Requires **Zig 0.15.2+** and **liboqs** compiled with MinGW at `C:/Kits work/limaje de programare/liboqs-src/build/`.
 
@@ -81,17 +94,30 @@ Modules don't share a central module registry. Each file declares its own types 
 
 ## Key Parameters
 
-| Parameter | Value |
-|-----------|-------|
-| Block time | 10s (10 × 0.1s sub-blocks) |
-| RPC port | 8332 (HTTP) |
-| WebSocket port | 8334 |
-| P2P port | 9000+ (configurable) |
-| Max supply | 21M OMNI |
-| Block reward | 50 OMNI (halves every 210k blocks) |
-| SAT/OMNI | 1,000,000,000 (1e9) |
-| DB file | omnibus-chain.dat |
-| Shards | 4 |
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Target block time | 1s | `consensus_params.zig::TARGET_BLOCK_TIME_S` |
+| Sub-blocks per block | 10 (40ms interval) | `SUB_BLOCKS_PER_BLOCK`, `SUB_BLOCK_INTERVAL_MS` |
+| RPC port | 8332 (HTTP) | — |
+| WebSocket port | 8334 | — |
+| P2P port | 9000+ (configurable) | — |
+| EVM JSON-RPC port | 8333 (Rust impl) | `core-rust/src/main.rs` |
+| Max supply | 21,000,000 OMNI | `MAX_SUPPLY_SAT = 21e15` |
+| Block reward | 8,333,333 sat/block (~0.0833 OMNI) | `BLOCK_REWARD_SAT` |
+| Halving interval | 126,144,000 blocks (~4 years @ 1s) | `HALVING_INTERVAL` |
+| SAT/OMNI | 1,000,000,000 (1e9) | `SAT_PER_OMNI` |
+| Difficulty retarget | every 2016 blocks | `RETARGET_INTERVAL` |
+| DB file | omnibus-chain.dat (v4) | `database.zig::DB_VERSION = 4` |
+| Genesis hash | `82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982` | `genesis.zig` |
+| Genesis timestamp | 1,743,000,000 (2026-03-26 UTC) | — |
+| Network magic | mainnet "OMNI" / testnet "TEST" / devnet "DEVN" / regtest "REGT" | — |
+| Shards | 4 | `shard_coordinator.zig` |
+| Coinbase maturity | 100 blocks | — |
+| Block size limit | 1 MiB | `MAX_BLOCK_SIZE` |
+| Block tx limit | 4096 | `MAX_BLOCK_TX` |
+| Checkpoint interval | 64 blocks | `CHECKPOINT_INTERVAL` |
+| Finality | 6 confirmations (soft) + Casper FFG | `SOFT_FINALITY_CONFIRMS` |
+| Fee burn | 50% | `FEE_BURN_PCT` |
 
 ## Git Workflow
 

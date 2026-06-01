@@ -1,0 +1,50 @@
+
+```cpp
+// OEP-1 144/150 | path=scripts/build.sh | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1
+#!/bin/bash
+# OEP-1 144/150 | path=scripts/build.sh | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1
+
+set -e
+
+echo "Building OmniBus C++ Node..."
+
+# Check dependencies
+command -v cmake >/dev/null 2>&1 || { echo "cmake required"; exit 1; }
+command -v pkg-config >/dev/null 2>&1 || { echo "pkg-config required"; exit 1; }
+
+# Install dependencies (Ubuntu/Debian example)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "Installing dependencies..."
+    sudo apt-get update
+    sudo apt-get install -y \
+        libsecp256k1-dev \
+        liboqs-dev \
+        libboost-system-dev \
+        libboost-asio-dev \
+        nlohmann-json3-dev \
+        libspdlog-dev \
+        libssl-dev \
+        zlib1g-dev \
+        catch2
+fi
+
+# Create build directory
+mkdir -p build
+cd build
+
+# Configure
+cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_TESTS=ON \
+    -DUSE_OPENSSL=ON
+
+# Build
+make -j$(nproc)
+
+# Run tests
+if [ "$1" == "--test" ]; then
+    ctest --output-on-failure
+fi
+
+echo "Build complete!"
+echo "Binary: build/omnibus-node"

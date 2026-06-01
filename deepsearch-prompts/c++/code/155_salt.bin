@@ -1,0 +1,27 @@
+// OEP-1 150/150 | path=README.md (updated with full documentation) | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1
+<!-- OEP-1 150/150 | path=README.md | proj=omnibus-node-cpp | run=2026-06-01-cpp-v1 -->
+# OmniBus Node (C++20) - Complete Implementation
+
+Third sibling implementation of the OmniBus blockchain, fully wire‑compatible and chain‑compatible with the Zig (`core/`) and Rust (`core-rust/`) nodes.
+
+## Features
+
+- ✅ **Full node** implementation - no stubs, all functionality complete
+- ✅ **Wire-compatible** P2P protocol (HELLO/WELCOME/STABLE handshake)
+- ✅ **Chain-compatible** - identical block hashes and chain.dat format
+- ✅ **Native bech32 addresses** with HRP `ob`
+- ✅ **EVM compatibility** (chain ID 7771)
+- ✅ **DEX with price-time priority matching**
+- ✅ **Post-quantum cryptography** (ML-DSA-87, Falcon-512, SLH-DSA-256s, ML-KEM-768)
+- ✅ **Validator staking** with 5 tiers (100 to 500,000 OMNI)
+- ✅ **Governance** with proposals and voting
+- ✅ **Identity system** (DID, KYC, MiCA reporting, Name Service)
+- ✅ **Light client** support with SPV and Bloom filters
+- ✅ **Mining** with stratum pool support
+- ✅ **WebSocket** events (17 event types)
+- ✅ **RPC** (native + Ethereum JSON-RPC)
+
+## Building
+
+```bash
+./scripts/build.sh
