@@ -562,4 +562,11 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "integration",   "core/integration_test.zig",     target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "oracle-fetcher","core/oracle_fetcher.zig",       target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "isolated-wallet","core/isolated_wallet_test.zig", target, optimize, build_options).step);
+
+    // ── Tests: EVM Zig interpreter (no liboqs, no revm) ──────────────────────
+    // Standalone step: `zig build evm-test -Doqs=false`
+    // Also wired into `test` (test_all_step) since it has no external deps.
+    const evm_test_step = b.step("evm-test", "Test OmniBus Zig EVM interpreter (no liboqs)");
+    evm_test_step.dependOn(&addTest(b, "evm", "core/evm/tests.zig", target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "evm", "core/evm/tests.zig", target, optimize, build_options).step);
 }
