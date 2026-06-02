@@ -19,25 +19,130 @@
 const std = @import("std");
 const rpc = @import("../rpc_server.zig");
 const evm_executor = @import("../evm_executor.zig");
+const evm_mod = @import("../evm/mod.zig");
 
 const ServerCtx = rpc.ServerCtx;
+
+// ---------------------------------------------------------------------------
+// Hex parsing helpers
+// ---------------------------------------------------------------------------
+
+/// Strip optional "0x"/"0X" prefix and parse hex address into [20]u8.
+/// Returns ZERO_ADDRESS on malformed input.
+fn parseAddress(hex: []const u8) evm_mod.Address {
+    var addr: evm_mod.Address = [_]u8{0} ** 20;
+    const s = if (hex.len >= 2 and hex[0] == '0' and (hex[1] == 'x' or hex[1] == 'X'))
+        hex[2..] else hex;
+    if (s.len != 40) return addr;
+    var i: usize = 0;
+    while (i < 20) : (i += 1) {
+        const hi = hexNibble(s[i * 2]) catch return addr;
+        const lo = hexNibble(s[i * 2 + 1]) catch return addr;
+        addr[i] = (hi << 4) | lo;
+    }
+    return addr;
+}
+
+/// Parse hex calldata (with optional "0x" prefix) into an alloc-owned slice.
+fn parseHexData(alloc: std.mem.Allocator, hex: []const u8) ![]u8 {
+    const s = if (hex.len >= 2 and hex[0] == '0' and (hex[1] == 'x' or hex[1] == 'X'))
+        hex[2..] else hex;
+    if (s.len == 0) return alloc.dupe(u8, &.{});
+    if (s.len % 2 != 0) return error.InvalidHex;
+    const out = try alloc.alloc(u8, s.len / 2);
+    var i: usize = 0;
+    while (i < out.len) : (i += 1) {
+        const hi = try hexNibble(s[i * 2]);
+        const lo = try hexNibble(s[i * 2 + 1]);
+        out[i] = (hi << 4) | lo;
+    }
+    return out;
+}
+
+/// Hex-encode a byte slice with "0x" prefix into an alloc-owned string.
+fn toHexData(alloc: std.mem.Allocator, data: []const u8) ![]u8 {
+    if (data.len == 0) return alloc.dupe(u8, "0x");
+    const out = try alloc.alloc(u8, 2 + data.len * 2);
+    out[0] = '0'; out[1] = 'x';
+    const hex = "0123456789abcdef";
+    for (data, 0..) |b, i| {
+        out[2 + i * 2] = hex[b >> 4];
+        out[2 + i * 2 + 1] = hex[b & 0xF];
+    }
+    return out;
+}
+
+fn hexNibble(c: u8) !u8 {
+    return switch (c) {
+        '0'...'9' => c - '0',
+        'a'...'f' => c - 'a' + 10,
+        'A'...'F' => c - 'A' + 10,
+        else => error.InvalidHex,
+    };
+}
 
 /// eth_call — view function call. Params: `[{from?,to,data,value?,gas?}, "latest"]`.
 pub fn handleEthCall(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const to = rpc.extractParamObjectField(body, "to") orelse
+    const to_hex = rpc.extractParamObjectField(body, "to") orelse
         return rpc.errorJson(-32602, "eth_call: missing 'to'", id, alloc);
-    const from = rpc.extractParamObjectField(body, "from") orelse
+    const from_hex = rpc.extractParamObjectField(body, "from") orelse
         "0x0000000000000000000000000000000000000000";
-    const data = rpc.extractParamObjectField(body, "data") orelse "0x";
+    const data_hex = rpc.extractParamObjectField(body, "data") orelse "0x";
     const value = rpc.extractParamObjectU64(body, "value");
     const gas = blk: {
         const g = rpc.extractParamObjectU64(body, "gas");
-        if (g == 0) break :blk @as(u64, 30_000_000); // default 30M gas
+        if (g == 0) break :blk @as(u64, 30_000_000);
         break :blk g;
     };
 
-    var result = evm_executor.call(alloc, to, from, data, value, gas) catch |err| {
+    // Use native Zig EVM if available
+    if (ctx.evm_state) |evm_state| {
+        const calldata = parseHexData(alloc, data_hex) catch
+            return rpc.errorJson(-32602, "eth_call: invalid hex data", id, alloc);
+        defer alloc.free(calldata);
+
+        const to_addr = parseAddress(to_hex);
+        const from_addr = parseAddress(from_hex);
+
+        const tx_input = evm_mod.TxInput{
+            .from = from_addr,
+            .to = to_addr,
+            .value = value,
+            .data = calldata,
+            .gas_limit = gas,
+            .nonce = 0,
+        };
+
+        const result = evm_mod.execute_call(evm_state, &tx_input, alloc) catch |err| {
+            const msg = switch (err) {
+                error.OutOfMemory => "out of memory",
+                else => "evm call failed",
+            };
+            return rpc.errorJson(-32603, msg, id, alloc);
+        };
+        defer alloc.free(result.output);
+
+        if (result.status == .revert) {
+            const out_hex = toHexData(alloc, result.output) catch
+                return rpc.errorJson(-32603, "out of memory", id, alloc);
+            defer alloc.free(out_hex);
+            return std.fmt.allocPrint(alloc,
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"error\":{{\"code\":-32015,\"message\":\"execution reverted\",\"data\":\"{s}\"}}}}",
+                .{ id, out_hex });
+        }
+
+        const out_hex = toHexData(alloc, result.output) catch
+            return rpc.errorJson(-32603, "out of memory", id, alloc);
+        defer alloc.free(out_hex);
+
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
+            .{ id, out_hex });
+    }
+
+    // Fallback: FFI Rust staticlib
+    var result = evm_executor.call(alloc, to_hex, from_hex, data_hex, value, gas) catch |err| {
         const msg = switch (err) {
             error.Reverted => "execution reverted",
             error.OutOfMemory => "out of memory",
@@ -71,10 +176,26 @@ pub fn handleEthSendRawTransaction(body: []const u8, ctx: *ServerCtx, id: u64) !
 /// eth_getCode — return deployed bytecode at address.
 pub fn handleEthGetCode(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const addr = rpc.extractArrayStr(body, 0) orelse
+    const addr_hex = rpc.extractArrayStr(body, 0) orelse
         return rpc.errorJson(-32602, "eth_getCode: missing address", id, alloc);
 
-    const code = evm_executor.getCode(alloc, addr) catch |err| {
+    // Use native Zig EVM state if available
+    if (ctx.evm_state) |evm_state| {
+        const addr = parseAddress(addr_hex);
+        const code_bytes = if (evm_state.getAccountConst(addr)) |acc| acc.code else &.{};
+        if (code_bytes.len == 0) {
+            return std.fmt.allocPrint(alloc,
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x\"}}", .{id});
+        }
+        const code_hex = try toHexData(alloc, code_bytes);
+        defer alloc.free(code_hex);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"{s}\"}}",
+            .{ id, code_hex });
+    }
+
+    // Fallback: FFI Rust staticlib
+    const code = evm_executor.getCode(alloc, addr_hex) catch |err| {
         const msg = switch (err) {
             error.OutOfMemory => "out of memory",
             else => "evm getCode failed",
@@ -95,14 +216,44 @@ pub fn handleEthGetCode(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 /// eth_estimateGas — gas estimation. Params: `[{from?,to,data,value?}]`.
 pub fn handleEthEstimateGas(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const to = rpc.extractParamObjectField(body, "to") orelse
+    const to_hex = rpc.extractParamObjectField(body, "to") orelse
         return rpc.errorJson(-32602, "eth_estimateGas: missing 'to'", id, alloc);
-    const from = rpc.extractParamObjectField(body, "from") orelse
+    const from_hex = rpc.extractParamObjectField(body, "from") orelse
         "0x0000000000000000000000000000000000000000";
-    const data = rpc.extractParamObjectField(body, "data") orelse "0x";
+    const data_hex = rpc.extractParamObjectField(body, "data") orelse "0x";
     const value = rpc.extractParamObjectU64(body, "value");
 
-    const gas = evm_executor.estimateGas(alloc, from, to, data, value) catch |err| {
+    // Use native Zig EVM if available
+    if (ctx.evm_state) |evm_state| {
+        const calldata = parseHexData(alloc, data_hex) catch
+            return rpc.errorJson(-32602, "eth_estimateGas: invalid hex data", id, alloc);
+        defer alloc.free(calldata);
+
+        const tx_input = evm_mod.TxInput{
+            .from = parseAddress(from_hex),
+            .to = parseAddress(to_hex),
+            .value = value,
+            .data = calldata,
+            .gas_limit = 30_000_000,
+            .nonce = 0,
+        };
+
+        const result = evm_mod.execute_call(evm_state, &tx_input, alloc) catch |err| {
+            const msg = switch (err) {
+                error.OutOfMemory => "out of memory",
+                else => "evm estimateGas failed",
+            };
+            return rpc.errorJson(-32603, msg, id, alloc);
+        };
+        defer alloc.free(result.output);
+
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":\"0x{x}\"}}",
+            .{ id, result.gas_used });
+    }
+
+    // Fallback: FFI Rust staticlib
+    const gas = evm_executor.estimateGas(alloc, from_hex, to_hex, data_hex, value) catch |err| {
         const msg = switch (err) {
             error.OutOfMemory => "out of memory",
             else => "evm estimateGas failed",

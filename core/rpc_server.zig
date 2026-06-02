@@ -32,6 +32,7 @@ const price_oracle_mod = @import("price_oracle.zig");
 const pouw_mod         = @import("consensus_pouw.zig");
 const orderbook_sync_mod = @import("orderbook_sync.zig");
 const evm_executor    = @import("evm_executor.zig");
+const evm_mod         = @import("evm/mod.zig");
 const ws_exchange_feed_mod = @import("ws_exchange_feed.zig");
 const chain_config    = @import("chain_config.zig");
 const validator_mod   = @import("validator_registry.zig");
@@ -337,6 +338,10 @@ pub const ServerCtx = struct {
     /// the frontend's "My Trades" panel can show on-chain history that
     /// survives restart.
     fills_log: ?*fills_log_mod.FillsLog = null,
+    /// Native Zig EVM world state. When set, eth_call / eth_estimateGas use
+    /// the pure-Zig interpreter (core/evm/) instead of the FFI Rust staticlib.
+    /// Allocated in startHTTPEx and lives for the duration of the server.
+    evm_state: ?*evm_mod.EvmState = null,
 };
 
 /// Per-trader nonce slot. Looked up linearly — small enough to fit in
@@ -557,6 +562,16 @@ pub fn startHTTPEx(bc: *Blockchain, wallet: *Wallet, allocator: std.mem.Allocato
     ctx.evm_escrow_watcher = cfg.evm_escrow_watcher;
     ctx.fills_log = cfg.fills_log;
     ctx.bridge = cfg.bridge;
+
+    // Initialise native Zig EVM state — chain_id 7771 for OmniBus mainnet/testnet.
+    // The EVM is stateless across blocks for now (no persistent contract storage).
+    // execute_call clones state per call; execute_tx mutates this shared state.
+    const evm_state_ptr = allocator.create(evm_mod.EvmState) catch null;
+    if (evm_state_ptr) |esp| {
+        esp.* = evm_mod.EvmState.init(allocator);
+        esp.chain_id = 7771;
+        ctx.evm_state = esp;
+    }
     ctx.grid_registry = cfg.grid_registry;
     if (cfg.grid_path) |p| {
         const n = @min(p.len, ctx.grid_path_buf.len);
