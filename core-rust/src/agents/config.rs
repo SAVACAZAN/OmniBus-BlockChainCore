@@ -20,6 +20,10 @@ use super::tier::Tier;
 pub const MAX_AGENTS_PER_NODE: usize = 16;
 pub const MAX_RULES_PER_AGENT: usize = 16;
 pub const MAX_PAIRS_PER_AGENT: usize = 8;
+/// Max bytes for an agent display name (mirrors Zig MAX_NAME_LEN = 32).
+pub const MAX_NAME_LEN: usize = 32;
+/// Max bytes for a trading pair string, e.g. "BTC/USD" (mirrors Zig MAX_PAIR_LEN = 16).
+pub const MAX_PAIR_LEN: usize = 16;
 
 /// Pre-built strategy presets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -40,6 +44,32 @@ pub enum Strategy {
 impl Default for Strategy {
     fn default() -> Self {
         Strategy::Conservative
+    }
+}
+
+impl Strategy {
+    /// Display name — mirrors Zig `Strategy.name()`.
+    pub fn name(self) -> &'static str {
+        match self {
+            Strategy::Conservative  => "conservative",
+            Strategy::Balanced      => "balanced",
+            Strategy::Aggressive    => "aggressive",
+            Strategy::ArbitrageOnly => "arbitrage_only",
+            Strategy::MarketMaker   => "market_maker",
+        }
+    }
+
+    /// Parse from a string — mirrors Zig `Strategy.fromString()`.
+    /// Returns `None` for unknown values.
+    pub fn from_str_exact(s: &str) -> Option<Self> {
+        match s {
+            "conservative"   => Some(Strategy::Conservative),
+            "balanced"       => Some(Strategy::Balanced),
+            "aggressive"     => Some(Strategy::Aggressive),
+            "arbitrage_only" => Some(Strategy::ArbitrageOnly),
+            "market_maker"   => Some(Strategy::MarketMaker),
+            _ => None,
+        }
     }
 }
 
@@ -66,7 +96,9 @@ pub enum Action {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Metric {
+    #[serde(rename = "btc_drop_1h_pct")]
     BtcDrop1hPct,
+    #[serde(rename = "btc_change_24h_pct")]
     BtcChange24hPct,
     CapitalOmni,
     PnlSessionOmni,
@@ -199,6 +231,15 @@ pub struct AgentBundle {
 }
 
 impl AgentBundle {
+    /// Append one agent config — mirrors Zig `AgentBundle.add()`.
+    pub fn add(&mut self, cfg: AgentConfig) -> Result<(), ConfigError> {
+        if self.agents.len() >= MAX_AGENTS_PER_NODE {
+            return Err(ConfigError::TooManyAgents);
+        }
+        self.agents.push(cfg);
+        Ok(())
+    }
+
     pub fn parse_json(s: &str) -> Result<Self, ConfigError> {
         let bundle: Self = serde_json::from_str(s).map_err(|_| ConfigError::InvalidJson)?;
         if bundle.agents.len() > MAX_AGENTS_PER_NODE {

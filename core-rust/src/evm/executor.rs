@@ -6,7 +6,7 @@
 // on the revm crate. If we later swap revm for a Zig EVM, only this file
 // and db.rs change.
 
-use revm::primitives::{Bytes, ExecutionResult, Output, TxKind, U256};
+use revm::primitives::{Bytes, EVMError, ExecutionResult, Output, TxKind, U256};
 use revm::Evm;
 
 use crate::evm::db::{addr_to, EvmStateDb, EvmStateDbRef};
@@ -52,6 +52,8 @@ fn convert_logs(revm_logs: Vec<revm::primitives::Log>, block: u64, tx_hash: [u8;
 fn configure_tx(env_tx: &mut revm::primitives::TxEnv, tx: &TxParsed, chain_id: u64) {
     env_tx.caller = addr_to(tx.from);
     env_tx.gas_limit = tx.gas_limit.max(21_000);
+    // TODO: use tx.gas_price once TxParsed exposes it (EIP-1559 max_fee_per_gas).
+    //       For now fall back to 1 gwei so tests and dev-chain traffic work.
     env_tx.gas_price = U256::from(1_000_000_000u64); // 1 gwei placeholder
     env_tx.transact_to = match tx.to {
         Some(a) => TxKind::Call(addr_to(a)),
@@ -89,7 +91,9 @@ pub fn execute_call(state: &EvmState, tx: &TxParsed) -> Result<CallResult, Strin
         })
         .modify_tx_env(|t| {
             configure_tx(t, tx, chain_id);
-            // eth_call: caller may not have balance — leave nonce unset.
+            // eth_call: caller may not have balance — zero gas price skips
+            // balance check; leave nonce unset to skip nonce check.
+            t.gas_price = U256::ZERO;
             t.nonce = None;
         })
         .build();
@@ -128,7 +132,21 @@ pub fn execute_tx(state: &EvmState, tx: &TxParsed) -> Result<ExecResult, String>
         .modify_tx_env(|t| configure_tx(t, tx, chain_id))
         .build();
 
-    let exec_result = evm.transact_commit().map_err(|e| format!("evm tx: {e:?}"))?;
+    let exec_result = match evm.transact_commit() {
+        Ok(r) => r,
+        Err(EVMError::Transaction(_)) => {
+            // Insufficient balance or invalid nonce — surface as a halted TX
+            // so the caller gets Ok(ExecResult{Halt}) rather than Err.
+            return Ok(ExecResult {
+                gas_used: 0,
+                status: ExecStatus::Halt,
+                output: Vec::new(),
+                contract_addr: None,
+                logs: Vec::new(),
+            });
+        }
+        Err(e) => return Err(format!("evm tx: {e:?}")),
+    };
 
     let (status, gas_used, output, contract_addr, revm_logs) = match exec_result {
         ExecutionResult::Success { gas_used, output, logs, .. } => {

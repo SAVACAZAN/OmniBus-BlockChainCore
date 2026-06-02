@@ -136,7 +136,7 @@ impl LightMinerPool {
             total_hashrate: 0,
             pool_status: PoolStatus::Initializing,
             genesis_started: false,
-            min_miners_for_genesis: 3,
+            min_miners_for_genesis: 2,
         }
     }
 

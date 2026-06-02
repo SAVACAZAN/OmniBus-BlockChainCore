@@ -114,5 +114,5 @@ fn bech32_ob1q_prefix_documented() {
     // — assert the prefix + length so we lock the format here.
     let addr = "ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0";
     assert!(addr.starts_with("ob1q"));
-    assert_eq!(addr.len(), 41);
+    assert_eq!(addr.len(), 42);
 }

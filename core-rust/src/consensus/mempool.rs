@@ -204,7 +204,6 @@ fn estimate_tx_size(tx: &Tx) -> usize {
 fn is_tx_valid(tx: &Tx) -> bool {
     !tx.from_address.is_empty()
         && !tx.to_address.is_empty()
-        && tx.amount > 0
         && tx.hash != [0u8; 32]
 }
 
