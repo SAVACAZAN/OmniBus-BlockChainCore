@@ -43,6 +43,7 @@ mod safety;
 mod omniscript;
 mod strategy_registry;
 mod bridge;
+mod node_lifecycle;
 
 use axum::{routing::post, Router, Json};
 use serde_json::{Value, json};
