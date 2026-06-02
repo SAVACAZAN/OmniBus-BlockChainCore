@@ -27,7 +27,7 @@ serde-big-array = "0.5"
 bytes = "1"
 byteorder = "1"
 rand = "0.8"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "blocking", "rustls-tls"] }
 
 # WebSocket server (port 8334) — push events to React frontend.
 tokio-tungstenite = "0.21"
@@ -54,5 +54,5 @@ path = "src/main.rs"
 # `assert_cmd` and `tokio::net::TcpStream`; HTTP RPC tests use `reqwest`.
 [dev-dependencies]
 assert_cmd = "2"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "blocking", "rustls-tls"] }
 tempfile = "3"

@@ -20,16 +20,28 @@
 //!   pair_id 5 → OMNI/LCX   (OmniBus maker, LCX Liberty takers)
 //!   pair_id 6 → OMNI/ETH   (OmniBus maker, Sepolia/Base takers)
 
+pub mod oracle_types;
 pub mod pair;
 pub mod order;
 pub mod matching;
+pub mod matching_engine;
 pub mod htlc;
+pub mod htlc_native;
+pub mod htlc_persist;
 pub mod grid;
+pub mod grid_engine;
 pub mod oracle;
+pub mod oracle_main;
+pub mod oracle_policy;
+pub mod order_swap_link;
+pub mod price_oracle;
+pub mod fills_log;
+pub mod intent_registry;
+pub mod orderbook_sync;
+pub mod oracle_fetcher;
+pub mod pair_registry;
+pub mod token_whitelist;
+pub mod evm_rpc;
+pub mod evm_signer;
+pub mod settler;
 
-pub use pair::{Chain, Pair, pair_route, PAIR_ROUTES, ASSET_CHAINS, chains_for_asset};
-pub use order::{Order, OrderId, OrderStatus, Side};
-pub use matching::{Fill, MatchingEngine, MatchingError};
-pub use htlc::{HtlcError, HtlcState, SwapBinding, SwapRegistry};
-pub use grid::{GridConfig, GridError, GridRegistry, TickResult};
-pub use oracle::{OracleError, PriceOracle};
