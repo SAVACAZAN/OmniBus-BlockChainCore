@@ -1,20 +1,61 @@
 # OmniBus-BlockChainCore
 
-**Post-quantum blockchain — Bitcoin-compatible + 4 NIST FIPS PQ schemes live on testnet**
-**Versiune:** 0.3.0-dev · **Limbă:** Zig 0.15.2 + Node.js + TypeScript/React
+**Post-quantum + EVM-compatible blockchain · Bitcoin-style PoW · dual node impl (Zig ↔ Rust)**
+**Versiune:** 0.4.0-dev · **Limbi:** Zig 0.15.2 + Rust 1.79 (stable) + Node.js + TypeScript/React
 **Live:** https://omnibusblockchain.cc · **GitHub:** https://github.com/SAVACAZAN/OmniBus-BlockChainCore
 
 ---
 
 ## TL;DR
 
-OmniBus is a Bitcoin-compatible blockchain with **real post-quantum signatures** verified by `liboqs` (NIST FIPS 203/204/205/206). All 4 PQ algorithms — ML-DSA-87, Falcon-512, Dilithium-5, SLH-DSA-256s — are live on testnet, signed in-browser via `@noble/post-quantum`, verified server-side by `liboqs`. **20/20 PQ TX matrix passing on VPS testnet** as of 2026-05-06.
+OmniBus is a Bitcoin-compatible blockchain with **real post-quantum signatures** verified by `liboqs` (NIST FIPS 203/204/205/206) **plus EVM compatibility** (chain_id=7771, revm-backed). Two sibling node implementations — Zig (`core/`) and Rust (`core-rust/`) — peer over the same P2P protocol, like `reth ↔ geth`.
+
+**4 transferable + 4 soulbound PQ schemes** live on testnet (ML-DSA-87, Falcon-512, Dilithium-5, SLH-DSA-256s + EDU/GOV pending PQ Stage 2 hard-fork), signed in-browser via `@noble/post-quantum`, verified server-side by `liboqs`. **20/20 PQ TX matrix passing** as of 2026-05-06.
+
+**Rust node test status:** 1585/1585 passing (2026-06-02 sprint).
 
 > **First read:** `STATUS/README.md` — entry point with up-to-date infrastructure, status, and inventory. The auto-generated docs in `STATUS/` are the source of truth for current state.
 
 ---
 
+## Architecture: dual-impl (Zig + Rust)
+
+```
+                    ┌─────────────────────────┐
+                    │   omnibus P2P network   │
+                    └────────────┬────────────┘
+                                 │
+              ┌──────────────────┴──────────────────┐
+              │                                     │
+         ┌────▼────┐                          ┌─────▼─────┐
+         │  Zig    │  core/ (~420 files)      │  Rust     │  core-rust/ (~270 files)
+         │  node   │  port 8332 RPC           │  node     │  port 8333 RPC
+         │         │  port 8334 WS            │           │  port 8333 EVM
+         │         │  liboqs FFI for PQ       │           │  omnibus-crypto-core for PQ
+         │         │  embedded EVM via FFI    │           │  native revm
+         └─────────┘                          └───────────┘
+```
+
+Both impls are consensus-equivalent: block hashing, serialization, genesis values, PoW/difficulty, and PQ verification must produce identical bytes. The Rust side ports `core/*.zig` 1:1; the Zig side delegates EVM execution to a Rust static lib via FFI. See `PARITY_AUDIT_zig_vs_rust_2026-06-02.md` for the live module-by-module diff.
+
+---
+
+## Sprint 2026-06-02 highlights
+
+- **PQ Stage 2** hard-fork at testnet height 100k (mainnet 200k) — adds EDU (CROSS-RSDPG-128 / FIPS-future) + GOV (MAYO-3 / FIPS-future) badges. 6 distinct PQ math families total.
+- **SPARK 10-layer sub-block consensus** — `consensus/spark_consensus.rs` + RPC `spark_status`/`spark_votes`. 6/10 attest = high trust, 5/10 = low, <5 = rejected.
+- **Slot Calendar (Solana PoH-style)** — 60 pre-computed leader slots, deterministic `sha256(slot_id‖tip_hash) mod N`. RPC `getslotcalendar`, CLI `omnibus-cli slot-calendar`.
+- **Strategy Registry** — on-chain operator strategies (grid / arb / mm / snipe / custom) with per-strategy PnL accumulation. 4 RPCs + 4 CLI subcommands.
+- **DEX bridge wiring** — `bridge/evm_escrow_watcher.rs` + per-chain cursor JSON (`watcher_state.json`) survives restarts with 6-block REORG safety.
+- **EVM in Rust node** — native revm (no FFI), full `eth_call` / `eth_sendRawTransaction` + state commit. 23 hermetic tests pass.
+- **Faucet + slot_leader** in Rust — `IpCooldownMap` (24h LRU), `ClaimedSet` (one-time per addr), stake-weighted leader selection, lex-min liveness fallback.
+- **Block reward fix** — `83_333_333 SAT/block` (50 OMNI per 600 blocks × 1e9 SAT/OMNI), aligned with halving schedule (126_144_000-block era, 21M cap).
+
+---
+
 ## Quick start
+
+### Zig node (canonical impl)
 
 ```bash
 # Build (requires Zig 0.15.2 + liboqs)
@@ -37,6 +78,26 @@ zig build test-chain     # block, blockchain, mempool, consensus, finality
 zig build test-net       # RPC, P2P, sync, network
 zig build test-pq        # PQ pure-Zig stubs (no liboqs)
 zig build test-wallet    # wallet (requires liboqs)
+```
+
+### Rust node (sibling impl)
+
+```bash
+# Requires Rust stable + liboqs.a built with the same toolchain.
+# Windows: must use GNU toolchain (MSVC can't link liboqs.a).
+rustup default stable-x86_64-pc-windows-gnu
+
+cd core-rust
+cargo build                              # ~1 min cold, seconds warm
+cargo test                               # 1585 tests; ~15s
+
+# Run a node (EVM-only mode, port 8333)
+./target/debug/omnibus-node-rust --mode evm --rpc-port 8333
+
+# Talk to it via the Rust CLI
+omnibus-cli --rpc http://127.0.0.1:8333 spark status
+omnibus-cli --rpc http://127.0.0.1:8333 slot-calendar
+omnibus-cli --rpc http://127.0.0.1:8333 strategy list --owner=ob1q…
 ```
 
 **liboqs prerequisite** (Windows: MinGW; Linux: gcc):
@@ -91,32 +152,32 @@ RPC `curl`. See:
 
 ---
 
-## Address taxonomy (canonical — `STATUS/MASTER_RULES_PQ_OMNI.md`)
+## Address taxonomy (canonical — `core/wallet/bip32_wallet.zig`)
 
-OmniBus uses two parallel address families:
+OmniBus uses **one transferable family** (secp256k1) and **six soulbound PQ families**, each in its own BIP-44 coin_type. All paths share the same shape `m/44'/coin_type'/0'/0/N` — only the coin_type and address index `N` vary.
 
 ### Transferable (used in TXs)
 
-| Prefix | Scheme | NIST | Code | BIP-44 path |
+| Prefix | Scheme | NIST | coin_type | BIP-44 path |
 |---|---|---|---|---|
-| `ob1q…` | secp256k1 ECDSA (Bech32) | — | 0 | `m/44'/777'/0'/0/N` |
-| `obk1_…` | ML-DSA-87 | FIPS 204 | 5 | `m/44'/777'/5'/0/0` |
-| `obf5_…` | Falcon-512 | FIPS 206 | 6 | `m/44'/777'/6'/0/0` |
-| `obs3_…` | Dilithium-5 (alias) | FIPS 204 | 7 | `m/44'/777'/7'/0/0` |
-| `obd5_…` | SLH-DSA-256s | FIPS 205 | 8 | `m/44'/777'/8'/0/0` |
+| `ob1q…` | secp256k1 ECDSA (Bech32) | — | **777** | `m/44'/777'/0'/0/N` |
 
 ### Soulbound (identity reputation, non-transferable)
 
-| Prefix | Scheme | Concept | Code |
-|---|---|---|---|
-| `ob_k1_…` | `love_dilithium` | OMNI_LOVE | 1 |
-| `ob_f5_…` | `food_falcon` | OMNI_FOOD | 2 |
-| `ob_d5_…` | `rent_slh_dsa` | OMNI_RENT | 3 |
-| `ob_s3_…` | `vacation_kem` (KEM, no signing) | OMNI_VACATION | 4 |
+One coin_type per PQ scheme. Address index `N` lets the same mnemonic produce many soulbound addresses per family (different N → different address, same scheme).
 
-**Key distinction:** transferable prefixes have NO leading underscore (`obk1_`); soulbound do (`ob_k1_`). Don't conflate them — see `STATUS/MASTER_RULES_PQ_OMNI.md` for derivation algorithm and anti-patterns.
+| Prefix | Scheme | NIST | Concept | coin_type | BIP-44 path |
+|---|---|---|---|---|---|
+| `ob_k1_…` | ML-DSA-87 | FIPS 204 | omnibus.love | **778** | `m/44'/778'/0'/0/N` |
+| `ob_f5_…` | Falcon-512 | FIPS 206 | omnibus.food | **779** | `m/44'/779'/0'/0/N` |
+| `ob_d5_…` | Dilithium-5 | FIPS 204 | omnibus.rent | **780** | `m/44'/780'/0'/0/N` |
+| `ob_s3_…` | SLH-DSA-256s | FIPS 205 | omnibus.vacation | **781** | `m/44'/781'/0'/0/N` |
+| `ob_c1_…` | CROSS-RSDPG-128 | FIPS-future | omnibus.edu (Stage 2) | **782** | `m/44'/782'/0'/0/N` |
+| `ob_y3_…` | MAYO-3 | FIPS-future | omnibus.gov (Stage 2) | **783** | `m/44'/783'/0'/0/N` |
 
-The chain (`core/transaction.zig:180-201` + `core/isolated_wallet.zig:64-67`) is the authority on this mapping. UI, scripts, and tests align to it. Run `python tools/audit-pq-conventions.py` after multi-agent sessions — drift must be 0.
+EDU/GOV (coin_type 782/783) activate at PQ Stage 2 hard-fork (testnet block 100k, mainnet 200k). Before fork height they are rejected by `validateTransaction`.
+
+**Authority:** the table in `core/wallet/bip32_wallet.zig` (PQ_DOMAINS const, mirrored in `core-rust/src/wallet/hd.rs::PQ_DOMAINS`). UI, scripts, and tests align to it. Run `python tools/audit-pq-conventions.py` after multi-agent sessions — drift must be 0.
 
 ---
 
@@ -124,7 +185,18 @@ The chain (`core/transaction.zig:180-201` + `core/isolated_wallet.zig:64-67`) is
 
 ```
 BlockChainCore/
-├── core/                       Zig blockchain modules (~85 files)
+├── core/                       Zig blockchain modules (~420 files)
+├── core-rust/                  Sibling Rust impl (~270 files, port 8333)
+│   ├── src/consensus/          block, mempool, consensus_rules, slot_calendar,
+│   │                           spark_consensus, finality, validator_registry
+│   ├── src/evm/                revm-backed EVM (chain_id=7771, sled state)
+│   ├── src/bridge/             evm_escrow_watcher, dex_settler, bridge_relay
+│   ├── src/strategy_registry.rs  on-chain operator strategies
+│   ├── src/node_lifecycle/     faucet, slot_leader, mining_periodic, …
+│   ├── src/rpc/                JSON-RPC (eth_*, spark_*, strategy_*, …)
+│   └── src/cli/                omnibus-cli (KV-passthrough + custom prints)
+├── core-cpp/                   C++ exploration (auxiliary)
+
 │   ├── main.zig                Entry: vault, db, genesis, wallet, mempool, P2P, RPC, mining
 │   ├── blockchain.zig          Chain state, mempool, validation, nonce, balance tracking
 │   ├── block.zig               Block struct, hash, validation

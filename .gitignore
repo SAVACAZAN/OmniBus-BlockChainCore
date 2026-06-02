@@ -71,3 +71,52 @@ dist/
 data/mainnet/
 data/testnet/
 data/regtest/
+
+# ── Hygiene additions (2026-06-02 cleanup) ───────────────────────────────
+# Windows MSVC build artifacts (caught 17 stray .obj at repo root once)
+*.obj
+*.exe
+*.pdb
+# IBD / debug state dumps
+IBD_DEBUG_STATE*.json
+# Build output files anyone might run "zig build > build_out.log"
+build_err.txt
+build_errors.log
+build_log.txt
+build_out.log
+# Frontend dev logs
+frontend-dev.log
+# Node logs (any node mode)
+*-seed.log
+*-miner-*.log
+*-testnet*.log
+# Chain database backups
+omnibus-chain.dat.backup-*
+# Rust target dir (in case someone runs cargo from repo root)
+target/
+# Generated docs (latex/html/man via doxygen etc.)
+html/
+latex/
+docbook/
+man/
+xml/
+# Files written outside the repo root with broken Windows paths
+c:tmp*
+# Stress test output (regeneratable; logs only, keep stress-scripts in scripts/)
+stress-output/
+stress-results/
+# Test result snapshots written by run-tests.bat (move important ones to STATUS/)
+test_results/
+# Doxygen / generated docs (10K+ files were tracked once — never again)
+# Top-level only; deepsearch-prompts/c++/code/html stays whitelisted below.
+/html/
+/latex/
+/docbook/
+/man/
+/xml/
+# Scanner output JSON
+/scan_results.json
+# Generated security report HTMLs at repo root
+/security_report*.html
+# Miner runtime lock file
+omnibus-miner.lock
