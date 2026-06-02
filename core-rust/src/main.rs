@@ -11,6 +11,7 @@
 // EVM-style JSON-RPC server with persistent sled state, useful for local
 // development with MetaMask/Hardhat while the full node modules are wired up.
 
+mod cli;
 mod dex;
 mod rpc;
 mod state;
@@ -35,14 +36,20 @@ mod governance;
 mod validator;
 mod identity;
 mod chain;
+mod chain_ops;
+mod chain_v2;
 mod node;
 mod safety;
+mod omniscript;
+mod strategy_registry;
+mod bridge;
 
 use axum::{routing::post, Router, Json};
 use serde_json::{Value, json};
 use std::sync::Arc;
 use std::net::SocketAddr;
 use tokio::sync::RwLock;
+use tokio::signal;
 
 pub use state::EvmState;
 pub use chain::{Chain, SharedChain};
@@ -69,7 +76,7 @@ pub struct CliArgs {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NodeMode { Seed, Miner, Evm }
+pub enum NodeMode { Seed, Miner, Evm, Regtest, Testnet }
 
 impl CliArgs {
     pub fn parse() -> Self {
@@ -88,11 +95,13 @@ impl CliArgs {
         while let Some(a) = args.next() {
             match a.as_str() {
                 "--mode"      => mode = match args.next().as_deref() {
-                    Some("seed")  => NodeMode::Seed,
-                    Some("miner") => NodeMode::Miner,
-                    Some("evm")   => NodeMode::Evm,
-                    Some(other)   => { eprintln!("unknown mode: {other}"); std::process::exit(2); }
-                    None          => { eprintln!("--mode needs a value"); std::process::exit(2); }
+                    Some("seed")    => NodeMode::Seed,
+                    Some("miner")   => NodeMode::Miner,
+                    Some("evm")     => NodeMode::Evm,
+                    Some("regtest") => NodeMode::Regtest,
+                    Some("testnet") => NodeMode::Testnet,
+                    Some(other)     => { eprintln!("unknown mode: {other}"); std::process::exit(2); }
+                    None            => { eprintln!("--mode needs a value"); std::process::exit(2); }
                 },
                 "--node-id"   => node_id   = args.next().unwrap_or_default(),
                 "--port"      => p2p_port  = args.next().and_then(|v| v.parse().ok()).unwrap_or(p2p_port),
@@ -123,6 +132,8 @@ MODES:
   --mode seed     run as P2P seed node (default port 9000)
   --mode miner    run as miner; connects to --seed-host:--seed-port
   --mode evm      run only the EVM JSON-RPC sidecar (default, no P2P)
+  --mode regtest  local single-node regtest (instant mining, no peers)
+  --mode testnet  testnet seed/miner (same as seed/miner + testnet magic)
 
 OPTIONS:
   --node-id <s>    node identifier (default "node-rust")
@@ -163,7 +174,17 @@ async fn main() -> anyhow::Result<()> {
         "EVM state ready"
     );
 
-    let chain = Chain::open(&cli.data_dir).unwrap_or_else(|e| {
+    // Choose data directory based on mode (regtest gets its own isolated store).
+    let data_dir = match cli.mode {
+        NodeMode::Regtest => {
+            let d = format!("{}/regtest", cli.data_dir);
+            tracing::info!(data_dir = %d, "regtest: using isolated data dir");
+            d
+        }
+        _ => cli.data_dir.clone(),
+    };
+
+    let chain = Chain::open(&data_dir).unwrap_or_else(|e| {
         tracing::warn!(error = %e, "chain open failed; starting empty");
         Chain::open("./data/omnibus-rust").expect("fallback chain open")
     });
@@ -178,13 +199,90 @@ async fn main() -> anyhow::Result<()> {
         peers: registry.clone(),
     };
 
+    // Start WebSocket server for all full-node modes (not EVM-only).
+    let ws_port = ws::WS_PORT;
     match cli.mode {
-        NodeMode::Evm => run_evm_only(app_state, cli.evm_port).await?,
-        NodeMode::Seed => node::run_seed(cli, app_state, registry).await?,
-        NodeMode::Miner => node::run_miner(cli, app_state, registry).await?,
+        NodeMode::Evm => {}
+        _ => {
+            match ws::start(ws_port).await {
+                Ok(broadcaster) => {
+                    ws::install_broadcaster(broadcaster);
+                    tracing::info!("WebSocket server started on ws://127.0.0.1:{}", ws_port);
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "WebSocket server failed to start (non-fatal)");
+                }
+            }
+        }
     }
 
+    // Install graceful Ctrl+C handler. The tokio::select! in each mode's
+    // blocking call is intentional: the P2P listener loops run until
+    // the signal fires, then we log and exit cleanly.
+    //
+    // NOTE: run_seed/run_miner currently loop forever. We wrap them in a
+    // select! against ctrl_c so Ctrl+C terminates the process.
+    match cli.mode {
+        NodeMode::Evm => {
+            tokio::select! {
+                res = run_evm_only(app_state, cli.evm_port) => {
+                    if let Err(e) = res { tracing::error!(error = %e, "EVM RPC exited"); }
+                }
+                _ = ctrl_c_signal() => {
+                    tracing::info!("Ctrl+C — shutting down EVM node");
+                }
+            }
+        }
+        NodeMode::Seed | NodeMode::Testnet => {
+            tokio::select! {
+                res = node::run_seed(cli, app_state, registry) => {
+                    if let Err(e) = res { tracing::error!(error = %e, "seed node exited"); }
+                }
+                _ = ctrl_c_signal() => {
+                    tracing::info!("Ctrl+C — shutting down seed node");
+                }
+            }
+        }
+        NodeMode::Miner => {
+            tokio::select! {
+                res = node::run_miner(cli, app_state, registry) => {
+                    if let Err(e) = res { tracing::error!(error = %e, "miner node exited"); }
+                }
+                _ = ctrl_c_signal() => {
+                    tracing::info!("Ctrl+C — shutting down miner node");
+                }
+            }
+        }
+        NodeMode::Regtest => {
+            // Regtest: behave like a seed + miner in one process (no peers needed).
+            // Clone needed values before the select.
+            let regtest_cli = cli.clone();
+            let regtest_app = app_state.clone();
+            let regtest_reg = registry.clone();
+            tokio::select! {
+                res = node::run_seed(regtest_cli, regtest_app, regtest_reg) => {
+                    if let Err(e) = res { tracing::error!(error = %e, "regtest node exited"); }
+                }
+                _ = ctrl_c_signal() => {
+                    tracing::info!("Ctrl+C — shutting down regtest node");
+                }
+            }
+        }
+    }
+
+    tracing::info!("omnibus-node-rust stopped");
     Ok(())
+}
+
+/// Wait for SIGINT (Ctrl+C). Abstracts platform differences.
+async fn ctrl_c_signal() {
+    // tokio's signal::ctrl_c works on Windows and Unix.
+    if let Err(e) = signal::ctrl_c().await {
+        tracing::error!(error = %e, "failed to install Ctrl+C handler");
+        // If we can't listen for Ctrl+C, wait forever so other branches can
+        // still run normally; the process will be killed externally.
+        std::future::pending::<()>().await;
+    }
 }
 
 pub(crate) async fn run_evm_only(app_state: AppState, port: u16) -> anyhow::Result<()> {

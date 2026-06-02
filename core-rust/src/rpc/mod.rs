@@ -12,6 +12,31 @@
 
 pub mod eth_methods;
 pub mod native_methods;
+pub mod server;
+
+// Per-subsystem JSON-RPC handler modules (siblings of core/rpc/*.zig).
+// Each exposes `pub fn <method>(&AppState, &Value) -> Result<Value, String>`.
+// Wired into the dispatch match in `native_methods.rs` as the underlying
+// chain/staking/governance/etc subsystems land.
+pub mod helpers;
+pub mod chain;
+pub mod wallet;
+pub mod consensus;
+pub mod wallet_advanced;
+pub mod social;
+pub mod agents;
+pub mod escrow;
+pub mod mining;
+pub mod lightning;
+pub mod governance;
+pub mod notarize;
+pub mod subscription;
+pub mod spv;
+pub mod omniscript;
+pub mod spark;
+pub mod strategies;
+
+pub use server::{RpcConfig, RpcServer};
 
 use crate::AppState;
 use serde_json::Value;

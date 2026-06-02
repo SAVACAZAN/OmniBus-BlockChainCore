@@ -205,8 +205,15 @@ pub async fn dispatch(app: &AppState, method: &str, params: Value) -> Result<Val
         // ── Consensus / staking / validators ──────────────────────────────
         "getvalidators" | "getvalidatorsv2" | "getstakers"
             => Ok(json!([])),
-        "getslotleader" | "getclockstatus" | "getslotcalendar" | "getfuturepool"
+        "getslotleader" | "getclockstatus" | "getfuturepool"
             => Ok(json!({})),
+        "getslotcalendar" => super::consensus::get_slot_calendar(app),
+        "spark_status"    => super::spark::spark_status(app),
+        "spark_votes"     => super::spark::spark_votes(app, &params),
+        "strategy_register" => super::strategies::strategy_register(app, &params),
+        "strategy_activate" => super::strategies::strategy_activate(app, &params),
+        "strategy_get"      => super::strategies::strategy_get(app, &params),
+        "strategy_list"     => super::strategies::strategy_list(app, &params),
         "stake" | "unstake" | "become_validator" | "validator_heartbeat"
             => Err("consensus: not yet ported".into()),
         "getstake"          => Ok(json!({"amount": 0})),
@@ -228,6 +235,9 @@ pub async fn dispatch(app: &AppState, method: &str, params: Value) -> Result<Val
         "agent_status" | "agent_pending_decisions" | "agent_report_execution"
             => Ok(json!({})),
         "getagent" => Ok(json!(Value::Null)),
+
+        // ── OmniScript on-chain scripting ─────────────────────────────────
+        "omni_execScript" => super::omniscript::handle_exec_script(params, app).await,
 
         // ── Oracle / prices ───────────────────────────────────────────────
         "omnibus_getoracleprices" | "omnibus_getallprices" | "omnibus_getexchangefeed"
