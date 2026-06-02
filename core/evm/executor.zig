@@ -23,11 +23,11 @@ const CHAIN_ID: u64 = 7771;
 const INTRINSIC_GAS: u64 = 21_000;
 
 // ---------------------------------------------------------------------------
-// Keccak256 stub (SHA-256) — same as interpreter.zig, see note there
+// Keccak-256 (Ethereum-compatible, same as interpreter.zig)
 // ---------------------------------------------------------------------------
 fn keccak256_stub(data: []const u8) [32]u8 {
     var out: [32]u8 = undefined;
-    std.crypto.hash.sha2.Sha256.hash(data, &out, .{});
+    std.crypto.hash.sha3.Keccak256.hash(data, &out, .{});
     return out;
 }
 

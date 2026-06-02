@@ -16,7 +16,7 @@ pub const Account = struct {
     nonce: u64,
     /// Deployed bytecode
     code: []u8,
-    /// SHA-256 of code (stub; real keccak256 in production)
+    /// Keccak-256 of code (Ethereum-compatible)
     code_hash: [32]u8,
 
     pub fn deinit(self: *Account, alloc: std.mem.Allocator) void {

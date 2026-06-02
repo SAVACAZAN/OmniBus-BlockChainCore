@@ -130,13 +130,13 @@ pub const Memory = struct {
 };
 
 // ---------------------------------------------------------------------------
-// Keccak256 stub (SHA-256 — known incorrect, placeholder)
-// NOTE: Replace with real Keccak-256 when std.crypto.hash.keccak lands or
-//       a port becomes available. Tagged as STUB in comments throughout.
+// Keccak-256 — Ethereum-compatible (unpadded Keccak, not SHA3-256).
+// std.crypto.hash.sha3.Keccak256 is the correct primitive (0x01 padding,
+// matches the Ethereum Yellow Paper and all EVM implementations).
 // ---------------------------------------------------------------------------
 fn keccak256_stub(data: []const u8) [32]u8 {
     var out: [32]u8 = undefined;
-    std.crypto.hash.sha2.Sha256.hash(data, &out, .{});
+    std.crypto.hash.sha3.Keccak256.hash(data, &out, .{});
     return out;
 }
 
