@@ -83,12 +83,16 @@ const rpc_subscription = @import("rpc/subscription.zig");
 const rpc_ns = @import("rpc/ns.zig");
 const rpc_identity = @import("rpc/identity.zig");
 const rpc_agents = @import("rpc/agents.zig");
+const rpc_strategies = @import("rpc/strategies.zig");
 const rpc_pq = @import("rpc/pq.zig");
 const rpc_swap = @import("rpc/swap.zig");
 const rpc_spv = @import("rpc/spv.zig");
 const rpc_oracle = @import("rpc/oracle.zig");
 const rpc_wallet = @import("rpc/wallet.zig");
 const rpc_exchange = @import("rpc/exchange.zig");
+const rpc_omniscript = @import("rpc/omniscript.zig");
+const rpc_slot_calendar = @import("rpc/slot_calendar.zig");
+const rpc_spark      = @import("rpc/spark.zig");
 pub const Metrics     = benchmark_mod.Metrics;
 
 pub const ExchangePair = struct {
@@ -3083,6 +3087,8 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getclockstatus"))   return rpc_consensus.handleGetClockStatus(ctx, id);
     if (std.mem.eql(u8, method, "getslotcalendar")) return rpc_consensus.handleGetSlotCalendar(ctx, id);
     if (std.mem.eql(u8, method, "getfuturepool"))    return rpc_consensus.handleGetFuturePool(ctx, id);
+    if (std.mem.eql(u8, method, "slot_calendar"))    return rpc_slot_calendar.handleSlotCalendar(alloc, id);
+    if (std.mem.eql(u8, method, "slot_get"))         return rpc_slot_calendar.handleSlotGet(alloc, body, id);
     if (std.mem.eql(u8, method, "getminerinfo"))     return rpc_mining.handleMinerInf(ctx, id);
     if (std.mem.eql(u8, method, "getnodelist"))      return rpc_net.handleNodeList(ctx, id);
     if (std.mem.eql(u8, method, "estimatefee"))       return rpc_mempool.handleEstimateFee(ctx, id);
@@ -3175,6 +3181,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "pq_attestation"))   return rpc_pq.handlePqAttestation(body, ctx, id);
     if (std.mem.eql(u8, method, "getpqidentity"))    return rpc_pq.handleGetPqIdentity(body, ctx, id);
     if (std.mem.eql(u8, method, "sendpqattest"))     return rpc_pq.handleSendPqAttest(body, ctx, id);
+    // EDU + GOV badge attestation (Sprint 1 — coin_type 782/783):
+    if (std.mem.eql(u8, method, "edu_attest"))       return rpc_pq.handleEduAttest(body, ctx, id);
+    if (std.mem.eql(u8, method, "gov_attest"))       return rpc_pq.handleGovAttest(body, ctx, id);
 
     // ── On-chain labels (decentralized address tagging) ─────────────────
     if (std.mem.eql(u8, method, "applylabel"))       return rpc_social.handleApplyLabel(body, ctx, id);
@@ -3345,6 +3354,18 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "agent_status"))            return rpc_agents.handleAgentStatus(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_pending_decisions")) return rpc_agents.handleAgentPendingDecisions(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_report_execution"))  return rpc_agents.handleAgentReportExecution(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_task_submit"))       return rpc_agents.handleAgentTaskSubmit(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_task_status"))       return rpc_agents.handleAgentTaskStatus(body, ctx, id);
+    if (std.mem.eql(u8, method, "agent_task_cancel"))       return rpc_agents.handleAgentTaskCancel(body, ctx, id);
+    if (std.mem.eql(u8, method, "faucet_request"))          return rpc_agents.handleFaucetRequest(body, ctx, id);
+
+    // ── Strategy Registry ────────────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "strategy_register"))    return rpc_strategies.handleStrategyRegister(body, ctx, id);
+    if (std.mem.eql(u8, method, "strategy_activate"))    return rpc_strategies.handleStrategyActivate(body, ctx, id);
+    if (std.mem.eql(u8, method, "strategy_deactivate"))  return rpc_strategies.handleStrategyDeactivate(body, ctx, id);
+    if (std.mem.eql(u8, method, "strategy_get"))         return rpc_strategies.handleStrategyGet(body, ctx, id);
+    if (std.mem.eql(u8, method, "strategy_list"))        return rpc_strategies.handleStrategyList(body, ctx, id);
+    if (std.mem.eql(u8, method, "strategy_update_pnl"))  return rpc_strategies.handleStrategyUpdatePnl(body, ctx, id);
 
     // ── Bridge endpoints ─────────────────────────────────────────────────────
     if (std.mem.eql(u8, method, "getbridgestatus"))       return rpc_swap.handleBridgeStatus(ctx, id);
@@ -3385,6 +3406,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "become_validator"))  return rpc_consensus.handleBecomeValidator(body, ctx, id);
     if (std.mem.eql(u8, method, "validator_heartbeat")) return rpc_consensus.handleValidatorHeartbeat(body, ctx, id);
     if (std.mem.eql(u8, method, "getslashevents"))    return rpc_consensus.handleGetSlashEvents(body, ctx, id);
+    // ── SPARK Sub-Block Consensus ────────────────────────────────────────────
+    if (std.mem.eql(u8, method, "spark_status"))     return rpc_spark.handleSparkStatus(alloc, ctx, id);
+    if (std.mem.eql(u8, method, "spark_votes"))      return rpc_spark.handleSparkVotes(alloc, body, ctx, id);
     if (std.mem.eql(u8, method, "agent_register"))    return rpc_agents.handleAgentRegister(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_unregister"))  return rpc_agents.handleAgentUnregister(body, ctx, id);
     if (std.mem.eql(u8, method, "agent_edit"))        return rpc_agents.handleAgentEdit(body, ctx, id);
@@ -3393,6 +3417,9 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getagent"))          return rpc_agents.handleGetAgent(body, ctx, id);
     if (std.mem.eql(u8, method, "getreputation"))     return rpc_identity.handleGetReputation(body, ctx, id);
     if (std.mem.eql(u8, method, "getreputationtop"))  return rpc_identity.handleGetReputationTop(body, ctx, id);
+
+    // ── OmniScript on-chain execution (Phase 2) ─────────────────────────────
+    if (std.mem.eql(u8, method, "omni_execScript"))   return rpc_omniscript.handleExecScript(body, ctx, id);
 
     return errorJson(-32601, "Method not found", id, alloc);
 }
@@ -3406,19 +3433,23 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
 
 pub fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
     return switch (scheme) {
-        .omni_ecdsa       => "ECDSA (secp256k1)",
-        .love_dilithium   => "ML-DSA-87 (LOVE soulbound)",
-        .food_falcon      => "Falcon-512 (FOOD soulbound)",
-        .rent_ml_dsa      => "ML-DSA-87 (RENT soulbound)",
-        .vacation_slh_dsa => "SLH-DSA-256s (VACATION soulbound)",
-        .pq_omni_ml_dsa   => "ML-DSA-87",
-        .pq_omni_falcon   => "Falcon-512",
-        .pq_omni_dilithium=> "ML-DSA-87 (Dilithium-5)",
-        .pq_omni_slh_dsa  => "SLH-DSA-256s",
-        .hybrid_q1        => "Hybrid ECDSA+ML-DSA-87",
-        .hybrid_q2        => "Hybrid ECDSA+Falcon-512",
-        .hybrid_q3        => "Hybrid ECDSA+Dilithium-5",
-        .hybrid_q4        => "Hybrid ECDSA+SLH-DSA",
+        .omni_ecdsa        => "ECDSA (secp256k1)",
+        .love_dilithium    => "ML-DSA-87 (LOVE soulbound)",
+        .food_falcon       => "Falcon-512 (FOOD soulbound)",
+        .rent_ml_dsa       => "ML-DSA-87 (RENT soulbound)",
+        .vacation_slh_dsa  => "SLH-DSA-256s (VACATION soulbound)",
+        .pq_omni_ml_dsa    => "ML-DSA-87",
+        .pq_omni_falcon    => "Falcon-512",
+        .pq_omni_dilithium => "ML-DSA-87 (Dilithium-5)",
+        .pq_omni_slh_dsa   => "SLH-DSA-256s",
+        .hybrid_q1         => "Hybrid ECDSA+ML-DSA-87",
+        .hybrid_q2         => "Hybrid ECDSA+Falcon-512",
+        .hybrid_q3         => "Hybrid ECDSA+Dilithium-5",
+        .hybrid_q4         => "Hybrid ECDSA+SLH-DSA",
+        .edu_cross_rsdpg   => "CROSS-RSDPG-128 (EDU soulbound)",
+        .gov_mayo          => "MAYO-3 (GOV soulbound)",
+        .edu_transferable  => "CROSS-RSDPG-128 (EDU transferable)",
+        .gov_transferable  => "MAYO-3 (GOV transferable)",
     };
 }
 
@@ -5208,6 +5239,12 @@ pub fn estimateTxBytes(scheme: transaction_mod.Scheme) u64 {
         .hybrid_q3         => @as(u64, 5342),  // ECDSA(97) + ML-DSA-87(5245)
         .hybrid_q2         => @as(u64, 1660),  // ECDSA(97) + Falcon-512(1563)
         .hybrid_q4         => @as(u64, 50081), // ECDSA(97) + SLH-DSA(49984)
+        // EDU: CROSS-RSDPG-128 sig(10208) + pubkey(54)
+        .edu_cross_rsdpg,
+        .edu_transferable  => @as(u64, 10262),
+        // GOV: MAYO-3 sig(577) + pubkey(2656)
+        .gov_mayo,
+        .gov_transferable  => @as(u64, 3233),
     };
     return base + extra;
 }

@@ -137,6 +137,12 @@ pub const ConsensusParams = struct {
     /// block's miner instead of the exchange treasury. Default true (Bitcoin-
     /// style miner incentive); flip via governance to revert to treasury.
     route_fees_to_miner: bool = true,
+    /// PQ Stage 2 hard-fork activation height for EDU/GOV badge TXs.
+    /// TXs with scheme .edu_cross_rsdpg / .gov_mayo / .edu_transferable /
+    /// .gov_transferable are REJECTED below this height.
+    /// Default: 100_000 (testnet); mainnet deploys set 200_000 before launch.
+    /// Can be updated via governance proposal (executor sets consensus_params).
+    pq_stage2_fork_height: u64 = 100_000,
 };
 
 /// Cross-chain identity record — registered via op_return "pq_attest_v1:".

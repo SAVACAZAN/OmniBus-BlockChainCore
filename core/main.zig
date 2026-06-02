@@ -256,6 +256,15 @@ const node_shutdown = @import("node/graceful_shutdown.zig");
 pub var g_slot_calendar: orchestrator_mod.SlotCalendar =
     orchestrator_mod.SlotCalendar.empty();
 
+// ── Global Slot Calendar v2 — self-contained [20]u8 address-byte calendar ──
+// Parallel calendar using the new slot_calendar.zig module. Exposed via
+// RPC endpoints `slot_calendar` and `slot_get`. Rebuilt every block
+// alongside g_slot_calendar. Lives in main.zig so rpc/slot_calendar.zig
+// can import it via `@import("../main.zig").g_slot_calendar_v2`.
+const slot_calendar_mod = @import("slot_calendar.zig");
+pub var g_slot_calendar_v2: slot_calendar_mod.SlotCalendar =
+    slot_calendar_mod.SlotCalendar.init();
+
 // ── Global WS Exchange Feed — live BTC + LCX bid/ask via WebSocket ──────────
 // Initialized in main() after all other inits, before mining loop
 pub var g_ws_feed: ?ws_exchange_feed_mod.ExchangeFeed = null;
@@ -1017,6 +1026,48 @@ pub fn main() !void {
                     1000, // slot interval ms — matches block time
                     validator_mod.leaderForSlot,
                 );
+
+                // ── SlotCalendar v2 recompute ─────────────────────────────────
+                // Build [20]u8 address array from the string-based validator set
+                // and decode the block hash hex into 32 raw bytes for the v2
+                // calendar's SHA256-based leader election.
+                {
+                    const MAX_VALIDATORS_V2 = 256;
+                    var v2_addrs: [MAX_VALIDATORS_V2][20]u8 = undefined;
+                    const n_validators = @min(bc.validator_set.items.len, MAX_VALIDATORS_V2);
+                    var vi: usize = 0;
+                    while (vi < n_validators) : (vi += 1) {
+                        const addr_str = bc.validator_set.items[vi].address;
+                        var addr_bytes = std.mem.zeroes([20]u8);
+                        // Encode the string address into the first N bytes (truncate/zero-pad).
+                        const copy_len = @min(addr_str.len, 20);
+                        @memcpy(addr_bytes[0..copy_len], addr_str[0..copy_len]);
+                        v2_addrs[vi] = addr_bytes;
+                    }
+                    // Convert hex tip hash to [32]u8 bytes.
+                    var tip_hash_bytes = std.mem.zeroes([32]u8);
+                    const hash_hex = new_block.hash;
+                    if (hash_hex.len >= 64) {
+                        var bi: usize = 0;
+                        while (bi < 32) : (bi += 1) {
+                            const hi = bi * 2;
+                            const lo = hi + 1;
+                            const hi_nibble: u8 = if (hash_hex[hi] >= 'a') hash_hex[hi] - 'a' + 10
+                                else if (hash_hex[hi] >= 'A') hash_hex[hi] - 'A' + 10
+                                else hash_hex[hi] - '0';
+                            const lo_nibble: u8 = if (hash_hex[lo] >= 'a') hash_hex[lo] - 'a' + 10
+                                else if (hash_hex[lo] >= 'A') hash_hex[lo] - 'A' + 10
+                                else hash_hex[lo] - '0';
+                            tip_hash_bytes[bi] = (hi_nibble << 4) | lo_nibble;
+                        }
+                    }
+                    g_slot_calendar_v2.recompute(
+                        @intCast(block_count),
+                        tip_hash_bytes,
+                        last_block_produced_ms,
+                        v2_addrs[0..n_validators],
+                    );
+                }
             }
 
             // ── Stabilizer: record block arrival + adapt timeouts ──────────

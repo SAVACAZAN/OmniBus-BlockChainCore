@@ -10,6 +10,7 @@ const main_mod = @import("../main.zig");
 const hex_utils = @import("../hex_utils.zig");
 const oracle_types = @import("../oracle_types.zig");
 const utxo_mod = @import("../utxo.zig");
+const spark_consensus = @import("../spark_consensus.zig");
 
 const array_list = std.array_list;
 
@@ -214,6 +215,54 @@ pub fn mineBlockForMiner(self: *Blockchain, miner_address: []const u8) !Block {
     self.mutex.lock();
     defer self.mutex.unlock();
     try self.chain.append(block);
+
+    // ── SPARK Sub-Block Consensus — 10-layer validation ──────────────────────
+    // Run all 10 validation layers against the freshly mined block.
+    // Uses the miner's own address as the validator identity (node = single
+    // validator on testnet; multi-validator on mainnet each runs this loop
+    // independently and broadcasts their votes via P2P).
+    //
+    // No allocator used inside validateBlock — all stack/global.
+    {
+        var validator_addr: [20]u8 = [_]u8{0} ** 20;
+        const addr_bytes = @min(miner_address.len, 20);
+        @memcpy(validator_addr[0..addr_bytes], miner_address[0..addr_bytes]);
+
+        const spark_votes = spark_consensus.validateBlock(
+            self.allocator, &block, validator_addr, self,
+        );
+
+        var consensus_state = spark_consensus.BlockConsensusState.init(
+            blk: {
+                // Extract [32]u8 from block.hash (64-char hex)
+                var raw: [32]u8 = [_]u8{0} ** 32;
+                if (block.hash.len == 64) {
+                    for (0..32) |bi| {
+                        const hi = std.fmt.charToDigit(block.hash[bi * 2], 16) catch 0;
+                        const lo = std.fmt.charToDigit(block.hash[bi * 2 + 1], 16) catch 0;
+                        raw[bi] = (hi << 4) | lo;
+                    }
+                }
+                break :blk raw;
+            },
+        );
+        for (spark_votes) |vote| consensus_state.addVote(vote);
+        const trust = consensus_state.computeTrust();
+
+        if (trust == .rejected) {
+            std.debug.print("[SPARK] Block #{d} REJECTED by sub-block consensus (attest={d}/10)\n",
+                .{ index, consensus_state.attest_count });
+        } else if (trust == .low) {
+            std.debug.print("[SPARK] Block #{d} LOW TRUST (attest={d}/10) — finalized with warning\n",
+                .{ index, consensus_state.attest_count });
+        } else {
+            std.debug.print("[SPARK] Block #{d} HIGH TRUST (attest={d}/10)\n",
+                .{ index, consensus_state.attest_count });
+        }
+
+        // Record state for RPC queries (spark_status / spark_votes)
+        spark_consensus.recordState(consensus_state);
+    }
 
     // Refresh validator set after a new block: a miner that just
     // crossed MIN_VALIDATOR_BALANCE joins automatically; one whose

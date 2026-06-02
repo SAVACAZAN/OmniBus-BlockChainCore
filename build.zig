@@ -322,6 +322,8 @@ pub fn build(b: *std.Build) void {
     test_chain_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",     target, optimize, build_options).step);
     test_chain_step.dependOn(&addTest(b, "ws-feed-tests", "core/ws_exchange_feed_tests.zig", target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "slot-calendar",      "core/slot_calendar.zig",      target, optimize, build_options).step);
+    test_chain_step.dependOn(&addTest(b, "slot-calendar-test", "core/slot_calendar_test.zig", target, optimize, build_options).step);
 
     // ── Tests: network + P2P + sync ───────────────────────────────────────────
     const test_net_step = b.step("test-net", "Test P2P + sync + network");
@@ -349,6 +351,7 @@ pub fn build(b: *std.Build) void {
     test_shard_step.dependOn(&addTest(b, "sub-block",   "core/sub_block.zig",   target, optimize, build_options).step);
     test_shard_step.dependOn(&addTest(b, "shard-config", "core/shard_config.zig", target, optimize, build_options).step);
     test_shard_step.dependOn(&addTest(b, "blockchain-v2", "core/blockchain_v2.zig", target, optimize, build_options).step);
+    test_shard_step.dependOn(&addTest(b, "spark-consensus", "core/spark_consensus.zig", target, optimize, build_options).step);
 
     // ── Tests: storage + binary + archive ────────────────────────────────────
     const test_storage_step = b.step("test-storage", "Test storage + binary codec");
@@ -497,6 +500,7 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "sub-block",    "core/sub_block.zig",    target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "shard-config", "core/shard_config.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "blockchain-v2","core/blockchain_v2.zig",target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "spark-consensus","core/spark_consensus.zig",target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "storage",      "core/storage.zig",      target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "binary-codec", "core/binary_codec.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "archive",      "core/archive_manager.zig",target, optimize, build_options).step);
@@ -548,6 +552,8 @@ pub fn build(b: *std.Build) void {
     test_all_step.dependOn(&addTest(b, "order-swap-link","core/order_swap_link.zig",  target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "intent-registry","core/intent_registry.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "grid-engine",   "core/grid_engine.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "slot-calendar",      "core/slot_calendar.zig",      target, optimize, build_options).step);
+    test_all_step.dependOn(&addTest(b, "slot-calendar-test", "core/slot_calendar_test.zig", target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "price-oracle",  "core/price_oracle.zig",     target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "pouw",          "core/consensus_pouw.zig",   target, optimize, build_options).step);
     test_all_step.dependOn(&addTest(b, "ob-sync",       "core/orderbook_sync.zig",   target, optimize, build_options).step);

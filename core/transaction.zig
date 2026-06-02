@@ -175,6 +175,12 @@ pub const Scheme = enum(u8) {
     hybrid_q2 = 10,
     hybrid_q3 = 11,
     hybrid_q4 = 12,
+    // EDU + GOV soulbound badges (Sprint 1 — coin_type 782/783):
+    edu_cross_rsdpg = 13,  // CROSS-RSDPG-128-balanced — EDU badge (ob_c1_)
+    gov_mayo = 14,         // MAYO-3 — GOV badge (ob_y3_)
+    // Transferable EDU/GOV variants:
+    edu_transferable = 15, // obc1_ — transferable EDU
+    gov_transferable = 16, // oby3_ — transferable GOV
 
     pub fn prefix(self: Scheme) []const u8 {
         return switch (self) {
@@ -183,6 +189,10 @@ pub const Scheme = enum(u8) {
             .food_falcon => "ob_f5_",
             .rent_ml_dsa => "ob_d5_",
             .vacation_slh_dsa => "ob_s3_",
+            .edu_cross_rsdpg => "ob_c1_",   // EDU soulbound
+            .gov_mayo => "ob_y3_",           // GOV soulbound
+            .edu_transferable => "obc1_",    // EDU transferable
+            .gov_transferable => "oby3_",    // GOV transferable
             // FARA underscore initial — distinct vizual de soulbound
             .pq_omni_ml_dsa, .hybrid_q1 => "obk1_",
             .pq_omni_falcon, .hybrid_q2 => "obf5_",
@@ -200,6 +210,10 @@ pub const Scheme = enum(u8) {
         if (std.mem.startsWith(u8, addr, "ob_f5_")) return .food_falcon;
         if (std.mem.startsWith(u8, addr, "ob_d5_")) return .rent_ml_dsa;
         if (std.mem.startsWith(u8, addr, "ob_s3_")) return .vacation_slh_dsa;
+        if (std.mem.startsWith(u8, addr, "ob_c1_")) return .edu_cross_rsdpg;
+        if (std.mem.startsWith(u8, addr, "ob_y3_")) return .gov_mayo;
+        if (std.mem.startsWith(u8, addr, "obc1_")) return .edu_transferable;
+        if (std.mem.startsWith(u8, addr, "oby3_")) return .gov_transferable;
         // PQ-OMNI / Hybrid: fara underscore initial.
         // Returnam pq_omni_* aici; chain-ul distinge schema reala (PQ vs Hybrid)
         // din TX.scheme propriu, nu din prefixul adresei.
@@ -318,6 +332,12 @@ pub const Transaction = struct {
         "obf5_",       // PQ-OMNI Falcon-512      (FIPS 206) / Hybrid Q2 (ECDSA + Falcon)
         "obd5_",       // PQ-OMNI Dilithium-5/ML-DSA-87      / Hybrid Q3 (ECDSA + Dilithium-5)
         "obs3_",       // PQ-OMNI SLH-DSA-256s    (FIPS 205) / Hybrid Q4 (ECDSA + SLH-DSA)
+        // PQ Stage 2 — EDU + GOV soulbound badges (coin_type 782/783, hard-fork height PQ_STAGE2_FORK_HEIGHT).
+        // Activated at chain height; pre-fork nodes reject TXs from these prefixes.
+        "ob_c1_",      // EDU soulbound   (coin 782) — CROSS-RSDPG-128-balanced
+        "ob_y3_",      // GOV soulbound   (coin 783) — MAYO-3
+        "obc1_",       // EDU transferable (coin 782) — same math family, no soulbound lock
+        "oby3_",       // GOV transferable (coin 783) — same math family, no soulbound lock
         "0x",          // ETH-compatible bridge
     };
 
@@ -467,10 +487,13 @@ pub const Transaction = struct {
         const to_ok = isValidAddress(self.to_address);
         if (!(from_ok and to_ok)) return false;
 
-        // Soulbound reputation addresses (ob_k1_/ob_f5_/ob_d5_/ob_s3_) acumuleaza
-        // reputatie si NU pot fi sender. Fondurile din ele sunt intotdeauna locked.
-        // Adresele transferabile (ob1q/obk1_/obf5_/obd5_/obs3_) pot fi from.
-        const SOULBOUND_PREFIXES = [_][]const u8{ "ob_k1_", "ob_f5_", "ob_d5_", "ob_s3_" };
+        // Soulbound reputation addresses cannot be senders — they accumulate
+        // reputation only and never hold spendable funds.
+        // Transferable prefixes (ob1q/obk1_/obf5_/obd5_/obs3_/obc1_/oby3_) can be from.
+        const SOULBOUND_PREFIXES = [_][]const u8{
+            "ob_k1_", "ob_f5_", "ob_d5_", "ob_s3_", // LOVE/FOOD/RENT/VACATION (Phase 1)
+            "ob_c1_", "ob_y3_",                      // EDU/GOV (PQ Stage 2)
+        };
         for (SOULBOUND_PREFIXES) |pfx| {
             if (std.mem.startsWith(u8, self.from_address, pfx)) return false;
         }
@@ -640,6 +663,9 @@ pub const Transaction = struct {
             // existing PQ verify path through pq_send / sendpqattest).
             .pq_omni_ml_dsa, .pq_omni_falcon, .pq_omni_dilithium, .pq_omni_slh_dsa,
             .hybrid_q1, .hybrid_q2, .hybrid_q3, .hybrid_q4 => true,
+            // EDU + GOV soulbound/transferable stubs — liboqs support pending.
+            // Accept in mempool; dedicated attest flow validates at RPC layer.
+            .edu_cross_rsdpg, .gov_mayo, .edu_transferable, .gov_transferable => true,
         };
     }
 };

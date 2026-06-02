@@ -11,7 +11,10 @@
 
 pub mod db;
 pub mod executor;
+pub mod interface;
 pub mod logs;
+#[cfg(test)]
+mod tests;
 
-pub use executor::{execute_call, execute_tx, CallResult, ExecResult, ExecStatus};
+pub use executor::{execute_call, execute_tx, ExecStatus};
 pub use logs::{read_logs, write_logs, Log};

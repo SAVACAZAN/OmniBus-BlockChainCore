@@ -54,6 +54,26 @@ pub fn validateTransaction(self: *Blockchain, tx: *const Transaction) !bool {
     // 3. Prefix valid (isValid verifică prefix + amount + op_return length)
     if (!tx.isValid()) { std.debug.print("[VALIDATE] FAIL: isValid() from={s} to={s} amt={d}\n", .{tx.from_address[0..@min(42,tx.from_address.len)], tx.to_address[0..@min(42,tx.to_address.len)], tx.amount}); return false; }
 
+    // 3a. PQ Stage 2 hard-fork gate — EDU/GOV badge schemes are only valid
+    //     at or after consensus_params.pq_stage2_fork_height.
+    {
+        const pq_stage2_schemes = [_]transaction_mod.Scheme{
+            .edu_cross_rsdpg, .gov_mayo, .edu_transferable, .gov_transferable,
+        };
+        var is_pq_stage2 = false;
+        for (pq_stage2_schemes) |s| {
+            if (tx.scheme == s) { is_pq_stage2 = true; break; }
+        }
+        if (is_pq_stage2) {
+            const block_height: u64 = @intCast(self.chain.items.len);
+            if (block_height < self.consensus_params.pq_stage2_fork_height) {
+                std.debug.print("[VALIDATE] FAIL: PQ Stage 2 not active (height={d} < fork={d})\n",
+                    .{ block_height, self.consensus_params.pq_stage2_fork_height });
+                return false;
+            }
+        }
+    }
+
     // 3b. Dust threshold — respinge TX prea mici (anti-spam, ca Bitcoin 546 sat)
     //     Skip dust check for OP_RETURN data-only TXs (amount=0 is allowed)
     //     Skip for Phase-2A typed TXs (orderbook/bridge/etc. — amount carries
