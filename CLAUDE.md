@@ -103,7 +103,7 @@ Modules don't share a central module registry. Each file declares its own types 
 | P2P port | 9000+ (configurable) | — |
 | EVM JSON-RPC port | 8333 (Rust impl) | `core-rust/src/main.rs` |
 | Max supply | 21,000,000 OMNI | `MAX_SUPPLY_SAT = 21e15` |
-| Block reward | 8,333,333 sat/block (~0.0833 OMNI) | `BLOCK_REWARD_SAT` |
+| Block reward | 83,333,333 sat/block (~0.0833 OMNI = 50 OMNI / 600 blocks) | `BLOCK_REWARD_SAT` |
 | Halving interval | 126,144,000 blocks (~4 years @ 1s) | `HALVING_INTERVAL` |
 | SAT/OMNI | 1,000,000,000 (1e9) | `SAT_PER_OMNI` |
 | Difficulty retarget | every 2016 blocks | `RETARGET_INTERVAL` |
